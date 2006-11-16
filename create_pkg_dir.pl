@@ -12,7 +12,7 @@ use Test::Inline::Extract;
 if(!@ARGV){@ARGV = qw(HoneyClient::Util HoneyClient::Agent HoneyClient::Manager)}
 
 #   The path where the packages are
-my $src_path  = "sandbox";
+my $src_path  = "lib";
 
 #   Directories to include in the distribution 
 my %inc_dirs = (etc => $src_path . '/etc',
