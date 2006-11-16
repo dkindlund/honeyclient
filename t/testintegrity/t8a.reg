@@ -1,0 +1,7 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST]
+"istanbul"="not constantinople"
+
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST\New Key #1]
+

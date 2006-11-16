@@ -1,0 +1,9 @@
+
+Added key and name/data: 
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST\New Key #2]
+"me"="too"
+
+
+Added name/data for existing key
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST\New Key #1]
+"hello"="world"

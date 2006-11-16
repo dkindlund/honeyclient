@@ -1,0 +1,7 @@
+
+Changed: 
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST]
+Old Value:
+"egad a"="base tone"
+New Value:
+"denotes a"="bad age"

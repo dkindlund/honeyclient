@@ -1,0 +1,8 @@
+
+Deleted empty key: 
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST\New Key #1]
+
+
+Added key and name/data: 
+[HKEY_LOCAL_MACHINE\HARDWARE\TEST]
+"new york"="not new amsterdam"

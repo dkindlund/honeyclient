@@ -1,0 +1,11 @@
+Files deleted:
+/tmp/hc_test_dir/hi.txt
+
+
+Files added:
+/tmp/hc_test_dir/hi2.txt
+
+
+Files modified:
+
+

@@ -1,0 +1,6 @@
+863,865c863
+< "istanbul"="not constantinople"
+< 
+< [HKEY_LOCAL_MACHINE\HARDWARE\TEST\New Key #1]
+---
+> "new york"="not new amsterdam"
