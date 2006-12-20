@@ -1,8 +1,9 @@
 ################################################################################
-# Created on:  June 1, 2006
+# Created on:  June 01, 2006
 # Package:     HoneyClient::Agent
 # File:        Integrity.pm
-# Description: Module for checking the system integrity for possible modification
+# Description: Module for checking the system integrity for possible
+#              modifications.
 #
 # @author knwang, xkovah, ttruong
 #
@@ -24,8 +25,6 @@
 # 02110-1301, USA.
 #
 ################################################################################
-
-
 
 =pod
 
@@ -104,9 +103,7 @@ can_ok('HoneyClient::Agent::Integrity', 'initAll');
 can_ok('HoneyClient::Agent::Integrity', 'checkAll');
 can_ok('HoneyClient::Agent::Integrity', 'initFileSystem');
 can_ok('HoneyClient::Agent::Integrity', 'checkFileSystem');
-can_ok('HoneyClient::Agent::Integrity', 'initRegistry');
-can_ok('HoneyClient::Agent::Integrity', 'checkRegistry');
-use HoneyClient::Agent::Integrity qw(initAll checkAll initRegistry checkRegistry initFileSystem checkFileSystem);
+use HoneyClient::Agent::Integrity qw(initAll checkAll initFileSystem checkFileSystem);
 
 # Make sure HoneyClient::Util::Config loads.
 BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar)) or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
@@ -133,10 +130,12 @@ can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('Storable', qw(dclone nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
 can_ok('Storable', 'dclone');
-use Storable qw(dclone);
+can_ok('Storable', 'nfreeze');
+can_ok('Storable', 'thaw');
+use Storable qw(dclone nfreeze thaw);
 
 ###Testing Globals###
 # Directory where the known-good test files are stored
@@ -158,13 +157,16 @@ $change_file = getVar(name => "change_file");
 
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
+use HoneyClient::Agent::Integrity::Registry;
 use File::Find qw(find);
 #use Win32::TieRegistry;
 use Digest::MD5;
 use MIME::Base64;
-use Switch;
-use Storable qw(dclone);
+use Storable qw(nfreeze thaw dclone);
+$Storable::Deparse = 1;
+$Storable::Eval = 1;
 use Data::Dumper;
+use File::Basename qw(dirname);
 
 BEGIN {
     # Defines which functions can be called externally.
@@ -177,7 +179,7 @@ BEGIN {
     @ISA = qw(Exporter);
 
     # Symbols to export on request
-    @EXPORT = qw(new initAll checkAll initRegistry checkRegistry initFileSystem checkFileSystem);
+    @EXPORT = qw(new initAll checkAll);
 
     # Items to export into callers namespace by default. Note: do not export
     # names by default without a very good reason. Use EXPORT_OK instead.
@@ -207,111 +209,75 @@ my $g_ex_hash;
 
 #Used *for now* to signal whether any changes occured (if they == 1)
 my $g_fs_changes = 0;
-my $g_reg_changes = 0;
 
-#Used to initialize a default registry space to check if they don't specify anything when creating the object
-my @default_reg_check_array = ("HKEY_LOCAL_MACHINE", "HKEY_CLASSES_ROOT", "HKEY_CURRENT_USER", "HKEY_USERS", "HKEY_CURRENT_CONFIG");
-
-#I have no idea why slashes need to be triple-slashes since it's single quoted, but that's what works...
-#also, of course [ and ] and any other special characters you find need to be escaped
-my @default_reg_exclude_array = (	'\[HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Cryptography\\\RNG\]', 
-						'\[HKEY_CURRENT_USER\\\SessionInformation\]',
-						'\[HKEY_USERS\\\.+\\\SessionInformation\]', 
-						'\[HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\WindowsUpdate\\\Auto Update\]', 
-						'\[HKEY_USERS\\\.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\UserAssist\\\.*\\\Count\]', 
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\.+\\\Parameters\\\Tcpip\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\Tcpip\\\Parameters\\\Interfaces\\\.+\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\Dhcp\\\Parameters\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\.+\\\Parameters\\\Tcpip\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\Tcpip\\\Parameters\\\Interfaces\\\.+\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\Dhcp\\\Parameters\]',
-						'\[HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\BITS]',
-						'\[HKEY_USERS\\\.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\UserAssist\\\.+\\\Count\]',
-						'\[HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\UserAssist\\\.+\\\Count\]',
-						'\[HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\Group Policy\\\State\\\Machine\\\Extension-List\\\.+\]',
-						'\[HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\Group Policy\\\State\\\.+\\\Extension-List\\\.+\]',
-						'\[HKEY_USERS\\\.+\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\BagMRU\]',
-						'\[HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\BagMRU\]',
-						'\[HKEY_CURRENT_USER\\\Volatile Environment\]',
-						'\[HKEY_USERS\\\.+\\\UNICODE Program Groups\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\SharedAccess\\\Epoch\]',
-						'\[HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\SharedAccess\\\Epoch\]',
-						);
-
-my @default_file_exclude_array = (	'/cygdrive/c/cygwin/tmp/changes.txt',
-						'/cygdrive/c/cygwin/tmp/cleanfile.txt',
-						'/cygdrive/c/Documents and Settings/Administrator/Desktop/honeyclient',
-						'/cygdrive/c/WINDOWS/Prefetch/',
-						'/cygdrive/c/WINDOWS/WindowsUpdate.log',
-						'/cygdrive/c/WINDOWS/Debug/UserMode/userenv.log',
-						'/cygdrive/c/WINDOWS/SoftwareDistribution/DataStore/',
-						'/cygdrive/c/WINDOWS/SchedLgU.Txt',
-						'/cygdrive/c/WINDOWS/SoftwareDistribution/ReportingEvents.log',
-						'/cygdrive/c/WINDOWS/system32/config/SysEvent.Evt',
-						'/cygdrive/c/WINDOWS/PCHEALTH/HELPCTR/DataColl/',
-						#Can't be included cause it's user specific
-						#'/cygdrive/c/WINDOWS/SoftwareDistribution/WuRedir/9482F4B4-E343-43B6-B170-9A65BC822C77/wuredir.cab.bak',
-						'/cygdrive/c/Documents and Settings/All Users/Application Data/Microsoft/Network/Downloader/',
-						'/cygdrive/c/Documents and Settings/Administrator/Application Data/Mozilla/Firefox/Profiles/',
-						'/cygdrive/c/Documents and Settings/Administrator/Local Settings/Application Data/Mozilla/Firefox/Profiles/',
-						'/cygdrive/c/Documents and Settings/Administrator/Application Data/Talkback/MozillaOrg/Firefox15/Win32/2006050817/permdata.box',
-						'/cygdrive/c/Documents and Settings/Administrator/Cookies/index.dat',
-						'/cygdrive/c/Documents and Settings/Administrator/Local Settings/History/History.IE5/',
-						'/cygdrive/c/Documents and Settings/Administrator/Local Settings/Temporary Internet Files/Content.IE5',
-						'/cygdrive/c/Documents and Settings/Administrator/Recent/',
-						'/cygdrive/c/Program Files/Mozilla Firefox/updates/',
-						'/cygdrive/c/Program Files/Mozilla Firefox/active-update.xml',
-						'/cygdrive/c/Program Files/Mozilla Firefox/updates.xml',
-						);
+# XXX: All dirs must NEVER end in a trailing slash.
+my @default_file_exclude_array = (
+    '/cygdrive/c/cygwin/tmp/changes.txt',
+    '/cygdrive/c/cygwin/tmp/cleanfile.txt',
+    '/cygdrive/c/cygwin/home/Administrator',
+    '/cygdrive/c/Documents and Settings/Administrator/Desktop/honeyclient',
+    '/cygdrive/c/WINDOWS/Prefetch',
+    '/cygdrive/c/WINDOWS/WindowsUpdate.log',
+    '/cygdrive/c/WINDOWS/Debug/UserMode/userenv.log',
+    '/cygdrive/c/WINDOWS/SoftwareDistribution/DataStore',
+    '/cygdrive/c/WINDOWS/SchedLgU.Txt',
+    '/cygdrive/c/WINDOWS/SoftwareDistribution/ReportingEvents.log',
+    '/cygdrive/c/WINDOWS/system32/config/SysEvent.Evt',
+    '/cygdrive/c/WINDOWS/system32/wbem',
+    '/cygdrive/c/WINDOWS/PCHEALTH/HELPCTR/DataColl',
+    '/cygdrive/c/Documents and Settings/All Users/Application Data/Microsoft/Network/Downloader',
+    '/cygdrive/c/Documents and Settings/Administrator/Application Data/Mozilla/Firefox/Profiles',
+    '/cygdrive/c/Documents and Settings/Administrator/Local Settings/Application Data/Mozilla/Firefox/Profiles',
+    '/cygdrive/c/Documents and Settings/Administrator/Application Data/Talkback/MozillaOrg/Firefox15/Win32/2006050817/permdata.box',
+    '/cygdrive/c/Documents and Settings/Administrator/Cookies/index.dat',
+    '/cygdrive/c/Documents and Settings/Administrator/Local Settings/History/History.IE5',
+    '/cygdrive/c/Documents and Settings/Administrator/Local Settings/Temporary Internet Files/Content.IE5',
+    '/cygdrive/c/Documents and Settings/Administrator/Recent',
+    '/cygdrive/c/Program Files/Mozilla Firefox/updates',
+    '/cygdrive/c/Program Files/Mozilla Firefox/active-update.xml',
+    '/cygdrive/c/Program Files/Mozilla Firefox/updates.xml',
+    '/cygdrive/c/WINDOWS/SoftwareDistribution/WuRedir',
+    '/cygdrive/c/WINDOWS/SYSTEM32/config/SecEvent.Evt',
+    '/cygdrive/c/WINDOWS/SYSTEM32/config/SysEvent.Evt',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/INDEX.BTR',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/INDEX.MAP',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/MAPPING.VER',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/MAPPING1.MAP',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/MAPPING2.MAP',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/OBJECTS.DATA',
+    '/cygdrive/c/WINDOWS/SYSTEM32/wbem/Repository/FS/OBJECTS.MAP',
+);
 
 
 my %PARAMS = (
 
-	### Files which are read in only ###
-	# List of files and directories to check during filesystem checking
-	file_checklist => getVar(name => "file_checklist", namespace => "HoneyClient::Agent::Integrity"),
+    # Contains the Registry object, once initialized.
+    _registry => undef,
+
+    # XXX: Clean the rest of these variables up.
+    ### Files which are read in only ###
+    # List of files and directories to check during filesystem checking
+    file_checklist => getVar(name => "file_checklist", namespace => "HoneyClient::Agent::Integrity"),
 	
 	# List of files or directories to exclude if found in subdirs during
 	# filesystem check.
-	file_exclude => getVar(name => "file_exclude", namespace => "HoneyClient::Agent::Integrity"),
-	
-	# List of registry keys to check
-	reg_list_to_check	=> getVar(name => "reg_list_to_check", namespace => "HoneyClient::Agent::Integrity"),
+    file_exclude => getVar(name => "file_exclude", namespace => "HoneyClient::Agent::Integrity"),
 	
 	### Files to write and read ###
 	# File to store hashes for files selected during the baseline
-	clean_file => getVar(name => "clean_file", namespace => "HoneyClient::Agent::Integrity"),
+    clean_file => getVar(name => "clean_file", namespace => "HoneyClient::Agent::Integrity"),
 	
 	# File to write any found changes to
-	change_file => getVar(name => "change_file", namespace => "HoneyClient::Agent::Integrity"),
+    change_file => getVar(name => "change_file", namespace => "HoneyClient::Agent::Integrity"),
 	
-	# Stores baseline for the registry. Always appended with a number
-	clean_reg => getVar(name => "clean_reg", namespace => "HoneyClient::Agent::Integrity"),
-	
-	# Stores the current state of the registry to check against the
-	# clean state
-	current_reg => getVar(name => "current_reg", namespace => "HoneyClient::Agent::Integrity"),
-	
-	# The file for the diff command to redirect it's output to.
-	# Always appended with a number.
-	diffs => getVar(name => "diffs", namespace => "HoneyClient::Agent::Integrity"),
-
 	#vars
-	file_exclude_hash => undef, #hash, holds files to exclude
-	file_list => undef,	#list, files to check when checking filesystem
-	reg1 => undef,		#list,  holds entire contents of first file to diff
-	reg2 => undef,		#list, holds entire contents of second file to diff
+    file_exclude_hash => undef, #hash, holds files to exclude
+    file_list => undef,	#list, files to check when checking filesystem
 	
-	#array that holds the locations in the registry to check
-	reg_check_array => undef,
-	#array that holds the registry locations that should be excluded from the detected changes
-	reg_exclude_array => undef, 
-
 	#works exactly like the reg_exclude_array, and is initialized in a similar way
-	file_exclude_array => undef,
+    file_exclude_array => undef,
 
-	changes => undef,	#multi-dimensional array used for holding individual instances of a diff output
-	g_count => -1,	#highest level index for, each $g_count will be a different instance of a diff grouping
+    changes => undef,	#multi-dimensional array used for holding individual instances of a diff output
 );
 
 
@@ -378,8 +344,11 @@ initAll() : Takes no input, runs all current init functions.
 =cut
 
 sub initAll {
-my $self = shift;
-	$self->initRegistry();
+    my $self = shift;
+    # XXX: initRegistry() MUST be called before initFileSystem, since initRegistry
+    # creates new files that must exist to be added to the exclusion list for
+    # initFileSystem.
+	$self->{'_registry'} = HoneyClient::Agent::Integrity::Registry->new();
 	$self->initFileSystem();
 }
 
@@ -394,24 +363,41 @@ checkAll() : Takes no input, runs all current check functions.
 =cut
 
 sub checkAll {
-my $self = shift;
-my $retval;
+    my $self = shift;
+    my $retval;
 
-	#Add any new created checks here
- 
-	$self->startCheckProcesses();	#currently a dummy method that just returns
 	# If at all possible we want the (faster) registry checks to short circut
 	# the overall checks so we don't have to do the very slow filesystem checks.
-	$retval = $self->checkRegistry();
-	if($retval){
-		return $retval;
-	}
-	$retval = $self->checkFileSystem();
+	my $changes = $self->{'_registry'}->check();
+    if (scalar(@{$changes})) {
+        print "Registry has changed:\n";
+        foreach my $change (@{$changes}) {
+            print $change->{'key'} . " (" . $change->{'status'} . ")\n";
+        }
+		open CHANGES, ">>$self->{change_file}" or die "Cannot open $self->{change_file}: $!\n";		
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 1;
+        print CHANGES Dumper($changes);
+        close CHANGES;
+        return $changes;
+    }
+    print "No registry changes have occurred.\n";
+    $retval = $self->checkFileSystem();
 
 	return $retval;
-
-
 }
+
+# TODO: Comment this.
+sub serialize {
+    my $self = shift;
+
+    if (defined($self->{'_registry'})) {
+        $self->{'_registry'}->closeFiles();
+    }
+
+    return nfreeze($self);
+}
+
 ################################################################################
 
 =pod
@@ -478,6 +464,7 @@ sub initFileSystem {
 	my $self = shift;
 	$g_hack = $self->{file_list};
 	$g_ex_hash = ();
+    my $file;
 	
 	my @checkdirs = $self->_get_directories_to_check();
 	my @exclude_dirs = ();
@@ -493,35 +480,37 @@ sub initFileSystem {
 		$self->{file_exclude_array} = \@default_file_exclude_array;
 	}
 
-	foreach my $file (@{$self->{file_exclude_array}}){
+    $/ = "\n";
+	foreach $file (@{$self->{file_exclude_array}}){
 		chomp $file;
 		if(-f $file){
 			print "excluding $file\n";
 			$g_ex_hash->{$file} = 1;	#used in lieu of the $self->file_exclude_hash
 								# because you can't get to that in _found()
 		}
-		else { if(-d  $file){
-				find (\&_recursive_exclude, $file);
-			}
-			else{
-				#XXX: Does this case matter(exist?) for pipes for instance?
-				print "A file that isn't a file or directory (or just general problem, or the file just isn't there) was found with file: $file\n";
-			}
+        elsif(-d $file){
+			print "excluding $file\n";
+			$g_ex_hash->{$file} = 1;	#used in lieu of the $self->file_exclude_hash
+			#find (\&_recursive_exclude, $file);
+		}
+		else{
+			#XXX: Does this case matter(exist?) for pipes for instance?
+			print "A file that isn't a file or directory (or just general problem, or the file just isn't there) was found with file: $file\n";
 		}
 	}
 
 	print "Finding Files in initFileSystem...Be Patient.\n";
-	foreach my $checkdir(@checkdirs) {
+	foreach my $checkdir (@checkdirs) {
 		find (\&_found, "$checkdir");	#this will populate @{$self->{file_list}}
 	}
 
 	$self->{file_list} = $g_hack;
 	$self->{file_exclude_hash} = $g_ex_hash;
-###	print "file_exclude_hash in init\n" . Dumper($self->{file_exclude_hash}) . "\n";
+##	print "file_exclude_hash in init\n" . Dumper($self->{file_exclude_hash}) . "\n";
 
 	print "Hashing Files in initFileSystem...Be Patient\n";
 	open CLEANFILE, ">$self->{clean_file}" or die "Cannot open $self->{clean_file}: $!\n";
-	foreach my $file (@{$self->{file_list}}) {
+	foreach $file (@{$self->{file_list}}) {
 #		print "hashing $file\n";
 		if(open HASHFILE, "$file") {
 			my $md5ctx = Digest::MD5->new();
@@ -602,14 +591,16 @@ system("rm $file_checklist");
 
 sub checkFileSystem {
 
-my $self = shift;	#Object
-%{$self->{clean_file_hash}} = ();
-%{$self->{changed_file_hash}} = ();
-my %current_file_hash = ();
-my %new_file_hash = ();
-my %del_file_hash = ();
-my @checkdirs;
-my $standalone_test = 0;
+    my $self = shift;	#Object
+    %{$self->{clean_file_hash}} = ();
+    %{$self->{changed_file_hash}} = ();
+    my %current_file_hash = ();
+    my %new_file_hash = ();
+    my %del_file_hash = ();
+    my @checkdirs;
+    my $standalone_test = 0;
+    my $file;
+    my $key;
 
 ###	print "file_exclude_hash in check\n" . Dumper($self->{file_exclude_hash}) . "\n";
 
@@ -619,6 +610,7 @@ my $standalone_test = 0;
 	}
 	#open file to create hash of values for clean files
 	open CLEANFILE, "$self->{clean_file}" or die "Cannot open $self->{clean_file}: $!\n";
+    $/ = "\n";
 	while(<CLEANFILE>) {
 		my $line = $_;
 		chomp($line);
@@ -655,7 +647,8 @@ my $standalone_test = 0;
 			$self->{file_exclude_array} = \@default_file_exclude_array;
 		}
 	
-		foreach my $file (@{$self->{file_exclude_array}}){
+        $/ = "\n";
+		foreach $file (@{$self->{file_exclude_array}}){
 			chomp $file;
 			if(-f $file){
 				print "excluding $file\n";
@@ -685,8 +678,8 @@ my $standalone_test = 0;
 	#iterate through hash checking current files against previous files
 	#also detects new files
 	print "Hashing Files in checkFileSystem...Be Patient\n";
-	foreach my $file (@{$self->{file_list}}) {
- 		if(open HASHFILE, "$file") {
+	foreach $file (@{$self->{file_list}}) {
+		if(open HASHFILE, "$file") {
 			my $md5ctx = Digest::MD5->new();
             # If this call fails, an exception will be generated.
 			$md5ctx->addfile(*HASHFILE);
@@ -703,7 +696,7 @@ my $standalone_test = 0;
 	}
 
 	#check for deleted files
-	foreach my $key (keys %{$self->{clean_file_hash}}) {
+	foreach $key (keys %{$self->{clean_file_hash}}) {
 		if(!($current_file_hash{$key})) {
 			$del_file_hash{$key} = $self->{clean_file_hash}->{$key};
 		}
@@ -715,17 +708,17 @@ my $standalone_test = 0;
 		open CHANGES, ">>$self->{change_file}" or die "Cannot open $self->{change_file}: $!\n";		
 
 		print CHANGES "Files deleted:\n";
-		foreach my $key (sort keys %del_file_hash) {
+		foreach $key (sort keys %del_file_hash) {
 			print CHANGES "$key\n";
 		}
 		print CHANGES "\n\n";
 		print CHANGES "Files added:\n";
-		foreach my $key (sort keys %new_file_hash) {
+		foreach $key (sort keys %new_file_hash) {
 			print CHANGES "$key\n";
 		}
 		print CHANGES "\n\n";
 		print CHANGES "Files modified:\n";
-		foreach my $key (sort keys %{$self->{changed_file_hash}}) {
+		foreach $key (sort keys %{$self->{changed_file_hash}}) {
 			print CHANGES "$key\n";
 		}
 		print CHANGES "\n\n";
@@ -748,7 +741,7 @@ my $self = shift;
 my @checkdirs;
 
 	#Sets the VERY hardcoded default for now (late addition for ease of use, not clean code)
-	push @checkdirs, "/cygdrive/c/";
+    push @checkdirs, "/cygdrive/c/";
 
 	#Can override the default by creating this file (for now, eventually put directly into XML)
 	if($self->{file_checklist} ne "none"){
@@ -757,6 +750,7 @@ my @checkdirs;
 		 "file and directory names to check in order to run this program. " .
 		 "Please see the POD documentation for more information.\n";
 		@checkdirs = ();
+        $/ = "\n";
 		while(<CHECK>) {
 			chomp;
 			print "reading in $_ from $self->{file_checklist}\n";
@@ -778,12 +772,27 @@ my @checkdirs;
 sub _found {
 		
 	my $foundfile = $File::Find::name;
+    
 	if (-f $foundfile) {
-		if(!exists($g_ex_hash->{$foundfile})) {
+		if (exists($g_ex_hash->{$foundfile})) {
+            return;
+        }
+
+        my $dir = dirname($foundfile);
+        while ($dir ne "/") {
+            # XXX: Need to add some sort of logic to account
+            # for off-by-one key names (i.e., /dir versus /dir/).
+            if (exists($g_ex_hash->{$dir})) {
+                return;
+            }
+            $dir = dirname($dir);
+        }
+
+#		if (!exists($g_ex_hash->{$foundfile})) {
 			push @{$g_hack}, $foundfile;
 #			print "found $foundfile\n";
 #			print "@{$g_hack}\n";
-		}
+#		}
 	}
 }
 
@@ -795,928 +804,11 @@ sub _found {
 
 sub _recursive_exclude{
 	
-	my $foundfile = $File::Find::name;
+   my $foundfile = $File::Find::name;
 	if (-f $foundfile) {
 		$g_ex_hash->{$foundfile} = 1;
-#		print "\t _recursive_exclude()d $foundfile\n";
+##		print "\t _recursive_exclude()d $foundfile\n";
 	}
-}
-################################################################################
-
-=pod
-
-=head1
-
-initRegistry() : Takes no input. Optionally reads in a one-per-line list of 
-registry keys to check, as stored in $self->reg_list_to_check. If such a list is not
-present, uses the values hardcoded in the @{$self->{reg_check_array}}. Uses a system() call to
-have regedit export the keys and sub-keys beginning at the specified location. 
-Individual files are postfixed with their array index for uniqueness. Therefore
-creates a number of files such as clean.reg0, clean.reg1, etc. 
-
-=begin testing
-
-
-#Testing initRegistry()
-my $ob = HoneyClient::Agent::Integrity->new();
-
-system("regedit.exe /s noTEST.reg");
-system("regedit.exe /s /c $test_dir/t1a.reg");
-$ob->initRegistry("HKEY_LOCAL_MACHINE\\HARDWARE\\TEST");
-open (DIFF, "diff $test_dir/t1a.reg clean.reg0 |") or die "Can't check the changes files\n";
-@result = <DIFF>;
-close DIFF;
-#Bad test because it will be empty in the case of an error anyway?
-is(scalar(@result), 0, 'initRegistry: General Test');
-
-=end testing
-
-=cut
-
-sub initRegistry {
-my $self = shift;
-
-	#If we're given function input, use it.
-	if(scalar(@_) > 0){
-		print "given input for reg_check_array in the parameters\n";
-		@{$self->{reg_check_array}} = @_;
-	}
-	else {
-		#otherwise, if we're given input via file, use it
-		if(-f "$self->reg_list_to_check"){
-			open REGDIRS, "$self->reg_list_to_check" or die "Cannot open $self->reg_list_to_check: $!\n";
-			#wipe out any hardcoded ones
-			@{$self->{reg_check_array}} = ();
-			while(<REGDIRS>){
-				push @{$self->{reg_check_array}}, $_;
-			}
-		}
-		#otherwise, it will use the default array.
-		else{
-			$self->{reg_check_array} = \@default_reg_check_array;
-		}
-	}
-	my $tmp = $self->{clean_reg};
-	print "clean_reg in initRegistry $tmp\n";
-	print "reg_check_array in initRegistry @{$self->{reg_check_array}}\n";
-	my $var = 0;
-	foreach my $key_to_check (@{$self->{reg_check_array}}){
-		print "exporting $key_to_check to $self->{clean_reg}$var\n";
-		print "regedit /a \"$self->{clean_reg}$var\" \"$key_to_check\" \n";
-		system("regedit.exe /a \"$self->{clean_reg}$var\" \"$key_to_check\"");
-		$var++;
-	}
-
-	$self->{reg_exclude_array} = \@default_reg_exclude_array;
-
-}
-################################################################################
-
-=pod
-
-=head1
-
-checkRegistry() : Takes no input. Responsible for dumping the current state of
-each of the registry locations in @{$self->{reg_check_array}} and comparing it against that
-which was exported to the filesystem in initRegistry() by using the command line
-utility diff. If differences are detected it parses the diff file and consults
-the original and new file as necessary to determine exactly what changed.
-
-=begin testing
-
-
-my $ob = HoneyClient::Agent::Integrity->new();
-
-reg_test($ob, 1, "checkRegistry: case 1 Multi-line addition changes.");
-reg_test($ob, 2, "checkRegistry: case 2 Single-line addition changes.");
-reg_test($ob, 3, "checkRegistry: case 3 Multi-line deletion changes.");
-reg_test($ob, 4, "checkRegistry: case 4 Single-line deletion changes.");
-reg_test($ob, 5, "checkRegistry: case 5 Simple multi-line to multi-line changes.");
-is(6, 6, "checkRegistry: case 6 - SKIPPING (currently can't recreate conditions for test)");
-#reg_test($ob, 6, "checkRegistry: case 6 Complicated multi-line to multi-line changes.");
-reg_test($ob, 7, "checkRegistry: case 7 Simple multi-line to single-line changes.");
-reg_test($ob, 8, "checkRegistry: case 8 Complicated multi-line to single-line changes.");
-reg_test($ob, 9, "checkRegistry: case 9 Simple single-line to multi-line changes.");
-reg_test($ob, 10, "checkRegistry: case 10 Complicated single-line to multi-line changes.");
-reg_test($ob, 11, "checkRegistry: case 11 Simple single-line to single-line changes.");
-reg_test($ob, 12, "checkRegistry: case12 Complicated single-line to single-line changes.");
-
-sub reg_test{
-my $ob = shift;
-my $num = shift;
-my $string = shift;
-
-	#for safety
-	if(-e "temp_reg_export.reg"){
-		system("mv temp_reg_export.reg temp_reg_export.reg.CBL");
-	}
-	system('regedit.exe /a temp_reg_export.reg "HKEY_LOCAL_MACHINE\HARDWARE\TEST"');
-
-	system("regedit.exe /s noTEST.reg");
-	system("regedit.exe /s /c $test_dir/t" . "$num" . "a.reg");
-	$ob->initRegistry("HKEY_LOCAL_MACHINE\\HARDWARE");
-	system("regedit.exe /s noTEST.reg");
-	system("regedit.exe /s /c $test_dir/t" . "$num" . "b.reg");
-	$ob->checkRegistry("HKEY_LOCAL_MACHINE\\HARDWARE");
-	open (DIFF, "diff $test_dir/t" . "$num" . "changes.txt changes.txt |") or die "Can't check the changes files\n";
-	@result = <DIFF>;
-	close DIFF;
-	#Bad test because it will be empty in the case of an error anyway?
-	is(scalar(@result), 0, "$string");
-
-	#for safety/cleanup
-	if(-e "temp_reg_export.reg"){
-		system("regedit.exe /s noTEST.reg");
-		system("regedit.exe /s /c temp_reg_export.reg");
-		system("rm temp_reg_export.reg");
-		if(-e "temp_reg_export.reg.CBL"){
-			system("mv temp_reg_export.reg.CBL temp_reg_export.reg");
-		}
-	}
-	
-}
-
-=end testing
-
-=cut
-
-sub checkRegistry {
-my $self = shift;
-
-		#*************************
-		#XXXY: delete me eventually
-		#if(-f "$self->{change_file}") {system("rm $self->{change_file}");}
-		#*************************
-
-
-#$var is used to create different files for different registry exports
-my $var = 0;
-#This foreach is what allows it to check multiple keys in the registry
-foreach my $key_to_check (@{$self->{reg_check_array}}){	
-
-	#First we want @reg1 to hold the clean registry state
-	print "reading in existing state for $key_to_check\n";
-	open REG, "$self->{clean_reg}$var"  or die "Cannot open $self->{clean_reg}$var: $!\n";
-	@{$self->{reg1}} = <REG>;
-	close REG;
-
-	#Then we want @reg2 to hold the current registry state
-	print "getting current state for $key_to_check\n";
-	system("regedit /a \"$self->{current_reg}$var\" \"$key_to_check\""); #More useful for debugging
-	open REG2, "$self->{current_reg}$var" or die "Cannot open $self->{current_reg}$var: $!\n";
-#	open REG2, "regedit /a \"$self->{current_reg}$var\" \"$key_to_check\" |"  or die "Problem with combo speed hack: $!\n"; #future speed hack
-	@{$self->{reg2}} = <REG2>;
-	close REG2;
-
-
-
-	print "diffing\n";
-	#Code to split the entries into chunks in a multi-dimensional array
-	#This list is what everything else uses to differentiate different diffs ;)
-	system("diff -a $self->{clean_reg}$var $self->{current_reg}$var > $self->{diffs}$var"); #More useful for debugging
-	open DIFZ, "$self->{diffs}$var" or die "Cannot open $self->{diffs}$var: $!\n";
-#	open DIFZ, "diff -a $self->{clean_reg}$var $self->{current_reg}$var |" or die "Problem with combo speed hack: $!\n"; #future speed hack
-	my $inner_count=0; #inner index for the multi-dimensional array for holding diff entries
-	@{$self->{changes}} = ();
-	while(<DIFZ>){
-		#get rid of the nulls embedded by the export
-		#NOTE: This will need to change when dealing with the 
-		# inaccessible special NULL registry key name case
-		$_ =~ s/\0//g;
-#		print $_;
-		#if the line starts with numbers then it's a new diff entry
-		if($_ =~ /^[0-9]/){
-			$inner_count = 0;
-			$self->{g_count}++;
-			$self->{changes}->[$self->{g_count}][$inner_count] = $_;
-		}
-		else{
-			#otherwise it's just an entry in our current diff
-			$inner_count++;
-			$self->{changes}->[$self->{g_count}][$inner_count] = $_;
-		}
-	}
-	close DIFZ;
-	#Print the total number of individual diffs which will need to be parsed
-	#NOTE: because "change" entries can include multiple events, this is an 
-	# underestimate of how many actual changes there will be
-	#ALSO NOTE: The prefix ++ on the count. That's just an array index vs number
-	# of elements off by one thing to make it print right.
-	print ++$self->{g_count} . " diff blocks put into the changes list for parsing\n";
-	$self->{g_count}--;
-
-	#This while loop steps through each of the individual diffs in the multi-dimensional
-	# list, parsing one at a time.
-	while($self->{g_count} >= 0){
-		my $holder = $self->{changes}->[$self->{g_count}][0];
-	#	print $holder;
-		my $first_start = 0;
-		my $first_end = 0;
-		my $second_start = 0;
-		my $second_end = 0;
-	
-		#XXX: NESTED SWITCHES CAUSE STRANGE PROBLEMS. Try to use the least nested switches as possible
-		#$holder is always the first line of a diff, which is the line that contains the
-		# line numbers for where in the two files the adds/deletes/changes are being made.
-		#First it splits them into cases and subcases based on whether it's a an add, delete, or the
-		# much more complicated change.
-		switch($holder){
-			case /a/ {
-	
-				############################################
-				#Case of multi-line addition.
-				############################################
-				
-				#TEST 1
-				if($holder =~ /([0-9]+)a([0-9]+),([0-9]+)/) {
-					$first_start = $1;
-					$second_start = $2;
-					$second_end = $3;
-					my $quick_count = $3-$2+1;
-					#We need an extra \ in the 2nd regex when used in a string
-					#The regexes tell it to only look at lines that start with
-					# the > because those are the lines represending added stuff
-					#Use parser because a multi-line addition can inlcude the addition
-					# of keys, not just name/data pairs.
-					_parser($self, "a", "(^> )(.*)", "^> \\[", $quick_count, $first_start, 1, undef);
-				}
-				else{ ############################################
-					#Case of single name/data pair addition
-					############################################
-								
-					#TEST 2
-					if($holder =~ /([0-9]+)a([0-9]+)/) {
-						#In this case, there can not be any new keys because that would take
-						# at least 2 lines because diff inlcudes the blank line. But that does
-						# mean we have to go to the original file to find the name of the 
-						# existing key.
-						_moonwalk_and_print($self, $first_start, "(^> )(.*)", "New values for existing key\n", 2, ($self->{changes}->[$self->{g_count}][1]));
-					}
-					else {print "WARNING: some strange case in add\n";}
-				
-				}	
-			}
-	
-					
-			case /d/ {
-				############################################
-				#Case of multi-line deletion.
-				############################################
-							
-				#TEST 3
-				if($holder =~ /([0-9]+),([0-9]+)d([0-9]+)/) {
-					$first_start = $1;
-					$first_end = $2;
-					$second_start = $3;
-					my $quick_count = $2-$1+1;
-					#need an extra \ in the 2nd regex when used in a string
-					#The regexes tell it to only look at lines that start with
-					# the < because those are the lines represending deleted stuff
-					#Use parser because a multi-line addition can inlcude the deletion
-					# of keys, not just name/data pairs.
-					_parser($self, "d", "(^< )(.*)", "^< \\[", $quick_count, $first_start, 1, undef);
-	
-				}
-				else {	############################################
-					#Case of single name/data pair deletion
-					############################################
-								
-					#TEST 4
-					if($holder =~ /([0-9]+)d([0-9]+)/) {
-						#We know that this can only be a name/data pair that was deleted because
-						# a deletion of a key takes at least 2 lines because diff includes the 
-						# blank line separating it from the other keys
-						_moonwalk_and_print($self, $first_start, "(^< )(.*)", "Deletion of name/data from existing key\n", 1,($self->{changes}->[$self->{g_count}][1]));
-					}
-					else {print "WARNING: some strange case in delete\n";}
-				}
-			}
-			
-			case /c/ {
-	
-				#Note about the change case:
-				#First of all as mentioned elsewhere "change" diffs can (and do) include multiple
-				# actions into a single grouping of change instructions. If this was simply parsed 
-				# and dealt with without going to either of the diffed files, this can easily
-				# be exploited to hide some registry entries (it would still show an entry, but
-				# for every entry added there can be an additional hidden one). Therefore as a
-				# tradeoff, generally I always check the *last* entry from both the top and 
-				# bottom section (except where it can be proven to be a simple change) against.
-				# the first and second file respectively. While I have not found cases that 
-				# necessitate this for every change subcase, it is currently done for safety
-				# and simplicity because it can be done by reusing the _top_half and _bottom_half
-				# code.
-	
-				switch($holder){
-					#the cases have to be in this order ;)
-					case /([0-9]+),([0-9]+)c([0-9]+),([0-9]+)/ {
-						#XXX: BUG!!! need to do again (cause of nested switches?)
-						$holder =~ /([0-9]+),([0-9]+)c([0-9]+),([0-9]+)/;
-						$first_start = $1;
-						$first_end = $2;
-						$second_start = $3;
-						$second_end = $4;
-	
-	#					print "1234 = $1:$2:$3:$4\n";
-	
-						##first check to make sure there are no keys
-						my @full_diff = @{$self->{changes}->[$self->{g_count}]};
-						my $simple = 1;
-						my @before;
-						my @after;
-						foreach (@full_diff){
-							if(/^[<>] \[/){$simple = 0;}
-							if(/^< .*/){
-								push @before, $_;
-							}
-							if(/^> .*/){
-								push @after, $_;
-							}
-						}
-	
-						#TEST 5
-						##############################
-						# simple multi-line to multi-line change
-						##############################
-						if($simple){
-							#case where it's only multi-line changes
-							my @fake_array = ("> Old Value:", @before, "> New Value:", @after);
-							_moonwalk_and_print($self, $first_start, "(^[<>] )(.*)", "Changed: \n", 1, @fake_array);
-						}
-						else{
-							#TEST 6
-							##############################
-							# the most complicated (multi-line to multi-line) changes ;)
-							##############################
-
-							#Haven't been able to recreate this case naturally... punting.
-							print("If you got here, please save the $self->{clean_reg}$var and $self->{current_reg}$var and send them to us\n");
-							exit();
-	
-							#parses the output of the diff before and after the "---" 
-							# divider independently
-							_top_half($self,$first_start, $first_end, @before);
-							_bottom_half($self, $second_start, $second_end, @after);
-						}
-						
-						
-					}
-					case /([0-9]+),([0-9]+)c([0-9]+)/ {
-						#XXX: BUG!!! need to do again (cause of nested switches?)
-						$holder =~ /([0-9]+),([0-9]+)c([0-9]+)/;				
-						$first_start = $1;
-						$first_end = $2;
-						$second_start = $3;
-						my $quick_count = $2-$1+1;
-	
-	#					print "123 = $1:$2:$3\n";
-	
-						#first check to see if it is the trivial case of
-						# ONLY changing name/data pairs (i.e. should not
-						# find any keys (i.e. lines starting with "> [" 
-						# or "< [")
-						my @full_diff = @{$self->{changes}->[$self->{g_count}]};
-						my $simple = 1;
-						my @before;
-						my @after;
-						foreach (@full_diff){
-							if(/^[<>] \[/){$simple = 0;}
-							if(/^< .*/){
-								push @before, $_;
-							}
-							if(/^> .*/){
-								push @after, $_;
-							}
-						}
-						
-						#TEST 7
-						##############################
-						# simple multi-line to single-line change
-						##############################
-						if($simple){
-							#case where it's only multi-line changes
-							my @fake_array = ("> Old Value:", @before, "> New Value:", @after);
-							_moonwalk_and_print($self, $first_start, "(^[<>] )(.*)", "Changed: \n", 1, @fake_array);
-						}
-	
-						else{
-							#TEST 8
-							##############################
-							# complicated multi-line to single-line change
-							##############################
-							_top_half($self, $first_start, $first_end, @before);
-							_bottom_half($self, $second_start, $second_start, @after);
-	
-						}
-						
-	
-					}
-					case /([0-9]+)c([0-9]+),([0-9]+)/ {
-						#XXX: BUG!!! need to do again (cause of nested switches?)
-						$holder =~ /([0-9]+)c([0-9]+),([0-9]+)/;
-						$first_start = $1;
-						$second_start = $2;
-						$second_end = $3;
-	
-						my $quick_count = $3-$2+3;
-	
-	#					print "123 = $1:$2:$3\n";
-	
-						##first check to make sure there are no keys
-						my @full_diff = @{$self->{changes}->[$self->{g_count}]};
-						my $simple = 1;
-						my @before;
-						my @after;
-						foreach (@full_diff){
-							if(/^[<>] \[/){$simple = 0;}
-							if(/^< .*/){
-								push @before, $_;
-							}
-							if(/^> .*/){
-								push @after, $_;
-							}
-						}
-	
-						#TEST 9
-						##############################
-						# simple single-line to multi-line change
-						##############################
-						if($simple){
-							my @fake_array = ("> Old Value:", @before,"> New Value:", @after);
-							_moonwalk_and_print($self, $first_start, "(^[<>] )(.*)", "Changed: \n", 1, @fake_array);
-						}
-	
-	
-						else{
-							#TEST 10
-							##############################
-							# complicated single-line to multi-line change
-							##############################
-							_top_half($self, $first_start, $first_start, @before);
-							_bottom_half($self, $second_start, $second_end, @after);
-						}
-						
-					}
-					case /([0-9]+)c([0-9]+)/ {
-						#XXX: BUG!!! need to do again (cause of nested switches?)
-						$holder =~ /([0-9]+)c([0-9]+)/;
-						$first_start = $1;
-						$second_start = $2;
-	
-						my @full_diff = @{$self->{changes}->[$self->{g_count}]};
-						my $simple = 1;
-						my @before;
-						my @after;
-						foreach (@full_diff){
-							if(/^[<>] \[/){$simple = 0;}
-							if(/^< .*/){
-								push @before, $_;
-							}
-							if(/^> .*/){
-								push @after, $_;
-							}
-						}
-									
-						#TEST 11
-						##############################
-						# simple single-line to single-line change
-						##############################
-						if($simple){
-							my @fake_array = ("> Old Value:", @before,"> New Value:", @after);
-							_moonwalk_and_print($self, $first_start, "(^[<>] )(.*)", "Changed: \n", 1, @fake_array);
-						}
-						else{
-							#TEST 12
-							##############################
-							# complicated single-line to single-line change
-							##############################
-							_top_half($self, $first_start, $first_start, @before);
-							_bottom_half($self, $second_start, $second_start, @after);
-						}
-					}
-				}
-			}
-			else {
-				print "holder = $holder matched none of the cases, serious problem!\n";
-			}
-		}#end switch
-		
-		$self->{g_count}--;
-	} #end big while
-
-	$var++;
-} #end big foreach
-return $g_reg_changes;
-
-} #end checkRegistry
-################################################################################
-
-
-# A very important function which is responsible for looping through a list which
-# is given to it, and treating extra registry keys as adds or deletes with 
-# possible adds, deletes, or changes as the "leftover" elements which get passed
-# to _moonwalk_and_print. Originally this function only operated on a chunk of 
-# the @{$self->{changes}} array, therefore to maintain compatibility for now, if no array 
-# is given, it will instead use the @{$self->{changes}} array. 
-
-# The general logic is that if it finds something in an array it pushes it into
-# a temporary one. At such time as it pushes a line starting with > [ or < [ 
-# that means that there was a registry key included in the array and therefore
-# we know which key the name/data pairs belong to and therefore we won't need 
-# to consult the disk because we have everything we need to know about that 
-# event. If there are still things in the temporary array when we finish looping
-# through the given/changes array then that is something leftover which we will
-# have to consult either the current or clean registry state about, to determine
-# which key the name/data pair belongs to. That's _moonwalk_and_print()'s job.
-
-# TODO: Check to make sure the function generates appriopriate exceptions, when failures
-# occur.
-sub _parser{
-my $self = shift;
-my $type = shift;
-my $regex = shift;
-my $regex2 = shift;
-my $quick_count = shift;
-my $start_line = shift;
-my $offset = shift;
-my @custom_array = @_;
-my @holding_array;
-
-	open CHANGES, ">>$self->{change_file}" or die "Cannot open $self->{change_file} (1): $!\n";
-		
-	#start to step (backwards) through the output of the diff
-	my $tmp;
-	while($quick_count >= $offset){
-		if (defined $custom_array[$quick_count]){
-			$tmp = $custom_array[$quick_count];
-		}
-		else{
-			$tmp = $self->{changes}->[$self->{g_count}][$quick_count];
-		}
-					
-		#If the line starts with '> [' it's a registry key
-		#If this case is detected it means it's a new key
-		# (possibly with name/data pairs, possibly without) and it
-		# will just dump this to the CHANGES file because
-		# it doesn't have to consult the original registry
-		# dump in order to know which key/names/values is added.
-		if($tmp =~ /$regex2/){
-			push @holding_array, $tmp;
-			@holding_array = reverse (@holding_array);
-			switch($type){
-				case /a/ {
-					if(scalar(@holding_array) > 1){
-						print CHANGES "\nAdded key and name/data: \n" or die "Can't write to changefile!\n";
-					}
-					else {
-						print CHANGES "\nAdded empty key: \n" or die "Can't write to changefile!\n";
-					}
-				}
-				case /d/ {
-					if(scalar(@holding_array) > 1){
-						print CHANGES "\nDeleted key and name/data: \n" or die "Can't write to changefile!\n";
-					}
-					else {
-						print CHANGES "\nDeleted empty key: \n" or die "Can't write to changefile!\n";
-					}
-				}
-				else{die "Unknown type in _parser() switch\n";}
-			}
-
-			foreach my $line (@holding_array){
-				$line =~ /$regex/;
-				#discard $1 which is formatting from diff
-				print CHANGES "$2\n" or die "Can't write to changefile!\n";
-			}
-			print CHANGES "\n" or die "Can't write to changefile!\n";
-			@holding_array = ();
-
-		}
-		else{
-			#Push anything else (except empty line), as it will be included
-			# in whatever key it was found in
-			if($tmp !~ /^[<>] \r\n/){
-				push @holding_array, $tmp;
-			}
-		}
-		$quick_count--;
-	}
-	$g_reg_changes = 1;
-	close CHANGES or warn "Can't close changefile!\n";
-
-	#Anything left over in @holding_array after that loop
-	# is a name/data pair which did not have a new key
-	# being created, and therefore is the modification of
-	# an existing key. Thus we must consult the original
-	# file to clean up stragglers if any.
-	if(scalar(@holding_array) > 0){
-		@holding_array = reverse (@holding_array);
-		my $string;
-		my $case;
-		switch($type){
-			case "a" {
-				$string = "Added name/data for existing key\n";
-				$case = 2;
-			}
-			case "d" {
-				$string = "Deleted name/data for existing key\n";
-				$case = 1;
-			}
-			case /c/ {
-				#$string = "Changed name/data for existing key\n";
-				return @holding_array;
-				$case = 1;
-			}
-			else{die "Unknown type in 2nd _parser() switch\n";}
-		}		
-
-		_moonwalk_and_print($self, $start_line, $regex, $string, $case, @holding_array);
-	}
-
-}
-################################################################################
-
-# Given a line number to start at in $moonwalk, this
-# function walks backwards trying to find the enclosing
-# registry key, and then prints the results to the
-# CHANGES file.
-# NOTE that most of this functionality has been passed off to _find_enclosing_key()
-# such that this primarily just prints now. It has been left in place for now 
-# simply to maintain current code.
-
-# TODO: Check to make sure the function generates appriopriate exceptions, when failures
-# occur.
-sub _moonwalk_and_print {
-my $self = shift;	#Object
-my $start_line = shift;	#The line to start walking backwards from
-my $regex = shift;	#regular expression to use to get rid of diff formatting on lines
-my $string = shift;	#String to print when 
-my $case = shift;		#Add/delete/change case (1 for delete/change, 2 for add)
-my @holding_array = @_;
-
-	#walk backwards looking for the registry key
-	# which contains us.
-	my $enclosing_key = _find_enclosing_key($self, $start_line, $case);
-
-	foreach my $exclude_key (@{$self->{reg_exclude_array}}){
-###		print "trying to match $enclosing_key against exclude key $exclude_key\n";
-		if($enclosing_key =~ /$exclude_key/){
-###			print "SUCCESS! I'm outta here!\n";
-			return $start_line;
-		}
-	}
-
-	open CHANGES, ">>$self->{change_file}" or die "Cannot open $self->{change_file} (2): $!\n";		
-	print CHANGES "\n$string" or die "Can't write to changefile!\n";
-	print CHANGES $enclosing_key or die "Can't write to changefile!\n";
-	foreach my $line (@holding_array){
-		$line =~ /$regex/;
-		#discard $1 which is formatting from diff
-		print CHANGES "$2\n" or die "Can't write to changefile!\n";
-	}
-	$g_reg_changes = 1;
-	close CHANGES or warn "Error closing changefile!\n";
-	#for use by changed case to avoid another walk
-	return $start_line;
-}
-################################################################################
-
-
-#This is now what's actually doing the moonwalking due to some code rearrangement ;)
-#Steps backwards from the passed in line number in the passed in case
-# representing an array (representing a file) you want to use. @{$self->{reg1}} is the first
-# file given to the diff (should be the clean file) and @{$self->{reg2}} is therefore the 
-# second file (the current state).
-
-# TODO: Check to make sure the function generates appriopriate exceptions, when failures
-# occur.
-sub _find_enclosing_key{
-my $self = shift;	#Object
-my $start_line = shift;	#
-my $case = shift;
-
-	#This is the delete or change case so it checks the clean registry file (reg1)
-	# (because a key which is deleted for instance can only be found in the orignal
-	# not the current)
-	if($case == 1){
-		while($self->{reg1}->[$start_line] !~ /^\[/){
-			$start_line--;
-		}
-		return $self->{reg1}->[$start_line];
-	}
-	else{
-		#This is the add case so it checks the current registry file (reg2)
-		# (because a key which is deleted for instance can only be found in 
-		#the orignal not the clean)
-		if($case == 2){
-			while($self->{reg2}->[$start_line] !~ /^\[/){
-				$start_line--;
-			}
-			return $self->{reg2}->[$start_line];
-		}
-		else{
-			die "Invalid value for case in _find_enclosing_key\n";
-		}
-	}
-}
-
-################################################################################
-
-# Because changes can be ambiguous this function (and _bottom_half) were created
-# to first deal with the ambigious case and then pass the rest into _parser().
-# Based on the way that diff works and testing, it seems that ambiguous cases
-# can only manifest themselves in the last entry in the top half (the stuff
-# immediately before the "---" line when reading from top to bottom). Similarly
-# it can only manifest in the last entry of the bottom half. Therefore if it is
-# deal with in this code, the remainder of the array representing changes in the
-# top or bottom half should be safe to parse with _parser().
-
-sub _top_half{
-my $self = shift;
-my $first_start = shift;
-my $first_end = shift;
-my @before = @_;
-my $num_lines = scalar(@before)-1;
-my @tmp_array;
-my $walk = $first_end;
-
-	##############################
-	# treat the top half like *deletes* 
-	# BUT first go to file for the last one and check its contents!
-	##############################
-
-#	print "BEFORE walk = $walk\n";
-	#walk backwards to find how many lines from the end to start at
-	while($num_lines >= 0 && $before[$num_lines] !~ /^< \[/){
-		$num_lines--;
-	}
-					
-	my $lcount = scalar(@before)-1 - $num_lines;
-	#walk is where to start walking *forward* in the clean reg file
-	$walk = $first_end - $lcount;
-
-#	print "BEFORE lcount = $lcount, walk = $walk\n";
-
-	while($self->{reg1}->[$walk] !~ /^\[/){
-		if($self->{reg1}->[$walk] !~ /^\r\n/){
-#			print "pushing $self->{reg1}->[$walk]";
-			push @tmp_array, $self->{reg1}->[$walk];	
-		}
-		$walk++;
-	}
-					
-	open CHANGES, ">>$self->{change_file}" or die "Cannot open $self->{change_file} (3): $!\n";
-	if(scalar(@tmp_array) > 0){
-		print CHANGES "\nDeleted key and name/data: \n";
-		my $enclosing_key = _find_enclosing_key($self, $first_end, 1);
-#		print "enclosing $enclosing_key";
-		print CHANGES $enclosing_key;
-		foreach (@tmp_array){
-			print CHANGES;
-			print "in da top $_";
-		}
-	}
-	else{
-		print CHANGES "\nDeleted empty key: \n";
-		$walk = $first_end - $lcount-1;
-		print CHANGES "$self->{reg1}->[$walk]\n";
-		print "in da top $self->{reg1}->[$walk]\n";
-
-	}
-	$g_reg_changes = 1;
-	close CHANGES;
-
-	#the +1 is because we want to delete the extra empty line from the array
-	$lcount++;
-
-#	print "before before: @before";
-	
-	while($lcount > 0){
-		pop @before;
-		$lcount--;
-	}
-
-#	print "before after: @before";
-	
-	##############################
-	#now the array is safe to be treated as a normal change+deletion array
-	###############################
-	if(scalar(@before) > 0){
-#		print "BEFORE\n @before BEFORE\n";
-		_parser($self, "cd", "(^< )(.*)", "^< \\[", scalar(@before)-1, $first_start, 0, @before);
-	}
-
-}
-################################################################################
-
-# Because changes can be ambiguous this function (and _top_half) were created
-# to first deal with the ambigious case and then pass the rest into _parser().
-# Based on the way that diff works and testing, it seems that ambiguous cases
-# can only manifest themselves in the last entry in the top half (the stuff
-# immediately before the "---" line when reading from top to bottom). Similarly
-# it can only manifest in the last entry of the bottom half. Therefore if it is
-# deal with in this code, the remainder of the array representing changes in the
-# top or bottom half should be safe to parse with _parser().
-
-
-sub _bottom_half{
-my $self = shift;
-
-my $second_start = shift;
-my $second_end = shift;
-my @after = @_;
-my $num_lines = scalar(@after)-1;
-my @tmp_array;
-my $walk = $second_end;
-	
-	##############################
-	#treat the bottom like *adds* 
-	#BUT first go to file for the last one and check its contents!
-	##############################
-
-#	print "AFTER walk = $walk\n";
-	#walk backwards to find how many lines from the end to start at
-	while($num_lines >= 0 && $after[$num_lines] !~ /^> \[/){
-		$num_lines--;
-	}
-			
-	my $lcount = scalar(@after)-1 - $num_lines;
-	#walk is where to start walking *forward* in the clean reg file
-	$walk = $second_end - $lcount;
-
-
-#	print "AFTER lcount = $lcount, walk = $walk\n";
-
-	while($self->{reg2}->[$walk] !~ /^\[/){
-						
-		if($self->{reg2}->[$walk] !~ /^\r\n/){
-#			print "AFTER pushing $self->{reg2}->[$walk]";
-			push @tmp_array, $self->{reg2}->[$walk];	
-		}
-		$walk++;
-	}
-					
-	open CHANGES, ">>$self->{change_file}" or die "Cannot open $self->{change_file} (4): $!\n";
-	if(scalar(@tmp_array) > 0){
-						
-		print CHANGES "\nAdded key and name/data: \n";
-		my $enclosing_key = _find_enclosing_key($self, $second_end, 2);
-#		print "AFTER enclosing $enclosing_key";
-		print CHANGES $enclosing_key;
-		foreach (@tmp_array){
-			print CHANGES;
-#			print "in da bottom $_";
-		}
-	}
-	else{
-		print CHANGES "\nAdded empty key: \n";
-		$walk = $second_end - $lcount-1;
-		print CHANGES "$self->{reg2}->[$walk]\n";
-#		print "in da bottom $self->{reg2}->[$walk]\n";
-
-	}
-	$g_reg_changes = 1;
-	close CHANGES;
-
-	#the +1 is because we want to delete the extra empty line from the array
-	$lcount++;
-
-#	print "after before: @after\n";
-	
-	while($lcount > 0){
-		pop @after;
-		$lcount--;
-	}
-
-#	print "after after: @after";
-	
-	##############################
-	#now the array is safe to be treated as a normal change+addition array
-	###############################
-	if(scalar(@after) > 0){
-#		print "AFTER\n @after AFTER\n";
-		_parser($self, "ca", "(^> )(.*)", "^> \\[", scalar(@after)-1, $second_start, 0, @after);
-	}
-
-}
-
-
-
-
-################################################################################
-
-=pod
-
-=head1
-
-startCheckProcesses() : Currently just a placeholder incase we put Thanh's 
-real-time checking here.
-
-=cut
-
-#Holder incase we put Thanh's stuff in here
-sub startCheckProcesses {
-	return;
 }
 
 ################################################################################
@@ -1779,8 +871,8 @@ sub AUTOLOAD {
 # Since none of our state data ever contains circular references,
 # we can simply leave the garbage collection up to Perl's internal
 # mechanism.
-sub DESTROY {
-}
+#sub DESTROY {
+#}
 ################################################################################
 
 
@@ -1828,18 +920,15 @@ If malware can write itself to one of the excluded directories it will go undete
 
 =head1 SEE ALSO
 
-XXX: Fill this in.
-
-XXX: If you have a mailing list, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
+L<http://www.honeyclient.org/trac>
 
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 
+XXX: Fill this in.
 
 =head1 AUTHORS
 

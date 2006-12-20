@@ -6,7 +6,7 @@
 #              the Internet Explorer browser, running inside a
 #              HoneyClient VM.
 #
-# CVS: $Id: IE.pm 1599 2006-11-08 20:04:30Z kindlund $
+# CVS: $Id$
 #
 # @author knwang, ttruong, kindlund, stephenson
 #

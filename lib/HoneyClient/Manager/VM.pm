@@ -5,7 +5,7 @@
 # Description: A SOAP server that provides programmatic access to all
 #              VM clients.
 #
-# CVS: $Id: VM.pm 1516 2006-11-05 09:40:17Z kindlund $
+# CVS: $Id$
 #
 # @author kindlund
 #
@@ -359,7 +359,7 @@ diag("Note: These unit tests *expect* the VMware Server / GSX daemon to be opera
 
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
-        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly linsted within the path.");
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
        
         # Suppress all logging messages, since we need clean output for unit testing.
         Log::Log4perl->init({
@@ -4770,6 +4770,8 @@ directly.
 
 =head1 SEE ALSO
 
+L<http://www.honeyclient.org/trac>
+
 SOAP::Lite
 
 L<http://www.soaplite.com>
@@ -4785,13 +4787,9 @@ POSIX, File::Copy, File::Copy::Recursive, File::Basename, Tie::File
 
 Apache::SessionX::General::MD5
 
-XXX: If you have a mailing list set up for your module, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
-
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 

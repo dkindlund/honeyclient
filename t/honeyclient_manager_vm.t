@@ -13,7 +13,7 @@ diag("Note: These unit tests *expect* the VMware Server / GSX daemon to be opera
 
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
-        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly linsted within the path.");
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
        
         # Suppress all logging messages, since we need clean output for unit testing.
         Log::Log4perl->init({
@@ -155,7 +155,7 @@ use Thread::Semaphore;
 
 # TODO: Remove this once unit testing should actually be used.
 # Ideally, this should be handled programmatically, based upon user prompt.
-#exit;
+exit;
 
 # Generate a notice, to inform the tester that these tests are not
 # exactly quick.

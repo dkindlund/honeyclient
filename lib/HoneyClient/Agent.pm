@@ -4,7 +4,7 @@
 # File:        Agent.pm
 # Description: Central library used for agent-based operations.
 #
-# CVS: $Id: Agent.pm 1049 2006-06-28 16:37:41Z flindiakos $
+# CVS: $Id$
 #
 # @author knwang, ttruong, kindlund
 #
@@ -209,6 +209,8 @@ use Data::Dumper;
 # Include Hash Serialization Utility Libraries
 # TODO: Update unit tests to include 'dclone'
 use Storable qw(nfreeze thaw dclone);
+$Storable::Deparse = 1;
+$Storable::Eval = 1;
 
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
@@ -235,6 +237,11 @@ our $DAEMON_PID     : shared = undef;
 # any integrity checks.
 our $PERFORM_INTEGRITY_CHECKS : shared =
     getVar(name => "perform_integrity_checks");
+
+# A globally shared, serialized hashtable, containing the
+# initialized integrity state of the VM -- ready to be checked
+# against, at any time.
+our $integrityState : shared = undef;
 
 # A globally shared, serialized hashtable, containing data per
 # registered driver.  Specifically, for each @DRIVER <entry>,
@@ -358,6 +365,16 @@ sub init {
         # Initialize the corresponding %driverUpdateQueues
         $driverUpdateQueues{$driverName} = new Thread::Queue;
     }
+
+    # Perform initial integrity baseline check.
+    #my $integrity = undef;
+    #if ($PERFORM_INTEGRITY_CHECKS) {
+    #    print "Initializing Integrity Check...\n";
+    #    # TODO: Initialize Integrity Checks
+    #    $integrity = HoneyClient::Agent::Integrity->new();
+    #    $integrity->initAll();
+    #}
+    #$integrityState = $integrity->serialize();
 
     # Release data lock.
     _unlock($data);
@@ -687,23 +704,36 @@ sub run {
             # Trap all faults that may occur from these asynchronous operations.
             eval {
 
-                my $integrity = undef;
-                if ($PERFORM_INTEGRITY_CHECKS) {
-                    print "Initializing Filesystem Integrity Check...\n";
-                    # TODO: Initialize Integrity Checks
-                    $integrity = HoneyClient::Agent::Integrity->new();
-                    $integrity->initAll();
-                }
- 
                 ###################################
                 ### Driver Initialization Phase ###
                 ###################################
+
+                # Initially set local integrity object to undef.
+                my $integrity = undef;
                 
                 # Initially set all driver objects to undef. 
                 my $driver = undef;
     
                 # Acquire lock on stored driver state.
                 $data = _lock();
+
+                if ($PERFORM_INTEGRITY_CHECKS) {
+                    # XXX: WARNING - The $integrityState object data is NOT thread-safe
+                    # (since it relies on external data stored on the file system).
+                    # As such, do NOT try to call integrity checks on multiple, simultaneous
+                    # asynchronous threaded drivers.
+                    #$integrity = thaw($integrityState);
+                    # Perform initial integrity baseline check.
+                    print "Initializing Integrity Check...\n";
+                    # TODO: Initialize Integrity Checks
+                    $integrity = HoneyClient::Agent::Integrity->new();
+                    $integrity->initAll();
+
+                    # TODO: Delete this.
+                    #$Data::Dumper::Indent = 1;
+                    #$Data::Dumper::Terse = 1;
+                    #print "Integrity: " . Dumper($integrity) . "\n";
+                }
 
                 # Now, initialize each driver object. 
                 # Figure out which $driver object to use...
@@ -804,7 +834,7 @@ sub run {
                 if (defined($integrity)) {
                     # For now, we update a scalar called 'is_compromised' within
                     # the $data->{$driverName}->{'status'} sub-hashtable.
-                    print "Performing Filesystem Integrity Check...\n";
+                    print "Performing Integrity Checks...\n";
                     if ($integrity->checkAll()) {
                         print "Integrity Check: FAILED\n";
                         $data->{$driverName}->{'status'}->{'is_compromised'} = 1;
@@ -1098,15 +1128,11 @@ __END__
 
 =head1 SEE ALSO
 
-XXX: Fill this in.
-
-XXX: If you have a mailing list, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
+L<http://www.honeyclient.org/trac>
 
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 

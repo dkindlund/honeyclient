@@ -5,7 +5,7 @@
 # Description: Generic driver model for all drivers running inside a
 #              HoneyClient VM.
 #
-# CVS: $Id: Driver.pm 1412 2006-10-18 20:33:18Z kindlund $
+# CVS: $Id$
 #
 # @author knwang, ttruong, kindlund
 #
@@ -159,7 +159,7 @@ our (@EXPORT_OK, $VERSION);
 
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
-        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly linsted within the path.");
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
        
         # Suppress all logging messages, since we need clean output for unit testing.
         Log::Log4perl->init({
@@ -696,13 +696,11 @@ or overriding (key => value) pairs.
 
 L<perltoot/"Autoloaded Data Methods">
 
-XXX: If you have a mailing list, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
+L<http://www.honeyclient.org/trac>
 
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 AUTHORS
 

@@ -1300,6 +1300,8 @@ that it can be used for a "referer" HTTP header
 
 =head1 SEE ALSO
 
+L<http://www.honeyclient.org/trac>
+
 LWP::UserAgent
 
 HTML::LinkExtor
@@ -1310,14 +1312,9 @@ URI
 
 HoneyClient::Agent::Driver::IE
 
-
-XXX: If you have a mailing list, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
-
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 AUTHORS
 

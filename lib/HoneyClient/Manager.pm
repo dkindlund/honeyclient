@@ -4,7 +4,7 @@
 # File:        Manager.pm
 # Description: Central library used for manager-based operations.
 #
-# CVS: $Id: Manager.pm 644 2006-06-08 18:31:41Z kindlund $
+# CVS: $Id$
 #
 # @author knwang, ttruong, jdurick, kindlund
 #
@@ -723,15 +723,11 @@ __END__
 
 =head1 SEE ALSO
 
-XXX: Fill this in.
-
-XXX: If you have a mailing list, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
+L<http://www.honeyclient.org/trac>
 
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 

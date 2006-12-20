@@ -1,4 +1,6 @@
-#!/usr/bin/perl -w
+#!perl -w -Ilib
+
+# $Id$
 
 use strict;
 use warnings;
@@ -19,13 +21,13 @@ use HoneyClient::Manager;
 
 my $agentState = HoneyClient::Manager->run(
                     driver           => 'IE', # Change to 'IE' or 'FF'
-                    master_vm_config => '/vm/Agent.Master-2/winXPPro.cfg',
+                    master_vm_config => '/vm/Agent.Master-7/winXPPro.cfg',
                     agent_state      => encode_base64(nfreeze({
                         IE => { # Change to 'IE' or 'FF'
                             next_link_to_visit => $ARGV[0],
                             # Enable this line, if you want to only go to the
                             # first 5 links for each domain.
-                            #max_relative_links_to_visit => 5,
+                            max_relative_links_to_visit => 5,
                          },
                     })), 
                  );

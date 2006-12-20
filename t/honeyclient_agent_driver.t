@@ -10,7 +10,7 @@ $| = 1;
 {
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
-        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly linsted within the path.");
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
        
         # Suppress all logging messages, since we need clean output for unit testing.
         Log::Log4perl->init({

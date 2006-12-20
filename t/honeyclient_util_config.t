@@ -10,7 +10,7 @@ $| = 1;
 {
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
-        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly linsted within the path.");
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
        
         # Suppress all logging messages, since we need clean output for unit testing.
         Log::Log4perl->init({
@@ -51,7 +51,7 @@ use XML::XPath;
 
 # Make sure XML::Tidy loads
 BEGIN { use_ok('XML::Tidy')
-        or diag("Can't load XML::Tidy package. Check to make sure the package library is correctly linsted within the path."); }
+        or diag("Can't load XML::Tidy package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('XML::Tidy');
 can_ok('XML::Tidy','tidy');
 can_ok('XML::Tidy','write');
@@ -59,7 +59,7 @@ use XML::Tidy;
 
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
-        or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly linsted within the path."); }
+        or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
 }

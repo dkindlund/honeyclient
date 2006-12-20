@@ -6,7 +6,7 @@
 #              behavior of a web browser running inside a
 #              HoneyClient VM.
 #
-# CVS: $Id: Browser.pm 1423 2006-11-6 14:21:47Z stephenson $
+# CVS: $Id$
 #
 # @author knwang, kindlund, stephenson
 #
@@ -83,17 +83,15 @@ This documentation refers to HoneyClient::Agent::Driver::Browser version 1.0.
   # to the driver's list.
   $browser->{links_to_visit}->{'http://www.mitre.org'} = 1;
 
-  # Now, drive IE for one iteration.
+  # Now, drive the browser for one iteration.
   $browser->drive();
 
 =head1 DESCRIPTION
 
 This library allows the Agent module to drive an instance of any broswer,
-running inside the HoneyClient VM.  The purpose 
-of this module is to programmatically navigate the browser to different
-websites, in order to become purposefully infected with new malware.
-The module implements the logic necessary to decide the order in which
-the 
+running inside the HoneyClient VM.  The purpose of this module is to
+programmatically navigate the browser to different websites, in order to
+become purposefully infected with new malware.
 
 This module is object-oriented in design, retaining all state information 
 within itself for easy access.  A specific browser class must inherit from
@@ -174,7 +172,7 @@ BEGIN {
     # names by default without a very good reason. Use EXPORT_OK instead.
     # Do not simply export all your public functions/methods/constants.
 
-    # This allows declaration use HoneyClient::Agent::Driver::IE ':all';
+    # This allows declaration use HoneyClient::Agent::Driver::Browser ':all';
     # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
     # will save memory.
 
@@ -212,6 +210,7 @@ use DateTime::HiRes;
 use Time::HiRes qw(sleep);
 
 # Use Storable Library
+# TODO: Need unit testing.
 use Storable qw(dclone);
 
 # Use threads Library
@@ -239,7 +238,7 @@ use URI::URL;
 
 =head1 DEFAULT PARAMETER LIST
 
-When an IE B<$object> is instantiated using the B<new()> function,
+When a Browser B<$object> is instantiated using the B<new()> function,
 the following parameters are supplied default values.  Each value
 can be overridden by specifying the new (key => value) pair into the
 B<new()> function, as arguments.
@@ -301,8 +300,8 @@ corresponding date/time format of each value.
 
 This parameter is a hashtable of fully qualified URLs, such that each
 URL shares a common B<hostname>.  This is an internal hashtable used
-by the IE driver that should be initially empty.  As the IE driver
-extracts and removes new URLs off the B<links_to_visit> hashtable,
+by the Browser driver that should be initially empty.  As the Browser
+driver extracts and removes new URLs off the B<links_to_visit> hashtable,
 driving the browser to each URL, any B<relative> links found are
 added into this hashtable; any B<external> links found are added
 back into the B<links_to_visit> hashtable.
@@ -363,9 +362,8 @@ time out.
 
 =over 4
 
-A string containing the process name of the Internet Explorer
-browser application, as it appears in the Task Manager.  This is
-usually called "iexplore.exe".
+A string containing the process name of the  browser application,
+as it appears in the Task Manager.
 
 =back
 
@@ -457,9 +455,8 @@ my %PARAMS = (
     # the browser to time out.
     ignore_links_timed_out  => getVar(name => "ignore_links_timed_out"),
 
-    # A string containing the process name of the Internet Explorer
-    # browser application, as it appears in the Task Manager.  This is
-    # usually called "iexplore.exe".
+    # A string containing the process name of the browser application,
+    # as it appears in the Task Manager.
     process_name            => getVar(name => "process_name"),
 
     # An integer, representing how many relative links the browser
@@ -494,7 +491,7 @@ my %PARAMS = (
 # is checked next.  If that hashtable is empty, then finally the 
 # 'links_to_visit' hashtable is checked.
 #
-# Inputs: HoneyClient::Agent::Driver::IE object
+# Inputs: HoneyClient::Agent::Driver::Browser object
 # Outputs: link, or undef if all applicable scalars/hashtables are empty
 sub _getNextLink {
 
@@ -681,10 +678,10 @@ sub _extractHostname {
 #   Otherwise, the link is added to the 'links_to_visit'
 #   hash.
 #
-# Inputs: HoneyClient::Agent::Driver::IE object,
+# Inputs: HoneyClient::Agent::Driver::Browser object,
 #         hostname[:port] of referring URL,
 #         array of URL strings
-# Outputs: HoneyClient::Agent::Driver::IE object
+# Outputs: HoneyClient::Agent::Driver::Browser object
 sub _processLinks {
 
     # Get the object state.
@@ -750,7 +747,7 @@ sub _processLinks {
 # are added to the 'links_ignored' history -- if they're not
 # already in the hashtable.
 #
-# Inputs: HoneyClient::Agent::Driver::IE object, url to validate
+# Inputs: HoneyClient::Agent::Driver::Browser object, url to validate
 # Outputs: url if valid, empty string if invalid
 sub _validateLink {
     
@@ -837,18 +834,18 @@ sub _killProcess {
 
 =head1 METHODS IMPLEMENTED
 
-The following functions have been implemented by the IE driver.  Many
+The following functions have been implemented by the Browser driver.  Many
 of these methods were implementations of the parent Driver interface.
 
 As such, the following code descriptions pertain to this particular 
 Driver implementation.  For further information about the generic
 Driver interface, see the L<HoneyClient::Agent::Driver> documentation.
 
-=head2 HoneyClient::Agent::Driver::IE->new($param => $value, ...)
+=head2 HoneyClient::Agent::Driver::Browser->new($param => $value, ...)
 
 =over 4
 
-Creates a new IE driver object, which contains a hashtable
+Creates a new Browser driver object, which contains a hashtable
 containing any of the supplied "param => value" arguments.
 
 I<Inputs>:
@@ -858,7 +855,7 @@ I<Inputs>:
 Note: If any $param(s) are supplied, then an equal number of
 corresponding $value(s) B<must> also be specified.
 
-I<Output>: The instantiated IE driver B<$object>, fully initialized.
+I<Output>: The instantiated Browser driver B<$object>, fully initialized.
 
 =back
 
@@ -920,11 +917,11 @@ sub new {
 
 =pod
 
-=head2 $object->drive()
+=head2 $object->drive(url => $url)
 
 =over 4
 
-Drives an instance of Microsoft Internet Explorer for one iteration,
+Drives an instance of the browser for one iteration,
 navigating to the next URL and updating the driver's corresponding
 internal hashtables accordingly.
 
@@ -932,14 +929,17 @@ For a description of which hashtable is consulted upon each
 iteration of drive(), see the L<next_link_to_visit> documentation, in
 the "DEFAULT PARAMETER LIST" section.
 
-Once a drive() iteration has completed, the corresponding Microsoft
-Internet Explorer browser process is terminated.  Thus, each call to
-drive() invokes a new instance of the browser.
+Once a drive() iteration has completed, the corresponding browser process 
+is terminated.  Thus, each call to drive() invokes a new instance of the 
+browser.
 
-I<Output>: The updated IE driver B<$object>, containing state information
-from driving Microsoft Internet Explorer for one iteration.
+I<Inputs>:
+ B<$url> is an optional argument, specifying the next immediate URL the browser must drive to.
 
-B<Warning>: This method will B<croak> if the IE driver object is B<unable>
+I<Output>: The updated Browser driver B<$object>, containing state information
+from driving the browser for one iteration.
+
+B<Warning>: This method will B<croak> if the Browser driver object is B<unable>
 to navigate to a new link, because its list of links to visit is empty. 
 
 =back
@@ -1089,12 +1089,11 @@ sub drive {
 
 =over 4
 
-Returns the next URL that the Microsoft Internet Explorer browser will
-navigate to, upon the next subsequent call to the B<$object>'s drive()
-method.
+Returns the next URL that the browser will navigate to, upon the next
+subsequent call to the B<$object>'s drive() method.
 
 I<Output>: The next URL that the browser will be driven to.  The returned
-data may be undef, if the IE driver is finished and there are no links
+data may be undef, if the Browser driver is finished and there are no links
 left to navigate to.
 
 B<Note>: This function is B<deprecated>.  $object->next() should be used
@@ -1144,8 +1143,8 @@ sub getNextLink {
 =over 4
 
 Returns the next set of server hostnames and/or IP addresses that the
-Microsoft Internet Explorer browser will contact, upon the next subsequent
-call to the B<$object>'s drive() method.
+browser will contact, upon the next subsequent call to the B<$object>'s
+drive() method.
 
 Specifically, the returned data is a reference to a hashtable, containing
 detailed information about which resources, hostnames, IPs, protocols, and 
@@ -1275,19 +1274,19 @@ sub next {
 
 =over 4
 
-Indicates if the IE driver B<$object> has driven the Microsoft Internet
-Explorer browser to all possible links it has found within its hashtables
+Indicates if the Browser driver B<$object> has driven the browser  
+process to all possible links it has found within its hashtables
 and is unable to navigate the browser further without additional, external
 input.
 
-I<Output>: True if the IE driver B<$object> is finished, false otherwise.
+I<Output>: True if the Browser driver B<$object> is finished, false otherwise.
 
-B<Note>: Additional links can be fed to this IE driver at any time, by
+B<Note>: Additional links can be fed to this Browser driver at any time, by
 simply adding new hashtable entries to the B<links_to_visit> hashtable
 within the B<$object>.
 
 For example, if you wanted to add the URL "http://www.mitre.org"
-to the IE driver B<$object>, simply use the following code:
+to the Browser driver B<$object>, simply use the following code:
 
   $object->{links_to_visit}->{'http://www.mitre.org'} = 1;
 
@@ -1327,13 +1326,13 @@ sub isFinished {
 
 =over 4
 
-Returns the current status of the IE driver B<$object>, as it's state
+Returns the current status of the Browser driver B<$object>, as it's state
 exists, between subsequent calls to $object->driver().
 
 Specifically, the data returned is a reference to a hashtable,
 containing specific statistical information about the status
-of the IE driver's progress, between iterations of driving the
-Microsoft Internet Explorer browser.
+of the Browser driver's progress, between iterations of driving the
+browser process.
 
 The following is an example hashtable, containing all the
 (key => value) pairs that would exist in the output.
@@ -1350,7 +1349,7 @@ The following is an example hashtable, containing all the
   };
 
 I<Output>: A corresponding B<$hashref>, containing statistical information
-about the IE driver's progress, as previously mentioned.
+about the Browser driver's progress, as previously mentioned.
 
 # XXX: Resolve this, per parent Driver description.
 
@@ -1419,9 +1418,6 @@ __END__
 
 =head1 BUGS & ASSUMPTIONS
 
-This module makes extensive use of the Win32::IE::Mechanize module.
-Any bugs found within that library will most likely be present here.
-
 In a nutshell, this object is nothing more than a blessed anonymous
 reference to a hashtable, where (key => value) pairs are defined in
 the L<DEFAULT PARAMETER LIST>, as well as fed via the new() function
@@ -1429,21 +1425,16 @@ during object initialization.  As such, this package does B<not>
 perform any rigorous B<data validation> prior to accepting any new
 or overriding (key => value) pairs.
 
-However, additional links can be fed to any IE driver at any time, by
+However, additional links can be fed to any Browser driver at any time, by
 simply adding new hashtable entries to the B<links_to_visit> hashtable
 within the B<$object>.
 
 For example, if you wanted to add the URL "http://www.mitre.org"
-to the IE driver B<$object>, simply use the following code:
+to the Browser driver B<$object>, simply use the following code:
 
   $object->{links_to_visit}->{'http://www.mitre.org'} = 1;
 
-XXX: At some point, we may want to replace all the instances of '1'
-with more useful data, like a sub-hashtable that contains a set of
-L<Win32::OLE> options that would be fed directly into each
-instance of Win32::IE::Mechanize->new(%options).
-
-In general, the IE driver does B<not> know how many links it will
+In general, the Browser driver does B<not> know how many links it will
 ultimately end up browsing to, until it conducts an exhaustive
 spider of all initial URLs supplied.  As such, expect the output
 of $object->status() to change significantly, upon each
@@ -1462,17 +1453,11 @@ Add documentation for proper configuration of browser to not cache stuff
 
 =head1 SEE ALSO
 
-Win32::IE::Mechanize
-
-Win32::OLE
-
-XXX: If you have a mailing list, mention it here.
-
-XXX: If you have a web site set up for your module, mention it here.
+L<http://www.honeyclient.org/trac>
 
 =head1 REPORTING BUGS
 
-XXX: Mention website/mailing list to use, when reporting bugs.
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 AUTHORS
 
@@ -1481,6 +1466,8 @@ Kathy Wang, E<lt>knwang@mitre.orgE<gt>
 Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
 
 Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
+
+Brad Stephenson, E<lt>stephenson@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 

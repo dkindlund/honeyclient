@@ -8,7 +8,7 @@
 #
 # @author(s) durick, kindlund, xkovah
 #
-# SVN: $Id: FW.pm 1634 2006-11-16 22:22:32Z kindlund $
+# SVN: $Id$
 #
 # Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
 #
@@ -158,7 +158,7 @@ use IPTables::IPv4;
 use Config::General;
 use Data::Dumper;
 use POSIX qw( WIFEXITED );
-use English;
+use English '-no_match_vars';
 
 # set our configuration file location
 my $config_file = getVar(name => "config_file");
@@ -215,7 +215,7 @@ use Time::HiRes qw(gettimeofday);
 # Make sure use English loads.
 BEGIN { use_ok('English') or diag("Can't load use English package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('English');
-use English;
+use English '-no_match_vars';
 
 # Make sure use threads loads.
 BEGIN { use_ok('threads') or diag("Can't load use threads package.  Check to make sure the package library is correctly listed within the path."); }
@@ -2204,7 +2204,7 @@ I<Output>: Return true if success or false if failure
 =cut
 
 sub _checkRoot {
-	use English;
+	use English '-no_match_vars';
 	my $log = get_logger("HoneyClient::Manager::FW");
 	$log->info("Entering _checkRoot() function");
 	### lets check and see if we have root (uid 0) access ###
@@ -3302,6 +3302,8 @@ __END__
 
 =head1 SEE ALSO
 
+L<http://www.honeyclient.org/trac>
+
 SOAP::Lite, SOAP::Transport::HTTP
 
 L<http://www.soaplite.com>
@@ -3316,6 +3318,12 @@ IPTables Perl API
 L<http://sourceforge.net/projects/iptperl/>
 
 Data::Dumper, English, Proc::ProcessTable, FileHandle
+
+L<http://www.honeyclient.org/trac>
+
+=head1 REPORTING BUGS
+
+L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 
