@@ -39,7 +39,7 @@ web browser, running inside a HoneyClient VM.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Agent::Driver::Browser version 0.9.2.
+This documentation refers to HoneyClient::Agent::Driver::Browser version 0.92.
 
 =head1 SYNOPSIS
 
@@ -154,7 +154,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
-    $VERSION = 0.9.2;
+    $VERSION = 0.92;
 
     # Define inherited modules.
     use HoneyClient::Agent::Driver;

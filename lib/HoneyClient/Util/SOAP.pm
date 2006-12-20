@@ -36,7 +36,7 @@ to all client and server SOAP operations, for any HoneyClient module.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Util::SOAP version 0.9.2.
+This documentation refers to HoneyClient::Util::SOAP version 0.92.
 
 =head1 SYNOPSIS
 
@@ -129,7 +129,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
-    $VERSION = 0.9.2;
+    $VERSION = 0.92;
 
     @ISA = qw(Exporter);
 

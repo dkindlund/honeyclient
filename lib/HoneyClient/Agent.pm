@@ -37,7 +37,7 @@ operations.
 
 =head1 VERSION
 
-$Rev: 1626 $
+0.92
 
 =head1 SYNOPSIS
 
@@ -78,7 +78,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION, @DRIVERS);
 
     # Set our package version.
-    $VERSION = 0.9;
+    $VERSION = 0.92;
 
     @ISA = qw(Exporter);
 
