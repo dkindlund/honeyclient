@@ -35,7 +35,7 @@
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Manager version 1.0.
+This documentation refers to HoneyClient::Manager version 0.9.2.
 
 =head1 SYNOPSIS
 
@@ -72,7 +72,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION, @DRIVERS);
 
     # Set our package version.
-    $VERSION = 0.9;
+    $VERSION = 0.9.2;
 
     @ISA = qw(Exporter);
 
