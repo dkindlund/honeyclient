@@ -385,6 +385,8 @@ my %PARAMS = (
         '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\BagMRU.*$',
         '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\MUICache.*$',
         '^HKEY_CURRENT_USER\\\Volatile Environment$',
+        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Macromedia$',
+        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Macromedia\\\FlashPlayer$',
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Cryptography\\\RNG$',
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\BITS$',
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\Group Policy\\\State\\\Machine\\\Extension-List\\\.*$',
