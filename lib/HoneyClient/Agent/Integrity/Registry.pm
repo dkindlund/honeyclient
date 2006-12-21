@@ -392,6 +392,7 @@ my %PARAMS = (
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\Group Policy\\\State\\\Machine\\\Extension-List\\\.*$',
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\WindowsUpdate\\\.*$',
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\WindowsUpdate\\\Auto Update.*$', 
+        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows NT\\\CurrentVersion\\\Prefetcher$',
         '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows NT\\\CurrentVersion\\\Winlogon\\\Notify\\\WgaLogon\\\Settings$',
         '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\.+\\\Parameters\\\Tcpip.*$',
         '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\Dhcp\\\Parameters.*$',
