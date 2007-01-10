@@ -68,7 +68,7 @@ Keep in mind, though, that some variables should remain module-specific
         <Driver>
             <!-- TODO: Update this. -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
-                5 
+                10 
             </timeout>
             <Browser>
                 <!-- HoneyClient::Agent::Driver::IE Options -->
@@ -83,6 +83,12 @@ Keep in mind, though, that some variables should remain module-specific
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
 	                -1
 	            </max_relative_links_to_visit>
+	            <goodwords description="A comma-separated list of good words which will increase the score of links within a webpage." default="">
+                    news,new,big,latest,main,update,sell,free,buy
+                </goodwords>
+	            <badwords description="A comma-separated list of bad words which will decrease the score of links within a webpage." default="">
+	                archive,privacy,legal,disclaim,about,contact,copyright,jobs,careers
+	            </badwords>
                 <IE>
                     <!-- HoneyClient::Agent::Driver::IE Options -->
                     <!-- TODO: Update this. -->
@@ -173,6 +179,10 @@ Keep in mind, though, that some variables should remain module-specific
         </Integrity>
     </Agent>
     <Manager>
+        <!-- TODO: Update this. -->
+        <manager_state description="Upon termination, the Manager will attempt to save a complete copy of its state into this file, if specified." default="">
+            Manager.dump
+        </manager_state>
         <!-- TODO: Update this. -->
         <address description="The IP or hostname that all Manager modules should use, when accepting SOAP requests." default="localhost">
             localhost

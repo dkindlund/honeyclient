@@ -16,12 +16,12 @@
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, using version 2
 # of the License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
@@ -54,7 +54,7 @@ This documentation refers to HoneyClient::Agent::Driver::Browser version 0.92.
       links_to_visit => {
           'http://www.google.com'  => 1,
           'http://www.cnn.com'     => 1,
-      }, 
+      },
   );
 
   # If you want to see what type of "state information" is physically
@@ -75,7 +75,7 @@ This documentation refers to HoneyClient::Agent::Driver::Browser version 0.92.
       # Get the driver's progress.
       print "Status:\n";
       print Dumper($browser->status());
-      
+
   }
 
   # At this stage, the driver has exhausted its collection of links
@@ -93,7 +93,7 @@ running inside the HoneyClient VM.  The purpose of this module is to
 programmatically navigate the browser to different websites, in order to
 become purposefully infected with new malware.
 
-This module is object-oriented in design, retaining all state information 
+This module is object-oriented in design, retaining all state information
 within itself for easy access.  A specific browser class must inherit from
 Browser.
 
@@ -113,13 +113,13 @@ This means that the browser driver will try to visit all links shared by a
 common server in random order before moving on to drive to other,
 external links in a random fashion.  B<However>, this cannot be
 guaranteed, as additional links from the same server may be found
-later, after processing the contents of an external link. 
+later, after processing the contents of an external link.
 
 As the browser driver navigates the browser to each link, it
 maintains a set of hashtables that record when valid links were
 visited (see L<links_visited>); when invalid links were found
 (see L<links_ignored>); and when the browser attempted to visit
-a link but the operation timed out (see L<links_timed_out>). 
+a link but the operation timed out (see L<links_timed_out>).
 By maintaining this internal history, the driver will B<never>
 navigate the browser to the same link twice.
 
@@ -191,7 +191,7 @@ BEGIN {
     # Check to make sure our OS is Windows-based.
     #if ($Config{osname} !~ /^MSWin32$/) {
     #    Carp::croak "Error: " . __PACKAGE__ . " will only run on Win32 platforms!\n";
-    #}    
+    #}
 
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
 }
@@ -221,7 +221,7 @@ use threads::shared;
 
 # TODO: Need unit testing.
 use HoneyClient::Util::SOAP qw(getClientHandle);
-	
+
 # TODO: Need unit testing.
 use LWP::UserAgent;
 
@@ -243,7 +243,7 @@ the following parameters are supplied default values.  Each value
 can be overridden by specifying the new (key => value) pair into the
 B<new()> function, as arguments.
 
-Furthermore, as each parameter is initialized, each can be individually 
+Furthermore, as each parameter is initialized, each can be individually
 retrieved and set at any time, using the following syntax:
 
   my $value = $object->{key}; # Gets key's value.
@@ -285,7 +285,7 @@ Links could be added to this list if access requires any type of
 authentication, or if the link points to a non-HTTP or HTTPS
 resource (i.e., "javascript:doNetDetect()").
 
-Specifically, each 'key' corresponds to an absolute URL and the 
+Specifically, each 'key' corresponds to an absolute URL and the
 'value' is a string representing the date and time of when the link
 was visited.
 
@@ -306,7 +306,7 @@ driving the browser to each URL, any B<relative> links found are
 added into this hashtable; any B<external> links found are added
 back into the B<links_to_visit> hashtable.
 
-When driving to the next link, this hashtable is exhausted prior 
+When driving to the next link, this hashtable is exhausted prior
 to the main B<links_to_visit> hashtable.  This allows a
 browser to navigate to all links hosted on the same server, prior
 to contacting a different server.
@@ -323,7 +323,7 @@ Specifically, each 'key' corresponds to an absolute URL and the
 This parameter is a scalar that contains the next URL to visit.
 It is updated dynamically, any time $object->getNextLink() is called.
 
-When the browser is ready to drive to the next link, B<next_link_to_visit> 
+When the browser is ready to drive to the next link, B<next_link_to_visit>
 is checked first.  If that value is B<undef>, then the B<relative_links_to_visit>
 hashtable is checked next.  If that hashtable is empty, then finally the
 B<links_to_visit> hashtable is checked last.
@@ -339,9 +339,9 @@ has found during its link traversal process, but the browser
 could not access the corresponding resource due to the operation
 timing out.
 
-Specifically, each 'key' corresponds to an absolute URL and the 
+Specifically, each 'key' corresponds to an absolute URL and the
 'value' is a string representing the date and time of when access to
-the resource was attempted. 
+the resource was attempted.
 
 B<Note>: See internal documentation of _getTimestamp() for the
 corresponding date/time format of each value.
@@ -382,7 +382,7 @@ websites.
 
 =cut
 
-my %PARAMS = ( 
+my %PARAMS = (
 
     # This is a hashtable of fully qualified URLs
     # to visit by the browser.  Specifically, the 'key' is
@@ -393,7 +393,7 @@ my %PARAMS = (
     # browser has already visited.  Specifically, the
     # 'key' is the absolute URL and the 'value' is a string
     # representing the date and time of when the link was visited.
-    # 
+    #
     # Note: See _getTimestamp() for the corresponding date/time
     # format.
     links_visited           => { },
@@ -408,24 +408,24 @@ my %PARAMS = (
     #
     # The 'key' is the absolute URL and the 'value' is a string
     # representing the date and time of when the link was visited.
-    # 
+    #
     # Note: See _getTimestamp() for the corresponding date/time
     # format.
     links_ignored           => { },
 
     # This is a hashtable of fully qualified URLs
     # that all share a common *hostname*.  This hashtable should be
-    # initially empty.  As the driver extracts and removes new URLs 
-    # off the 'links_to_visit' hashtable, driving the browser to each URL, 
+    # initially empty.  As the driver extracts and removes new URLs
+    # off the 'links_to_visit' hashtable, driving the browser to each URL,
     # any *relative* links found are added into this hashtable; any
     # *external* links found are added back into the 'links_to_visit'
     # hashtable.
     #
-    # When navigating to the next link, this hashtable is exhausted prior 
+    # When navigating to the next link, this hashtable is exhausted prior
     # to the main 'links_to_visit' hashtable.  This allows a
     # browser to navigate to all links hosted on the same server, prior
     # to contacting a different server.
-    #   
+    #
     # Specifically, the 'key' is the absolute URL and the 'value'
     # is always 1.
     relative_links_to_visit => { },
@@ -445,7 +445,7 @@ my %PARAMS = (
     #
     # The 'key' is the absolute URL and the 'value' is a string
     # representing the date and time of when the link was visited.
-    # 
+    #
     # Note: See _getTimestamp() for the corresponding date/time
     # format.
     links_timed_out         => { },
@@ -473,7 +473,11 @@ my %PARAMS = (
     # possible for the browser to visit new links on previously visited
     # websites.
     max_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
-    
+
+	# Comma-separated string containing the good words and bad words for link scoring purposes
+	goodwords => getVar(name => "goodwords", namespace => "HoneyClient::Agent::Driver::Browser"),
+	badwords => getVar(name => "badwords", namespace => "HoneyClient::Agent::Driver::Browser"),
+
 );
 
 #######################################################################
@@ -487,8 +491,8 @@ my %PARAMS = (
 #       any and all applicable hashtables/scalars.
 #
 # When getting the next link, 'next_link_to_visit' is checked first.
-# If that value is undef, then the 'relative_links_to_visit' hashtable 
-# is checked next.  If that hashtable is empty, then finally the 
+# If that value is undef, then the 'relative_links_to_visit' hashtable
+# is checked next.  If that hashtable is empty, then finally the
 # 'links_to_visit' hashtable is checked.
 #
 # Inputs: HoneyClient::Agent::Driver::Browser object
@@ -497,8 +501,8 @@ sub _getNextLink {
 
     # Get the object state.
     my $self = shift;
-    
-    # Set the link to find as undef, initially. 
+
+    # Set the link to find as undef, initially.
     # We use undef to signify that our URL *_links_to_visit hashtables
     # are empty.  If we were to use the empty string instead, as our
     # signal, then this code would misinterpret an empty link
@@ -536,7 +540,7 @@ sub _getNextLink {
         $link = $self->_validateLink($link);
     }
 
-    # Return the next link found. 
+    # Return the next link found.
     return $link;
 }
 
@@ -552,15 +556,14 @@ sub _getTimestamp {
     return $dt->ymd('-') . " " .
            $dt->hms(':') . "." .
            $dt->nanosecond();
-} 
+}
 
 # Helper function designed to "pop" a key off a given hashtable.
 # When given a hashtable reference, this function will extract a valid key
-# from the hashtable and delete the (key, value) pair from the 
-# hashtable.
+# from the hashtable and delete the (key, value) pair from the
+# hashtable.  The link with the highest score is returned.
 #
-# Note: There is no guaranteed order about how this function picks
-# keys from the hashtable.
+#
 #
 # Inputs: hashref
 # Outputs: valid key, or undef if the hash is empty
@@ -569,55 +572,17 @@ sub _pop {
     # Get supplied hash reference.
     my $hash = shift;
 
-    # Get a new key.
-    my @keys = keys(%{$hash});
-    my $key = pop(@keys);
-    
+    # Get the highest score.
+    my @array = sort {$$hash{$b} <=> $$hash{$a}} keys %{$hash};
+    my $topkey = $array[0];
+
     # Delete the key from the hashtable.
-    if (defined($key)) {
-        delete $hash->{$key};
+    if (defined($topkey)) {
+        delete $hash->{$topkey};
     }
 
     # Return the key found.
-    return $key;
-}
-
-# This is the abstract function which actually fetches the web content using
-# a specific browser implementation.  Must be implemented by each browser class.
-
-sub getContent {
-
-}
-
-# Helper function which parses the HTTP::Response from LWP::UserAgent
-# and returns an array of the links contained in the response
-#
-# Inputs: HTTP::Response object
-# Outputs: Array containing all href links within the response
-
-sub _getAllLinks {
-	
-	my $response = shift;
-	my $hostname = shift;
-	my @links = ();
-	my $thislink;
-	
-	my $html = $response->content;
-	
-	while( $html =~ m/<A HREF=\"(.*?)\"/gi ) {
-		$thislink = $1;
-
-		# For relative links, prepend the hostname
-		# TODO:  Probably shouldn't assume the HTTP protocol...
-		if ($thislink =~ /^\//) {
-			$thislink = "http://" . $hostname . $thislink;
-		}
-		
-		push @links, $thislink;
-	}
-
-	#Return the list of absolute links
-	return @links;
+    return $topkey;
 }
 
 # Helper function, designed to extract the hostname
@@ -638,7 +603,7 @@ sub _extractHostname {
         return "";
     }
 
-    # Get the URL supplied. 
+    # Get the URL supplied.
     my $url = $arg . "/"; # Tack on an ending delimeter.
 
     # Note: The '?' chars make a critical difference
@@ -651,7 +616,8 @@ sub _extractHostname {
 
 # Helper function, designed to process all links found at a
 # given URL, once the browser has been driven to that URL
-# and has collected all corresponding links.
+# and has collected all corresponding links.  The links are
+# sorted in increasing order as determined by their score.
 #
 # When supplied with the array of URL strings,
 # this function will categorize the corresponding URLs
@@ -665,14 +631,14 @@ sub _extractHostname {
 #
 # - If a link is new and "invalid", then it gets added to
 #   the 'links_ignored' hashtable.
-#   
+#
 # - If a link is old and "invalid", then it gets
 #   ignored.
 #
 # - If a link is old and "valid", then it gets ignored.
 #
 # - If a link is new and "valid", then we check to see if
-#   the referring URL's hostname[:port] and the link's 
+#   the referring URL's hostname[:port] and the link's
 #   hostname[:port] match.  If they match, then the link
 #   is added to the 'relative_links_to_visit' hash.
 #   Otherwise, the link is added to the 'links_to_visit'
@@ -680,17 +646,18 @@ sub _extractHostname {
 #
 # Inputs: HoneyClient::Agent::Driver::Browser object,
 #         hostname[:port] of referring URL,
-#         array of URL strings
+#         hash of URL strings and scores, the url is the key
 # Outputs: HoneyClient::Agent::Driver::Browser object
 sub _processLinks {
 
     # Get the object state.
     my $self = shift;
 
-    # Get the referrer and the corresponding array of links.
-    my ($referrer, @links) = @_;
-    
-    foreach my $url (@links) {
+    # Get the referrer and the corresponding arrays of links and scores.
+    my ($referrer, %links) = @_;
+
+    foreach my $url (keys %links) {
+    	my $score = $links{$url};
 
         # Skip over any undefined links.
         unless (defined($url)) {
@@ -709,29 +676,29 @@ sub _processLinks {
 
         # Link is new and valid; go ahead and add to the appropriate
         # hashtable.
-       
+
         # Extract the core hostname of the URL to visit.
         # If $url is undef, then this function will return an empty string.
         my $hostname = _extractHostname($url);
-      
+
         # If the referrer's hostname and the URL's hostname match...
         if ($hostname eq $referrer) {
             # Then add the URL to the 'relative_links_to_visit' hashtable,
             # since we're visiting links that share the same hostname.
-            $self->relative_links_to_visit->{$url} = 1;
+            $self->relative_links_to_visit->{$url} = $score;
         } else {
             # Else, add the URL to the 'links_to_visit' hashtable,
             # since we're visiting links that do NOT share the same hostname.
-            $self->links_to_visit->{$url} = 1;
+            $self->links_to_visit->{$url} = $score;
         }
     }
-    
+
     # Return the modified object state.
     return $self;
 }
 
 # Helper function designed to validate supplied links.
-# 
+#
 # When a link is provided as an argument:
 #
 #  - The link is checked to make sure it has a valid
@@ -741,7 +708,7 @@ sub _processLinks {
 #  - The 'links_visited' history is checked; if the link
 #    already exists within the history, then it is considered
 #    invalid.
-# 
+#
 # If the link is valid, then it is returned.  Otherwise, undef
 # is returned for all invalid links.  Also, all invalid links
 # are added to the 'links_ignored' history -- if they're not
@@ -750,7 +717,7 @@ sub _processLinks {
 # Inputs: HoneyClient::Agent::Driver::Browser object, url to validate
 # Outputs: url if valid, empty string if invalid
 sub _validateLink {
-    
+
     # Get the object state.
     my $self = shift;
 
@@ -792,7 +759,7 @@ sub _validateLink {
          exists($self->links_visited->{$link})) or
         (scalar(%{$self->links_ignored}) and
          exists($self->links_ignored->{$link}))) {
-        
+
         # Link is valid but already visited, so return undef.
         return;
     }
@@ -818,7 +785,7 @@ sub _killProcess {
     # object.
     my $stub = getClientHandle(address   => 'localhost',
                                namespace => 'HoneyClient::Agent');
-           
+
     my $som = $stub->killProcess($self->process_name);
 
     if (!$som->result) {
@@ -837,7 +804,7 @@ sub _killProcess {
 The following functions have been implemented by the Browser driver.  Many
 of these methods were implementations of the parent Driver interface.
 
-As such, the following code descriptions pertain to this particular 
+As such, the following code descriptions pertain to this particular
 Driver implementation.  For further information about the generic
 Driver interface, see the L<HoneyClient::Agent::Driver> documentation.
 
@@ -851,7 +818,7 @@ containing any of the supplied "param => value" arguments.
 I<Inputs>:
  B<$param> is an optional parameter variable.
  B<$value> is $param's corresponding value.
- 
+
 Note: If any $param(s) are supplied, then an equal number of
 corresponding $value(s) B<must> also be specified.
 
@@ -940,7 +907,7 @@ I<Output>: The updated Browser driver B<$object>, containing state information
 from driving the browser for one iteration.
 
 B<Warning>: This method will B<croak> if the Browser driver object is B<unable>
-to navigate to a new link, because its list of links to visit is empty. 
+to navigate to a new link, because its list of links to visit is empty.
 
 =back
 
@@ -983,39 +950,24 @@ sub drive {
     # Indicates how long we wait for each drive operation to complete,
     # before registering attempt as a failure.
     my $timeout : shared = $self->timeout();
-    
-    # Use LWP::UserAgent to get the desired $args{'url'} and associated content
-    my @links = undef; 
 
-    # TODO: Analyze all the options LWP::UserAgent provides, in case we've 
+    # Use LWP::UserAgent to get the desired $args{'url'} and associated content
+    # TODO: Analyze all the options LWP::UserAgent provides, in case we've
     # missed something useful.
     # Create a new user agent.
     my $ua = LWP::UserAgent->new(
         timeout           => $timeout,            # Fixed timeout.
-        max_redirect      => 0,                   # Ignore redirects.
+        #max_redirect      => 0,                   # Ignore redirects.
         protocols_allowed => [ 'http', 'https' ], # Allow only web protocols.
+        max_size		  => 1*1024*1024,         # Don't get larger than 1MB for testing
     );
-
-    # TODO: Set the default headers, to mimic a regular browser (if need be).
-    # I'm thinking this could be set by IE/FF and passed via $args{'default_headers'}
-    # as a HTTP::Headers object.
 
     # TODO: Look at the content type "text/html" on the response, to make this
     # a little better.
+    # TODO: Set the default headers, to mimic a regular browser (if need be).
+    # I'm thinking this could be set by IE/FF and passed via $args{'default_headers'}
+    # as a HTTP::Headers object.
     $ua->default_header( 'Accept' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5' );
-    $ua->max_size(1*1024*1024); # Don't get values larger than 1MB for testing
-    $ua->timeout($timeout);
-
-    # XXX: This is old code; delete eventually.
-#   my $response = $ua->get($args{'url'});
-
-    # Get the links
-#    @links = _getAllLinks($response, _extractHostname($args{'url'}));
-
-    # Make the parser.  Unfortunately, we don't know the base yet
-    # (it might be diffent from $url)
-    #my $parser = HTML::LinkExtor->new(\&extractLinks);
-    my $parser = HTML::LinkExtor->new();
 
     my $response = $ua->request(
                         HTTP::Request->new(
@@ -1024,28 +976,32 @@ sub drive {
                                 # TODO: Add custom headers here?
                                 'Accept' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
                             ),
-                        ),
-                        sub { $parser->parse($_[0]) },
+                        )
     );
-    
-    # Extract only the <a href ...> links, for now.
-    # TODO: Handle other link types.
-    foreach my $entry ($parser->links) {
-        if ($entry->[0] eq 'a') {
-            push(@links, $entry->[2]);
-        }
-    }
 
-    # Expand all relative links found to absolute ones.
+    # Get the base url from the response
     my $base = $response->base;
-    @links = map { $_ = url($_, $base)->abs; } @links;
+    my $content = $response->content;
 
     # Get the current time.
     my $timestamp = _getTimestamp();
 
+    # Score the new links based on their surrounding HTML context
+    # If %scored_links is emtpy upon return, there are no links
+    # and we will not perform any of the following code
+    my %scored_links;
+    if ($content) {
+    	# Extract the good word and bad word lists into arrays;
+	    my @good_words = split /,/, $self->goodwords;
+	    my @bad_words = split /,/, $self->badwords;
+    	my %wordlists = ('good' => \@good_words, 'bad' => \@bad_words);
+    	# Call the link scoring function
+    	%scored_links = _scoreLinks($base, $content, %wordlists);
+    }
+
     # Check to see if the request timed out.
     # TODO: Need better error detection.
-    if (!@links) {
+    if (!%scored_links) {
         $self->links_timed_out->{$args{'url'}} = $timestamp;
 
         # If we ignore any timed out links, then add them to our ignore
@@ -1058,10 +1014,10 @@ sub drive {
         # Go ahead and add it to our 'links_visited' history.
         $self->links_visited->{$args{'url'}} = $timestamp;
 
-        # Get all links found on this page.
+        # Add all links found on this page to our sorted queues.
         # This function modifies the $self object internally and its
         # returned content does not need to be checked.
-        $self->_processLinks(_extractHostname($args{'url'}), @links);
+        $self->_processLinks(_extractHostname($args{'url'}), %scored_links);
     }
 
     # Check our internal relative links counter.
@@ -1074,7 +1030,7 @@ sub drive {
         $self->{_remaining_number_of_relative_links_to_visit} =
             $self->max_relative_links_to_visit;
     } elsif ($self->_remaining_number_of_relative_links_to_visit > 1) {
-            
+
         # The counter is positive, so decrement it.
         $self->{_remaining_number_of_relative_links_to_visit}--;
     }
@@ -1111,17 +1067,17 @@ instead.
 =cut
 
 sub getNextLink {
-    
+
     # Get the object state.
     my $self = shift;
-    
+
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
         Carp::croak "Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!\n";
     }
 
-    # Set the link to find as undef, initially. 
+    # Set the link to find as undef, initially.
     my $link = undef;
 
     # Get the next link.
@@ -1147,13 +1103,13 @@ browser will contact, upon the next subsequent call to the B<$object>'s
 drive() method.
 
 Specifically, the returned data is a reference to a hashtable, containing
-detailed information about which resources, hostnames, IPs, protocols, and 
+detailed information about which resources, hostnames, IPs, protocols, and
 ports that the browser will contact upon the next drive() iteration.
 
 Here is an example of such returned data:
 
   $hashref = {
-  
+
       # The set of servers that the driver will contact upon
       # the next drive() operation.
       targets => {
@@ -1168,7 +1124,7 @@ Here is an example of such returned data:
           '192.168.1.1' => {
               'udp' => [ 53, 123 ],
           },
- 
+
           # Or, more generically:
           'hostname_or_IP' => {
               'protocol_type' => [ portnumbers_as_list ],
@@ -1182,7 +1138,7 @@ Here is an example of such returned data:
       },
   };
 
-B<Note>: For this implementation of the Driver interface, 
+B<Note>: For this implementation of the Driver interface,
 unless getNextLink() returns undef, the returned hashtable
 from this method will B<always> contain only B<one> hostname
 or IP address.  Within this single entry, the protocol type
@@ -1210,7 +1166,7 @@ and 'resources' keys, if getNextLink() also returns undef.
 sub next {
     # Get the object state.
     my $self = shift;
-    
+
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
         Carp::croak "Error: Function must be called in reference to a " .
@@ -1252,8 +1208,8 @@ sub next {
             $port = 80;
         }
     }
-   
-    # Finally, construct the corresponding hash reference. 
+
+    # Finally, construct the corresponding hash reference.
     $nextSite = {
         targets => {
             $hostname => {
@@ -1266,6 +1222,156 @@ sub next {
     };
 
     return $nextSite;
+}
+
+=pod
+
+=head2 _scoreLinks()
+
+=over 4
+
+The _scoreLinks helper function takes a scalar which is the base url for
+the web page, a scalar which holds the content of the page (HTML), and a
+hash which contain the good and bad words.
+
+This function will calculate the "popularity" scores of the links.
+The function returns a hash which is keyed on the _absolute_ url
+and contains the value of the score.
+
+I<Output>: The populated %scored_links hash if the page is not empty. An empty
+hash otherwise.
+
+For example, if your raw HTML content is $content, and the base url is
+$base you would use the following call to this function.
+
+if ($content) {
+    # Extract the good word and bad word lists into arrays;
+    my @good_words = split /,/, $self->goodwords;
+    my @bad_words = split /,/, $self->badwords;
+    my %wordlists = ('good' => \@good_words, 'bad' => \@bad_words);
+    # Call the link scoring function
+    %scored_links = _scoreLinks($base, $content, %wordlists);
+}
+
+=back
+
+=begin testing
+
+# XXX: Test this.
+1;
+
+=end testing
+
+=cut
+
+sub _scoreLinks {
+	my ($base, $content, %wordlists) = @_;
+    my @good_words = @{$wordlists{good}};
+    my @bad_words = @{$wordlists{bad}};
+	my %links = ();
+	my $url;
+
+    # If the page is blank, there is no point trying to parse it
+	if (!$content) {
+		return %links;
+	}
+
+	# Begin to scour the HTML content for <a> tags, parsing attributes and text
+	while ($content =~ m{<a\b([^>]+)>(.*?)</a>}ig) {
+		my $attr = $1;
+		my $text = $2;
+		my $score = 0;
+
+        # Look for the link in the attribute data
+		if ($attr =~ m{
+						\b HREF
+						\s* = \s*
+						(?:
+						  "([^"]*)"
+						  |
+						  '([^']*)'
+						  |
+						  {[^'">\s]+}
+						)
+					 }xi)
+		 {
+		 	$url = $+;
+
+		 	# Some programmatic values
+		 	my $min_text_length = 6;
+   		 	my $max_text_length = 20;
+   		 	my $image_bonus = 50;
+   		 	my $default_display_size = 1024 * 768;
+   		 	my $word_value = 6;
+
+			# We have to make this an absolute url (if it's not)
+			# before using it as a key in the %links hash
+			$url = url($url, $base)->abs;
+
+		 	# The link must be an HREF and be a http(s) link
+			if ($url =~ /^http/i) {
+				# Begin scoring the link based on surrounding context
+				# This can be improved/customized in many different ways.
+				# Our implementation is only one possible way to assign
+				# values to the context elements.
+
+				# Score length of link text. These are arbitrary lengths, but
+				# the reasoning is that really short text links are not too
+				# visible (we are excluding image links from this criteria),
+				# and really long text would be weird or abnormal to the human
+				# web surfer.
+				if ($text !~ /img /i &&
+					length($text) > $min_text_length &&
+					length($text) < $max_text_length) {
+					$score += length($text);
+				}
+
+                # Score the image content, if it exists
+                # We score the size proportional to a 1024 X 768 display
+				# Image bonus
+				if ($text =~ /img /i) {
+					$score += $image_bonus;
+				}
+				# Score image size
+				my $width;
+				my $height;
+				if ($text =~ /\b WIDTH\s*=\s*.(\d+)/xi) {
+					$width = $1;
+				}
+				if ($text =~ /\b HEIGHT\s*=\s*.(\d+)/xi) {
+				  	$height = $1;
+				}
+				if ($width && $height) {
+					$score += int(($width*$height)/($default_display_size)*100);
+				}
+				elsif ($width) {
+					$score += int($width/10);
+				}
+				elsif ($height) {
+					$score += int($height/10);
+				}
+
+				# Good word bonus
+				foreach (@good_words) {
+	                if ($text =~ /$_/i) {
+	                    $score += $word_value;
+	                }
+				}
+
+				# Bad word penalty
+				foreach (@bad_words) {
+	                if ($text =~ /$_/i) {
+	                    $score -= $word_value;
+	                }
+				}
+
+                # Put it in the return value hash and zero the score
+				$links{$url} = $score;
+				$url = undef;
+			}
+		}
+	}
+	return %links;
 }
 
 =pod
@@ -1305,7 +1411,7 @@ sub isFinished {
 
     # Get the object state.
     my $self = shift;
-    
+
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
         Carp::croak "Error: Function must be called in reference to a " .
@@ -1317,7 +1423,7 @@ sub isFinished {
     return (!(defined($self->next_link_to_visit) or
               scalar(%{$self->relative_links_to_visit}) or
               scalar(%{$self->links_to_visit})))
-                            
+
 }
 
 =pod
@@ -1340,7 +1446,7 @@ The following is an example hashtable, containing all the
   $hashref = {
       'relative_links_remaining' =>       10, # Number of URLs left to
                                               # process, at a given site.
-      'links_remaining'          =>       56, # Number of URLs left to 
+      'links_remaining'          =>       56, # Number of URLs left to
                                               # process, for all sites.
       'links_processed'          =>       44, # Number of URLs processed.
       'links_total'              =>      100, # Total number of URLs given.
@@ -1365,10 +1471,10 @@ about the Browser driver's progress, as previously mentioned.
 =cut
 
 sub status {
-    
+
     # Get the object state.
     my $self = shift;
-    
+
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
         Carp::croak "Error: Function must be called in reference to a " .
@@ -1383,15 +1489,15 @@ sub status {
                                  scalar(keys(%{$self->links_timed_out})) +
                                  scalar(keys(%{$self->links_ignored}));
 
-    # Set the number of relative links to process. 
+    # Set the number of relative links to process.
     $status->{relative_links_remaining} = scalar(keys(%{$self->relative_links_to_visit}));
-    
+
     # Figure out how many total links are left to process.
     $status->{links_remaining} = scalar(keys(%{$self->relative_links_to_visit})) +
                                  scalar(keys(%{$self->links_to_visit}));
 
     # Set the total number of links in the object's state.
-    $status->{links_total} = $status->{links_processed} + 
+    $status->{links_total} = $status->{links_processed} +
                              $status->{links_remaining};
 
     # Get the percentage of links complete.
@@ -1399,7 +1505,7 @@ sub status {
     if ($status->{links_total} <= 0) {
         $status->{links_total} = 1;
     }
-    $status->{percent_complete} = sprintf("%.2f%%", (($status->{links_processed} + 0.00) / 
+    $status->{percent_complete} = sprintf("%.2f%%", (($status->{links_processed} + 0.00) /
                                                      ($status->{links_total} + 0.00)) * 100.00);
 
     # Return status.
@@ -1440,9 +1546,9 @@ spider of all initial URLs supplied.  As such, expect the output
 of $object->status() to change significantly, upon each
 $object->drive() iteration.
 
-For example, if at one given point, the status of B<percent_complete> 
-is 30% and then this value drops to 15% upon another iteration, then 
-this means that the total number of links to drive to has greatly 
+For example, if at one given point, the status of B<percent_complete>
+is 30% and then this value drops to 15% upon another iteration, then
+this means that the total number of links to drive to has greatly
 increased.
 
 Currently we assume that the browser is configured to not cache anything
@@ -1477,12 +1583,12 @@ This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, using version 2
 of the License.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA

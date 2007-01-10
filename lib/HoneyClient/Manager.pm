@@ -190,6 +190,9 @@ use VMware::VmPerl qw(VM_EXECUTION_STATE_ON
                       VM_EXECUTION_STATE_STUCK
                       VM_EXECUTION_STATE_SUSPENDED);
 
+# TODO: Include unit tests.
+use IO::File;
+
 # Complete URL of SOAP server, when initialized.
 our $URL_BASE       : shared = undef;
 our $URL            : shared = undef;
@@ -203,6 +206,17 @@ our $vmCloneConfig      = undef;
 our $stubVM             = undef;
 our $stubAgent          = undef;
 our $stubFW             = undef;
+
+# This is a temporary, shared variable, used to print out the
+# state of the agent, when _cleanup() occurs.
+# XXX: This variable and all reference to it will be deleted,
+# eventually.
+our $globalAgentState   = undef;
+
+# This static variable may contain a filename that the Manager
+# would use to dump its entire state information, upon termination.
+# XXX: May want to change this format/usage, eventually.
+our $STATE_FILE = getVar(name => "manager_state");
 
 #######################################################################
 # Daemon Initialization / Destruction                                 #
@@ -360,6 +374,18 @@ sub _cleanup {
         HoneyClient::Manager::VM->destroy();
     }
 
+    # XXX: May want to change this format/usage, eventually.
+    if (length($STATE_FILE) > 0 &&
+        defined($globalAgentState)) {
+        print "Saving state to '" . $STATE_FILE . "'...\n";
+        my $dump_file = new IO::File($STATE_FILE, "w");
+
+        # XXX: Delete this block, eventually.
+        $Data::Dumper::Terse = 0;
+        $Data::Dumper::Indent = 2;
+        print $dump_file Dumper(thaw(decode_base64($globalAgentState)));
+    }
+
     exit;
 }
 
@@ -417,6 +443,10 @@ sub run {
         print "Starting new session...\n";
         $agentState = $class->runSession(%args);
         $args{'agent_state'} = $agentState;
+
+        # XXX: Delete this, eventually.
+        $globalAgentState = $agentState;
+
         #$Data::Dumper::Terse = 0;
         #$Data::Dumper::Indent = 2;
         #print Dumper(thaw(decode_base64($agentState)));
@@ -616,6 +646,9 @@ sub runSession {
                     $som = $stubAgent->getState();
                     $args{'agent_state'} = $som->result();
 
+                    # XXX: Delete this, eventually.
+                    $globalAgentState = $args{'agent_state'};
+
                     # Check to see if the VM has been compromised.
                     print "WARNING: VM HAS BEEN COMPROMISED!\n";
                     print "Suspending: (" . $vmCloneConfig . ")...\n";
@@ -640,6 +673,9 @@ sub runSession {
             print "Calling getState()...\n";
             $som = $stubAgent->getState();
             $args{'agent_state'} = $som->result();
+
+            # XXX: Delete this, eventually.
+            $globalAgentState = $args{'agent_state'};
 
             print "Calling getStatus()...\n";
             $som = $stubAgent->getStatus();

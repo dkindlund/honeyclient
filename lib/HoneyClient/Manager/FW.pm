@@ -34,7 +34,7 @@
 =head1 NAME
 
 HoneyClient::Manager::FW - Perl module to remotely handle firewall rule/chain creation and deletion
-which will provide network connectivity for the honeyclients during crawling.  Additionally, 
+which will provide network connectivity for the honeyclients during crawling.  Additionally,
 it will provide protection when the honeyclients become compromised by enabling static rate limiting(tcp/udp/icmp)
 and MAC address filtering.
 
@@ -80,14 +80,14 @@ These will start upon boot of the honeywall so you will not have to do anything 
     7580 pts/0    S      0:01 /usr/bin/perl /hc/startFWListener.pl
 5.  Make your FW calls now from honeyclient-client.pl.
 
-=head2 INTERACTING WITH SOAP SERVER 
+=head2 INTERACTING WITH SOAP SERVER
 
  use HoneyClient::Util::SOAP qw(getClientHandle);
  use HoneyClient::Util::Config qw(getVar);
- 
-After the honeywall boots up, startFWListerner.pl will be executed and begin listening.  From 
+
+After the honeywall boots up, startFWListerner.pl will be executed and begin listening.  From
 here we want to start interacting with our SOAP FW server.
- 
+
  # Create a new SOAP client, to talk to the HoneyClient::Manager::FW module
  # @initlist will contain all the return values sent back from the server (PID of startFWListerner.pl on server and status message)
  #  Lets set our default honeyclient ruleset:
@@ -95,25 +95,25 @@ here we want to start interacting with our SOAP FW server.
   my $som = $stub->fwInit();
   my @initlist = $som->paramsall;
   print "$_\n" foreach (@initlist);
-  
+
  # To dynamically append new rules to the iptables ruleset, do the following
 $hashref = this data structure will be passed from the manager to the HoneyClient::Manager::FW
- 
+
  $som = $stub->addRule( $hashref );
  print $stub->result;
  print "\n";
- 
+
 # To dynamically delete rules, all you need to do is delete the user-defined chain that was originally created.
- 
+
 $som = $stub->deleteChain( $hashref );
 print $stub->result;
 print "\n";
- 
+
 # To get the status of the current iptables ruleset, this function prints to hard disk the working iptables ruleset
 $som = $stub->getStatus();
 print $stub->result;
 print "\n";
- 
+
 # For all new VM's that we plan to add later on, we will have to add new VM chains:
 $som = $stub->addChain( $hashref);
 print $stub->result;
@@ -266,8 +266,8 @@ ok(" -f /sbin/iptables", 'IPTables binary does exist');
 diag("Enabling test hash reference here");
 my $hashref = {
 
-    'foo' => {    
-        'targets' => {   
+    'foo' => {
+        'targets' => {
             'rcf.mitre.org'   => { 'tcp' => [ 80 ], },
         },
 
@@ -277,7 +277,7 @@ my $hashref = {
         'sources' => {
 
             '00:0C:29:94:B9:15' => {
-                '10.0.0.128' => {   
+                '10.0.0.128' => {
                     'tcp' => undef,
                     'udp' => [ 23, 53, '80:1024', ],
                 },
@@ -349,13 +349,13 @@ BEGIN {
 
 fwInit()
 
-The fwInit function awaits a call from the Honeyclient manager, once a call is made the function performs numerous subfunctions but 
+The fwInit function awaits a call from the Honeyclient manager, once a call is made the function performs numerous subfunctions but
 mainly handles creation of the default iptables ruleset for the honeyclient network.
 IPTables ruleset:
-Since we are using our honeywall to do transparent packet forwarding, forwarded packets will be traversing the 
-IPTables FORWARD chain, which is associated with the filter table.  By adding rules to the FORWARD chain, you 
-can control the flow of traffic between our two networks (honeyclient and external network).  
-Instead of using a single, built-in chain for all protocols, we use a user-defined chain to determine the protocol type, 
+Since we are using our honeywall to do transparent packet forwarding, forwarded packets will be traversing the
+IPTables FORWARD chain, which is associated with the filter table.  By adding rules to the FORWARD chain, you
+can control the flow of traffic between our two networks (honeyclient and external network).
+Instead of using a single, built-in chain for all protocols, we use a user-defined chain to determine the protocol type,
 then hand off the actual final processing to our user-defined chain in the filter table.
 
 
@@ -378,7 +378,7 @@ eval{
     is($som->result, 24, "fwInit current has set up 28 rules")   or diag("The fwInit() call failed.");
     $som = $stub->_setAcceptPolicy();
     $som = $stub->_flushChains();
-    
+
 };
 
 # Kill the child daemon, if it still exists.
@@ -389,7 +389,7 @@ sleep(1);
 if ($@) {
     fail($@);
 }
-	
+
 =end testing
 
 =cut
@@ -435,10 +435,10 @@ sub fwInit {
 
 		# flush and delete all existing chains/rules - starting clean
 		_flushChains();
-        
+
 # Now lets set our default deny all policy, this drops all traffic for INPUT, FORWARD, and OUTPUT
 		_setDefaultDeny();
-        
+
 
 		#  Create a Drop_Log_* user-defined chain, for logging packets before dropping them
 		_createDropLog("Drop_Log_In", "INPUT: ");
@@ -465,7 +465,7 @@ sub fwInit {
 
 =item *
 
-_validateInit() is another helper function 
+_validateInit() is another helper function
 
 I<Inputs>:  no input
 I<Output>: total number of rules across all chains (Default and user-defined)
@@ -664,7 +664,7 @@ addChain();
 
 add_vm_chain adds the user-defined chain based on manager client parameters.
 
-I<Inputs>:  
+I<Inputs>:
 B<$class>is the package name
 B<$hashref> - hash reference that will be sent over from HoneyClient::Agent.  It will then be parsed by get_vm_from_hash()
 and give me an array of VM names that will be added from the iptables chain list.  The reason we have broken
@@ -699,7 +699,7 @@ sleep 1;
 if ($@) {
     fail($@);
 	}
-	
+
 =end testing
 
 =cut
@@ -767,7 +767,7 @@ deleteChain();
 
 delete_vm_chain deletes the user-defined chain based on manager client parameters.
 
-I<Inputs>:  
+I<Inputs>:
 B<$class>is the package name
 B<$hashref> - hash reference that will be sent over from HoneyClient::Agent.  It will then be parsed by get_vm_from_hash()
 and give me an array of VM names that will be deleted from the iptables chain list.
@@ -800,7 +800,7 @@ sleep 1;
 if ($@) {
     fail($@);
 	}
-	
+
 =end testing
 
 =cut
@@ -890,9 +890,9 @@ my $result 		 = 0;
 	else{
         die ("Error: Unable to flush entries in chain $vin");
 		print "flush on $vin failed\n";
-		return $result;	
+		return $result;
 	}
-	
+
 	$result = $table->flush_entries($vout);
 	if($result){
 		print "flushed entries from $vout\n";
@@ -902,7 +902,7 @@ my $result 		 = 0;
 		print "flush on $vout failed\n";
 		return $result;
 	}
-	
+
 	$table->commit() or die ("Error: Unable to commit changes to filter table");
 	# Lets delete our PREROUTING logging
 	$result = _deletePreroutingLogging($hashref, $vmname);
@@ -921,7 +921,7 @@ the internet in search of malicious web sites.  FWPunch first checks for the exi
 creates a new VM rule.  If the chain already exists, the rule can not be added since their is no corresponding chain.
 If it does exist, the rule is added successfully.  All FWPunch calls are logged.
 
-The addRule() function will recieve a $hashref which will be a muli-level hash table whose structure 
+The addRule() function will recieve a $hashref which will be a muli-level hash table whose structure
 will resemble the below data structure:
 
 my $hashref = {
@@ -1003,7 +1003,7 @@ my $hashref = {
     },
 };
 
-I<Inputs>: 
+I<Inputs>:
 B<$class> is the package name.
 B<$hashref>
 
@@ -1062,7 +1062,7 @@ sub addRules {
 	# getst the Chain name for which we will be inserting new rules on the fly
 	$log->info("Getting VM name from _getVMName()");
 	$vmname = _getVMName($hashref);
-	
+
 	# Lets create our PREROUTING logging
 	_createPreroutingLogging($hashref, $vmname);
 
@@ -1151,9 +1151,9 @@ _getVMName($hashref);
 
 This function extracts the VM name from the hash reference and will use it in the addChain() function later.
 
-I<Inputs>: 
+I<Inputs>:
 B<$hashref>is the hash reference sent from the HoneyClient::Agent->HoneyClient::Manager->HoneyClient::Manager::FW
- 
+
 I<Output>: Returns the VM name.
 
 =cut
@@ -1181,7 +1181,7 @@ sub _getVMName {
 init_fw()
 
 The following init_fw() and destroy_fw() functions are the only direct
-calls required to startup and shutdown the SOAP server.  
+calls required to startup and shutdown the SOAP server.
 
 I<Input>: $class, $localAddr, $localPort
 
@@ -1284,7 +1284,7 @@ sub _load_interfaces {
 
 _flushChains()
 
-Gets the current list of chains within the IPTables ruleset and flushes all corresponding rules, then deletes the actual 
+Gets the current list of chains within the IPTables ruleset and flushes all corresponding rules, then deletes the actual
 chain.
 
 I<Input>: No input
@@ -1368,7 +1368,7 @@ Grabs the current list of chains within the IPTables ruleset and sets the policy
 I<Input>: No input
 
 I<Output>: Return true if the commit was successful, returns false if unsuccessful.  $table->commit() attempts to commit
-all changes made to the IP chains in the table that $table points to, and closes the connection to the kernel-level netfilter subsystem. 
+all changes made to the IP chains in the table that $table points to, and closes the connection to the kernel-level netfilter subsystem.
 If you wish to apply your changes back to the kernel, you must call this.
 
 =cut
@@ -1445,7 +1445,7 @@ sub _setDefaultDeny {
 			    $log->info("$chain is set to DROP policy");
 			    unless ($table->set_policy($chain, "DROP")) {
                     die "Unable to set_policy on chain $chain in filter table";
-                }	
+                }
             }
             unless ($table->flush_entries($chain)) {
                 die "Unable to flush chain $chain in filter table";
@@ -1473,7 +1473,7 @@ Additionally, at the end of the opendefault function are two rules:
 
 These rules track state and  allow traffic to be forwarded in both directions.  It also only allows initiated
 10.0.0.0/24 outbound traffic to be sent.  This is necessary since we only want our honeyclients to recieve traffic
-that they initiated and no other.  For starters, our honeyclients will just be examining HTTP traffic but might be examining 
+that they initiated and no other.  For starters, our honeyclients will just be examining HTTP traffic but might be examining
 other protocols in the future.  Either way, all established and initiated connections that match this rule and be allowed out.
 
 
@@ -1714,7 +1714,7 @@ sub _setDefaultRules {
 							"jump"        => "ACCEPT"
 						 }
 	) or die ("Error: Unable to append to chain FORWARD");
-	
+
 # Adds drop rules at end of default ruleset so all that does not match will be logged
 #pop(@chainlist);    # removes the FORWARD element in the list here
 	foreach my $chainname (@chainlist) {
@@ -1730,7 +1730,7 @@ sub _setDefaultRules {
 		if("$chainname" eq "FORWARD"){
 			$table->append_entry("$chainname", { jump => "Drop_Log_Fwd" }) or
 	            die ("Error: Unable to append to chain $chainname");
-		}	
+		}
 	}
 
 # Set Drop_Log within the FORWARD chain for logging.
@@ -1768,7 +1768,6 @@ sub _createNat {
 							  "jump"          => "MASQUERADE"
 						   }
 	) or die ("Error: Unable to append to chain POSTROUTING");
-	$table->commit() or die ("Error: Unable to commit to filter table");
 }
 
 =pod
@@ -1821,7 +1820,7 @@ sub _deletePreroutingLogging {
 	my $table   = IPTables::IPv4::init('nat');
 	my %rules   = _parseHash($hashref);
 	my $success = 0;
-	
+
    # start looping through our HoH to insert our rules into the iptables ruleset
 	for my $destip (keys %rules) {
 		$success =
@@ -1944,7 +1943,7 @@ sub _createDropLog {
 	unless ($table->append_entry($chain, { jump => $drop })) {
         die ("Error: Unable to append to chain $chain in filter table");
     }
-	
+
 	unless ($table->commit()) {
         die ("Error: Unable to commit filter table");
     }
@@ -1958,7 +1957,7 @@ _doFullBackup()
 
 Does a complete backup to hard disk of the current active iptables ruleset.
 
-I<Input>: Requires the $outputdir where the file will be written to. 
+I<Input>: Requires the $outputdir where the file will be written to.
 
 I<Output>: Returns void; dies if failure.
 
@@ -1994,7 +1993,7 @@ sub _doFullBackup {
         die "Unable to write to file: " . $outputdir . "/ruleset" . $currenttime;
 
 	# close out the filehandle
-	close($fh) or 
+	close($fh) or
         die "Unable to close file: " . $outputdir . "/ruleset" . $currenttime;
 }
 
@@ -2004,10 +2003,10 @@ sub _doFullBackup {
 
 _setstaticrate()
 
-This function creates a static rate limiting rule for our default honeyclient default ruleset.  For testing purposes, I 
+This function creates a static rate limiting rule for our default honeyclient default ruleset.  For testing purposes, I
 allow an initial burst of 10 tcp/udp/icmp packets, then gives you 5 packets per minute thereafter.
 
-I<Input>: Requires the $outputdir where the file will be written to. 
+I<Input>: Requires the $outputdir where the file will be written to.
 
 I<Output>: Return true if commit success or false if commit failure
 
@@ -2223,7 +2222,7 @@ sub _checkRoot {
 
 =item *
 
-[NOT IMPLEMENTED AT THIS TIME]:  _rule_exists() function checks for the existance of rules within our IPTables ruleset.  Within this function, 
+[NOT IMPLEMENTED AT THIS TIME]:  _rule_exists() function checks for the existance of rules within our IPTables ruleset.  Within this function,
 we are checking the rules within the user-defined chains that we have created.  If there is a match within the "input" VM, we consider that a match since when the rule is initially appended, it is appended to both the VM#-in and VM#-out chains.  Here, I am only testing against the VM#-in chain since if the rule is in one, it has to be in both.
 
 I<Inputs>:
@@ -2277,9 +2276,9 @@ sub _rule_exists {
 
 The translate function converts a host name to dotted quad format.
 
-I<Inputs>: 
+I<Inputs>:
 B<$url>is the domain name that will be converted to dotted quad format.
- 
+
 I<Output>: Return the domain name as an IP address.
 
 =cut
@@ -2306,7 +2305,7 @@ sub _translate {
 getStatus();
 
 Gets the current iptables ruleset for all the chains (both default and user-defined) and writes them to hard disk.
-Loop through each chain which gets you the list of chain names.  The function list_rules()  returns an array of hash references, 
+Loop through each chain which gets you the list of chain names.  The function list_rules()  returns an array of hash references,
 which contain descriptions of each rule in the chain chainname.   Below is the core of the function FWStatus().
 
         foreach $chainname(@chainlist){
@@ -2320,9 +2319,9 @@ which contain descriptions of each rule in the chain chainname.   Below is the c
                 }
         }
 
-I<Inputs>: 
+I<Inputs>:
 B<$class>is the name of the package.
- 
+
 I<Output>: nothing
 
 =begin testing
@@ -2435,12 +2434,12 @@ sub getStatus {
 
 _iplookup();
 
-_iplookup takes a domain name ($dest) and performs a DNS query to find an IP address or IP addresses corresponding to 
+_iplookup takes a domain name ($dest) and performs a DNS query to find an IP address or IP addresses corresponding to
 that domain name.  Currently, _resolveHost() is being used.
 
-I<Inputs>: 
+I<Inputs>:
 B<$dest> is a domain name that will be queried to retrieve corresponding IP addresses.
- 
+
 I<Output>: An array of resolved IP addresses. If the array only contains one value, then just the
            one value is in the array.
 
@@ -2484,10 +2483,10 @@ sub _iplookup {
 
 [NOT IMPLEMENTED AT THIS TIME]:  insertMac();
 
-insertMac function add mac address filtering (Anti-spoofing) rules after the VM user-chains 
+insertMac function add mac address filtering (Anti-spoofing) rules after the VM user-chains
 are created.  They must be remotely called after the vm_add_chain() function.
 
-I<Inputs>:  
+I<Inputs>:
 B<$chain> is the name of the chain that you will be applying the Mac filtering to.
 B<$ip> is the VM ip address that will be filtered.
 B<$mac> is the mac address of the VM honeyclient.
@@ -2542,7 +2541,7 @@ _chain_exists();
 
 _chain_exists tests to see if the chain already exists within the IPTables ruleset.
 
-I<Inputs>:  
+I<Inputs>:
 B<$vmindex> is the Virtual Machine index number that will be used for comparing to the array of existing chains.
 
 I<Output>: returns true if chain exists, fales if it does not exist.
@@ -2612,7 +2611,7 @@ sub _chainExists {
 
 Tests for existance of a file to verify if firewall has been started (not currently active)
 
-I<Inputs>:  
+I<Inputs>:
 B<$pidfile> is the name of the created PID file.
 
 I<Output>: creation of file with resolved IP addresses.
@@ -2687,7 +2686,7 @@ I<Output>: process will be killed
 =begin testing
 
 eval{
-	
+
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep 1;
@@ -2825,7 +2824,7 @@ sub _getpid {
 [NOT IMPLEMENTED AT THIS TIME]:  _sendMail() is a helper function that sends email to other systems informing them of various actions with the firewall.
 
 _sendMail will send mail to the root account at localhost informing the root user of various firewall actions
-I<Inputs>:  
+I<Inputs>:
 B<$from> is where the user is sending from
 B<$to> is where the user is sending to
 B<$subject> is the subject of the email
@@ -2849,10 +2848,10 @@ sub _sendMail {
 
 =item *
 
-[NOT IMPLEMENTED AT THIS TIME]:  getcpuload is a  function that gives you the cpuload of the OS firewall.  This should help give a better understanding of how the 
+[NOT IMPLEMENTED AT THIS TIME]:  getcpuload is a  function that gives you the cpuload of the OS firewall.  This should help give a better understanding of how the
 firewall OS is running.
 
-I<Inputs>:  
+I<Inputs>:
 nothing
 I<Output>: cpu load of the OS FW
 
@@ -2875,7 +2874,7 @@ sub getcpuload {
 
 _getip gets the current IP address and mask of the specified interface.
 
-I<Inputs>:  
+I<Inputs>:
 Requires the interface so that it can find the IP address of that interface
 I<Output>: IP address and Mask of that interface
 
@@ -2923,7 +2922,7 @@ sub _getip {
 
 _getmac gets the current MAC address of the specified interface.
 
-I<Inputs>:  
+I<Inputs>:
 Requires the interface so that it can find the MAC address of that interface
 I<Output>: returns the mac address of the interface
 
@@ -2964,10 +2963,10 @@ sub _getmac {
 
 =item *
 
-_resolveHost() is a helper function that takes in destination domain name and 
+_resolveHost() is a helper function that takes in destination domain name and
 spits out an array list of resolved ip addresses
 
-I<Inputs>:  
+I<Inputs>:
 Requires domain name ($host)
 I<Output>: returns array list of resolved IP addresses
 
@@ -3036,7 +3035,7 @@ killProcess();
 This is a function kills all systems process based on the command line name give via the remote call.
 It looks through the process table and removes all processes with that key name.
 
-<Inputs>:  
+<Inputs>:
 no input
 
 I<Output>: destruction of all Process IDs.
@@ -3069,8 +3068,8 @@ sub killProcess {
 checkDiskSize() checks the size of the honeywall partitions and makes sure the disk does not fill up.  If
 it reaches a certain level (90%), then it shoots off an email to root and logs it to hard disk.
 
-I<Inputs>:  
-no inputs 
+I<Inputs>:
+no inputs
 
 I<Output>: outputs the percentage of hard disk that is filled per partition.
 
@@ -3123,13 +3122,13 @@ I<Output>:  none
 =cut
 
 sub isCompromised {
-	
+
 	# check to see if /var/log/iptables file exists
 	# if exists, parse all logs with TAG (hwall)
 	# grab the VMID of all those entries
 	# report back VMID(s) that could possibly be compromised
 	# return VMID list
-	
+
 }
 
 
@@ -3139,7 +3138,7 @@ sub isCompromised {
 
 checkLog();
 
-checkLog() checks for network anomalies (MAC address spoofing) or any blocked outbound traffic that orginates from 
+checkLog() checks for network anomalies (MAC address spoofing) or any blocked outbound traffic that orginates from
 anywhere from the VM subnet.
 
 I<Inputs>:  hash reference($hashref)
@@ -3267,7 +3266,7 @@ sub _getSourceIP {
 
 =item *
 
-testConnect() - will allow the user to test connectivity for all their 
+testConnect() - will allow the user to test connectivity for all their
 VM's sitting on the backend network behind the honeywall.
 
 I<Inputs>:  package name is passed by default
@@ -3290,9 +3289,9 @@ sub testConnect {
 	# Create our NAT rule in the POSTROUTING chain
 	_createNat();
 	_set_ip_forwarding(1);
-	
+
 	return 1;
-	
+
 }
 
 
