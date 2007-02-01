@@ -566,7 +566,7 @@ __END__
 =head1 BUGS & ASSUMPTIONS
 
 This module assumes the HoneyClient global configuration file is located
-in: /etc/honeyclient.conf
+in: /etc/honeyclient_log.conf
 
 The getVar($varName) function will attempt to get a module-specific
 variable setting, first.  If that setting is not specified, the function
