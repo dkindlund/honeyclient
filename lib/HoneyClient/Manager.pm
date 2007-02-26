@@ -505,8 +505,10 @@ sub runSession {
         sleep (3);
         print "Calling isRegisteredVM()...\n";
         $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
-        print "Result: " . $som->result() . "\n";
         $ret = $som->result();
+        if (defined($ret)) {
+            print "Result: " . $ret . "\n";
+        }
     }
 
     print "Calling getStateVM()...\n";
