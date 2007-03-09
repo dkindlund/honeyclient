@@ -424,7 +424,10 @@ sub fwInit {
 # loads the interfaces in the /etc/interfaces.conf file - might be used later???
 #	_load_interfaces();
 # Peform a full backup of the existing rules
-		_doFullBackup($outputdir);
+# TODO: Uncomment and resolve this, eventually.
+# It has been disabled for now, since it was filling up system space on the
+# Honeywall VM.
+#       _doFullBackup($outputdir);
 
 # set ip forwarding to 0.  The script initially turns all forwarding off while it loads the firewall policy.
 # Then, right before the script exits, the script turns forwarding back on.
