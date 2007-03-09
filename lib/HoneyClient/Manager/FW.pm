@@ -1771,6 +1771,7 @@ sub _createNat {
 							  "jump"          => "MASQUERADE"
 						   }
 	) or die ("Error: Unable to append to chain POSTROUTING");
+	$table->commit() or die ("Error: Unable to commit to nat table");
 }
 
 =pod
