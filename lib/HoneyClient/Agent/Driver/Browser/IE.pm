@@ -42,7 +42,7 @@ the getContent() function.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Agent::Driver::Browser::IE version 0.94.
+This documentation refers to HoneyClient::Agent::Driver::Browser::IE version 0.95.
 
 =head1 SYNOPSIS
 
@@ -73,7 +73,7 @@ BEGIN {
 	our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION );
 
 	# Set our package version.
-	$VERSION = 0.94;
+	$VERSION = 0.95;
 
 	# Define inherited modules.
 	use HoneyClient::Agent::Driver::Browser;

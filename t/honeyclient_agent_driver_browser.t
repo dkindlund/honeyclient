@@ -54,5 +54,13 @@ $| = 1;
 
 
 
+# =begin testing
+{
+# XXX: Test this.
+1;
+}
+
+
+
 
 1;

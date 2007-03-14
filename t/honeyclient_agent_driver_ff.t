@@ -6,43 +6,6 @@ $| = 1;
 
 
 
-# =begin testing
-{
-# XXX: Add this.
-1;
-}
-
-
-
-# =begin testing
-{
-# XXX: Test this.
-1;
-}
-
-
-
-# =begin testing
-{
-# XXX: Test this.
-1;
-}
-
-
-
-# =begin testing
-{
-# XXX: Test this.
-1;
-}
-
-
-
-# =begin testing
-{
-# XXX: Test this.
-1;
-}
 
 
 

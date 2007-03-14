@@ -106,8 +106,8 @@ ok(" -f /sbin/iptables", 'IPTables binary does exist');
 diag("Enabling test hash reference here");
 my $hashref = {
 
-    'foo' => {    
-        'targets' => {   
+    'foo' => {
+        'targets' => {
             'rcf.mitre.org'   => { 'tcp' => [ 80 ], },
         },
 
@@ -117,7 +117,7 @@ my $hashref = {
         'sources' => {
 
             '00:0C:29:94:B9:15' => {
-                '10.0.0.128' => {   
+                '10.0.0.128' => {
                     'tcp' => undef,
                     'udp' => [ 23, 53, '80:1024', ],
                 },
@@ -153,7 +153,7 @@ eval{
     is($som->result, 24, "fwInit current has set up 28 rules")   or diag("The fwInit() call failed.");
     $som = $stub->_setAcceptPolicy();
     $som = $stub->_flushChains();
-    
+
 };
 
 # Kill the child daemon, if it still exists.
@@ -164,7 +164,6 @@ sleep(1);
 if ($@) {
     fail($@);
 }
-	
 }
 
 
@@ -192,7 +191,6 @@ sleep 1;
 if ($@) {
     fail($@);
 	}
-	
 }
 
 
@@ -223,7 +221,6 @@ sleep 1;
 if ($@) {
     fail($@);
 	}
-	
 }
 
 
@@ -317,7 +314,7 @@ if ($@) {
 # =begin testing
 {
 eval{
-	
+
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep 1;

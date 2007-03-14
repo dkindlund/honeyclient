@@ -37,7 +37,7 @@ interface for all drivers resident within any HoneyClient VM.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Agent::Driver version 0.94.
+This documentation refers to HoneyClient::Agent::Driver version 0.95.
 
 =head1 SYNOPSIS
 
@@ -119,7 +119,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
-    $VERSION = 0.94;
+    $VERSION = 0.95;
 
     @ISA = qw(Exporter);
 
