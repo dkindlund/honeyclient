@@ -120,7 +120,7 @@ Keep in mind, though, that some variables should remain module-specific
             </EmailClient>
         </Driver>
         <perform_integrity_checks description="An integer, representing whether the Agent should perform any integrity checks. 1 enables, 0 disables." default="1">
-            1 
+            0 
         </perform_integrity_checks>
         <!-- HoneyClient::Agent::Integrity Options -->
         <Integrity>
