@@ -2454,6 +2454,9 @@ sub _iplookup {
 	my ($dest)     = @_;
 	my $errorcode  = q{};
 	my $res        = Net::DNS::Resolver->new();
+	# TODO: Make these timeouts non-static.
+	$res->tcp_timeout(10);
+	$res->udp_timeout(10);
 	my @iplist     = ();
 	my %resolvedip = ();
 	my $query      = $res->search("$dest");
@@ -2982,6 +2985,10 @@ sub _resolveHost {
 	use Net::DNS::Resolver;
 	use Carp ();
 	my $resolver = Net::DNS::Resolver->new();
+
+	# TODO: Make these timeouts non-static.
+	$resolver->tcp_timeout(10);
+	$resolver->udp_timeout(10);
 
 	# Extract arguments -  passed in
 	my ($host) = @_;
