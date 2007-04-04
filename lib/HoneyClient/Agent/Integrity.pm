@@ -379,6 +379,7 @@ sub checkAll {
         $Data::Dumper::Indent = 1;
         print CHANGES Dumper($changes);
         close CHANGES;
+        $retval = $self->checkFileSystem();
         return $changes;
     }
     print "No registry changes have occurred.\n";
