@@ -86,7 +86,7 @@ This documentation refers to HoneyClient::Agent::Integrity::Registry version 0.9
 
 =head1 DESCRIPTION
 
-This library allows the Agent module to easily baseline and check
+This library allows the Integrity module to easily baseline and check
 the Windows OS registry hives for any changes that may occur, while
 instrumenting a target application.
 
@@ -101,9 +101,6 @@ package HoneyClient::Agent::Integrity::Registry;
 use strict;
 use warnings;
 use Carp ();
-
-# Traps signals, allowing END: blocks to perform cleanup.
-#use sigtrap qw(die untrapped normal-signals error-signals);
 
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
@@ -444,11 +441,6 @@ my %PARAMS = (
     # (For internal use only.)
     _checkpoint_parsers => { }, 
 
-    # A hashtable of file names, where the hash key is the file parser
-    # and the hash value is the file name.
-    # (For internal use only.)
-    _filenames => { },
-
     # A hashtable of current key info objects, where the hash key is the
     # file parser and the hash value is the info object.
     # (For internal use only.)
@@ -486,26 +478,28 @@ sub DESTROY {
     foreach my $hive (@{$self->{hives_to_check}}) {
         $parser = $self->{_baseline_parsers}->{$hive};
         if (defined($parser)) {
-            $fname = $self->{_filenames}->{$parser};
-            $LOG->debug("Deleting baseline of hive '" . $hive . "' in '" .
-                        $fname . "'.");
-            if (!unlink($fname)) {
-                $LOG->fatal("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
-                Carp::croak("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
+            $fname = $parser->getFilename();
+            if (defined($fname) && (-f $fname)) {
+                $LOG->debug("Deleting baseline of hive '" . $hive . "' in '" .
+                            $fname . "'.");
+                if (!unlink($fname)) {
+                    $LOG->fatal("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
+                    Carp::croak("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
+                }
             }
-            delete($self->{_filenames}->{$parser});
             delete($self->{_baseline_parsers}->{$hive});
         }
         $parser = $self->{_checkpoint_parsers}->{$hive};
         if (defined($parser)) {
-            $fname = $self->{_filenames}->{$parser};
-            $LOG->debug("Deleting checkpoint of hive '" . $hive . "' in '" .
-                        $fname . "'.");
-            if (!unlink($fname)) {
-                $LOG->fatal("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
-                Carp::croak("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
+            $fname = $parser->getFilename();
+            if (defined($fname) && (-f $fname)) {
+                $LOG->debug("Deleting checkpoint of hive '" . $hive . "' in '" .
+                            $fname . "'.");
+                if (!unlink($fname)) {
+                    $LOG->fatal("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
+                    Carp::croak("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
+                }
             }
-            delete($self->{_filenames}->{$parser});
             delete($self->{_checkpoint_parsers}->{$hive});
         }
     }
@@ -546,7 +540,6 @@ sub _snapshot {
                                                                         show_progress => 0);
 
         $parser_collection->{$hive} = $parser;
-        $self->{_filenames}->{$parser} = $fname;
     }
 }
 
@@ -617,9 +610,9 @@ sub _nextGroup {
     # Check to make sure read was successful.
     if (!defined($self->{_currentKeys}->{$parser})) {
         $LOG->fatal("Error: Unable to read registry keys from '" .
-                    $self->{_filenames}->{$parser} . "'.");
+                    $parser->getFilename() . "'.");
         Carp::croak("Error: Unable to read registry keys from '" .
-                    $self->{_filenames}->{$parser} . "'.");
+                    $parser->getFilename() . "'.");
     }
 
     # Encountered empty hash ref, thus we are at
@@ -685,8 +678,8 @@ sub _diff {
     my $diff_types = [];
 
     # Get the corresponding file names.
-    my $src_filename = $self->{_filenames}->{$src_parser};
-    my $tgt_filename = $self->{_filenames}->{$tgt_parser};
+    my $src_filename = $src_parser->getFilename();
+    my $tgt_filename = $tgt_parser->getFilename();
 
     my $fname_tmp = tmpnam(); 
     $LOG->debug("Creating temporary file '" . $fname_tmp . "' to perform differential analysis.");
@@ -1469,7 +1462,6 @@ sub check {
                    "using this file as basis, instead of any previous registry snapshot.");
         $before_parser = HoneyClient::Agent::Integrity::Registry::Parser->init(input_file   => $args{'before_file'},
                                                                                index_groups => 1);
-        $self->{_filenames}->{$before_parser} = $args{'before_file'};
     }
 
     if ($argsExist && 
@@ -1479,7 +1471,6 @@ sub check {
                    "using this file for comparison, instead of snapshotting the registry.");
         $after_parser = HoneyClient::Agent::Integrity::Registry::Parser->init(input_file   => $args{'after_file'},
                                                                               index_groups => 1);
-        $self->{_filenames}->{$after_parser} = $args{'after_file'};
     }
 
     # Array references, containing hashtables, where each
@@ -1560,7 +1551,15 @@ sub getFilesCreated {
     $Data::Dumper::Indent = 0;
     $LOG->debug(Dumper(\%args));
 
-    return values(%{$self->{_filenames}});
+    my @parsers = values(%{$self->{_baseline_parsers}});
+    push (@parsers, values(%{$self->{_checkpoint_parsers}}));
+
+    my @files;
+    foreach my $parser (@parsers) {
+        push (@files, $parser->getFilename());
+    }
+
+    return @files;
 }
 
 =pod
