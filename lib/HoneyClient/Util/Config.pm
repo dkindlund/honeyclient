@@ -327,36 +327,56 @@ For example, if module HoneyClient::Agent::Driver calls this function
 as getVar(name => "address"), then this function will attempt to search for
 a value like the following, within the global configuration file:
 
-<HoneyClient>
-    <Agent>
-        <Driver>
-            <address>localhost</address>
-        </Driver>
-    </Agent>
-</HoneyClient>
+  <HoneyClient>
+      <Agent>
+          <Driver>
+              <address>localhost</address>
+          </Driver>
+      </Agent>
+  </HoneyClient>
 
 If the "address" value is not found at this level within the XML tree,
 then the function will attempt to locate values, like the following:
 
 # First try:
 
-<HoneyClient>
-    <Agent>
-        <address>localhost</address>
-    </Agent>
-</HoneyClient>
+  <HoneyClient>
+      <Agent>
+          <address>localhost</address>
+      </Agent>
+  </HoneyClient>
 
 # Last try:
 
-<HoneyClient>
-    <address>localhost</address>
-</HoneyClient>
+  <HoneyClient>
+      <address>localhost</address>
+  </HoneyClient>
 
 This function will stop its recursive search at the first value found,
 closest to the child module's XML namespace.
 
 Even after performing a recursive search, if no variable name exists,
-then the function will croak with errors.
+then the function will issue a warning and return undef.
+
+If the variable found is an element that contains child elements, then
+a corresponding hashtable will be returned.  For example, if we perform
+a getVar(name => "foo") on the following XML:
+
+  <HoneyClient>
+      <foo>
+          <bar>123</bar>
+          <bar>456</bar>
+          <yok>789</yok>
+          <yok>xxx</yok>
+      </foo>
+  </HoneyClient>
+
+Then the following $hashref will be returned:
+
+  $hashref = {
+      'bar' => [ '123', '456' ],
+      'yok' => [ '789', 'xxx' ],
+  }
 
 I<Inputs>:
  B<$varName> is the variable name to search for, within the global 
@@ -366,8 +386,40 @@ to use, when searching for the variable's value.
  B<$attribute> is an optional argument, signifying that the function
 should return the attribute associated with the variable's element.
 
-I<Output>: The variable's element/attribute value, if found; warns and
-returns undef otherwise.
+I<Output>: The variable's element/attribute value or hashtable (for 
+multi-value elements), if found; warns and returns undef otherwise.
+
+B<Note>: If the target variable to return is an element that contains
+B<combinations> of text and sub-elements, then only the text within
+the sub-elements will be returned in the previously mentioned
+$hashref format.
+
+For example, if we perform a getVar(name => "foo") on the following XML:
+
+  <HoneyClient>
+      <foo>
+          THIS_TEXT_WILL_BE_LOST
+          <bar>123</bar>
+          <bar>456</bar>
+          <yok>789</yok>
+          <yok>xxx</yok>
+          <yok><CHILD>zzz</CHILD></yok>
+      </foo>
+  </HoneyClient>
+
+Then the following $hashref will be returned:
+
+  $hashref = {
+      'bar' => [ '123', '456' ],
+      'yok' => [ '789', 'xxx', 'zzz' ],
+  }
+
+Notice how the B<THIS_TEXT_WILL_BE_LOST> string got dropped and that
+the B<E<lt>CHILDE<gt>> tags were silently stripped from the B<zzz>
+string.  In other words, in each target element, B<don't mix text
+with sub-elements> and B<don't nest sub-elements> if you want the 
+nested structure preserved when a getVar() is called on the
+B<grandparent element>.
 
 =back
 
@@ -387,6 +439,16 @@ is($value, "localhost", "getVar(name => 'address', namespace => 'HoneyClient::Ut
 $value = getVar(name => "address", namespace => "HoneyClient::Util::Config::Test::Undefined::Child", attribute => 'default');
 is($value, "localhost", "getVar(name => 'address', namespace => 'HoneyClient::Util::Config::Test::Undefined::Child', attribute => 'default')") 
     or diag("The getVar() call failed.  Attempted to get attribute 'default' for variable 'address' using namespace 'HoneyClient::Util::Config::Test::Undefined::Child' within the global configuration file.");
+
+# This check tests to make sure getVar() returns the expected hashref
+# when getting data from a target element that contains child sub-elements.
+$value = getVar(name => "Yok", namespace => "HoneyClient::Util::Config::Test");
+my $expectedValue = {
+    'childA' => [ '12345678', 'ABCDEFGH' ],
+    'childB' => [ '09876543', 'ZYXVTUWG' ],
+};
+is_deeply($value, $expectedValue, "getVar(name => 'Yok', namespace => 'HoneyClient::Util::Config::Test')") 
+    or diag("The getVar() call failed.  Attempted to get variable 'Yok' using namespace 'HoneyClient::Util::Config::Test' within the global configuration file.");
 
 =end testing
 
@@ -427,8 +489,8 @@ sub getVar {
     # Get the nodeset that we need
     # The first string is the path that matches the node we want and all ancestors
     # The second string tells us whether to get the text() or an attribute
-    my $exp = $namespace . "/ancestor-or-self::*/$args{name}/" .
-        (defined $args{attribute} ? "attribute::" . $args{attribute}:"text()");
+    my $exp = $namespace . "/ancestor-or-self::*/$args{name}" .
+        (defined $args{attribute} ? "/attribute::" . $args{attribute} : "");
     my $nodeset = $xp->findnodes($exp);
 
     # The list of nodes required.  Because this is a top down list of the results,
@@ -439,20 +501,36 @@ sub getVar {
                    "' within the global configuration file ($CONF_FILE)!");
         return;
     }
-    my $val = $nodeset->pop->string_value;
+    
+    # Figure out if the (most specific) node has any children.
+    my $parent = $nodeset->pop();
+    $nodeset = $xp->findnodes("*", $parent);
+    my $val = undef;
+    if ($nodeset->size() <= 0) {
+        # There are no child elements, thus stingify
+        # all textual components.
 
-    # Trail leading and trailing whitespace 
-    $val =~ s/^\s+|\s+$//g;
+        $val = $parent->string_value();
 
-    # For some reason attributes return attribute_name="value"
-    $val =~ s/.*"(.*)".*/$1/;
+        # Trail leading and trailing whitespace 
+        $val =~ s/^\s+|\s+$//g;
+    } else { 
+
+        # There are child elements; return a
+        # hashtable accordingly.
+        my @children = $nodeset->get_nodelist();
+
+        # Now, build the hashtable of array references.
+        $val = {};
+        foreach my $child (@children) {
+            push  (@{$val->{$child->getName()}}, $child->string_value());
+        }
+    }
 
     return $val;
 }
 
 =pod
-
-=head1 EXPORTS
 
 =head2 setVar(name => $varName, namespace => $caller, attribute => $attribute, value => $value)
 
@@ -571,8 +649,12 @@ in: /etc/honeyclient_log.conf
 The getVar($varName) function will attempt to get a module-specific
 variable setting, first.  If that setting is not specified, the function
 call will recursively search for the same variable located within any 
-parent (or global) regions of the configuration file.  See the getVar() 
-documentation for further details.
+parent (or global) regions of the configuration file.
+
+Furthermore, getVar() returns hashrefs for target elements that contain
+additional child sub-elements.  However, the format of this hashref
+is B<NOT> necessarily intuitive.  See the getVar() documentation for 
+further details.
 
 =head1 SEE ALSO
 

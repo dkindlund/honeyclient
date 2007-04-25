@@ -83,10 +83,10 @@ Keep in mind, though, that some variables should remain module-specific
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
 	                -1
 	            </max_relative_links_to_visit>
-	            <goodwords description="A comma-separated list of good words which will increase the score of links within a webpage." default="">
+                <goodwords description="A comma-separated list of good words which will increase the score of links within a webpage." default="">
                     news,new,big,latest,main,update,sell,free,buy
                 </goodwords>
-	            <badwords description="A comma-separated list of bad words which will decrease the score of links within a webpage." default="">
+                <badwords description="A comma-separated list of bad words which will decrease the score of links within a webpage." default="">
 	                archive,privacy,legal,disclaim,about,contact,copyright,jobs,careers
 	            </badwords>
                 <IE>
@@ -363,6 +363,12 @@ Keep in mind, though, that some variables should remain module-specific
                         <address>baz</address>
                     </Bar>
                 </Foo>
+                <Yok>
+                    <childA>12345678</childA>
+                    <childA>ABCDEFGH</childA>
+                    <childB>09876543</childB>
+                    <childB>ZYXVTUWG</childB>
+                </Yok>
             </Test>
         </Config>
     </Util>

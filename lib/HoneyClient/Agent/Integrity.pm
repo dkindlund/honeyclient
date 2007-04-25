@@ -212,6 +212,7 @@ my $g_fs_changes = 0;
 
 # XXX: All dirs must NEVER end in a trailing slash.
 my @default_file_exclude_array = (
+    '/cygdrive/c/cygwin/tmp',
     '/cygdrive/c/cygwin/tmp/changes.txt',
     '/cygdrive/c/cygwin/tmp/cleanfile.txt',
     '/cygdrive/c/cygwin/home/Administrator',
@@ -236,6 +237,7 @@ my @default_file_exclude_array = (
     '/cygdrive/c/Program Files/Mozilla Firefox/updates',
     '/cygdrive/c/Program Files/Mozilla Firefox/active-update.xml',
     '/cygdrive/c/Program Files/Mozilla Firefox/updates.xml',
+    '/cygdrive/c/System Volume Information',
     '/cygdrive/c/WINDOWS/SoftwareDistribution/WuRedir',
     '/cygdrive/c/WINDOWS/SYSTEM32/config/SecEvent.Evt',
     '/cygdrive/c/WINDOWS/SYSTEM32/config/SysEvent.Evt',

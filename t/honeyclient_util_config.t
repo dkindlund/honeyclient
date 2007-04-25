@@ -82,6 +82,16 @@ is($value, "localhost", "getVar(name => 'address', namespace => 'HoneyClient::Ut
 $value = getVar(name => "address", namespace => "HoneyClient::Util::Config::Test::Undefined::Child", attribute => 'default');
 is($value, "localhost", "getVar(name => 'address', namespace => 'HoneyClient::Util::Config::Test::Undefined::Child', attribute => 'default')") 
     or diag("The getVar() call failed.  Attempted to get attribute 'default' for variable 'address' using namespace 'HoneyClient::Util::Config::Test::Undefined::Child' within the global configuration file.");
+
+# This check tests to make sure getVar() returns the expected hashref
+# when getting data from a target element that contains child sub-elements.
+$value = getVar(name => "Yok", namespace => "HoneyClient::Util::Config::Test");
+my $expectedValue = {
+    'childA' => [ '12345678', 'ABCDEFGH' ],
+    'childB' => [ '09876543', 'ZYXVTUWG' ],
+};
+is_deeply($value, $expectedValue, "getVar(name => 'Yok', namespace => 'HoneyClient::Util::Config::Test')") 
+    or diag("The getVar() call failed.  Attempted to get variable 'Yok' using namespace 'HoneyClient::Util::Config::Test' within the global configuration file.");
 }
 
 
