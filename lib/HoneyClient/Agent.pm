@@ -468,8 +468,15 @@ sub destroy {
     # Make sure the PID is defined and not
     # the parent process...
     if (defined($DAEMON_PID) && ($DAEMON_PID != 0)) {
+        print STDERR "Killing PID = " . $DAEMON_PID . "\n";
         # The Win32 version of kill() seems to only respond to SIGKILL(9).
-        $ret = kill(9, $DAEMON_PID);
+        # XXX: This doesn't work.
+        #$ret = kill(9, $DAEMON_PID);
+        
+        # TODO: Need unit tests.
+        require Win32::Process;
+        Win32::Process::KillProcess($DAEMON_PID, 0);
+        $ret = 1;
     }
     if ($ret) {
         # Acquire data lock.
