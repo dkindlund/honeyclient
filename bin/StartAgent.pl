@@ -43,6 +43,10 @@ sub _watchdogFaultHandler {
     # XXX: Sanity check this, eventually.
     HoneyClient::Agent->destroy();
 
+    # Wait for a small amount of time, in order for the killed process to release
+    # its control of the bound TCP port.
+    sleep 5;
+
     $URL = HoneyClient::Agent->init();
 
     # Restore state information.
