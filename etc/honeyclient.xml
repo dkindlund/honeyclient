@@ -154,6 +154,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/WINDOWS/SYSTEM32/config/SecEvent.evt</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/SysEvent.evt</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/software.log</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/config/system.LOG</regex>
                     <regex>C:/WINDOWS/SYSTEM32/wbem.*</regex>
                     <regex>C:/WINDOWS/WindowsUpdate.log</regex>
                     <!-- To exclude entries inside cygwin, use the following format. -->
