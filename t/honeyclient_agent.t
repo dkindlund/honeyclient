@@ -42,11 +42,12 @@ can_ok('HoneyClient::Agent::Driver::IE', 'status');
 use HoneyClient::Agent::Driver::IE;
 
 # Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('Storable', qw(freeze nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
+can_ok('Storable', 'freeze');
 can_ok('Storable', 'nfreeze');
 can_ok('Storable', 'thaw');
-use Storable qw(nfreeze thaw);
+use Storable qw(freeze nfreeze thaw);
 
 # Make sure MIME::Base64 loads.
 BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
