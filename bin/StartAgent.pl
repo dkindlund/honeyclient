@@ -36,7 +36,7 @@ sub _watchdogFaultHandler {
 
     print "Watchdog fault detected, recovering Agent daemon.\n";
     # XXX: Reenable this, eventually.
-    Carp::carp __PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg;
+    #Carp::carp __PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg;
 
 
     # Regardless of the error, destroy the Agent process and reinitialize it.

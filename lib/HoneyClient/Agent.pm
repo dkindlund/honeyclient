@@ -242,7 +242,7 @@ our $PERFORM_INTEGRITY_CHECKS : shared =
 # A globally shared, serialized hashtable, containing the
 # initialized integrity state of the VM -- ready to be checked
 # against, at any time.
-our $integrity = undef;
+#our $integrity = undef;
 our $integrityState : shared = undef;
 
 # A globally shared, serialized hashtable, containing data per
@@ -370,11 +370,11 @@ sub init {
 
     # Perform initial integrity baseline check.
     #my $integrity = undef;
-    if ($PERFORM_INTEGRITY_CHECKS) {
-        $integrity = HoneyClient::Agent::Integrity->new();
-        $integrity->closeFiles();
-        $integrityState = freeze($integrity);
-    }
+    #if ($PERFORM_INTEGRITY_CHECKS) {
+    #    $integrity = HoneyClient::Agent::Integrity->new();
+    #    $integrity->closeFiles();
+    #    $integrityState = freeze($integrity);
+    #}
     # XXX: Check to make sure this doesn't destroy the integrity
     # object prematurely.
     #$integrity = undef;
@@ -653,9 +653,6 @@ sub run {
     # Temporary variable, used to hold thread objects.
     my $thread = undef;
 
-    # XXX: Delete this, maybe?
-    my $integrity = undef;
-
     # TODO: Eventually, use the globally defined array
     # of actual drivers used (set by init()).
     for my $driverName (@DRIVERS) {
@@ -722,7 +719,7 @@ sub run {
                 ###################################
 
                 # Initially set local integrity object to undef.
-                my $integrity2 = undef;
+                my $integrity = undef;
                 
                 # Initially set all driver objects to undef. 
                 my $driver = undef;
@@ -735,11 +732,11 @@ sub run {
                     # (since it relies on external data stored on the file system).
                     # As such, do NOT try to call integrity checks on multiple, simultaneous
                     # asynchronous threaded drivers.
-                    $integrity2 = thaw($integrityState);
+                    #$integrity = thaw($integrityState);
                     # Perform initial integrity baseline check.
                     #print "Initializing Integrity Check...\n";
                     # TODO: Initialize Integrity Checks
-                    #$integrity = HoneyClient::Agent::Integrity->new();
+                    $integrity = HoneyClient::Agent::Integrity->new();
                 }
 
                 # Now, initialize each driver object. 
@@ -846,11 +843,11 @@ sub run {
                 $data = _lock();
                 
                 # TODO: Perform Integrity Check
-                if (defined($integrity2)) {
+                if (defined($integrity)) {
                     # For now, we update a scalar called 'is_compromised' within
                     # the $data->{$driverName}->{'status'} sub-hashtable.
                     print "Performing Integrity Checks...\n";
-                    my $changes = $integrity2->check();
+                    my $changes = $integrity->check();
                     if (scalar(@{$changes->{registry}}) || 
                         scalar(@{$changes->{filesystem}})) {
                         print "Integrity Check: FAILED\n";
