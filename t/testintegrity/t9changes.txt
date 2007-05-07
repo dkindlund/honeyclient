@@ -1,8 +1,0 @@
-
-Changed: 
-[HKEY_LOCAL_MACHINE\HARDWARE\TEST]
-Old Value:
-"the"="world's address"
-New Value:
-"a"="place"
-"that's"="worn"

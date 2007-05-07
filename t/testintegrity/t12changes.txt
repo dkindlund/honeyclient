@@ -1,8 +1,0 @@
-
-Deleted empty key: 
-[HKEY_LOCAL_MACHINE\HARDWARE\TEST\the]
-
-
-Added empty key: 
-[HKEY_LOCAL_MACHINE\HARDWARE\TEST\end]
-

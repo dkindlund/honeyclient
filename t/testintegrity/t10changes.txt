@@ -1,8 +1,0 @@
-
-Deleted key and name/data: 
-[HKEY_LOCAL_MACHINE\HARDWARE\TEST]
-"a"="place"
-
-Added empty key: 
-[HKEY_LOCAL_MACHINE\HARDWARE\TEST\footsteps]
-

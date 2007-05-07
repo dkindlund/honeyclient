@@ -1,8 +1,0 @@
-
-Changed: 
-[HKEY_LOCAL_MACHINE\HARDWARE\TEST]
-Old Value:
-"particle man"="triangle man"
-"person man"="universe man"
-New Value:
-"triangle"="wins"

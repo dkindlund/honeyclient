@@ -1,4 +1,0 @@
-
-Deletion of name/data from existing key
-[HKEY_LOCAL_MACHINE\HARDWARE\RESOURCEMAP\System Resources\Reserved]
-"pencil"="rain"

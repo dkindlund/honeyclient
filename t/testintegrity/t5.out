@@ -1,6 +1,0 @@
-863,864c863,864
-< "particle man"=""
-< "person man"=""
----
-> "particle man"="triangle man"
-> "person man"="universe man"
