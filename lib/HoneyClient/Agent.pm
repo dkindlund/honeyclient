@@ -653,6 +653,9 @@ sub run {
     # Temporary variable, used to hold thread objects.
     my $thread = undef;
 
+    # XXX: Delete this, maybe?
+    my $integrity = undef;
+
     # TODO: Eventually, use the globally defined array
     # of actual drivers used (set by init()).
     for my $driverName (@DRIVERS) {
@@ -719,7 +722,7 @@ sub run {
                 ###################################
 
                 # Initially set local integrity object to undef.
-                my $integrity = undef;
+                my $integrity2 = undef;
                 
                 # Initially set all driver objects to undef. 
                 my $driver = undef;
@@ -732,7 +735,7 @@ sub run {
                     # (since it relies on external data stored on the file system).
                     # As such, do NOT try to call integrity checks on multiple, simultaneous
                     # asynchronous threaded drivers.
-                    $integrity = thaw($integrityState);
+                    $integrity2 = thaw($integrityState);
                     # Perform initial integrity baseline check.
                     #print "Initializing Integrity Check...\n";
                     # TODO: Initialize Integrity Checks
@@ -843,11 +846,11 @@ sub run {
                 $data = _lock();
                 
                 # TODO: Perform Integrity Check
-                if (defined($integrity)) {
+                if (defined($integrity2)) {
                     # For now, we update a scalar called 'is_compromised' within
                     # the $data->{$driverName}->{'status'} sub-hashtable.
                     print "Performing Integrity Checks...\n";
-                    my $changes = $integrity->check();
+                    my $changes = $integrity2->check();
                     if (scalar(@{$changes->{registry}}) || 
                         scalar(@{$changes->{filesystem}})) {
                         print "Integrity Check: FAILED\n";

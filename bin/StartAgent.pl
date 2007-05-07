@@ -59,7 +59,7 @@ $stub = getClientHandle(address   => 'localhost',
                 
 for (;;) {
     # TODO: Make this a programmatic value.
-    sleep (60);
+    sleep (5);
     $som = $stub->getState();
     if (defined($som) and (ref($som) eq "SOAP::SOM")) {
         $tempState = $som->result();

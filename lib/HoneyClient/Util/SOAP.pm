@@ -458,8 +458,6 @@ sub getClientHandle {
 
     my $timeout = getVar(name      => "timeout",
                          namespace => $args{'namespace'});
-# XXX: Delete this, eventually.
-print "TIMEOUT = " . $timeout . "\n";
     my $URL_BASE = "http://" . $args{'address'} . ":" . $args{'port'};
     my $URL = $URL_BASE . "/" . join('/', split(/::/, $args{'namespace'}));
 
