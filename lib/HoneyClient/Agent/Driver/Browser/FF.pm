@@ -6,9 +6,11 @@
 #              the Firefox browser, running inside a
 #              HoneyClient VM.
 #
+# CVS: $Id$
+#
 # @author knwang, xkovah, kindlund, ttruong
 #
-# Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

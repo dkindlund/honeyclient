@@ -8,7 +8,7 @@
 #
 # @author knwang, ttruong, kindlund
 #
-# Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -162,11 +162,12 @@ can_ok('HoneyClient::Agent::Driver::IE', 'status');
 use HoneyClient::Agent::Driver::IE;
 
 # Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('Storable', qw(freeze nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
+can_ok('Storable', 'freeze');
 can_ok('Storable', 'nfreeze');
 can_ok('Storable', 'thaw');
-use Storable qw(nfreeze thaw);
+use Storable qw(freeze nfreeze thaw);
 
 # Make sure MIME::Base64 loads.
 BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
@@ -208,7 +209,7 @@ use Data::Dumper;
 
 # Include Hash Serialization Utility Libraries
 # TODO: Update unit tests to include 'dclone'
-use Storable qw(nfreeze thaw dclone);
+use Storable qw(freeze nfreeze thaw dclone);
 $Storable::Deparse = 1;
 $Storable::Eval = 1;
 
@@ -241,6 +242,7 @@ our $PERFORM_INTEGRITY_CHECKS : shared =
 # A globally shared, serialized hashtable, containing the
 # initialized integrity state of the VM -- ready to be checked
 # against, at any time.
+our $integrity = undef;
 our $integrityState : shared = undef;
 
 # A globally shared, serialized hashtable, containing data per
@@ -368,13 +370,14 @@ sub init {
 
     # Perform initial integrity baseline check.
     #my $integrity = undef;
-    #if ($PERFORM_INTEGRITY_CHECKS) {
-    #    print "Initializing Integrity Check...\n";
-    #    # TODO: Initialize Integrity Checks
-    #    $integrity = HoneyClient::Agent::Integrity->new();
-    #    $integrity->initAll();
-    #}
-    #$integrityState = $integrity->serialize();
+    if ($PERFORM_INTEGRITY_CHECKS) {
+        $integrity = HoneyClient::Agent::Integrity->new();
+        $integrity->closeFiles();
+        $integrityState = freeze($integrity);
+    }
+    # XXX: Check to make sure this doesn't destroy the integrity
+    # object prematurely.
+    #$integrity = undef;
 
     # Release data lock.
     _unlock($data);
@@ -729,17 +732,11 @@ sub run {
                     # (since it relies on external data stored on the file system).
                     # As such, do NOT try to call integrity checks on multiple, simultaneous
                     # asynchronous threaded drivers.
-                    #$integrity = thaw($integrityState);
+                    $integrity = thaw($integrityState);
                     # Perform initial integrity baseline check.
-                    print "Initializing Integrity Check...\n";
+                    #print "Initializing Integrity Check...\n";
                     # TODO: Initialize Integrity Checks
-                    $integrity = HoneyClient::Agent::Integrity->new();
-                    $integrity->initAll();
-
-                    # TODO: Delete this.
-                    #$Data::Dumper::Indent = 1;
-                    #$Data::Dumper::Terse = 1;
-                    #print "Integrity: " . Dumper($integrity) . "\n";
+                    #$integrity = HoneyClient::Agent::Integrity->new();
                 }
 
                 # Now, initialize each driver object. 
@@ -814,6 +811,14 @@ sub run {
 
                     # Check to see if our driver's targets have changed.
                     $driverTargetsChanged = not(Compare($data->{$driverName}->{'next'}->{'targets'}, $driver->next()->{'targets'}));
+                    # XXX: Delete this, eventually.
+                    if ($driverTargetsChanged) {
+                        print "Driver targets have changed.\n";
+                        #$Data::Dumper::Terse = 0;
+                        #$Data::Dumper::Indent = 1;
+                        #print "Current: " . Dumper($data->{$driverName}->{'next'}->{'targets'}) . "\n";
+                        #print "Next: " . Dumper($driver->next()->{'targets'}) . "\n";
+                    }
 
                     # Copy object data to shared memory.
                     $data->{$driverName}->{'next'} = $driver->next();
@@ -842,7 +847,9 @@ sub run {
                     # For now, we update a scalar called 'is_compromised' within
                     # the $data->{$driverName}->{'status'} sub-hashtable.
                     print "Performing Integrity Checks...\n";
-                    if ($integrity->checkAll()) {
+                    my $changes = $integrity->check();
+                    if (scalar(@{$changes->{registry}}) || 
+                        scalar(@{$changes->{filesystem}})) {
                         print "Integrity Check: FAILED\n";
                         $data->{$driverName}->{'status'}->{'is_compromised'} = 1;
                     } else {
@@ -1155,7 +1162,7 @@ Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

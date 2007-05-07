@@ -155,7 +155,7 @@ use Thread::Semaphore;
 
 # TODO: Remove this once unit testing should actually be used.
 # Ideally, this should be handled programmatically, based upon user prompt.
-exit;
+#exit;
 
 # Generate a notice, to inform the tester that these tests are not
 # exactly quick.
@@ -560,7 +560,7 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary clone VM.
     my $testVMDir = dirname($testVM);
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
     # Test fullCloneVM() method.
@@ -916,7 +916,7 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary clone VM.
     my $testVMDir = dirname($testVM);
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
     # Make the destDir.
@@ -979,7 +979,7 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary clone VM.
     my $testVMDir = dirname($testVM);
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
     # Clone the test VM.
@@ -1056,7 +1056,7 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary clone VM.
     my $testVMDir = dirname($testVM);
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
     # Create the clone VM.
@@ -1139,8 +1139,8 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary master and clone VM.
     my $testVMDir = dirname($testVM);
-    my $masterVMDir = dirname($testVMDir) . "/masterVM";
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $masterVMDir = dirname($testVMDir) . "/test_vm_master";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $masterVM = $masterVMDir . "/" . basename($testVM);
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
@@ -1229,11 +1229,11 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary clone VM.
     my $testVMDir = dirname($testVM);
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
     # Specify where the snapshot should be created.
-    my $snapshot = dirname($testVMDir) . "/cloneVM.tar.gz";
+    my $snapshot = dirname($testVMDir) . "/test_vm_clone.tar.gz";
 
     # In order to test the snapshotVM() method, we create
     # a full clone VM, power it on, create a snapshot, and
@@ -1341,11 +1341,11 @@ eval {
     # Get the test VM's parent directory,
     # in order to create a temporary clone VM.
     my $testVMDir = dirname($testVM);
-    my $cloneVMDir = dirname($testVMDir) . "/cloneVM";
+    my $cloneVMDir = dirname($testVMDir) . "/test_vm_clone";
     my $cloneVM = $cloneVMDir . "/" . basename($testVM);
 
     # Specify where the snapshot should be created.
-    my $snapshot = dirname($testVMDir) . "/cloneVM.tar.gz";
+    my $snapshot = dirname($testVMDir) . "/test_vm_clone.tar.gz";
 
     # In order to test the revertVM() method, we create
     # a full clone VM, power it on, create a snapshot, and

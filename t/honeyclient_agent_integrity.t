@@ -8,153 +8,90 @@ $| = 1;
 
 # =begin testing
 {
-# Make sure HoneyClient::Agent::Integrity loads.
-BEGIN { use_ok('HoneyClient::Agent::Integrity', qw(initAll checkAll initRegistry checkRegistry initFileSystem checkFileSystem)) or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Integrity');
-#can_ok('HoneyClient::Agent::Integrity', 'new');
-can_ok('HoneyClient::Agent::Integrity', 'initAll');
-can_ok('HoneyClient::Agent::Integrity', 'checkAll');
-can_ok('HoneyClient::Agent::Integrity', 'initFileSystem');
-can_ok('HoneyClient::Agent::Integrity', 'checkFileSystem');
-use HoneyClient::Agent::Integrity qw(initAll checkAll initFileSystem checkFileSystem);
+# Make sure Log::Log4perl loads
+BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
+       
+        # Suppress all logging messages, since we need clean output for unit testing.
+        Log::Log4perl->init({
+            "log4perl.rootLogger"                               => "DEBUG, Buffer",
+            "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+            "log4perl.appender.Buffer.min_level"                => "fatal",
+            "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+            "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+        });
+}
+require_ok('Log::Log4perl');
+use Log::Log4perl qw(:easy);
 
-# Make sure HoneyClient::Util::Config loads.
-BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar)) or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
+# Make sure the module loads properly, with the exportable
+# functions shared.
+BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar setVar)) 
+        or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
-use HoneyClient::Util::Config qw(getVar);
+can_ok('HoneyClient::Util::Config', 'setVar');
+use HoneyClient::Util::Config qw(getVar setVar);
 
-# Make sure File::Find loads.
-BEGIN { use_ok('File::Find', qw(find)) or diag("Can't load File::Find package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('File::Find');
-can_ok('File::Find', 'find');
-use File::Find;
+# Suppress all logging messages, since we need clean output for unit testing.
+Log::Log4perl->init({
+    "log4perl.rootLogger"                               => "DEBUG, Buffer",
+    "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+    "log4perl.appender.Buffer.min_level"                => "fatal",
+    "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+    "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+});
 
-# Make sure Digest::MD5 loads.
-#BEGIN { use_ok('Digest::MD5', qw(new)) or diag("Can't load Digest::MD5 package.  Check to make sure the package library is correctly listed within the path."); }
-#require_ok('Digest::MD5');
-#use Digest::MD5;
+# Make sure Data::Dumper loads
+BEGIN { use_ok('Data::Dumper')
+        or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Data::Dumper');
+use Data::Dumper;
 
-# Make sure MIME::Base64 loads.
-BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('MIME::Base64');
-can_ok('MIME::Base64', 'encode_base64');
-can_ok('MIME::Base64', 'decode_base64');
-use MIME::Base64 qw(encode_base64 decode_base64);
-
-# Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(dclone nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+# Make sure Storable loads
+BEGIN { use_ok('Storable', qw(nfreeze thaw dclone))
+        or diag("Can't load Storable package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
-can_ok('Storable', 'dclone');
 can_ok('Storable', 'nfreeze');
 can_ok('Storable', 'thaw');
-use Storable qw(dclone nfreeze thaw);
+can_ok('Storable', 'dclone');
+use Storable qw(nfreeze thaw dclone);
 
-###Testing Globals###
-# Directory where the known-good test files are stored
-$test_dir = getVar(name => "test_dir");
+# Make sure HoneyClient::Agent::Integrity::Registry loads
+BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
+        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Integrity::Registry');
+use HoneyClient::Agent::Integrity::Registry;
 
-# List of files and directories to check during filesystem checking
-$file_checklist = getVar(name => "file_checklist");
+# Make sure HoneyClient::Agent::Integrity::Filesystem loads
+BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
+        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Integrity::Filesystem');
+use HoneyClient::Agent::Integrity::Filesystem;
 
-# List of files or directories to exclude if found in subdirs during
-# filesystem check.
-$file_exclude = getVar(name => "file_exclude");
-
-# File where found changes are written to
-$change_file = getVar(name => "change_file");
+# Make sure HoneyClient::Agent::Integrity loads.
+BEGIN { use_ok('HoneyClient::Agent::Integrity') or diag("Can't load HoneyClient::Agent::Integrity package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Integrity');
+use HoneyClient::Agent::Integrity;
 }
 
 
 
 # =begin testing
 {
-#Testing initFileSystem();
+diag("These tests will create temporary files in /tmp.  Be sure to cleanup this directory, if any of these tests fail.");
 
-my $ob = HoneyClient::Agent::Integrity->new();
+# Create a generic Integrity object, with test state data.
+my $integrity = HoneyClient::Agent::Integrity->new(test => 1, bypass_baseline => 1);
+is($integrity->{test}, 1, "new(test => 1, bypass_baseline => 1)") or diag("The new() call failed.");
+isa_ok($integrity, 'HoneyClient::Agent::Integrity', "new(test => 1, bypass_baseline => 1)") or diag("The new() call failed.");
 
-system("mkdir /tmp/hc_test_dir");
-system("echo hi > /tmp/hc_test_dir/hi.txt");
-system("echo /tmp/hc_test_dir/hi.txt > $file_checklist");
-system("echo /tmp/hc_test_dir/hi.txt > $file_exclude");
-$ob->initFileSystem();
-open (FILE, "cleanfile.txt") or die "Can't check the cleanfile.txt\n";
-@result = <FILE>;
-close FILE;
-#Bad test because it will be empty in the case of an error anyway?
-is(scalar(@result), 0, 'initFileSystem: Explicit Filesystem Omission');
+diag("Performing baseline check of the system; this may take some time...");
 
-system("rm $file_exclude");
-system("echo hi > /tmp/hc_test_dir/hi.txt");
-system("echo /tmp/hc_test_dir/hi.txt > $file_checklist");
-system("echo /tmp/hc_test_dir/ > $file_exclude");
-$ob->initFileSystem();
-open (FILE, "cleanfile.txt") or die "Can't check the cleanfile.txt\n";
-@result = <FILE>;
-close FILE;
-#Bad test because it will be empty in the case of an error anyway?
-is(scalar(@result), 0, 'initFileSystem: Directory Filesystem Omission');
-
-system("rm $file_exclude");
-system("echo hi > /tmp/hc_test_dir/hi.txt");
-system("echo /tmp/hc_test_dir/hi.txt > $file_checklist");
-$ob->initFileSystem();
-open (DIFF, "diff $test_dir/fs1.txt cleanfile.txt |") or die "Can't check the cleanfile.txt\n";
-@result = <DIFF>;
-close DIFF;
-#Bad test because it will be empty in the case of an error anyway?
-is(scalar(@result), 0, 'initFileSystem: Known-good file hash');
-
-system("rm -rf /tmp/hc_test_dir/");
-system("rm $file_checklist");
-}
-
-
-
-# =begin testing
-{
-#Testing that checkFileSystem()
-
-my $ob = HoneyClient::Agent::Integrity->new();
-my @result;
-
-#add
-system("rm $change_file");
-system("mkdir /tmp/hc_test_dir/");
-system("echo hi > /tmp/hc_test_dir/hi.txt");
-system("echo /tmp/hc_test_dir/ > $file_checklist");
-$ob->initFileSystem();
-system("echo hi > /tmp/hc_test_dir/hi2.txt");
-$ob->checkFileSystem();
-open(CHECK, "diff $test_dir/fs2.txt $change_file |") or die "There was a problem doing the fs2.txt diff"; 
-#XXX Won't the die statement just be masked by the redirection of stdout/stderr?
-@result = <CHECK>;
-close(CHECK);
-is(scalar(@result), 0, "checkFileSystem: Files added");
-
-
-#delete
-system("rm $change_file");
-system("rm /tmp/hc_test_dir/hi.txt");
-$ob->checkFileSystem();
-open(CHECK, "diff $test_dir/fs3.txt $change_file |") or die "There was a problem doing the fs2.txt diff"; 
-#XXX Won't the die statement just be masked by the redirection of stdout/stderr?
-@result = <CHECK>;
-close(CHECK);
-is(scalar(@result), 0, "checkFileSystem: Files deleted");
-
-#change
-system("rm $change_file");
-system("echo again >> /tmp/hc_test_dir/hi.txt");
-$ob->checkFileSystem();
-open(CHECK, "diff $test_dir/fs4.txt $change_file |") or die "There was a problem doing the fs2.txt diff"; 
-#XXX Won't the die statement just be masked by the redirection of stdout/stderr?
-@result = <CHECK>;
-close(CHECK);
-is(scalar(@result), 0, "checkFileSystem: Files changed");
-
-system("rm -rf /tmp/hc_test_dir/");
-system("rm $file_checklist");
+# XXX: Uncomment this next check, eventually.  (It's commented out right now, in order to save some time).
+# Perform baseline.
+$integrity = HoneyClient::Agent::Integrity->new();
+isa_ok($integrity, 'HoneyClient::Agent::Integrity', "new()") or diag("The new() call failed.");
 }
 
 

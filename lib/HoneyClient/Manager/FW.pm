@@ -10,7 +10,7 @@
 #
 # SVN: $Id$
 #
-# Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -3348,7 +3348,7 @@ Xeno Kovah, E<lt>xkovah@mitre.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.6 or,

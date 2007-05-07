@@ -10,7 +10,7 @@
 #
 # @author knwang, kindlund, stephenson
 #
-# Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -475,6 +475,7 @@ my %PARAMS = (
     max_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
 
 	# Comma-separated string containing the good words and bad words for link scoring purposes
+    # TODO: Need to fix this to support proper XML list elements.
 	goodwords => getVar(name => "goodwords", namespace => "HoneyClient::Agent::Driver::Browser"),
 	badwords => getVar(name => "badwords", namespace => "HoneyClient::Agent::Driver::Browser"),
 
@@ -1022,6 +1023,10 @@ sub drive {
 
     # Check our internal relative links counter.
     if ($self->_remaining_number_of_relative_links_to_visit == 1) {
+
+        # XXX: Delete this, eventually.
+        print "Resetting relative links to visit counter.\n";
+
         # The counter has reached one, so drop all other relative links
         # found, to force the driver to go to a new website.
         $self->{relative_links_to_visit} = { };
@@ -1577,7 +1582,7 @@ Brad Stephenson, E<lt>stephenson@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

@@ -9,7 +9,7 @@
 # @author kindlund, xkovah
 #
 # Copyright (C) 1998 Memorial University of Newfoundland.
-# Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -346,13 +346,7 @@ my %PARAMS = (
 
     # An array, specifying which registry hives to
     # analyze.
-    hives_to_check => [ 
-                        'HKEY_LOCAL_MACHINE',
-                        'HKEY_CLASSES_ROOT',
-                        'HKEY_CURRENT_USER',
-                        'HKEY_USERS',
-                        'HKEY_CURRENT_CONFIG',
-                      ],
+    hives_to_check => getVar(name => 'hives_to_check')->{name}, 
 
     # An array of regular expressions that each registry directory
     # will be checked against.  Any matching key directory names will
@@ -366,65 +360,7 @@ my %PARAMS = (
     # A single backslash (\) must be represented using triple
     # backslashes (\\\) and each $entry must not end with any
     # backslash character.
-    key_dirnames_to_ignore => [ 
-        '^HKEY_CURRENT_USER\\\SessionInformation.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Internet Explorer\\\IntelliForms$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Internet Explorer\\\International$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Internet Explorer\\\International\\\CpMRU$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Internet Explorer\\\Main$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Internet Explorer\\\Security\\\AntiPhishing.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Internet Explorer\\\TypedURLs$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\MenuOrder\\\Favorites\\\Links.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\MenuOrder\\\Start Menu2\\\Programs.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\MountPoints2\\\CPC\\\Volume.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\UserAssist\\\.+\\\Count.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Ext\\\Stats\\\.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Internet Settings\\\Connections.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Internet Settings\\\5.0\\\Cache.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\DUIBags\\\ShellFolders\\\.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\BagMRU.*$',
-        '^HKEY_CURRENT_USER\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\MUICache.*$',
-        '^HKEY_CURRENT_USER\\\Volatile Environment$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Macromedia$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Macromedia\\\FlashPlayer$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Cryptography\\\RNG$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\BITS$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\Group Policy\\\State\\\Machine\\\Extension-List\\\.*$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\Group Policy\\\State\\\S.+\\\Extension-List\\\.*$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\WindowsUpdate\\\.*$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows\\\CurrentVersion\\\WindowsUpdate\\\Auto Update.*$', 
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\SystemCertificates\\\CA\\\Certificates\\\.*$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows NT\\\CurrentVersion\\\Prefetcher$',
-        '^HKEY_LOCAL_MACHINE\\\SOFTWARE\\\Microsoft\\\Windows NT\\\CurrentVersion\\\Winlogon\\\Notify\\\WgaLogon\\\Settings$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\.+\\\Parameters\\\Tcpip.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\Dhcp\\\Parameters.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\Eventlog\\\Application\\\ESENT.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\SharedAccess\\\Epoch.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\ControlSet.+\\\Services\\\Tcpip\\\Parameters\\\Interfaces\\\.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\Dhcp\\\Parameters.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\Eventlog\\\Application\\\ESENT.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\SharedAccess\\\Epoch$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\Tcpip\\\Parameters\\\Interfaces\\\.*$',
-        '^HKEY_LOCAL_MACHINE\\\SYSTEM\\\CurrentControlSet\\\Services\\\.+\\\Parameters\\\Tcpip.*$',
-        '^HKEY_USERS\\\.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\UserAssist\\\.+\\\Count.*$', 
-        '^HKEY_USERS\\\.+\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\BagMRU.*$',
-        '^HKEY_USERS\\\.+\\\UNICODE Program Groups.*$',
-        '^HKEY_USERS\\\S.+\\\SessionInformation$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Internet Explorer\\\IntelliForms$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Internet Explorer\\\International$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Internet Explorer\\\International\\\CpMRU$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Internet Explorer\\\Main$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Internet Explorer\\\Security\\\AntiPhishing.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Internet Explorer\\\TypedURLs$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\MenuOrder\\\Favorites\\\Links.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\MenuOrder\\\Start Menu2\\\Programs.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Explorer\\\MountPoints2\\\CPC\\\Volume.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Ext\\\Stats\\\.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Internet Settings\\\Connections.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Internet Settings\\\5.0\\\Cache.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\DUIBags\\\ShellFolders\\\.*$',
-        '^HKEY_USERS\\\S.+\\\Software\\\Microsoft\\\Windows\\\ShellNoRoam\\\MUICache.*$',
-    ],
+    key_dirnames_to_ignore => getVar(name => 'exclude_list')->{regex},
 
     # When set to 1, the object will forgo any type of initial baselining
     # process, upon initialization.  Otherwise, baselining will occur
@@ -681,7 +617,7 @@ sub _diff {
     my $src_filename = $src_parser->getFilename();
     my $tgt_filename = $tgt_parser->getFilename();
 
-    my $fname_tmp = tmpnam(); 
+    my $fname_tmp = tmpnam();
     $LOG->debug("Creating temporary file '" . $fname_tmp . "' to perform differential analysis.");
 
     # Perform diff operation.
@@ -703,9 +639,9 @@ sub _diff {
 
     if (defined($_)) {
         if ($_ eq "0NOCHANGES\n") {
-            $LOG->info("No changes detected in specified data.");
+            $LOG->debug("No changes detected in specified data.");
             _cleanup($fname_tmp);
-            return ($src_linenums, $tgt_linenums);
+            return ($src_linenums, $tgt_linenums, $diff_types);
         }
         if ($_ eq "FAILURE\n") {
             # Check if diff operation failed.
@@ -943,6 +879,11 @@ sub _compare {
             # Fetch the corresponding $diff_type
             $diff_type = @{$diff_types}[$found_index];
 
+            # Sanity check.
+            if (!defined($diff_type)) {
+                $diff_type = '';
+            }
+
             # Reset the current change hashref.
             $currentChange = { };
 
@@ -1104,6 +1045,7 @@ sub _compare {
                 # Else, the after group exists but the corresponding before group
                 # did not exist -- which means that this is a new group.
             } else {
+
                 # Scenario:
                 # Directory was added.
 
@@ -1173,7 +1115,9 @@ The following functions have been implemented by any Registry object.
 =over 4
 
 Creates a new Registry object, which contains a hashtable
-containing any of the supplied "param => value" arguments.
+containing any of the supplied "param => value" arguments.  Upon
+creation, the Registry object performs a baseline of the Windows
+registry.
 
 I<Inputs>:
  B<$param> is an optional parameter variable.
@@ -1249,7 +1193,7 @@ sub new {
 
     # Perform registry baselining, if not bypassed.
     if (!$self->{'bypass_baseline'}) {
-        $LOG->info("Baselining target registry hives.");
+        $LOG->info("Baselining registry hives.");
         $self->_snapshot($self->{_baseline_parsers});
     }
 
@@ -1486,12 +1430,14 @@ sub check {
 
     } else {
         # Checkpoint the registry.
+        $LOG->info("Analyzing registry.");
         $self->_snapshot($self->{_checkpoint_parsers});
 
+        $LOG->info("Checking for registry changes.");
         # Iterate through each hive...
         foreach my $hive (@{$self->{hives_to_check}}) {
 
-            $LOG->info("Checking '" . $hive . "' hive...");
+            $LOG->debug("Checking '" . $hive . "' hive.");
 
             $before_parser = $self->{_baseline_parsers}->{$hive};
             $after_parser  = $self->{_checkpoint_parsers}->{$hive};
@@ -1502,12 +1448,18 @@ sub check {
             # Concatinate these changes, to obtain a complete picture.
             $changes = [ @{$changes}, @{$local_changes}, ];
 
-            $LOG->info("Finished checking '" . $hive . "' hive.");
+            $LOG->debug("Finished checking '" . $hive . "' hive.");
         }
     }
 
     # Finally, return the array of detected (but filtered) changes.
-    return $self->_filter($changes);
+    $changes = $self->_filter($changes);
+    if (scalar(@{$changes})) {
+        $LOG->warn("Registry changes found.");
+    } else {
+        $LOG->info("No registry changes found.");
+    }
+    return $changes;
 }        
 
 =pod
@@ -1671,7 +1623,7 @@ Xeno Kovah, E<lt>xkovah@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2006 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
