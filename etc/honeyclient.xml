@@ -401,7 +401,7 @@ Keep in mind, though, that some variables should remain module-specific
                 8089
             </port>
             <datastore_path description="The absolute path to the parent directory, where all HoneyClient VM data is stored on the host server.  It is assumed that individual VM data is stored in separate subdirectories within this parent directory." default="/vm">
-                /vm
+                /vm/clones
             </datastore_path>
             <snapshot_path description="The absolute path to the directory that contains all snapshot data, associated with every HoneyClient VM." default="/vm/snapshots">
                 /vm/snapshots
