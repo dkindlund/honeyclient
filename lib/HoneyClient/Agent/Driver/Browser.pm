@@ -1307,7 +1307,7 @@ sub _scoreLinks {
    		 	my $max_text_length = 20;
    		 	my $image_bonus = 50;
    		 	my $default_display_size = 1024 * 768;
-   		 	my $word_value = 1000;
+   		 	my $word_value = 6;
 
 			# We have to make this an absolute url (if it's not)
 			# before using it as a key in the %links hash
