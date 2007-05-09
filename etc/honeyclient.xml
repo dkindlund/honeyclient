@@ -84,7 +84,7 @@ Keep in mind, though, that some variables should remain module-specific
 	                -1
 	            </max_relative_links_to_visit>
                 <goodwords description="A comma-separated list of good words which will increase the score of links within a webpage." default="">
-                    news,new,big,latest,main,update,sell,free,buy,roll,call,airman,uav,wing,focuses
+                    news,new,big,latest,main,update,sell,free,buy
                 </goodwords>
                 <badwords description="A comma-separated list of bad words which will decrease the score of links within a webpage." default="">
 	                archive,privacy,legal,disclaim,about,contact,copyright,jobs,careers
