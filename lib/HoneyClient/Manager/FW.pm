@@ -2983,6 +2983,7 @@ sub _resolveHost {
 
 	#import libraries
 	use Net::DNS::Resolver;
+    use Net::IP;
 	use Carp ();
 	my $resolver = Net::DNS::Resolver->new();
 
@@ -2993,6 +2994,14 @@ sub _resolveHost {
 	# Extract arguments -  passed in
 	my ($host) = @_;
 	my @ret    = ();
+
+    # Check to see if the host is already a valid IP address.
+    my $ip = Net::IP->new($host);
+    if (defined($ip)) {
+        push (@ret, $ip->ip());
+        return @ret;
+    }
+
 	my $query  = $resolver->search($host);
 
 	# Sanity check.
