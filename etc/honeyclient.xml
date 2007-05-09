@@ -68,7 +68,7 @@ Keep in mind, though, that some variables should remain module-specific
         <Driver>
             <!-- TODO: Update this. -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
-                20 
+                30 
             </timeout>
             <Browser>
                 <!-- HoneyClient::Agent::Driver::IE Options -->
