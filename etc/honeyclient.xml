@@ -140,6 +140,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/Documents and Settings/Administrator/Application Data/Mozilla/Firefox/Profiles.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Cookies.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Macromedia/Flash Player.*</regex>
+                    <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Microsoft/Windows Media.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Mozilla/Firefox/Profiles.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/History/History.IE5.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/Temporary Internet Files/Content.IE5.*</regex>
@@ -157,8 +158,10 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/WINDOWS/SoftwareDistribution/WuRedir.*</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/SecEvent.evt</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/SysEvent.evt</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/config/software</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/software.log</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/system.LOG</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/Macromed/Flash.*</regex>
                     <regex>C:/WINDOWS/SYSTEM32/wbem.*</regex>
                     <regex>C:/WINDOWS/WindowsUpdate.log</regex>
                     <!-- To exclude entries inside cygwin, use the following format. -->
@@ -188,6 +191,7 @@ Keep in mind, though, that some variables should remain module-specific
                 </hives_to_check>
                 <exclude_list description="List of perl regular expressions, each matching one or more registry key directory names to exclude from analysis.  These entries match registry key directories that change normally during the course of driving the target application.  As such, they are excluded from analysis in order to reduce false positives.  As in normal regular expressions, each backslash (\) must be escaped (\\) and each regex must not end with any backslash character.">
                     <regex>^HKEY_CURRENT_USER\\SessionInformation.*$</regex>
+                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\ActiveMovie\\devenum.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\IntelliForms$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\International$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\International\\CpMRU$</regex>
@@ -237,6 +241,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\Main$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\TypedURLs$</regex>
+                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\MediaPlayer\\Preferences.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\CPC\\Volume.*$</regex>
