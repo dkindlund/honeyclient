@@ -156,6 +156,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/WINDOWS/SoftwareDistribution/DataStore.*</regex>
                     <regex>C:/WINDOWS/SoftwareDistribution/ReportingEvents.log</regex>
                     <regex>C:/WINDOWS/SoftwareDistribution/WuRedir.*</regex>
+                    <regex>C:/WINDOWS/SYSTEM32</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/SecEvent.evt</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/SysEvent.evt</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/software</regex>
