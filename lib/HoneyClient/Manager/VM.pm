@@ -1205,10 +1205,12 @@ sub isRegisteredVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -1390,10 +1392,12 @@ sub getStateVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -1518,10 +1522,12 @@ sub startVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -1669,10 +1675,12 @@ sub stopVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -1824,10 +1832,12 @@ sub rebootVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -1965,10 +1975,12 @@ sub suspendVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -2156,10 +2168,12 @@ sub fullCloneVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -2368,10 +2382,12 @@ sub getNameVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -2494,10 +2510,12 @@ sub setNameVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -2674,10 +2692,12 @@ sub getMACaddrVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -2808,10 +2828,12 @@ sub getIPaddrVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -2947,10 +2969,12 @@ sub registerVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -3072,10 +3096,12 @@ sub unregisterVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -3231,10 +3257,12 @@ sub answerVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -3424,10 +3452,12 @@ sub destroyVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -3620,10 +3650,12 @@ sub setMasterVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -3909,10 +3941,12 @@ sub quickCloneVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -4242,10 +4276,12 @@ sub snapshotVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();
@@ -4530,10 +4566,12 @@ sub revertVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Sanity check.  Make sure there are no queued faults.
     _emitQueuedFault();

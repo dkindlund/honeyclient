@@ -81,6 +81,7 @@ use Carp ();
 use XML::XPath;
 use XML::Tidy;
 use Log::Log4perl qw(:easy);
+use Sys::Syslog;
 use Data::Dumper;
 
 #######################################################################
@@ -171,6 +172,12 @@ require_ok('XML::Tidy');
 can_ok('XML::Tidy','tidy');
 can_ok('XML::Tidy','write');
 use XML::Tidy;
+
+# Make sure Sys::Syslog loads
+BEGIN { use_ok('Sys::Syslog')
+        or diag("Can't load Sys::Syslog package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::Syslog');
+use Sys::Syslog;
 
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
@@ -461,10 +468,12 @@ sub getVar {
     _checkArgs(\%args);
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
     
     # Get a copy of the original namespace.
     my $namespace = $args{namespace};
@@ -596,10 +605,12 @@ sub setVar {
     _checkArgs(\%args);
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Fix the namespace so it is compatible with XPath
     my $namespace = $args{namespace};
@@ -632,6 +643,9 @@ _parseConfig(undef, $CONF_FILE);
 # Reinitialize Logging Subsystem
 # TODO: Need to account for absolute "/etc" directories!
 Log::Log4perl->init(getVar(name => "log_config"));
+
+# Initialize Syslog Support
+$Sys::Syslog::host = getVar(name => "syslog_address");
 
 1;
 

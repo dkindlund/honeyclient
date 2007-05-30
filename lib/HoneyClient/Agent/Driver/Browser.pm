@@ -234,6 +234,12 @@ use HTML::LinkExtor;
 # TODO: Need unit testing.
 use URI::URL;
 
+# Include Logging Library
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
+
 =pod
 
 =head1 DEFAULT PARAMETER LIST
@@ -1024,8 +1030,8 @@ sub drive {
     # Check our internal relative links counter.
     if ($self->_remaining_number_of_relative_links_to_visit == 1) {
 
-        # XXX: Delete this, eventually.
-        print "Resetting relative links to visit counter.\n";
+        # XXX: Do we need this message in here?
+        $LOG->info("Resetting relative links to visit counter.");
 
         # The counter has reached one, so drop all other relative links
         # found, to force the driver to go to a new website.

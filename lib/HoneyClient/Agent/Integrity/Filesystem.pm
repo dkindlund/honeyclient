@@ -1007,10 +1007,12 @@ sub check {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Analyze the filesystem.
     $LOG->info("Analyzing filesystem.");

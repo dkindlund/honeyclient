@@ -781,10 +781,12 @@ sub init {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Sanity check, don't initialize, unless input_file_handle
     # was provided.
@@ -1017,10 +1019,12 @@ sub nextGroup {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Reopen the file_handle, if it's been closed.
     if (!defined($self->YYData->{'file_handle'})) {
@@ -1082,10 +1086,12 @@ sub dirsParsed {
     my ($self, %args) = @_;
     
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     return $self->YYData->{'dir_count'}; 
 }
@@ -1129,10 +1135,12 @@ sub entriesParsed {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     return $self->YYData->{'entry_count'}; 
 }
@@ -1171,10 +1179,12 @@ sub getFileHandle {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     return $self->YYData->{'file_handle'}; 
 }
@@ -1213,10 +1223,12 @@ sub getFilename {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     return $self->YYData->{'filename'}; 
 }
@@ -1264,10 +1276,12 @@ sub closeFileHandle {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     $self->YYData->{'file_handle'} = undef; 
 }
@@ -1312,10 +1326,12 @@ sub getCurrentLineCount {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     my $ret = $self->YYData->{'line_count'};
     $self->YYData->{'line_count'} = 0;
@@ -1470,10 +1486,12 @@ sub seekToNearestGroup {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Sanity check, don't continue, unless absolute_offset or absolute_linennum
     # was provided.

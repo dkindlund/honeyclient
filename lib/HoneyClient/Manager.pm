@@ -193,6 +193,13 @@ use VMware::VmPerl qw(VM_EXECUTION_STATE_ON
 # TODO: Include unit tests.
 use IO::File;
 
+# TODO: Include unit tests.
+# Include Logging Library
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
+
 # Complete URL of SOAP server, when initialized.
 our $URL_BASE       : shared = undef;
 our $URL            : shared = undef;
@@ -317,6 +324,7 @@ sub _handleFault {
         $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
     }
 
+    $LOG->warn(__PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg);
     Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
 }
 
@@ -334,7 +342,7 @@ sub _handleFaultAndCleanup {
 
 sub _cleanup {
 
-    print "Cleaning up...\n";
+    $LOG->info("Cleaning up.");
 
     # Mask all possible signals, so that we don't call this function multiple times.
     $SIG{HUP}     = sub { };
@@ -367,7 +375,7 @@ sub _cleanup {
         # we let the daemon die, but the create a new one, for the sole purpose
         # of cleanup up the clones.
         HoneyClient::Manager::VM->init();
-        print "Calling suspendVM(config => $vmCloneConfig)...\n";
+        $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
         my $stubVM = getClientHandle(namespace     => "HoneyClient::Manager::VM");
         $stubVM->suspendVM(config => $vmCloneConfig);
         print "Done!\n";
@@ -377,7 +385,7 @@ sub _cleanup {
     # XXX: May want to change this format/usage, eventually.
     if (length($STATE_FILE) > 0 &&
         defined($globalAgentState)) {
-        print "Saving state to '" . $STATE_FILE . "'...\n";
+        $LOG->info("Saving state to '" . $STATE_FILE . "'.");
         my $dump_file = new IO::File($STATE_FILE, "w");
 
         # XXX: Delete this block, eventually.
@@ -554,6 +562,7 @@ sub runSession {
 
     # Figure out when the Agent on the VM is alive and well.
     $ret = undef;
+    my $logMsgPrinted = 0;
     while (!$ret) {
         sleep (3);
         print "Calling getIPaddrVM()...\n";
@@ -563,7 +572,16 @@ sub runSession {
         }
         $vmIP = $som->result();
 
-        if (defined($vmIP)) {
+        print "Calling getNameVM()...\n";
+        $som = $stubVM->getNameVM(config => $vmCloneConfig);
+        print "Result: " . $som->result() . "\n";
+        $vmName = $som->result();
+
+        if (defined($vmIP) && defined($vmName)) {
+            if (!$logMsgPrinted) {
+                $LOG->info("Created clone VM (" . $vmName . ") using IP (" . $vmIP . ") and MAC (" . $vmMAC . ").");
+                $logMsgPrinted = 1;
+            }
 
             # Try contacting the Agent; ignore any faults.
             $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
@@ -580,10 +598,6 @@ sub runSession {
                 $Data::Dumper::Indent = 2;
                 print Dumper($ret);
 
-                print "Calling getNameVM()...\n";
-                $som = $stubVM->getNameVM(config => $vmCloneConfig);
-                print "Result: " . $som->result() . "\n";
-                $vmName = $som->result();
             };
             # Clear returned state, if any fault occurs.
             if ($@) {
@@ -642,7 +656,7 @@ sub runSession {
 
             # Check to see if Agent::run() thread has stopped
             # and that a compromise was detected.
-            if (!defined($ret->{$args{'driver'}}->{thread_id})) {
+            if (!$ret->{$args{'driver'}}->{status}->{is_running}) {
                 if ($ret->{$args{'driver'}}->{status}->{is_compromised}) {
                     print "Calling getState()...\n";
                     $som = $stubAgent->getState();
@@ -653,8 +667,7 @@ sub runSession {
 
                     # Check to see if the VM has been compromised.
                     print "WARNING: VM HAS BEEN COMPROMISED!\n";
-                    print "Suspending: (" . $vmCloneConfig . ")...\n";
-                    print "Calling suspendVM()...\n";
+                    $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
                     $som = $stubVM->suspendVM(config => $vmCloneConfig);
 	                HoneyClient::Manager::VM->destroy();
                     $vmCompromised = 1;
@@ -695,7 +708,7 @@ sub runSession {
             # TODO: Need to distinguish between run() stopping because
             # of firewall mods, or if the Agent is completely finished
             # and needs more input to continue.
-            if (!defined($ret->{$args{'driver'}}->{thread_id})) {
+            if (!$ret->{$args{'driver'}}->{status}->{is_running}) {
 
 
                 # Delete the old firewall rules, based upon existing
@@ -741,6 +754,7 @@ sub runSession {
         if ($vmCompromised) {
             return $args{'agent_state'};
         }
+        print "Sleeping for 10s...\n";
         sleep (10);
     }
 }

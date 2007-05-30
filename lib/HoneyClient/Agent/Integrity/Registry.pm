@@ -402,41 +402,43 @@ my %PARAMS = (
 #######################################################################
 
 # Base destructor function.
-# Since none of our state data ever contains circular references,
-# we can simply leave the garbage collection up to Perl's internal
-# mechanism.
-sub DESTROY {
+sub destroy {
+    # Extract arguments.
     my $self = shift;
+
+    # Delete any temporary files created by the baseline
+    # and checkpoint parsers.
+    $self->_cleanupParsers($self->{_baseline_parsers});
+    $self->_cleanupParsers($self->{_checkpoint_parsers});
+}
+
+# Helper function, designed to cleanup temporary files created
+# by specified parsers.
+#
+# Inputs: HoneyClient::Agent::Integrity::Registry object,
+#         the hashtable collection of specified parsers
+#
+# Outputs: None.
+sub _cleanupParsers {
+    # Extract arguments.
+    my ($self, $parser_collection) = @_;
 
     # Delete any temporary files created.
     my $parser = undef;
     my $fname = undef;
     foreach my $hive (@{$self->{hives_to_check}}) {
-        $parser = $self->{_baseline_parsers}->{$hive};
+        $parser = $parser_collection->{$hive};
         if (defined($parser)) {
             $fname = $parser->getFilename();
             if (defined($fname) && (-f $fname)) {
-                $LOG->debug("Deleting baseline of hive '" . $hive . "' in '" .
+                $LOG->debug("Deleting temporary '" . $hive . "' hive data in '" .
                             $fname . "'.");
                 if (!unlink($fname)) {
                     $LOG->fatal("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
                     Carp::croak("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
                 }
             }
-            delete($self->{_baseline_parsers}->{$hive});
-        }
-        $parser = $self->{_checkpoint_parsers}->{$hive};
-        if (defined($parser)) {
-            $fname = $parser->getFilename();
-            if (defined($fname) && (-f $fname)) {
-                $LOG->debug("Deleting checkpoint of hive '" . $hive . "' in '" .
-                            $fname . "'.");
-                if (!unlink($fname)) {
-                    $LOG->fatal("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
-                    Carp::croak("Error: Unable to unlink '" . $hive . "' hive data in '" . $fname ."'.");
-                }
-            }
-            delete($self->{_checkpoint_parsers}->{$hive});
+            delete($parser_collection->{$hive});
         }
     }
 }
@@ -456,7 +458,16 @@ sub _snapshot {
     my $fname = undef;
     my $fname_tmp = undef;
     foreach my $hive (@{$self->{hives_to_check}}) {
-        $fname = tmpnam(); 
+        # Check to see if we can reuse temporary files from
+        # past checkpoint operations.
+        if (exists($parser_collection->{$hive}) &&
+            defined($parser_collection->{$hive})) {
+            $parser = $parser_collection->{$hive};
+            $fname = $parser->getFilename();
+        } else {
+            $fname = tmpnam();
+        }
+
         $fname_tmp = tmpnam(); 
         $LOG->debug("Storing snapshot of hive '" . $hive . "' into '" . $fname . "'.");
         $LOG->debug("Creating temporary file '" . $fname_tmp . "' to perform data conversion.");
@@ -1171,10 +1182,12 @@ sub new {
     my %args = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Check to see if the class name is inherited or defined.
     my $class = ref($self) || $self;
@@ -1389,10 +1402,12 @@ sub check {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Define before/after parsers.
     my ($before_parser, $after_parser);
@@ -1450,6 +1465,9 @@ sub check {
 
             $LOG->debug("Finished checking '" . $hive . "' hive.");
         }
+
+        # Cleanup temporary files created by checkpointing.
+        $self->_cleanupParsers($self->{_checkpoint_parsers});
     }
 
     # Finally, return the array of detected (but filtered) changes.
@@ -1498,10 +1516,12 @@ sub getFilesCreated {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     my @parsers = values(%{$self->{_baseline_parsers}});
     push (@parsers, values(%{$self->{_checkpoint_parsers}}));
@@ -1550,10 +1570,12 @@ sub closeFiles {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
     # Close any temporary files created.
     my $parser = undef;
@@ -1593,6 +1615,12 @@ on all Windows OS installations.  Because REGEDIT.EXE does not expose
 null-encoded registry directory keys, this module will B<NOT> be able
 to identify any adds, deletions, and/or changes to these types of
 directory keys.
+
+The $object->new() and $object->check() calls may generate a large
+number of temporary files on disk.  If any of this code fails prematurely,
+then it's likely these temporary files will still exist upon abnormal
+termination.  As such, manual cleanup of these files in /tmp may be
+required.
 
 For more information about the limitations of this module, please see:
 

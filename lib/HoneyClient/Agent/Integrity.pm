@@ -534,10 +534,12 @@ sub check {
     my ($self, %args) = @_;
 
     # Log resolved arguments.
-    # Make Dumper format more terse.
-    $Data::Dumper::Terse = 1;
-    $Data::Dumper::Indent = 0;
-    $LOG->debug(Dumper(\%args));
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
 	my $changes = {
         'registry' => $self->{'_registry'}->check(),
@@ -567,6 +569,15 @@ sub closeFiles {
 
     if (defined($self->{'_registry'})) {
         $self->{'_registry'}->closeFiles();
+    }
+}
+
+# TODO: Comment this.
+sub destroy {
+    my $self = shift;
+
+    if (defined($self->{'_registry'})) {
+        $self->{'_registry'}->destroy();
     }
 }
 

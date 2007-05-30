@@ -53,6 +53,9 @@ Keep in mind, though, that some variables should remain module-specific
     <log_config description="The global Log4perl configuration file, used throughout all modules.  This setting should not need to be changed." default="etc/honeyclient_log.conf">
         etc/honeyclient_log.conf
     </log_config>
+    <syslog_address description="The IP address of the syslog server that all logging messages will be sent to by both Agent and Manager processes over UDP port 514." default="10.0.0.1">
+        10.0.0.1
+    </syslog_address>
     <!-- HoneyClient::Agent Options -->
     <Agent>
         <!-- TODO: Update this. -->
@@ -120,7 +123,7 @@ Keep in mind, though, that some variables should remain module-specific
             </EmailClient>
         </Driver>
         <perform_integrity_checks description="An integer, representing whether the Agent should perform any integrity checks. 1 enables, 0 disables." default="1">
-            1
+            1 
         </perform_integrity_checks>
         <!-- HoneyClient::Agent::Integrity Options -->
         <Integrity>
@@ -136,6 +139,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/Documents and Settings/All Users/Application Data/Microsoft/Network/Downloader.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Application Data/Mozilla/Firefox/Profiles.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Cookies.*</regex>
+                    <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Macromedia/Flash Player.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Mozilla/Firefox/Profiles.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/History/History.IE5.*</regex>
                     <regex>C:/Documents and Settings/Administrator/Local Settings/Temporary Internet Files/Content.IE5.*</regex>
@@ -180,7 +184,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <name>HKEY_CLASSES_ROOT</name>
                     <name>HKEY_CURRENT_USER</name>
                     <name>HKEY_USERS</name>
-                    <name>HKEY_CURRENT_CONFIG</name> 
+                    <name>HKEY_CURRENT_CONFIG</name>
                 </hives_to_check>
                 <exclude_list description="List of perl regular expressions, each matching one or more registry key directory names to exclude from analysis.  These entries match registry key directories that change normally during the course of driving the target application.  As such, they are excluded from analysis in order to reduce false positives.  As in normal regular expressions, each backslash (\) must be escaped (\\) and each regex must not end with any backslash character.">
                     <regex>^HKEY_CURRENT_USER\\SessionInformation.*$</regex>

@@ -162,12 +162,13 @@ can_ok('HoneyClient::Agent::Driver::IE', 'status');
 use HoneyClient::Agent::Driver::IE;
 
 # Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(freeze nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('Storable', qw(freeze nfreeze thaw dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
 can_ok('Storable', 'freeze');
 can_ok('Storable', 'nfreeze');
 can_ok('Storable', 'thaw');
-use Storable qw(freeze nfreeze thaw);
+can_ok('Storable', 'dclone');
+use Storable qw(freeze nfreeze thaw dclone);
 
 # Make sure MIME::Base64 loads.
 BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
@@ -208,7 +209,6 @@ use HoneyClient::Util::Config qw(getVar);
 use Data::Dumper;
 
 # Include Hash Serialization Utility Libraries
-# TODO: Update unit tests to include 'dclone'
 use Storable qw(freeze nfreeze thaw dclone);
 $Storable::Deparse = 1;
 $Storable::Eval = 1;
@@ -227,6 +227,12 @@ use Data::Structure::Util qw(unbless);
 # XXX: Do we need this?
 use Data::Compare;
 
+# Include Logging Library
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
+
 # Complete URL of SOAP server, when initialized.
 our $URL_BASE       : shared = undef;
 our $URL            : shared = undef;
@@ -239,11 +245,10 @@ our $DAEMON_PID     : shared = undef;
 our $PERFORM_INTEGRITY_CHECKS : shared =
     getVar(name => "perform_integrity_checks");
 
-# A globally shared, serialized hashtable, containing the
-# initialized integrity state of the VM -- ready to be checked
-# against, at any time.
-#our $integrity = undef;
-our $integrityState : shared = undef;
+# A globally shared object, containing the initialized integrity
+# state of the VM -- ready to be checked against, at any time after
+# initialization.
+our $integrityData;
 
 # A globally shared, serialized hashtable, containing data per
 # registered driver.  Specifically, for each @DRIVER <entry>,
@@ -343,6 +348,7 @@ sub init {
 
     # Sanity check.  Make sure the daemon isn't already running.
     if (defined($DAEMON_PID)) {
+        $LOG->fatal("Error: " . __PACKAGE__ . " daemon is already running (PID = " . $DAEMON_PID .")!");
         Carp::croak "Error: " . __PACKAGE__ . " daemon is already running (PID = $DAEMON_PID)!\n";
     }
 
@@ -369,15 +375,10 @@ sub init {
     }
 
     # Perform initial integrity baseline check.
-    #my $integrity = undef;
-    #if ($PERFORM_INTEGRITY_CHECKS) {
-    #    $integrity = HoneyClient::Agent::Integrity->new();
-    #    $integrity->closeFiles();
-    #    $integrityState = freeze($integrity);
-    #}
-    # XXX: Check to make sure this doesn't destroy the integrity
-    # object prematurely.
-    #$integrity = undef;
+    if ($PERFORM_INTEGRITY_CHECKS) {
+        $integrityData = HoneyClient::Agent::Integrity->new();
+        $integrityData->closeFiles();
+    }
 
     # Release data lock.
     _unlock($data);
@@ -411,6 +412,7 @@ sub init {
     } else {
         # Make sure the fork was successful.
         if (!defined($pid)) {
+            $LOG->fatal("Error: Unable to fork child process.\n$!");
             Carp::croak "Error: Unable to fork child process.\n$!";
         }
 
@@ -437,7 +439,7 @@ sub init {
         updateState($class, encode_base64(nfreeze(\%args)));
     
         for (;;) {
-            $daemon->handle;
+            $daemon->handle();
         }
     }
 }
@@ -471,6 +473,7 @@ sub destroy {
     # Make sure the PID is defined and not
     # the parent process...
     if (defined($DAEMON_PID) && ($DAEMON_PID != 0)) {
+        $LOG->error("Killing PID = " . $DAEMON_PID);
         print STDERR "Killing PID = " . $DAEMON_PID . "\n";
         # The Win32 version of kill() seems to only respond to SIGKILL(9).
         # XXX: This doesn't work.
@@ -493,6 +496,12 @@ sub destroy {
         $driverDataSemaphore  = Thread::Semaphore->new(1);
         %driverUpdateQueues   = ( );
 
+        # Destroy all integrity data, if defined.
+        if (defined($integrityData)) {
+            $integrityData->destroy();
+        }
+        $integrityData        = undef;
+        
         # Release data lock.
         _unlock();
     }
@@ -561,16 +570,16 @@ sub _unlock {
 # 
 # When called from run(), this function takes in the corresponding
 # Driver object; checks to see if there's a new entry within the
-# driver's corresponding update queue; and dequeues the *first*
-# entry in the queue, overwriting the Driver's state data
+# driver's corresponding update queue; and dequeues the *all*
+# entries in the queue, overwriting the Driver's state data
 # accordingly.
 #
 # The external updateState() call adds new driver state into the queue,
 # one entry per call.  The internal _update() function merges this
-# driver state with the currently running driver, one merge
-# operation per call.  In order words, a single call to _update()
-# may *NOT* empty the corresponding Driver update queue completely
-# -- only one entry within the queue will be dequeued per _update()
+# driver state with the currently running driver, merging everything
+# queued per call.  In order words, a single call to _update()
+# *WILL* empty the corresponding Driver update queue completely
+# -- all entries within the queue will be dequeued per _update()
 # call made.
 #
 # Input: driver
@@ -586,8 +595,12 @@ sub _update {
     # Extract the corresponding queue.
     my $queue = $driverUpdateQueues{$driverName};
 
+    # XXX: One possible DoS condition here; what if
+    # the manager keeps feeding updates to the Agent
+    # before the Agent has a chance to do any work?
+    
     # If we have data in our driver specific queue...
-    if ($queue->pending) {
+    while ($queue->pending) {
 
         # Update our driver state with the first entry
         # found...
@@ -662,6 +675,19 @@ sub run {
 
         # Read the TID.
         $tid = $data->{$driverName}->{'thread_id'};
+
+# XXX: Delete this, eventually.
+print "Checking TID = " . Dumper($tid) . "\n";
+if (defined(threads->object($tid))) {
+    print "Thread defined.\n";
+    if (threads->object($tid)->is_running()) {
+        print "Thread is running.\n";
+    } else {
+        print "Thread is NOT running.\n";
+    }
+} else {
+    print "Thread NOT defined.\n";
+}
         
         # Sanity check: Return false, if we already have a
         # driver thread running.
@@ -673,6 +699,9 @@ sub run {
             _unlock();
 
             return 0;
+        } else {
+            # XXX: Remove this, eventually.
+            print "Creating a new run() child thread...\n";
         }
 
         # Quickly define a temporary thread ID.
@@ -692,233 +721,223 @@ sub run {
         # Release data lock.
         _unlock($data);
 
-        # TODO: Clean up this comment block.
-        # This function should do the following:
-        # - Initialize all drivers with starting state.
-        # - "Drive" each driver, one-by-one.
-        # - Collect any integrity violations found, with offending
-        #   state information.
-        #
-        # Notes:
-        # This function will eventually sit in a sub-thread, allowing the parent
-        # thread to return without any delay.  It is expected that the Manager
-        # would then subsequently call a getStatus() operation, in order to
-        # then poll for any new violations found.
-        #
-        # TODO: We need to create a fault reporting mechanism, in order
-        # to properly deal with exceptions/faults that occur within this
-        # thread.
-        $thread = async {
-            threads->yield();
-    
-            # Trap all faults that may occur from these asynchronous operations.
-            eval {
-
-                ###################################
-                ### Driver Initialization Phase ###
-                ###################################
-
-                # Initially set local integrity object to undef.
-                my $integrity = undef;
-                
-                # Initially set all driver objects to undef. 
-                my $driver = undef;
-    
-                # Acquire lock on stored driver state.
-                $data = _lock();
-
-                if ($PERFORM_INTEGRITY_CHECKS) {
-                    # XXX: WARNING - The $integrityState object data is NOT thread-safe
-                    # (since it relies on external data stored on the file system).
-                    # As such, do NOT try to call integrity checks on multiple, simultaneous
-                    # asynchronous threaded drivers.
-                    #$integrity = thaw($integrityState);
-                    # Perform initial integrity baseline check.
-                    #print "Initializing Integrity Check...\n";
-                    # TODO: Initialize Integrity Checks
-                    $integrity = HoneyClient::Agent::Integrity->new();
-                }
-
-                # Now, initialize each driver object. 
-                # Figure out which $driver object to use...
-                my $driverClass = 'HoneyClient::Agent::Driver::Browser::' . $driverName;
-                
-                if (!defined($data->{$driverName}->{'state'})) {
-    
-                    # If the driver state is undefined, then
-                    # create a new state object.
-                    $driver = $driverClass->new();
-
-                } else {
-                    # Then the driver state object is already defined,
-                    # so go ahead and reuse it.
-                    $driver = $driverClass->new(
-                        %{$data->{$driverName}->{'state'}}, 
-                    );
-                }
-
-                # Next, we make sure we have no updates, before we update
-                # the corresponding shared memory version.
-                $driver = _update($driver);
-
-                # Once we've initialized the object, be sure to update
-                # the corresponding shared memory version.  We do this
-                # one time before the loop starts, in case we end up
-                # finishing before we drove anywhere.
-                
-                # Copy object data to shared memory.
-                $data->{$driverName}->{'next'} = $driver->next();
-                $data->{$driverName}->{'status'} = $driver->status();
-                $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
-                $data->{$driverName}->{'state'} = $driver;
-
-                if ($driver->isFinished()) {
-                    # Thread is about to finish, set the ID back to undef.
-                    # This looks ugly, but setting it this early avoids the
-                    # potential race condition of when the run() thread is finished
-                    # and when updateState() checks for $driverData->{$driverName}->{'thread_id'}
-                    # to be set to undef.
-                    $data->{$driverName}->{'thread_id'} = undef;
-                }
-
-                # Release lock on stored driver state.
-                _unlock($data);
-                
-                ###################################
-                ### Driver Running Phase        ###
-                ###################################
-
-                # Boolean to indicate that the driver is about to transition
-                # to a new set of targets upon the next drive() operation.
-                my $driverTargetsChanged = 0;
-
-                while (!$driver->isFinished() && !$driverTargetsChanged) {
-                    # XXX: Debug.  Remove this.
-                    # We assume $driver->next() returns defined data.
-                    foreach my $resource (keys %{$driver->next()->{resources}}) {
-                        print "Using Resource: " . $resource . "\n";
-                    }
-
-                    # Drive the driver for one step.
-                    # If the operation fails, then an exception will be generated.
-                    $driver->drive();
-   
-                    # Acquire lock on stored driver state.
-                    $data = _lock();
-                    
-                    # Check for any additional external driver updates.
-                    $driver = _update($driver);
-
-                    # Check to see if our driver's targets have changed.
-                    $driverTargetsChanged = not(Compare($data->{$driverName}->{'next'}->{'targets'}, $driver->next()->{'targets'}));
-                    # XXX: Delete this, eventually.
-                    if ($driverTargetsChanged) {
-                        print "Driver targets have changed.\n";
-                        #$Data::Dumper::Terse = 0;
-                        #$Data::Dumper::Indent = 1;
-                        #print "Current: " . Dumper($data->{$driverName}->{'next'}->{'targets'}) . "\n";
-                        #print "Next: " . Dumper($driver->next()->{'targets'}) . "\n";
-                    }
-
-                    # Copy object data to shared memory.
-                    $data->{$driverName}->{'next'} = $driver->next();
-                    $data->{$driverName}->{'status'} = $driver->status();
-                    $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
-                    $data->{$driverName}->{'state'} = $driver;
-
-                    if ($driver->isFinished() or $driverTargetsChanged) {
-                        # Thread is about to finish, set the ID back to undef.
-                        # This looks ugly, but setting it this early avoids the
-                        # potential race condition of when the run() thread is finished
-                        # and when updateState() checks for $driverData->{$driverName}->{'thread_id'}
-                        # to be set to undef.
-                        $data->{$driverName}->{'thread_id'} = undef;
-                    }
-
-                    # Release lock on stored driver state.
-                    _unlock($data);
-                }
-                
-                # Acquire lock on stored driver state.
-                $data = _lock();
-                
-                # TODO: Perform Integrity Check
-                if (defined($integrity)) {
-                    # For now, we update a scalar called 'is_compromised' within
-                    # the $data->{$driverName}->{'status'} sub-hashtable.
-                    print "Performing Integrity Checks...\n";
-                    my $changes = $integrity->check();
-                    if (scalar(@{$changes->{registry}}) || 
-                        scalar(@{$changes->{filesystem}})) {
-                        print "Integrity Check: FAILED\n";
-                        $data->{$driverName}->{'status'}->{'is_compromised'} = 1;
-                    } else {
-                        print "Integrity Check: PASSED\n";
-                    }
-                }
-
-                # Release lock on stored driver state.
-                _unlock($data);
-
-                # XXX: Debugging, remove eventually. 
-                print "Exiting run() thread.\n";
-                #print Dumper($driver);
-                # Verbose debugging:
-                #print Dumper($driver->status());
-                # Short-hand debugging:
-                #my $status = $driver->status();
-                #print "R(" . $status->{relative_links_remaining} . ") | [ " .
-                #      "V(" . $status->{links_remaining} . ") + ".
-                #      "P(" . $status->{links_processed} . ") = " .
-                #      "T(" . $status->{links_total} . ") ] " .
-                #      "| (" . $status->{percent_complete} . ")\n";
-            };
-    
-            ###################################
-            ### Driver Cleanup Phase        ###
-            ###################################
-           
-            # Check to see if any errors occurred within the thread.
-            # Queue any faults found, to transmit back to the next SOAP
-            # caller. 
-            if ($@) {
-                # Release any pending locks, to avoid deadlocks.
-                _unlock();
-
-                # Acquire lock on stored driver state.
-                $data = _lock();
-                 
-                # Make sure we update our state to reflect ourself dying.
-                $data->{$driverName}->{'thread_id'} = undef;
-
-                # Release lock on stored driver state.
-                _unlock($data);
-    
-                # TODO: Do proper fault queuing.
-                print "FAULT: " . $@ . "\n";
-            }
-
-            threads->detach(); # XXX: Test this.
-            return;
-        };
+        $thread = threads->create(\&worker,
+                                  {
+                                    'driver_name' => $driverName,
+                                    'integrity'   => $integrityData,
+                                  }
+                                 );
             
         # Acquire data lock.
         $data = _lock();
             
         # Set the valid thread ID.
+        $data->{$driverName}->{'thread_id'} = $thread->tid();
         if ($thread->is_running()) {
-            $data->{$driverName}->{'thread_id'} = $thread->tid();
+            # XXX: Debugging, remove eventually. 
+            print "Thread ID = " . $thread->tid() . "\n";
         } else {
-            $data->{$driverName}->{'thread_id'} = undef;
+            # XXX: Debugging, remove eventually. 
+            print "Thread ID = " . $thread->tid() . " (NOT RUNNING)\n";
         }
 
         # Release data lock.
         _unlock($data);
     }
 
+    # XXX: Debugging, remove eventually. 
+    print "Run thread initialized.\n";
+
     # At this point, the driver thread is initialized and running,
     # return true.
     return 1;
+}
+
+# TODO: Clean up this comment block.
+# This function should do the following:
+# - Initialize all drivers with starting state.
+# - "Drive" each driver, one-by-one.
+# - Collect any integrity violations found, with offending
+#   state information.
+#
+# Notes:
+# This function will eventually sit in a sub-thread, allowing the parent
+# thread to return without any delay.  It is expected that the Manager
+# would then subsequently call a getStatus() operation, in order to
+# then poll for any new violations found.
+#
+# TODO: We need to create a fault reporting mechanism, in order
+# to properly deal with exceptions/faults that occur within this
+# thread.
+sub worker {
+
+    # Extract arguments.
+    my $args = shift;
+    my $driverName = $args->{'driver_name'};
+    my $integrity  = $args->{'integrity'};
+
+    # Temporary variable, used to hold thawed driver data.
+    my $data = undef;
+
+    # Yield processing to parent thread.
+    threads->yield();
+
+    # Trap all faults that may occur from these asynchronous operations.
+    eval {
+
+        ###################################
+        ### Driver Initialization Phase ###
+        ###################################
+
+        # Initially set all driver objects to undef. 
+        my $driver = undef;
+    
+        # Acquire lock on stored driver state.
+        $data = _lock();
+
+        # Now, initialize each driver object. 
+        # Figure out which $driver object to use...
+        my $driverClass = 'HoneyClient::Agent::Driver::Browser::' . $driverName;
+
+        if (!defined($data->{$driverName}->{'state'})) {
+    
+            # If the driver state is undefined, then
+            # create a new state object.
+            $driver = $driverClass->new();
+
+        } else {
+            # Then the driver state object is already defined,
+            # so go ahead and reuse it.
+            $driver = $driverClass->new(
+                        %{$data->{$driverName}->{'state'}}, 
+            );
+        }
+
+        # Next, we make sure we have no updates, before we update
+        # the corresponding shared memory version.
+        $driver = _update($driver);
+
+        # Once we've initialized the object, be sure to update
+        # the corresponding shared memory version.  We do this
+        # one time before the loop starts, in case we end up
+        # finishing before we drove anywhere.
+                
+        # Copy object data to shared memory.
+        $data->{$driverName}->{'next'} = $driver->next();
+        $data->{$driverName}->{'status'} = $driver->status();
+        $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
+        $data->{$driverName}->{'status'}->{'is_running'} = 1;
+        $data->{$driverName}->{'state'} = $driver;
+
+        # Release lock on stored driver state.
+        _unlock($data);
+                
+        ###################################
+        ### Driver Running Phase        ###
+        ###################################
+
+        # Boolean to indicate that the driver is about to transition
+        # to a new set of targets upon the next drive() operation.
+        my $driverTargetsChanged = 0;
+
+        while (!$driver->isFinished() && !$driverTargetsChanged) {
+            # XXX: Debug.  Remove this.
+            # We assume $driver->next() returns defined data.
+            foreach my $resource (keys %{$driver->next()->{resources}}) {
+                $LOG->info("Driving To Resource: " . $resource);
+            }
+
+            # Drive the driver for one step.
+            # If the operation fails, then an exception will be generated.
+            $driver->drive();
+   
+            # Acquire lock on stored driver state.
+            $data = _lock();
+                    
+            # Check for any additional external driver updates.
+            $driver = _update($driver);
+
+            # Check to see if our driver's targets have changed.
+            $driverTargetsChanged = not(Compare($data->{$driverName}->{'next'}->{'targets'}, $driver->next()->{'targets'}));
+            # XXX: Delete this, eventually.
+            if ($driverTargetsChanged) {
+                $LOG->info("Driver targets have changed.");
+                #$Data::Dumper::Terse = 0;
+                #$Data::Dumper::Indent = 1;
+                #print "Current: " . Dumper($data->{$driverName}->{'next'}->{'targets'}) . "\n";
+                #print "Next: " . Dumper($driver->next()->{'targets'}) . "\n";
+            }
+
+            # Copy object data to shared memory.
+            $data->{$driverName}->{'next'} = $driver->next();
+            $data->{$driverName}->{'status'} = $driver->status();
+            $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
+            $data->{$driverName}->{'status'}->{'is_running'} = 1;
+            $data->{$driverName}->{'state'} = $driver;
+
+            # Release lock on stored driver state.
+            _unlock($data);
+        }
+                
+        # TODO: Perform Integrity Check
+        my $isCompromised = 0;
+        if (defined($integrity)) {
+            # For now, we update a scalar called 'is_compromised' within
+            # the $data->{$driverName}->{'status'} sub-hashtable.
+            $LOG->info("Performing Integrity Checks.");
+            my $changes = $integrity->check();
+            if (scalar(@{$changes->{registry}}) || 
+                scalar(@{$changes->{filesystem}})) {
+                $LOG->warn("Integrity Check: FAILED");
+                $isCompromised = 1;
+            } else {
+                $LOG->info("Integrity Check: PASSED");
+            }
+        }
+        # Release our copy of the integrity object, but do not destroy 
+        # any internal references.
+        $integrity = undef;
+
+        # Update driver state one last time, before exiting.
+                
+        # Acquire lock on stored driver state.
+        $data = _lock();
+                    
+        # Check for any additional external driver updates.
+        $driver = _update($driver);
+
+        # Copy object data to shared memory.
+        $data->{$driverName}->{'next'} = $driver->next();
+        $data->{$driverName}->{'status'} = $driver->status();
+        $data->{$driverName}->{'status'}->{'is_compromised'} = $isCompromised;
+        $data->{$driverName}->{'status'}->{'is_running'} = 0;
+        $data->{$driverName}->{'state'} = $driver;
+ 
+        # Release lock on stored driver state.
+        _unlock($data);
+    };
+    
+    ###################################
+    ### Driver Cleanup Phase        ###
+    ###################################
+           
+    # Check to see if any errors occurred within the thread.
+    # Queue any faults found, to transmit back to the next SOAP
+    # caller. 
+    if ($@) {
+        # Release any pending locks, to avoid deadlocks.
+        _unlock();
+
+        # TODO: Do proper fault queuing.
+        $LOG->error("FAULT: " . $@);
+    }
+
+    # XXX: Debugging, remove eventually. 
+    print "About to return out of child thread.\n";
+    if (!threads->is_detached()) {
+        threads->detach();
+    }
+    threads->exit();
 }
 
 # XXX: Document this.
@@ -1009,7 +1028,7 @@ sub updateState {
             # Initialize the driver object. 
             # Figure out which $driver object to use...
             my $driverClass = 'HoneyClient::Agent::Driver::Browser::' . $driverName;
-                
+
             if (!defined($data->{$driverName}->{'state'})) {
     
                 # If the existing driver state is undefined, then
@@ -1035,6 +1054,7 @@ sub updateState {
             # XXX: This may not be ideal, as a previous compromised status indicator
             # would get overwritten, during the next updateState() call.
             $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
+            $data->{$driverName}->{'status'}->{'is_running'} = 0;
             $data->{$driverName}->{'state'} = $driver;
 
             # Release data lock.
@@ -1118,6 +1138,7 @@ sub killProcess {
     foreach my $proc (@procs) {
         if ($proc->{Name} eq $processName) {
             # TODO: Should this statement be in here?
+            $LOG->warn("Killing Process ID: " . $proc->{ProcessId});
             Carp::carp "Killing Process ID: " . $proc->{ProcessId} . "\n";
             Win32::Process::KillProcess($proc->{ProcessId}, 0);
         }

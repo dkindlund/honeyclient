@@ -6,17 +6,23 @@ use strict;
 use warnings;
 use Carp ();
 
+use HoneyClient::Util::Config qw(getVar);
 use HoneyClient::Agent;
 use HoneyClient::Util::SOAP qw(getClientHandle);
 use Data::Dumper;
 use MIME::Base64 qw(decode_base64 encode_base64);
 use Storable qw(thaw nfreeze);
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
 
 our ($stub, $som);
 our $URL = HoneyClient::Agent->init();
 
 our $agentState = undef;
 my $tempState = undef;
+our $faultDetected = 0;
 
 print "URL: " . $URL. "\n";
 
@@ -34,9 +40,13 @@ sub _watchdogFaultHandler {
         $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
     }
 
-    print "Watchdog fault detected, recovering Agent daemon.\n";
+    if (!$faultDetected) {
+        $LOG->error("Watchdog fault detected, recovering Agent daemon.");
+        $faultDetected = 1;
+    }
     # XXX: Reenable this, eventually.
-    #Carp::carp __PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg;
+    $LOG->error(__PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg);
+    Carp::carp __PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg;
 
 
     # Regardless of the error, destroy the Agent process and reinitialize it.
