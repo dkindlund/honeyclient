@@ -689,7 +689,7 @@ sub _filter {
         
         # Skip if excluded.
         if ($exclude_flag) {
-            $LOG->info("Excluding '" . win32path($name) . "' from integrity checks.");
+            $LOG->debug("Excluding '" . win32path($name) . "' from integrity checks.");
             next;
         }
 
