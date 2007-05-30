@@ -40,7 +40,7 @@ and MAC address filtering.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Manager::FW version 0.95.
+This documentation refers to HoneyClient::Manager::FW version 0.97.
 
 =head1 SYNOPSIS
 
@@ -314,7 +314,7 @@ BEGIN {
 	our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION );
 
 	# Set our package version.
-	$VERSION = 0.95;
+	$VERSION = 0.97;
 
 	@ISA = qw(Exporter);
 
