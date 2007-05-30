@@ -162,6 +162,11 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/WINDOWS/SYSTEM32/config/software.log</regex>
                     <regex>C:/WINDOWS/SYSTEM32/config/system.LOG</regex>
                     <regex>C:/WINDOWS/SYSTEM32/Macromed/Flash.*</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/perfc009.dat</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/perfd009.dat</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/perfh009.dat</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/perfi009.dat</regex>
+                    <regex>C:/WINDOWS/SYSTEM32/PerfStringBackup.INI</regex>
                     <regex>C:/WINDOWS/SYSTEM32/wbem.*</regex>
                     <regex>C:/WINDOWS/WindowsUpdate.log</regex>
                     <!-- To exclude entries inside cygwin, use the following format. -->
@@ -213,6 +218,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia\\FlashPlayer$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography\\RNG$</regex>
+                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\WBEM.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BITS$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\Machine\\Extension-List\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\S.+\\Extension-List\\.*$</regex>
