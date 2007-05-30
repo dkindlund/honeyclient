@@ -219,13 +219,14 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia\\FlashPlayer$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography\\RNG$</regex>
+                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PCHealth\\PchSvc$</regex>
+                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SystemCertificates\\CA\\Certificates\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\WBEM.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BITS$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\Machine\\Extension-List\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\S.+\\Extension-List\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SystemCertificates\\CA\\Certificates\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Prefetcher$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Notify\\WgaLogon\\Settings$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet.+\\Services\\.+\\Parameters\\Tcpip.*$</regex>
