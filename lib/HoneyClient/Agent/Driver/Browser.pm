@@ -1500,8 +1500,15 @@ sub status {
                                  scalar(keys(%{$self->links_timed_out})) +
                                  scalar(keys(%{$self->links_ignored}));
 
+    # Figure out if the next_link_to_visit is set.
+    my $next_link_is_set = 0;
+    if (defined($self->next_link_to_visit)) {
+        $next_link_is_set = 1; 
+    }
+
     # Set the number of relative links to process.
-    $status->{relative_links_remaining} = scalar(keys(%{$self->relative_links_to_visit}));
+    $status->{relative_links_remaining} = scalar(keys(%{$self->relative_links_to_visit})) +
+                                          $next_link_is_set;
 
     # Figure out how many total links are left to process.
     $status->{links_remaining} = scalar(keys(%{$self->relative_links_to_visit})) +
