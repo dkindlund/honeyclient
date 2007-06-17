@@ -719,12 +719,12 @@ sub runSession {
 
                         $LOG->info("All URLs exhausted.  Shutting down Manager.");
                         # Get a local copy of the configuration and kill the global copy.
-                        #my $vmCfg = $vmCloneConfig;
-                        #$vmCloneConfig = undef;
-                        #$LOG->info("Calling destroyVM(config => " . $vmCfg . ").");
-                        #$stubVM->destroyVM(config => $vmCfg);
-                        #print "Done!\n";
-                        #_cleanup();
+                        my $vmCfg = $vmCloneConfig;
+                        $vmCloneConfig = undef;
+                        $LOG->info("Calling destroyVM(config => " . $vmCfg . ").");
+                        $stubVM->destroyVM(config => $vmCfg);
+                        print "Done!\n";
+                        _cleanup();
 
                     } else {
                         # The Agent::run() thread has stopped; we assume
