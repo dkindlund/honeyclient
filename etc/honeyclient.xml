@@ -133,8 +133,7 @@ Keep in mind, though, that some variables should remain module-specific
             <!-- HoneyClient::Agent::Integrity::Filesystem Options -->
             <Filesystem>
                 <directories_to_check description="List of base directories on the filesystem to recursively analyze.  Use a regular slash (/) instead of a backslash (\) as a directory separator character.">
-                    <!-- <name>C:/</name> -->
-                    <name>C:/Temp</name>
+                    <name>C:/</name>
                 </directories_to_check>
                 <exclude_list description="List of regular expressions that match files/directories to exclude from analysis.  These entries match files/directories that change normally during the course of driving the target application.  As such, they are excluded from analysis in order to reduce false positives.  Use a regular slash (/) instead of a backslash (\) as a directory separator character.  Never prefix any entry with a carat (^) before the drive letter, such as '^C:/', and never add the regex suffix ($) to the end of an expression, such as 'C:/Temp$'.  All comparisons are case-insensitive.">
                     <regex>C:/Documents and Settings/All Users/Application Data/Microsoft/Network/Downloader.*</regex>
@@ -190,11 +189,11 @@ Keep in mind, though, that some variables should remain module-specific
             <!-- HoneyClient::Agent::Integrity::Registry Options -->
             <Registry>
                 <hives_to_check description="List of registry hives to analyze.">
-                    <!-- <name>HKEY_LOCAL_MACHINE</name>
-                    <name>HKEY_CLASSES_ROOT</name> -->
+                    <name>HKEY_LOCAL_MACHINE</name>
+                    <name>HKEY_CLASSES_ROOT</name>
                     <name>HKEY_CURRENT_USER</name>
-                    <!-- <name>HKEY_USERS</name>
-                    <name>HKEY_CURRENT_CONFIG</name> -->
+                    <name>HKEY_USERS</name>
+                    <name>HKEY_CURRENT_CONFIG</name>
                 </hives_to_check>
                 <exclude_list description="List of perl regular expressions, each matching one or more registry key directory names to exclude from analysis.  These entries match registry key directories that change normally during the course of driving the target application.  As such, they are excluded from analysis in order to reduce false positives.  As in normal regular expressions, each backslash (\) must be escaped (\\) and each regex must not end with any backslash character.">
                     <regex>^HKEY_CURRENT_USER\\SessionInformation.*$</regex>
