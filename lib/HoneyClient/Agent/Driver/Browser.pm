@@ -1511,7 +1511,7 @@ sub status {
                                           $next_link_is_set;
 
     # Figure out how many total links are left to process.
-    $status->{links_remaining} = scalar(keys(%{$self->relative_links_to_visit})) +
+    $status->{links_remaining} = $status->{relative_links_remaining} +
                                  scalar(keys(%{$self->links_to_visit}));
 
     # Set the total number of links in the object's state.
