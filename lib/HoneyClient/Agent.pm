@@ -1022,17 +1022,11 @@ sub updateState {
             # The run() thread is active, so we assume that the run() thread will actually
             # merge these updates into the shared driver state.
 
-# XXX: Delete this, eventually.
-print "RUN THREAD IS ALIVE.\n";
-
             # Release data lock.
             _unlock();
 
         } else {
 
-# XXX: Delete this, eventually.
-print "RUN THREAD IS DEAD.\n";
-            
             # If we've gotten this far, then the run() thread is no longer active,
             # which means that we have to manually update the driver state
             # information.
@@ -1068,14 +1062,6 @@ print "RUN THREAD IS DEAD.\n";
             $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
             $data->{$driverName}->{'status'}->{'is_running'} = 0;
             $data->{$driverName}->{'state'} = $driver;
-
-# XXX: Delete this, eventually.
-$Data::Dumper::Terse = 0;
-$Data::Dumper::Indent = 1;
-print "Status:\n";
-print Dumper($data->{$driverName}->{'status'}) . "\n";
-print "Next:\n";
-print Dumper($data->{$driverName}->{'next'}) . "\n";
 
             # Release data lock.
             _unlock($data);
