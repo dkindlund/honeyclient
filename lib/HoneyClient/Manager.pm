@@ -162,6 +162,16 @@ use HoneyClient::Util::Config qw(getVar);
 # TODO: Include unit tests.
 use HoneyClient::Manager::VM qw();
 
+# Check if DB support is enabled. 
+our $DB_ENABLE = getVar(name      => "enable",
+                        namespace => "HoneyClient::DB");
+
+if ($DB_ENABLE) {
+    # Include DB Utility Library
+    # TODO: Include unit tests.
+    use HoneyClient::DB::Fingerprint;
+}
+
 # XXX: Remove this, eventually.
 use Data::Dumper;
 
@@ -224,6 +234,10 @@ our $globalAgentState   = undef;
 # would use to dump its entire state information, upon termination.
 # XXX: May want to change this format/usage, eventually.
 our $STATE_FILE = getVar(name => "manager_state");
+
+# Temporary variable, used to indicate to the fault handler whether
+# or not errors/warnings should be suppressed.
+our $SUPPRESS_ERRORS = 0;
 
 #######################################################################
 # Daemon Initialization / Destruction                                 #
@@ -324,8 +338,10 @@ sub _handleFault {
         $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
     }
 
-    $LOG->warn(__PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg);
-    Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
+    if (!$SUPPRESS_ERRORS) {
+        $LOG->warn("Error occurred during processing. " . $errMsg);
+        Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
+    }
 }
 
 sub _handleFaultAndCleanup {
@@ -352,7 +368,7 @@ sub _cleanup {
     $SIG{PIPE}    = sub { };
     $SIG{TERM}    = sub { };
 
-	HoneyClient::Manager::VM->destroy();
+    HoneyClient::Manager::VM->destroy();
 
     # XXX: Need to clean this up.
     my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW");
@@ -376,7 +392,7 @@ sub _cleanup {
         # of cleanup up the clones.
         HoneyClient::Manager::VM->init();
         $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
-        my $stubVM = getClientHandle(namespace     => "HoneyClient::Manager::VM");
+        my $stubVM = getClientHandle(namespace => "HoneyClient::Manager::VM");
         $stubVM->suspendVM(config => $vmCloneConfig);
         print "Done!\n";
         HoneyClient::Manager::VM->destroy();
@@ -399,12 +415,12 @@ sub _cleanup {
 
 # XXX: Install the cleanup handler, in case the parent process dies
 # unexpectedly.
-$SIG{HUP}	= sub { _cleanup(); };
-$SIG{INT}	= sub { _cleanup(); };
-$SIG{QUIT}	= sub { _cleanup(); };
-$SIG{ABRT}	= sub { _cleanup(); };
-$SIG{PIPE}	= sub { _cleanup(); };
-$SIG{TERM}	= sub { _cleanup(); };
+$SIG{HUP}  = sub { _cleanup(); };
+$SIG{INT}  = sub { _cleanup(); };
+$SIG{QUIT} = sub { _cleanup(); };
+$SIG{ABRT} = sub { _cleanup(); };
+$SIG{PIPE} = sub { _cleanup(); };
+$SIG{TERM} = sub { _cleanup(); };
 
 #######################################################################
 # Public Methods Implemented                                          #
@@ -469,7 +485,7 @@ sub runSession {
     # for consistency.
     my ($class, %args) = @_;
 
-    my $som 	  = undef;
+    my $som       = undef;
     my $ret       = undef;
     my $vmIP      = undef;
     my $vmMAC     = undef;
@@ -523,13 +539,13 @@ sub runSession {
     $som = $stubVM->getStateVM(config => $vmCloneConfig);
     $vmState = $som->result();
 
-    if ($som->result() == VM_EXECUTION_STATE_ON) {
+    if ($vmState == VM_EXECUTION_STATE_ON) {
         print "ON\n";
-    } elsif ($som->result() == VM_EXECUTION_STATE_OFF) {
+    } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
         print "OFF\n";
-    } elsif ($som->result() == VM_EXECUTION_STATE_SUSPENDED) {
+    } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
         print "SUSPENDED\n";
-    } elsif ($som->result() == VM_EXECUTION_STATE_STUCK) {
+    } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
         print "STUCK\n";
     } else {
         print "UNKNOWN\n";
@@ -542,13 +558,13 @@ sub runSession {
         $som = $stubVM->getStateVM(config => $vmCloneConfig);
         $vmState = $som->result();
 
-        if ($som->result() == VM_EXECUTION_STATE_ON) {
+        if ($vmState == VM_EXECUTION_STATE_ON) {
             print "ON\n";
-        } elsif ($som->result() == VM_EXECUTION_STATE_OFF) {
+        } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
             print "OFF\n";
-        } elsif ($som->result() == VM_EXECUTION_STATE_SUSPENDED) {
+        } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
             print "SUSPENDED\n";
-        } elsif ($som->result() == VM_EXECUTION_STATE_STUCK) {
+        } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
             print "STUCK\n";
         } else {
             print "UNKNOWN\n";
@@ -584,6 +600,7 @@ sub runSession {
             }
 
             # Try contacting the Agent; ignore any faults.
+            $SUPPRESS_ERRORS = 1;
             $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
                                          address       => $vmIP,
                                          fault_handler => \&_handleFault);
@@ -603,6 +620,7 @@ sub runSession {
             if ($@) {
                 $ret = undef;
             }
+            $SUPPRESS_ERRORS = 0;
         }
     }
 
@@ -639,52 +657,17 @@ sub runSession {
     $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
                               fault_handler => \&_handleFault);
 
+    # Call updateState() first, to seed initial data.
+    # TODO: Need to support asynchronous updates (url adding)
+    # from user input.
+    print "Calling updateState()...\n";
+    $som = $stubAgent->updateState($args{'agent_state'});
+
     for (my $counter = 1;; $counter++) {
 
         # From this point on, catch all errors generated and
         # assume that the Agent's watchdog process will recover.
         eval {
-            print "Calling getStatus()...\n";
-            $som = $stubAgent->getStatus();
-            print "Result:\n";
-            my $ret = thaw(decode_base64($som->result()));
-            # Make Dumper format more verbose.
-            $Data::Dumper::Terse = 0;
-            $Data::Dumper::Indent = 2;
-            print Dumper($ret->{$args{'driver'}}->{status});
-            #print Dumper($ret);
-
-            # Check to see if Agent::run() thread has stopped
-            # and that a compromise was detected.
-            if (!$ret->{$args{'driver'}}->{status}->{is_running}) {
-                if ($ret->{$args{'driver'}}->{status}->{is_compromised}) {
-                    print "Calling getState()...\n";
-                    $som = $stubAgent->getState();
-                    $args{'agent_state'} = $som->result();
-
-                    # XXX: Delete this, eventually.
-                    $globalAgentState = $args{'agent_state'};
-
-                    # Check to see if the VM has been compromised.
-                    print "WARNING: VM HAS BEEN COMPROMISED!\n";
-                    $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
-                    $som = $stubVM->suspendVM(config => $vmCloneConfig);
-	                HoneyClient::Manager::VM->destroy();
-                    $vmCompromised = 1;
-                    return; # Return out of eval block.
-                } else {
-                    print "VM Integrity Check: OK!\n";
-                }
-            }
-           
-            # Only call updateState() on the first iteration.
-            # TODO: Need to support asynchronous updates (url adding)
-            # from user input.
-            if ($counter == 1) {
-                print "Calling updateState()...\n";
-                $som = $stubAgent->updateState($args{'agent_state'});
-            }
-            
             print "Calling getState()...\n";
             $som = $stubAgent->getState();
             $args{'agent_state'} = $som->result();
@@ -699,39 +682,79 @@ sub runSession {
             # Make Dumper format more verbose.
             $Data::Dumper::Terse = 0;
             $Data::Dumper::Indent = 2;
-            #print Dumper($ret->{$args{'driver'}}->{status});
-            print Dumper($ret);
+            print Dumper($ret->{$args{'driver'}}->{status});
+            #print Dumper($ret);
 
-            # The Agent::run() thread has stopped; we assume
-            # it's because the Agent is waiting for the firewall
-            # to allow access to the new targets.
-            # TODO: Need to distinguish between run() stopping because
-            # of firewall mods, or if the Agent is completely finished
-            # and needs more input to continue.
+            # Check to see if Agent::run() thread has stopped
+            # and that a compromise was detected.
             if (!$ret->{$args{'driver'}}->{status}->{is_running}) {
+                if ($ret->{$args{'driver'}}->{status}->{is_compromised}) {
+                    # Check to see if the VM has been compromised.
+                    print "WARNING: VM HAS BEEN COMPROMISED!\n";
+                    $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
+                    $som = $stubVM->suspendVM(config => $vmCloneConfig);
+                    HoneyClient::Manager::VM->destroy();
+                    $vmCompromised = 1;
 
+                    # Insert Compromised Fingerprint into DB.
+                    my $fingerprint = $ret->{$args{'driver'}}->{status}->{fingerprint};
+                    $LOG->warn("VM Compromised.  Last Resource (" . $fingerprint->{'last_resource'} . ")");
+                    $fingerprint->{'lasturl'} = delete($fingerprint->{'last_resource'});
+                    $fingerprint->{vmid} = $vmName;
+                    print "Fingerprint:\n";
+                    print Dumper($fingerprint) . "\n";
+                    if ($DB_ENABLE) {
+                        $LOG->info("Inserting Fingerprint Into Database.");
+                        my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
+                        $fp->insert(); 
+                        $LOG->info("Database Insert Successful.");
+                    }
+                    return; # Return out of eval block.
+                } else {
+                    print "VM Integrity Check: OK!\n";
 
-                # Delete the old firewall rules, based upon existing
-                # targets.
-                $stubFW->deleteRules($vmStateTable);
+                    # Check to see if any links remain to be processed by the
+                    # Agent.
+                    if (!$ret->{$args{'driver'}}->{status}->{links_remaining}) {
 
-                # Get the new targets from the Agent.
-                $vmStateTable->{$vmName}->{targets} = $ret->{$args{'driver'}}->{next}->{targets};
+                        $LOG->info("All URLs exhausted.  Shutting down Manager.");
+                        # Get a local copy of the configuration and kill the global copy.
+                        my $vmCfg = $vmCloneConfig;
+                        $vmCloneConfig = undef;
+                        $LOG->info("Calling destroyVM(config => " . $vmCfg . ").");
+                        $stubVM->destroyVM(config => $vmCfg);
+                        print "Done!\n";
+                        _cleanup();
 
-                print "VM State Table:\n";
-                # Make Dumper format more verbose.
-                $Data::Dumper::Terse = 0;
-                $Data::Dumper::Indent = 2;
-                print Dumper($vmStateTable) . "\n";
+                    } else {
+                        # The Agent::run() thread has stopped; we assume
+                        # it's because the Agent is waiting for the firewall
+                        # to allow access to the new targets.
+                
+                        # Delete the old firewall rules, based upon existing
+                        # targets.
+                        $stubFW->deleteRules($vmStateTable);
 
-                # Add the new targets from the Agent.
-                $stubFW->addRules($vmStateTable);
+                        # Get the new targets from the Agent.
+                        $vmStateTable->{$vmName}->{targets} = $ret->{$args{'driver'}}->{next}->{targets};
 
-                print "Calling run()...\n";
-                $som = $stubAgent->run();
+                        print "VM State Table:\n";
+                        # Make Dumper format more verbose.
+                        $Data::Dumper::Terse = 0;
+                        $Data::Dumper::Indent = 2;
+                        print Dumper($vmStateTable) . "\n";
+
+                        # Add the new targets from the Agent.
+                        $stubFW->addRules($vmStateTable);
+
+                        print "Calling run()...\n";
+                        $som = $stubAgent->run();
+                    }
+                }
             }
         };
         if ($@) {
+            print "Error: $@\n";
             my $resetSuccessful = 0;
             while (!$resetSuccessful) {
                 print "Resetting firewall...\n";
@@ -752,6 +775,8 @@ sub runSession {
             }   
         }
         if ($vmCompromised) {
+            # Reset the FW state table. 
+            $vmStateTable = { };
             return $args{'agent_state'};
         }
         print "Sleeping for 10s...\n";

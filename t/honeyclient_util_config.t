@@ -57,6 +57,12 @@ can_ok('XML::Tidy','tidy');
 can_ok('XML::Tidy','write');
 use XML::Tidy;
 
+# Make sure Sys::Syslog loads
+BEGIN { use_ok('Sys::Syslog')
+        or diag("Can't load Sys::Syslog package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::Syslog');
+use Sys::Syslog;
+
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }

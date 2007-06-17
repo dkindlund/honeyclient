@@ -50,7 +50,7 @@ if (!scalar(@{$changes})) {
         print Dumper($changes);
     } else {
         foreach my $change (@{$changes}) {
-            print $change->{'key'} . " (" . $change->{'status'} . ")\n";
+            print $change->{'key_name'} . " (" . $change->{'status'} . ")\n";
         }
     }
     my ($fh, $file) = tmpnam();
@@ -61,4 +61,3 @@ if (!scalar(@{$changes})) {
     print "Done!\n";
     print "Detailed registry changes were written to: " . $file . "\n";
 }
-

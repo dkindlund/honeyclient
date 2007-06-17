@@ -24,8 +24,8 @@ use HoneyClient::Manager;
 # They can however supply multiple urls which will be processed in order
 
 my $driver = "IE";
-my $config = "/vm/master-vms/Agent.Master-19/winXPPro.cfg";
-my $maxrel = 5;
+my $config = "/vm/master-vms/Agent.Master-20/winXPPro.cfg";
+my $maxrel = 10;
 my $nexturl = "";
 my $urllist= "";
 

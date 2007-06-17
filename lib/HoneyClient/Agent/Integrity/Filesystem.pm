@@ -65,22 +65,17 @@ This documentation refers to HoneyClient::Agent::Integrity::Filesystem version 0
   # $changes = [ {
   #     # Indicates if the filesystem entry was deleted,
   #     # added, or changed.
-  #     'status' => 'deleted' | 'added' | 'changed',
+  #     'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
+  #     'name'  => 'C:\WINDOWS\SYSTEM32...',
+  #     'mtime' => 'YYYY-MM-DD HH:MM:SS', # new mtime for added/modified files;
+  #                                       # old mtime for deleted files
   #
-  #     # If the entry has been added/changed, then this 
-  #     # hashtable contains the file/directory's new information.
-  #     'new' => {
-  #         'name'  => 'C:\WINDOWS\SYSTEM32...',
-  #         'size'  => 1263, # in bytes
-  #         'mtime' => 1178135092, # modification time, seconds since epoch
-  #     },
-  #
-  #     # If the entry has been deleted/changed, then this
-  #     # hashtable contains the file/directory's old information.
-  #     'old' => {
-  #         'name'  => 'C:\WINDOWS\SYSTEM32...',
-  #         'size'  => 802, # in bytes
-  #         'mtime' => 1178135028, # modification time, seconds since epoch
+  #     # content will only exist for added/modified files
+  #     'content' => {
+  #         'size' => 1263,                                       # size of new content 
+  #         'type' => 'application/octect-stream',                # type of new content
+  #         'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
+  #         'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
   #     },
   # }, ]
 
@@ -123,6 +118,21 @@ use File::Basename qw(dirname);
 
 # Include Logging Library
 use Log::Log4perl qw(:easy);
+
+# Use DateTime Library
+use DateTime;
+
+# Use MD5 Library
+use Digest::MD5;
+
+# Use SHA Library
+use Digest::SHA;
+
+# Use File::Type Library
+use File::Type;
+
+# Use IO::File Library
+use IO::File;
 
 #######################################################################
 # Module Initialization                                               #
@@ -241,6 +251,31 @@ BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem') or diag("Can't load 
 require_ok('HoneyClient::Agent::Integrity::Filesystem');
 use HoneyClient::Agent::Integrity::Filesystem;
 
+# Make sure DateTime loads.
+BEGIN { use_ok('DateTime') or diag("Can't load DateTime package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime');
+use DateTime;
+
+# Make sure Digest::MD5 loads.
+BEGIN { use_ok('Digest::MD5') or diag("Can't load Digest::MD5 package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Digest::MD5');
+use Digest::MD5;
+
+# Make sure Digest::SHA loads.
+BEGIN { use_ok('Digest::SHA') or diag("Can't load Digest::SHA package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Digest::SHA');
+use Digest::SHA;
+
+# Make sure File::Type loads.
+BEGIN { use_ok('File::Type') or diag("Can't load File::Type package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Type');
+use File::Type;
+
+# Make sure IO::File loads.
+BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('IO::File');
+use IO::File;
+
 =end testing
 
 =cut
@@ -248,6 +283,18 @@ use HoneyClient::Agent::Integrity::Filesystem;
 #######################################################################
 # Global Configuration Variables                                      #
 #######################################################################
+
+# TODO: Need to link these constants with DB code.
+# Filesystem Status Identifiers
+our $STATUS_DELETED  = 0;
+our $STATUS_ADDED    = 1;
+our $STATUS_MODIFIED = 2;
+
+# TODO: Need to link these constants with DB code.
+# Set hash value to this constant, if unable to compute. 
+our $HASH_UNKNOWN    = 'UNKNOWN';
+# Set type value to this constant, if unable to compute. 
+our $TYPE_UNKNOWN    = 'UNKNOWN';
 
 # The global logging object.
 our $LOG = get_logger();
@@ -431,6 +478,30 @@ sub _toString {
 #
 # Input: Algorithm::Diff object
 # Output: Array reference of hashtables
+# Notes: This function returns hashtables in the following
+# format:
+#
+#  $changes = [ {
+#      # Indicates if the filesystem entry was deleted,
+#      # added, or changed.
+#      'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
+#
+#      # If the entry has been added/changed, then this 
+#      # hashtable contains the file/directory's new information.
+#      'new' => {
+#          'name'  => 'C:\WINDOWS\SYSTEM32...',
+#          'size'  => 1263, # in bytes
+#          'mtime' => 1178135092, # modification time, seconds since epoch
+#      },
+#
+#      # If the entry has been deleted/changed, then this
+#      # hashtable contains the file/directory's old information.
+#      'old' => {
+#          'name'  => 'C:\WINDOWS\SYSTEM32...',
+#          'size'  => 802, # in bytes
+#          'mtime' => 1178135028, # modification time, seconds since epoch
+#      },
+#  }, ]
 sub _diff {
 
     # Extract arguments.
@@ -457,7 +528,7 @@ sub _diff {
                 $LOG->debug("File Deleted - " . Dumper($_));
 
                 push (@{$ret}, {
-                    'status' => 'deleted',
+                    'status' => $STATUS_DELETED,
                     'old' => $_,
                 });
 	        }
@@ -470,7 +541,7 @@ sub _diff {
                 $LOG->debug("File Added - " . Dumper($_));
 
                 push (@{$ret}, {
-                    'status' => 'added',
+                    'status' => $STATUS_ADDED,
                     'new' => $_,
                 });
 	        }
@@ -500,7 +571,7 @@ sub _diff {
                                                 " - New - " . Dumper($new_entry));
 
                         push (@{$ret}, {
-                            'status' => 'changed',
+                            'status' => $STATUS_MODIFIED,
                             'old' => $old_entry,
                             'new' => $new_entry,
                         });
@@ -514,11 +585,11 @@ sub _diff {
                         $LOG->debug("File Added - "   . Dumper($new_entry));
 
                         push (@{$ret}, {
-                            'status' => 'deleted',
+                            'status' => $STATUS_DELETED,
                             'old' => $old_entry,
                         });
                         push (@{$ret}, {
-                            'status' => 'added',
+                            'status' => $STATUS_ADDED,
                             'new' => $new_entry,
                         });
                     }
@@ -542,7 +613,7 @@ sub _diff {
                                                 " - New - " . Dumper($new_entry));
 
                         push (@{$ret}, {
-                            'status' => 'changed',
+                            'status' => $STATUS_MODIFIED,
                             'old' => $old_entry,
                             'new' => $new_entry,
                         });
@@ -556,7 +627,7 @@ sub _diff {
                         $LOG->debug("File Deleted - " . Dumper($old_entry));
 
                         push (@{$ret}, {
-                            'status' => 'deleted',
+                            'status' => $STATUS_DELETED,
                             'old' => $old_entry,
                         });
                         # Mark the new entry as added, if and only if it's defined
@@ -567,7 +638,7 @@ sub _diff {
                             $Data::Dumper::Indent = 0;
                             $LOG->debug("File Added - "   . Dumper($new_entry));
                             push (@{$ret}, {
-                                'status' => 'added',
+                                'status' => $STATUS_ADDED,
                                 'new' => $new_entry,
                             });
 	                        $index++;
@@ -583,7 +654,7 @@ sub _diff {
                     $Data::Dumper::Indent = 0;
                     $LOG->debug("File Added - "   . Dumper($new_entry));
                     push (@{$ret}, {
-                        'status' => 'added',
+                        'status' => $STATUS_ADDED,
                         'new' => $new_entry,
                     });
                 }
@@ -603,7 +674,7 @@ sub _diff {
                         $LOG->debug("File Changed - Old - " . Dumper($old_entry) .
                                                 " - New - " . Dumper($new_entry));
                         push (@{$ret}, {
-                            'status' => 'changed',
+                            'status' => $STATUS_MODIFIED,
                             'old' => $old_entry,
                             'new' => $new_entry,
                         });
@@ -616,7 +687,7 @@ sub _diff {
                         $Data::Dumper::Indent = 0;
                         $LOG->debug("File Added - "   . Dumper($new_entry));
                         push (@{$ret}, {
-                            'status' => 'added',
+                            'status' => $STATUS_ADDED,
                             'new' => $new_entry,
                         });
                         # Mark the old entry as deleted, if and only if it's defined
@@ -627,7 +698,7 @@ sub _diff {
                             $Data::Dumper::Indent = 0;
                             $LOG->debug("File Deleted - "   . Dumper($old_entry));
                             push (@{$ret}, {
-                                'status' => 'deleted',
+                                'status' => $STATUS_DELETED,
                                 'old' => $old_entry,
                             });
 	                        $index++;
@@ -643,7 +714,7 @@ sub _diff {
                     $Data::Dumper::Indent = 0;
                     $LOG->debug("File Deleted - "   . Dumper($old_entry));
                     push (@{$ret}, {
-                        'status' => 'deleted',
+                        'status' => $STATUS_DELETED,
                         'old' => $old_entry,
                     });
                 }
@@ -658,7 +729,31 @@ sub _diff {
 # instead of separate add/delete entries.
 #
 # Input: Array reference of hashtables 
-# Output: Array reference of hashtables (filtered) 
+# Output: Array reference of hashtables (filtered)
+# Notes: This function expects and returns hashtables in the following
+# format:
+#
+#  $changes = [ {
+#      # Indicates if the filesystem entry was deleted,
+#      # added, or changed.
+#      'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
+#
+#      # If the entry has been added/changed, then this 
+#      # hashtable contains the file/directory's new information.
+#      'new' => {
+#          'name'  => 'C:\WINDOWS\SYSTEM32...',
+#          'size'  => 1263, # in bytes
+#          'mtime' => 1178135092, # modification time, seconds since epoch
+#      },
+#
+#      # If the entry has been deleted/changed, then this
+#      # hashtable contains the file/directory's old information.
+#      'old' => {
+#          'name'  => 'C:\WINDOWS\SYSTEM32...',
+#          'size'  => 802, # in bytes
+#          'mtime' => 1178135028, # modification time, seconds since epoch
+#      },
+#  }, ]
 sub _filter {
 	my ($self, $changes) = @_;
 	my $ret = [];
@@ -667,7 +762,7 @@ sub _filter {
 	foreach (@{$changes}) {
         # Extract the file name from each entry.
         my $name = undef;
-        if (($_->{status} eq 'added') or ($_->{status} eq 'changed')) {
+        if (($_->{status} == $STATUS_ADDED) or ($_->{status} == $STATUS_MODIFIED)) {
             $name = $_->{'new'}->{name};
         } else {
             $name = $_->{'old'}->{name};
@@ -704,12 +799,12 @@ sub _filter {
             my $curr_entry = $_;
 
             # Sanity check.
-            if ((($prev_entry->{status} eq 'changed') ||
-                 ($curr_entry->{status} eq 'changed')) ||
-                (($prev_entry->{status} eq 'added') &&
-                 ($curr_entry->{status} eq 'added')) ||
-                (($prev_entry->{status} eq 'deleted') &&
-                 ($curr_entry->{status} eq 'deleted'))) {
+            if ((($prev_entry->{status} == $STATUS_MODIFIED) ||
+                 ($curr_entry->{status} == $STATUS_MODIFIED)) ||
+                (($prev_entry->{status} == $STATUS_ADDED) &&
+                 ($curr_entry->{status} == $STATUS_ADDED)) ||
+                (($prev_entry->{status} == $STATUS_DELETED) &&
+                 ($curr_entry->{status} == $STATUS_DELETED))) {
                 $LOG->error("Duplicate filesystem change entries were found. " .
                             "Previous Entry - " . Dumper($prev_entry) . " - ".
                             "Current Entry - " . Dumper($curr_entry));
@@ -719,15 +814,15 @@ sub _filter {
 
             # If the previous entry was added and the current
             # was deleted.
-            if (($prev_entry->{status} eq 'added') &&
-                ($curr_entry->{status} eq 'deleted')) {
-                $prev_entry->{status} = 'changed';
+            if (($prev_entry->{status} == $STATUS_ADDED) &&
+                ($curr_entry->{status} == $STATUS_DELETED)) {
+                $prev_entry->{status} = $STATUS_MODIFIED;
                 $prev_entry->{old} = $curr_entry->{old};
 
             # Otherwise, if the previous entry was deleted and the
             # current was added.
             } else {
-                $prev_entry->{status} = 'changed';
+                $prev_entry->{status} = $STATUS_MODIFIED;
                 $prev_entry->{'new'} = $curr_entry->{'new'};
             }
 
@@ -740,6 +835,161 @@ sub _filter {
         }
     }
 	return $ret;
+}
+
+# A helper function, designed to manipulate the array of changes into 
+# a format that is expected by the check() function -- collecting
+# more forensic data about each change along the way.
+#
+# Input: Array reference of hashtables 
+# Output: Array reference of hashtables (manipulated)
+# Notes: This function expects hashtables in the following
+# format:
+#
+#  $inputChanges = [ {
+#      # Indicates if the filesystem entry was deleted,
+#      # added, or changed.
+#      'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
+#
+#      # If the entry has been added/changed, then this 
+#      # hashtable contains the file/directory's new information.
+#      'new' => {
+#          'name'  => 'C:\WINDOWS\SYSTEM32...',
+#          'size'  => 1263, # in bytes
+#          'mtime' => 1178135092, # modification time, seconds since epoch
+#      },
+#
+#      # If the entry has been deleted/changed, then this
+#      # hashtable contains the file/directory's old information.
+#      'old' => {
+#          'name'  => 'C:\WINDOWS\SYSTEM32...',
+#          'size'  => 802, # in bytes
+#          'mtime' => 1178135028, # modification time, seconds since epoch
+#      },
+#  }, ]
+#
+# And outputs hashtables in the following format:
+# 
+#  $outputChanges = [ {
+#      # Indicates if the filesystem entry was deleted,
+#      # added, or changed.
+#      'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
+#      'name'  => 'C:\WINDOWS\SYSTEM32...',
+#      'mtime' => 'YYYY-MM-DD HH:MM:SS', # new mtime for added/modified files;
+#                                        # old mtime for deleted files
+#
+#      # content will only exist for added/modified files
+#      'content' => {
+#          'size' => 1263,                                       # size of new content 
+#          'type' => 'application/octet-stream',                 # type of new content
+#          'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
+#          'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
+#      },
+#  }, ]
+#
+sub _prepare {
+	my ($self, $changes) = @_;
+	my $ret = [];
+
+    $LOG->debug("Preparing changes.");
+
+    my $md5_ctx  = Digest::MD5->new();
+    my $sha1_ctx = Digest::SHA->new("1");
+    my $type_ctx = File::Type->new();
+
+    foreach my $entry (@{$changes}) {
+        # Construct a new entry in the new format.
+        my $newEntry = {
+            'status' => $entry->{'status'},
+        };
+
+        # Figure out which type of entry it is.
+        if ($entry->{'status'} == $STATUS_DELETED) {
+			# Convert Filename
+            $newEntry->{'name'}  = _convertFilename($entry->{'old'}->{'name'});
+            $newEntry->{'mtime'} = _convertTime($entry->{'old'}->{'mtime'});
+    
+            $LOG->debug("Filename: " . $newEntry->{'name'});
+        } else {
+            $newEntry->{'name'}  = $entry->{'new'}->{'name'};
+            $newEntry->{'mtime'} = _convertTime($entry->{'new'}->{'mtime'});
+
+            $LOG->debug("Filename: " . $newEntry->{'name'});
+
+            # Create a new file handle.
+            my $fh = IO::File->new($newEntry->{'name'}, "r");
+            my $md5  = $HASH_UNKNOWN;
+            my $sha1 = $HASH_UNKNOWN;
+            my $type = $TYPE_UNKNOWN;
+
+            # Check to make sure the new/changed file exists.
+            if (defined($fh)) {
+                # If the entry is a directory.
+                if (-d $fh) {
+                    $type = "directory";
+                    undef $fh;
+
+                    # XXX: We currently skip all entries that
+                    # only correspond to directories.
+                    # This is a known limitation.
+                    next;
+
+                # If the entry is a file.
+                } else {
+                    # Compute MD5 Checksum.
+                    $md5_ctx->addfile($fh);
+                    $md5 = $md5_ctx->hexdigest();
+
+                    # Rewind file handle.
+                    seek($fh, 0, 0);
+
+                    # Compute SHA1 Checksum.
+                    $sha1_ctx->addfile($fh);
+                    $sha1 = $sha1_ctx->hexdigest();
+
+                    # Close the file handle.
+                    undef $fh;
+
+                    # Compute File Type.
+                    $type = $type_ctx->mime_type($newEntry->{'name'});
+               }
+            }
+            
+            # Populate the content, accordingly.
+            $newEntry->{'content'} = {
+                'size' => $entry->{'new'}->{'size'},
+                'type' => $type,
+                'md5'  => $md5,
+                'sha1' => $sha1,
+            };
+
+			# Convert Filename
+            $newEntry->{'name'}  = _convertFilename($newEntry->{'name'});
+        }
+
+        # Finally, push it onto our return array.
+        push (@{$ret}, $newEntry);
+    }
+	return $ret;
+}
+
+# Helper function, designed to convert seconds since epoch to
+# an ISO 8601 date time format.
+#
+# Input: epoch
+# Output: iso8601 date/time
+sub _convertTime {
+    my $dt = DateTime->from_epoch(epoch => shift);
+    return $dt->ymd('-') . " " . $dt->hms(':');
+}
+
+# Helper function, designed to convert Cygwin filename paths to
+# a Windows format, where the output is always lowercase.
+#
+# Input: cygwin filename path
+# Output: absolute windows filename path
+sub _convertFilename {
+	return lc(fullwin32path(shift));
 }
 
 #######################################################################
@@ -837,25 +1087,29 @@ sub new {
     return $self;
 }
 
-################################################################################
-
 =pod
 
-=head2 $object->check()
+=head2 $object->check(no_prepare => $no_prepare)
 
 =over 4
 
 Checks the filesystem for various changes, based upon
 the filesystem baseline, when the new() method was invoked.
 
+I<Inputs>:
+ B<$no_prepare> is an optional parameter, specifying the output
+format of the changes found.
+
 I<Output>:
  B<$changes>, which is an array of hashtable references, where each
 hashtable has the following format:
 
+  If $no_prepare == 1, then the format will be:
+
   $changes = [ {
       # Indicates if the filesystem entry was deleted,
       # added, or changed.
-      'status' => 'deleted' | 'added' | 'changed',
+      'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
 
       # If the entry has been added/changed, then this 
       # hashtable contains the file/directory's new information.
@@ -874,7 +1128,28 @@ hashtable has the following format:
       },
   }, ]
 
+  Otherwise, the format will be:
+
+  $changes = [ {
+      # Indicates if the filesystem entry was deleted,
+      # added, or changed.
+      'status' => $STATUS_DELETED | $STATUS_ADDED | $STATUS_MODIFIED,
+      'name'  => 'C:\WINDOWS\SYSTEM32...',
+      'mtime' => 'YYYY-MM-DD HH:MM:SS', # new mtime for added/modified files;
+                                        # old mtime for deleted files
+
+      # content will only exist for added/modified files
+      'content' => {
+          'size' => 1263,                                       # size of new content 
+          'type' => 'application/octet-stream',                 # type of new content
+          'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
+          'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
+      },
+  }, ]
+
 I<Notes>:
+ If $no_prepare != 1 or $no_prepare == undef, then the outputted changes will B<NEVER> refer to
+any directories.  All the changes will correspond to individual files.
 
 =back
 
@@ -930,6 +1205,19 @@ open(ADD_FILE, ">", $add_file) or BAIL_OUT("Unable to create test file '" . $add
 print ADD_FILE $add_string;
 close ADD_FILE;
 
+my $md5_ctx = Digest::MD5->new();
+my $sha1_ctx = Digest::SHA->new("1");
+my $type_ctx = File::Type->new();
+
+my $add_fh = IO::File->new($add_file, "r");
+$md5_ctx->addfile($add_fh);
+my $add_file_md5 = $md5_ctx->hexdigest();
+seek($add_fh, 0, 0);
+$sha1_ctx->addfile($add_fh);
+my $add_file_sha1 = $sha1_ctx->hexdigest();
+undef $add_fh;
+my $add_file_type = $type_ctx->mime_type($add_file);
+
 @file_attr = stat($add_file);
 my $add_file_size  = $file_attr[7];
 my $add_file_mtime = $file_attr[9];
@@ -939,12 +1227,21 @@ open(CHANGE_FILE, ">", $change_file) or BAIL_OUT("Unable to create test file '" 
 print CHANGE_FILE $change_string2;
 close CHANGE_FILE;
 
+my $change_fh = IO::File->new($change_file, "r");
+$md5_ctx->addfile($change_fh);
+my $change_file_md5 = $md5_ctx->hexdigest();
+seek($change_fh, 0, 0);
+$sha1_ctx->addfile($change_fh);
+my $change_file_sha1 = $sha1_ctx->hexdigest();
+undef $change_fh;
+my $change_file_type = $type_ctx->mime_type($change_file);
+
 @file_attr = stat($change_file);
 my $change_file_size2  = $file_attr[7];
 my $change_file_mtime2 = $file_attr[9];
 
 ### Perform check.
-my $foundChanges = $filesystem->check();
+my $foundChanges = $filesystem->check(no_prepare => 1);
 
 # Uncomment these lines, if you want to see more
 # detailed information about the changes found.
@@ -955,7 +1252,7 @@ my $foundChanges = $filesystem->check();
 ### Verify changes.
 my $expectedChanges = [
   {
-    'status' => 'changed',
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_MODIFIED,
     'new' => {
         'name'  => $change_file,
         'size'  => $change_file_size2,
@@ -968,7 +1265,7 @@ my $expectedChanges = [
     },
   },
   {
-    'status' => 'added',
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_ADDED,
     'new' => {
         'name'  => $add_file,
         'size'  => $add_file_size,
@@ -976,7 +1273,7 @@ my $expectedChanges = [
     },
   },
   {
-    'status' => 'deleted',
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_DELETED,
     'old' => {
         'name'  => $delete_file,
         'size'  => $delete_file_size,
@@ -985,7 +1282,49 @@ my $expectedChanges = [
   },
 ];
 
-is_deeply($foundChanges, $expectedChanges, "check(monitored_directories => [ $monitor_dir ], ignored_entries => [ $monitor_dir ])") or diag("The check() call failed.");
+is_deeply($foundChanges, $expectedChanges, "check(no_prepare => 1)") or diag("The check() call failed.");
+
+### Perform check.
+$foundChanges = $filesystem->check();
+
+# Uncomment these lines, if you want to see more
+# detailed information about the changes found.
+#$Data::Dumper::Terse = 0;
+#$Data::Dumper::Indent = 1;
+#diag(Dumper($foundChanges));
+
+### Verify changes.
+$expectedChanges = [
+  {
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_MODIFIED,
+    'name'  => HoneyClient::Agent::Integrity::Filesystem::_convertFilename($change_file),
+    'mtime' => HoneyClient::Agent::Integrity::Filesystem::_convertTime($change_file_mtime2),
+    'content' => {
+        'size'  => $change_file_size2,
+        'type'  => $change_file_type,
+        'sha1'  => $change_file_sha1,
+        'md5'   => $change_file_md5,
+    },
+  },
+  {
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_ADDED,
+    'name'  => HoneyClient::Agent::Integrity::Filesystem::_convertFilename($add_file),
+    'mtime' => HoneyClient::Agent::Integrity::Filesystem::_convertTime($add_file_mtime),
+    'content' => {
+        'size'  => $add_file_size,
+        'type'  => $add_file_type,
+        'sha1'  => $add_file_sha1,
+        'md5'   => $add_file_md5,
+    },
+  },
+  {
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_DELETED,
+    'name'  => HoneyClient::Agent::Integrity::Filesystem::_convertFilename($delete_file),
+    'mtime' => HoneyClient::Agent::Integrity::Filesystem::_convertTime($delete_file_mtime),
+  },
+];
+
+is_deeply($foundChanges, $expectedChanges, "check()") or diag("The check() call failed.");
 
 ### Clean up test data.
 close DELETE_FILE;
@@ -1014,6 +1353,9 @@ sub check {
         Dumper(\%args);
     });
 
+    # Sanity checks; check if any args were specified.
+    my $argsExist = scalar(%args);
+
     # Analyze the filesystem.
     $LOG->info("Analyzing filesystem.");
     $self->_analyze();
@@ -1023,13 +1365,23 @@ sub check {
     my $changes = $self->_diff(Algorithm::Diff->new($self->{baseline_analysis},
                                                     $file_analysis,
                                                     { keyGen => \&_toString }));
-    # Return filtered results.
+    # Filter results.
     $changes = $self->_filter($changes);
     if (scalar(@{$changes})) {
         $LOG->warn("Filesystem changes found.");
     } else {
         $LOG->info("No filesystem changes found.");
     }
+
+    # Prepare results, if not directed otherwise.
+    if (!$argsExist || 
+        !exists($args{'no_prepare'}) || 
+        !defined($args{'no_prepare'}) ||
+        !$args{'no_prepare'}) {
+        $changes = $self->_prepare($changes);
+    }
+
+    # Return formatted results.
     return $changes;
 }
 
@@ -1058,6 +1410,10 @@ Malware writes itself to a monitored region of the filesystem but
 reverses all its activity (including self-deletion).
 
 =back
+
+This library also only monitors B<FILE> changes.  Thus, if malware
+manipulates B<EMPTY DIRECTORIES> on the system, then this library will
+B<NOT> report those changes.
 
 =head1 SEE ALSO
 
@@ -1100,6 +1456,4 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.
 
-
 =cut
-

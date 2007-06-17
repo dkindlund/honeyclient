@@ -170,13 +170,13 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 3',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 3',
   },
   {
     'entries' => [],
-    'status' => 'deleted',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 4',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_DELETED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 4',
   },
   {
     'entries' => [
@@ -186,8 +186,8 @@ $expectedChanges = [
         'old_value' => '',
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 5',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 5',
   },
   {
     'entries' => [
@@ -200,8 +200,8 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'added',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 6',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_ADDED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 6',
   },
   {
     'entries' => [
@@ -211,8 +211,8 @@ $expectedChanges = [
         'old_value' => 'C:\\\\WINDOWS\\\\system32\\\\',
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 6\\With\\Really\\Deep\\Nested\\Directory\\Structure',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 6\\With\\Really\\Deep\\Nested\\Directory\\Structure',
   },
   {
     'entries' => [
@@ -227,8 +227,8 @@ $expectedChanges = [
         'old_value' => '',
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 7',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 7',
   },
   {
     'entries' => [
@@ -238,8 +238,8 @@ $expectedChanges = [
         'old_value' => 'String Value',
       }
     ],
-    'status' => 'deleted',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 8\\{00021492-0000-0000-C000-000000000046}',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_DELETED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 8\\{00021492-0000-0000-C000-000000000046}',
   },
   {
     'entries' => [
@@ -249,8 +249,8 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'added',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 8\\{01021492-0000-0000-C000-000000000046}',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_ADDED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 8\\{01021492-0000-0000-C000-000000000046}',
   },
   {
     'entries' => [
@@ -260,8 +260,8 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'added',
-    'key' => 'HKEY_CURRENT_USER\\Tsting Group 9',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_ADDED,
+    'key_name' => 'HKEY_CURRENT_USER\\Tsting Group 9',
   }
 ];
 

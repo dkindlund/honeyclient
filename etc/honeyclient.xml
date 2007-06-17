@@ -71,7 +71,7 @@ Keep in mind, though, that some variables should remain module-specific
         <Driver>
             <!-- TODO: Update this. -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
-                30 
+                20 
             </timeout>
             <Browser>
                 <!-- HoneyClient::Agent::Driver::IE Options -->
@@ -123,7 +123,7 @@ Keep in mind, though, that some variables should remain module-specific
             </EmailClient>
         </Driver>
         <perform_integrity_checks description="An integer, representing whether the Agent should perform any integrity checks. 1 enables, 0 disables." default="1">
-            1 
+            1
         </perform_integrity_checks>
         <!-- HoneyClient::Agent::Integrity Options -->
         <Integrity>
@@ -204,6 +204,8 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\Main$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\TypedURLs$</regex>
+                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\MediaPlayer.*$</regex>
+                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Multimedia.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\CPC\\Volume.*$</regex>
@@ -243,13 +245,15 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_USERS\\.+\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU.*$</regex>
                     <regex>^HKEY_USERS\\.+\\UNICODE Program Groups.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\SessionInformation$</regex>
+                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\ActiveMovie\\devenum.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\IntelliForms$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\International$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\International\\CpMRU$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\Main$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\TypedURLs$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\MediaPlayer\\Preferences.*$</regex>
+                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\MediaPlayer.*$</regex>
+                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Multimedia.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\CPC\\Volume.*$</regex>
@@ -290,6 +294,27 @@ Keep in mind, though, that some variables should remain module-specific
             </Registry>
         </Integrity>
     </Agent>
+    <!-- HoneyClient::DB Options -->
+	<DB>
+		<enable description="Enables database operations. 1 enables, 0 disables." default="0">
+			1
+		</enable>
+	    <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
+	        172.16.164.1
+	    </host>
+	    <dbname description="The name of the HoneyClient database." default="HoneyClient">
+	        HoneyClient
+	    </dbname>
+	    <user description="The username to use, when connecting to the HoneyClient database.">
+	        honeyclient_user
+	    </user>
+	    <pass description="The password to use, when connecting to the HoneyClient database.">
+            honeyclient_password 
+	    </pass>
+	    <port description="The default TCP port number used to communicate with the database." default="3306">
+	        3306
+	    </port>
+	</DB>
     <Manager>
         <!-- TODO: Update this. -->
         <manager_state description="Upon termination, the Manager will attempt to save a complete copy of its state into this file, if specified." default="">
@@ -395,24 +420,13 @@ Keep in mind, though, that some variables should remain module-specific
             </debug>
             <!-- TODO: Update this. -->
             <fwprocess description="Name of external SOAP listener.">
-                startFWListener.pl 
+                startFWListener.pl
             </fwprocess>
             <!-- TODO: Update this. -->
             <config_file description="Location of config_file">
                 etc/honeyclient_log.conf
             </config_file>
         </FW>
-        <!-- HoneyClient::Manager::DB Options -->
-        <DB>
-            <!-- TODO: Update this. -->
-            <address description="eth0 interface static IP">
-                192.168.0.128
-            </address>
-            <!-- TODO: Update this. -->
-            <port description="Default FW port number" default="8083">
-                8089
-            </port>
-        </DB>
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running on the host system. -->

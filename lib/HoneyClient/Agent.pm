@@ -791,6 +791,9 @@ sub worker {
 
         # Initially set all driver objects to undef. 
         my $driver = undef;
+
+        # Last resource used by driver.
+        my $lastResource = undef;
     
         # Acquire lock on stored driver state.
         $data = _lock();
@@ -845,6 +848,7 @@ sub worker {
             # We assume $driver->next() returns defined data.
             foreach my $resource (keys %{$driver->next()->{resources}}) {
                 $LOG->info("Driving To Resource: " . $resource);
+                $lastResource = $resource;
             }
 
             # Drive the driver for one step.
@@ -881,15 +885,17 @@ sub worker {
                 
         # TODO: Perform Integrity Check
         my $isCompromised = 0;
+        my $changes = undef;
         if (defined($integrity)) {
             # For now, we update a scalar called 'is_compromised' within
             # the $data->{$driverName}->{'status'} sub-hashtable.
             $LOG->info("Performing Integrity Checks.");
-            my $changes = $integrity->check();
+            $changes = $integrity->check();
             if (scalar(@{$changes->{registry}}) || 
                 scalar(@{$changes->{filesystem}})) {
                 $LOG->warn("Integrity Check: FAILED");
                 $isCompromised = 1;
+                $changes->{'last_resource'} = $lastResource;
             } else {
                 $LOG->info("Integrity Check: PASSED");
             }
@@ -899,7 +905,6 @@ sub worker {
         $integrity = undef;
 
         # Update driver state one last time, before exiting.
-                
         # Acquire lock on stored driver state.
         $data = _lock();
                     
@@ -910,6 +915,7 @@ sub worker {
         $data->{$driverName}->{'next'} = $driver->next();
         $data->{$driverName}->{'status'} = $driver->status();
         $data->{$driverName}->{'status'}->{'is_compromised'} = $isCompromised;
+        $data->{$driverName}->{'status'}->{'fingerprint'} = $changes;
         $data->{$driverName}->{'status'}->{'is_running'} = 0;
         $data->{$driverName}->{'state'} = $driver;
  

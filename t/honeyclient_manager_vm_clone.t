@@ -42,6 +42,7 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
+# XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Agent::Driver') or diag("Can't load HoneyClient::Agent::Driver package.  Check to make sure the package library is correctly listed within the path."); }
@@ -62,11 +63,6 @@ Log::Log4perl->init({
     "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
 });
 
-# Make sure we use the exception testing library.
-require_ok('Test::Exception');
-can_ok('Test::Exception', 'dies_ok');
-use Test::Exception;
-
 # Make sure Storable loads.
 BEGIN { use_ok('Storable', qw(dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
@@ -78,10 +74,12 @@ use Storable qw(dclone);
 
 # =begin testing
 {
-# Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-is($driver->{test}, 1, "new(test => 1)") or diag("The new() call failed.");
-isa_ok($driver, 'HoneyClient::Agent::Driver', "new(test => 1)") or diag("The new() call failed.");
+# Create a generic clone, with test state data.
+my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, bypass_clone => 1);
+is($clone->{test}, 1, "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
+isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
+
+# TODO: Need more comprehensive test, where the clone actually gets created.
 }
 
 

@@ -65,11 +65,11 @@ This documentation refers to HoneyClient::Agent::Integrity::Registry version 0.9
   #
   # $changes = [ {
   #     # The registry directory name.
-  #     'key' => 'HKEY_LOCAL_MACHINE\Software...',
+  #     'key_name' => 'HKEY_LOCAL_MACHINE\Software...',
   #
-  #     # Indicates if the registry directory was deleted,
-  #     # added, or changed.
-  #     'status' => 'deleted' | 'added' | 'changed',
+  #     # Indicates if the registry directory was deleted (0),
+  #     # added (1), or changed (2).
+  #     'status' => 0 | 1 | 2,
   #
   #     # An array containing the list of entries within the
   #     # registry directory that have been deleted, added, or
@@ -285,6 +285,11 @@ use File::Basename qw(dirname basename fileparse);
 # Global Configuration Variables
 #######################################################################
 
+# Registry Status Identifiers
+our $STATUS_DELETED  = 0;
+our $STATUS_ADDED    = 1;
+our $STATUS_MODIFIED = 2;
+
 # The global logging object.
 our $LOG = get_logger();
 
@@ -468,9 +473,19 @@ sub _snapshot {
             $fname = tmpnam();
         }
 
-        $fname_tmp = tmpnam(); 
+        $fname_tmp = tmpnam();
         $LOG->debug("Storing snapshot of hive '" . $hive . "' into '" . $fname . "'.");
         $LOG->debug("Creating temporary file '" . $fname_tmp . "' to perform data conversion.");
+
+        # Make sure the registry tools aren't disabled.
+        if (system('reg.exe add HKCU\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Policies\\\System /f > /dev/null 2>&1')) {
+            $LOG->fatal("Error: Unable to enable registry tools in policy.");
+            Carp::croak("Error: Unable to enable registry tools in policy.");
+        }
+        if (system('reg.exe add HKCU\\\Software\\\Microsoft\\\Windows\\\CurrentVersion\\\Policies\\\System /v DisableRegistryTools /t REG_DWORD /d 0 /f > /dev/null 2>&1')) {
+            $LOG->fatal("Error: Unable to enable registry tools in policy.");
+            Carp::croak("Error: Unable to enable registry tools in policy.");
+        }
 
         # Dump registry.  Strip all '\r' characters.
         if (system("regedit.exe /a \"" . fullwin32path($fname_tmp) . "\" \"$hive\" &&
@@ -706,7 +721,7 @@ sub _filter {
     foreach my $change (@{$changes}) {
         $changeFiltered = 0;
         foreach my $criteria (@{$self->{'key_dirnames_to_ignore'}}) {
-            if ($change->{'key'} =~ /$criteria/) {
+            if ($change->{'key_name'} =~ /$criteria/) {
                 $changeFiltered = 1;
                 last;
             }
@@ -839,11 +854,62 @@ sub _compare {
             $after_total_linenums += $after_parser->getCurrentLineCount();
 
             # Seek to nearest common group, that we haven't already parsed.
-            if (($before_linenum > $before_total_linenums) &&
-                ($after_linenum > $after_total_linenums)) {
+            if (($before_linenum >= $before_total_linenums) &&
+                ($after_linenum >= $after_total_linenums)) {
 
                 $before_adjust_index = 0;
                 $after_adjust_index = 0;
+
+                # We need to differentiate between 'a' and 'd' diff types that involve
+                # whole directories, and those that involve only a directory's contents.
+                #
+                # If an 'a' or 'd' diff type is localized to within a directory, then
+                # we know that the directory has simply changed (as it exists in both the
+                # before and after files).
+                #
+                # However, if an 'a' or 'd' diff type includes the directory name, then
+                # we know that the directory itself has been added or deleted respectively. 
+                #
+                # In order to determine whether we need to alter our diff type accordingly,
+                # we need to see if the starting diff line number matches the line number
+                # containing the directory name.  If it does, then we know that the diff
+                # type does not need to be changed.  However, if the diff line number is
+                # PAST the line number of the directory name, then we need to change the
+                # diff type to 'c'.
+
+                # 1) Figure out which before and after group block represents the specified
+                # line number.
+                # 2) Then seek to the PREVIOUS group block in both cases.
+                # 3) The output of the seekToNearestGroup() call should give you an absolute
+                # line number (call it "x").
+                # 4) Then, (x + 1) should be the starting line number containing the directory
+                # name.  This assumes that there's always one and only one newline between
+                # each directory group.
+                # 5) If the starting diff line number is GREATER than (x + 1), then change the
+                # diff type to 'c'.  Otherwise, do nothing.
+                
+                if ($diff_type eq 'a') {
+                    # Seek to the previous group block
+                    $after_total_linenums = $after_parser->seekToNearestGroup(absolute_linenum => $after_linenum,
+                                                                              adjust_index => 0);
+                    # This is the line number of the directory name.
+                    my $directory_name_linenum = $after_total_linenums + 1;
+                    
+                    if ($after_linenum != $directory_name_linenum) {
+                        $diff_type = 'c';
+                    }
+                } elsif ($diff_type eq 'd') {
+                
+                    $before_total_linenums = $before_parser->seekToNearestGroup(absolute_linenum => $before_linenum,
+                                                                                adjust_index => 0);
+                    # This is the line number of the directory name.
+                    my $directory_name_linenum = $before_total_linenums + 1;
+                
+                    if ($before_linenum != $directory_name_linenum) {
+                        $diff_type = 'c';
+                    }
+                }
+
                 if ($diff_type eq 'a') {
                     $after_adjust_index = -1;
                     # Be sure to perform comparisons before (-1), during (0), and after (-1) the diff block.
@@ -854,7 +920,7 @@ sub _compare {
                     $changeState = 2;
                 } else {
                     # Be sure to perform comparisons during (0) and after (-1) the diff block.
-                    $changeState = 1;
+                    $changeState = 2;
                 }
 
                 $before_total_linenums = $before_parser->seekToNearestGroup(absolute_linenum => $before_linenum,
@@ -862,7 +928,6 @@ sub _compare {
                 $after_total_linenums = $after_parser->seekToNearestGroup(absolute_linenum => $after_linenum,
                                                                           adjust_index => $after_adjust_index);
             }
-
         }
 
         # Get the next registry group from both files.
@@ -879,16 +944,20 @@ sub _compare {
             # Specify the array of line numbers to search in.
             $self->{'_group_index_linenums'} = $before_linenums;
 
-            # Find the group after the corresponding matched line number.
-            $found_index = binary_search(0, scalar(@{$before_linenums}) - 1, $before_total_linenums, \&_search, $self);
+            if (defined(@{$before_linenums}[0]) &&
+                ($before_total_linenums >= @{$before_linenums}[0])) {
 
-            # Find the group before the corresponding matched line number.
-            if ($found_index > 0) {
-                $found_index--;
-            }
+                # Find the group after the corresponding matched line number.
+                $found_index = binary_search(0, scalar(@{$before_linenums}) - 1, $before_total_linenums, \&_search, $self);
+
+                # Find the group before the corresponding matched line number.
+                if ($found_index > 0) {
+                    $found_index--;
+                }
  
-            # Fetch the corresponding $diff_type
-            $diff_type = @{$diff_types}[$found_index];
+                # Fetch the corresponding $diff_type
+                $diff_type = @{$diff_types}[$found_index];
+            }
 
             # Sanity check.
             if (!defined($diff_type)) {
@@ -923,8 +992,8 @@ sub _compare {
                             # but different entry values.
 
                             # Save the change.
-                            $currentChange->{'key'} = $before_group;
-                            $currentChange->{'status'} = "changed";
+                            $currentChange->{'key_name'} = $before_group;
+                            $currentChange->{'status'} = $STATUS_MODIFIED;
                             $currentChange->{'entries'}->{$before_entry_name} = {
                                 old_value => $before_entry_value,
                                 new_value => $after_entry_value,
@@ -942,8 +1011,8 @@ sub _compare {
                         # Same directory name, different entry key names.
 
                         # Save the change.
-                        $currentChange->{'key'} = $before_group;
-                        $currentChange->{'status'} = "changed";
+                        $currentChange->{'key_name'} = $before_group;
+                        $currentChange->{'status'} = $STATUS_MODIFIED;
 
                         # If the after key name doesn't exist, or if the before key 
                         # name exists and the before name is alphabetically earlier
@@ -1024,16 +1093,16 @@ sub _compare {
                 # before group name is alphabetically earlier than the after group name...
                 # but verify that our $diff_type signifies a deletion or change (otherwise, the groups
                 # may not be sorted alphabetically).
-            } elsif (!defined($after_group) || defined($before_group) &&
+            } elsif (!defined($after_group) || (defined($before_group) &&
                      ((($diff_type eq 'd') || ($diff_type eq 'c')) &&
-                      ($self->_cmpGroup($before_group, $after_group) < 0))) {
+                      ($self->_cmpGroup($before_group, $after_group) < 0)))) {
 
                 # Scenario:
                 # Directory was deleted.
 
                 # Save the change.
-                $currentChange->{'key'} = $before_group;
-                $currentChange->{'status'} = "deleted";
+                $currentChange->{'key_name'} = $before_group;
+                $currentChange->{'status'} = $STATUS_DELETED;
                 $currentChange->{'entries'} = { };
 
                 # Get the first key/value pair from this before group.
@@ -1061,8 +1130,8 @@ sub _compare {
                 # Directory was added.
 
                 # Save the change.
-                $currentChange->{'key'} = $after_group;
-                $currentChange->{'status'} = "added";
+                $currentChange->{'key_name'} = $after_group;
+                $currentChange->{'status'} = $STATUS_ADDED;
                 $currentChange->{'entries'} = { };
 
                 # Get the first key/value pair from this after group.
@@ -1236,11 +1305,11 @@ hashtable has the following format:
  
   $changes = [ {
       # The registry directory name.
-      'key' => 'HKEY_LOCAL_MACHINE\Software...',
+      'key_name' => 'HKEY_LOCAL_MACHINE\Software...',
 
-      # Indicates if the registry directory was deleted,
-      # added, or changed.
-      'status' => 'deleted' | 'added' | 'changed',
+      # Indicates if the registry directory was deleted (0),
+      # added (1), or changed (2).
+      'status' => 0 | 1 | 2,
  
       # An array containing the list of entries within the
       # registry directory that have been deleted, added, or
@@ -1295,13 +1364,13 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 3',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 3',
   },
   {
     'entries' => [],
-    'status' => 'deleted',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 4',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_DELETED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 4',
   },
   {
     'entries' => [
@@ -1311,8 +1380,8 @@ $expectedChanges = [
         'old_value' => '',
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 5',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 5',
   },
   {
     'entries' => [
@@ -1325,8 +1394,8 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'added',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 6',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_ADDED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 6',
   },
   {
     'entries' => [
@@ -1336,8 +1405,8 @@ $expectedChanges = [
         'old_value' => 'C:\\\\WINDOWS\\\\system32\\\\',
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 6\\With\\Really\\Deep\\Nested\\Directory\\Structure',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 6\\With\\Really\\Deep\\Nested\\Directory\\Structure',
   },
   {
     'entries' => [
@@ -1352,8 +1421,8 @@ $expectedChanges = [
         'old_value' => '',
       }
     ],
-    'status' => 'changed',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 7',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_MODIFIED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 7',
   },
   {
     'entries' => [
@@ -1363,8 +1432,8 @@ $expectedChanges = [
         'old_value' => 'String Value',
       }
     ],
-    'status' => 'deleted',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 8\\{00021492-0000-0000-C000-000000000046}',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_DELETED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 8\\{00021492-0000-0000-C000-000000000046}',
   },
   {
     'entries' => [
@@ -1374,8 +1443,8 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'added',
-    'key' => 'HKEY_CURRENT_USER\\Testing Group 8\\{01021492-0000-0000-C000-000000000046}',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_ADDED,
+    'key_name' => 'HKEY_CURRENT_USER\\Testing Group 8\\{01021492-0000-0000-C000-000000000046}',
   },
   {
     'entries' => [
@@ -1385,8 +1454,8 @@ $expectedChanges = [
         'old_value' => undef,
       }
     ],
-    'status' => 'added',
-    'key' => 'HKEY_CURRENT_USER\\Tsting Group 9',
+    'status' => $HoneyClient::Agent::Integrity::Registry::STATUS_ADDED,
+    'key_name' => 'HKEY_CURRENT_USER\\Tsting Group 9',
   }
 ];
 

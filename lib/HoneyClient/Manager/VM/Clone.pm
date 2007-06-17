@@ -1,13 +1,13 @@
 #######################################################################
-# Created on:  May 11, 2006
-# Package:     HoneyClient::Agent::Driver
-# File:        Driver.pm
-# Description: Generic driver model for all drivers running inside a
-#              HoneyClient VM.
+# Created on:  June 15, 2007
+# Package:     HoneyClient::Manager::VM::Clone
+# File:        Clone.pm
+# Description: Generic object model for handling a single HoneyClient
+#              cloned VM on the host system.
 #
 # CVS: $Id$
 #
-# @author knwang, ttruong, kindlund
+# @author kindlund
 #
 # Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
@@ -32,14 +32,16 @@
 
 =head1 NAME
 
-HoneyClient::Agent::Driver - Perl extension to provide a generic driver
-interface for all drivers resident within any HoneyClient VM.
+HoneyClient::Manager::VM::Clone - Perl extension to provide a generic object
+model for handling a single HoneyClient cloned VM on the host system.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Agent::Driver version 0.97.
+This documentation refers to HoneyClient::Manager::VM::Clone version 0.97.
 
 =head1 SYNOPSIS
+
+# XXX: FIX THIS
 
   # NOTE: This package is an INTERFACE specification only!  It is
   # NOT intended to be used directly.  Rather, it is expected that
@@ -81,6 +83,8 @@ This documentation refers to HoneyClient::Agent::Driver version 0.97.
 
 =head1 DESCRIPTION
 
+# XXX: FIX THIS
+
 This library allows the Agent module to access any drivers running on the
 HoneyClient VM in a consistent fashion.  This module is object-oriented in
 design, allowing specific types of drivers to inherit these abstractly
@@ -103,7 +107,7 @@ Thunderbird).
 
 =cut
 
-package HoneyClient::Agent::Driver;
+package HoneyClient::Manager::VM::Clone;
 
 use strict;
 use warnings;
@@ -134,7 +138,7 @@ BEGIN {
     # names by default without a very good reason. Use EXPORT_OK instead.
     # Do not simply export all your public functions/methods/constants.
 
-    # This allows declaration use HoneyClient::Agent::Driver ':all';
+    # This allows declaration use HoneyClient::Manager::VM::Clone ':all';
     # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
     # will save memory.
 
@@ -191,6 +195,7 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
+# XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Agent::Driver') or diag("Can't load HoneyClient::Agent::Driver package.  Check to make sure the package library is correctly listed within the path."); }
@@ -210,11 +215,6 @@ Log::Log4perl->init({
     "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
     "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
 });
-
-# Make sure we use the exception testing library.
-require_ok('Test::Exception');
-can_ok('Test::Exception', 'dies_ok');
-use Test::Exception;
 
 # Make sure Storable loads.
 BEGIN { use_ok('Storable', qw(dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
@@ -247,7 +247,7 @@ our $LOG = get_logger();
 
 =head1 DEFAULT PARAMETER LIST
 
-When a Driver B<$object> is instantiated using the B<new()> function,
+When a Clone B<$object> is instantiated using the B<new()> function,
 the following parameters are supplied default values.  Each value
 can be overridden by specifying the new (key => value) pair into the
 B<new()> function, as arguments.
@@ -258,22 +258,23 @@ retrieved and set at any time, using the following syntax:
   my $value = $object->{key}; # Gets key's value.
   $object->{key} = $value;    # Sets key's value.
 
-=head2 timeout
+=head2 bypass_clone
 
 =over 4
 
-This parameter indicates how long (in seconds) the Driver should wait 
-for an application response, once driven for one iteration. 
-The default value is any valid "timeout" setting located within the
-global configuration file that matches any portion of this package's
-namespace.  See L<HoneyClient::Util::Config> for more information.
+When set to 1, the object will forgo any type of initial cloning
+operation, upon initialization.  Otherwise, cloning will occur
+as normal, upon initialization.
 
 =back
 
 =cut
 
 my %PARAMS = (
-    timeout     => getVar(name => "timeout"), # Timeout (in seconds).
+    # When set to 1, the object will forgo any type of initial cloning
+    # operation, upon initialization.  Otherwise, cloning will occur
+    # as normal, upon initialization.
+    bypass_clone => 0,
 );
 
 #######################################################################
@@ -286,15 +287,15 @@ my %PARAMS = (
 # It's best to explain by example:
 # Assume we have defined a driver object, like the following.
 #
-# use HoneyClient::Agent::Driver;
-# my $driver = HoneyClient::Agent::Driver->new(someVar => 'someValue');
+# use HoneyClient::Manager::VM::Clone;
+# my $clone = HoneyClient::Manager::VM::Clone->new(someVar => 'someValue');
 #
 # What this function allows us to do, is programmatically, get or set
 # the 'someVar' parameter, like:
 #
-# my $value = $driver->someVar();    # Gets the value of 'someVar'.
-# my $value = $driver->someVar('2'); # Sets the value of 'someVar' to '2'
-#                                    # and returns '2'.
+# my $value = $clone->someVar();    # Gets the value of 'someVar'.
+# my $value = $clone->someVar('2'); # Sets the value of 'someVar' to '2'
+#                                   # and returns '2'.
 #
 # Rather than creating getter/setter functions for every possible parameter,
 # the AUTOLOAD function allows us to create these operations in a generic,
@@ -346,17 +347,17 @@ sub DESTROY {
 
 =pod
 
-=head1 METHOD INTERFACES
+=head1 METHODS IMPLEMENTED 
 
-The following functions B<must> be implemented be each driver
-implementation, upon inheriting this package interface.
+The following functions have been implemented by any Clone object.
 
 =head2 HoneyClient::Agent::Driver->new($param => $value, ...)
 
 =over 4
 
-Creates a new Driver object, which contains a hashtable
+Creates a new Clone object, which contains a hashtable
 containing any of the supplied "param => value" arguments.
+Upon creation, the Clone object clones the supplied master VM.
 
 I<Inputs>:
  B<$param> is an optional parameter variable.
@@ -365,16 +366,18 @@ I<Inputs>:
 Note: If any $param(s) are supplied, then an equal number of
 corresponding $value(s) B<must> also be specified.
 
-I<Output>: The instantiated Driver B<$object>, fully initialized.
+I<Output>: The instantiated Clone B<$object>, fully initialized.
 
 =back
 
 =begin testing
 
-# Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-is($driver->{test}, 1, "new(test => 1)") or diag("The new() call failed.");
-isa_ok($driver, 'HoneyClient::Agent::Driver', "new(test => 1)") or diag("The new() call failed.");
+# Create a generic clone, with test state data.
+my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, bypass_clone => 1);
+is($clone->{test}, 1, "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
+isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
+
+# TODO: Need more comprehensive test, where the clone actually gets created.
 
 =end testing
 
@@ -415,6 +418,13 @@ sub new {
 
     # Now, assign our object the appropriate namespace.
     bless $self, $class;
+
+    # Perform baselining, if not bypassed.
+    # TODO: Finish this.
+    if (!$self->{'bypass_clone'}) {
+        $LOG->info("Cloning Master VM.");
+        #$self->_baseline();
+    }
 
     # Finally, return the blessed object.
     return $self;

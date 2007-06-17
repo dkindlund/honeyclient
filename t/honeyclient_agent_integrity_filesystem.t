@@ -84,6 +84,31 @@ use File::Basename qw(dirname);
 BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem') or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Agent::Integrity::Filesystem');
 use HoneyClient::Agent::Integrity::Filesystem;
+
+# Make sure DateTime loads.
+BEGIN { use_ok('DateTime') or diag("Can't load DateTime package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime');
+use DateTime;
+
+# Make sure Digest::MD5 loads.
+BEGIN { use_ok('Digest::MD5') or diag("Can't load Digest::MD5 package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Digest::MD5');
+use Digest::MD5;
+
+# Make sure Digest::SHA loads.
+BEGIN { use_ok('Digest::SHA') or diag("Can't load Digest::SHA package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Digest::SHA');
+use Digest::SHA;
+
+# Make sure File::Type loads.
+BEGIN { use_ok('File::Type') or diag("Can't load File::Type package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Type');
+use File::Type;
+
+# Make sure IO::File loads.
+BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('IO::File');
+use IO::File;
 }
 
 
@@ -158,6 +183,19 @@ open(ADD_FILE, ">", $add_file) or BAIL_OUT("Unable to create test file '" . $add
 print ADD_FILE $add_string;
 close ADD_FILE;
 
+my $md5_ctx = Digest::MD5->new();
+my $sha1_ctx = Digest::SHA->new("1");
+my $type_ctx = File::Type->new();
+
+my $add_fh = IO::File->new($add_file, "r");
+$md5_ctx->addfile($add_fh);
+my $add_file_md5 = $md5_ctx->hexdigest();
+seek($add_fh, 0, 0);
+$sha1_ctx->addfile($add_fh);
+my $add_file_sha1 = $sha1_ctx->hexdigest();
+undef $add_fh;
+my $add_file_type = $type_ctx->mime_type($add_file);
+
 @file_attr = stat($add_file);
 my $add_file_size  = $file_attr[7];
 my $add_file_mtime = $file_attr[9];
@@ -167,12 +205,21 @@ open(CHANGE_FILE, ">", $change_file) or BAIL_OUT("Unable to create test file '" 
 print CHANGE_FILE $change_string2;
 close CHANGE_FILE;
 
+my $change_fh = IO::File->new($change_file, "r");
+$md5_ctx->addfile($change_fh);
+my $change_file_md5 = $md5_ctx->hexdigest();
+seek($change_fh, 0, 0);
+$sha1_ctx->addfile($change_fh);
+my $change_file_sha1 = $sha1_ctx->hexdigest();
+undef $change_fh;
+my $change_file_type = $type_ctx->mime_type($change_file);
+
 @file_attr = stat($change_file);
 my $change_file_size2  = $file_attr[7];
 my $change_file_mtime2 = $file_attr[9];
 
 ### Perform check.
-my $foundChanges = $filesystem->check();
+my $foundChanges = $filesystem->check(no_prepare => 1);
 
 # Uncomment these lines, if you want to see more
 # detailed information about the changes found.
@@ -183,7 +230,7 @@ my $foundChanges = $filesystem->check();
 ### Verify changes.
 my $expectedChanges = [
   {
-    'status' => 'changed',
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_MODIFIED,
     'new' => {
         'name'  => $change_file,
         'size'  => $change_file_size2,
@@ -196,7 +243,7 @@ my $expectedChanges = [
     },
   },
   {
-    'status' => 'added',
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_ADDED,
     'new' => {
         'name'  => $add_file,
         'size'  => $add_file_size,
@@ -204,7 +251,7 @@ my $expectedChanges = [
     },
   },
   {
-    'status' => 'deleted',
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_DELETED,
     'old' => {
         'name'  => $delete_file,
         'size'  => $delete_file_size,
@@ -213,7 +260,49 @@ my $expectedChanges = [
   },
 ];
 
-is_deeply($foundChanges, $expectedChanges, "check(monitored_directories => [ $monitor_dir ], ignored_entries => [ $monitor_dir ])") or diag("The check() call failed.");
+is_deeply($foundChanges, $expectedChanges, "check(no_prepare => 1)") or diag("The check() call failed.");
+
+### Perform check.
+$foundChanges = $filesystem->check();
+
+# Uncomment these lines, if you want to see more
+# detailed information about the changes found.
+#$Data::Dumper::Terse = 0;
+#$Data::Dumper::Indent = 1;
+#diag(Dumper($foundChanges));
+
+### Verify changes.
+$expectedChanges = [
+  {
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_MODIFIED,
+    'name'  => HoneyClient::Agent::Integrity::Filesystem::_convertFilename($change_file),
+    'mtime' => HoneyClient::Agent::Integrity::Filesystem::_convertTime($change_file_mtime2),
+    'content' => {
+        'size'  => $change_file_size2,
+        'type'  => $change_file_type,
+        'sha1'  => $change_file_sha1,
+        'md5'   => $change_file_md5,
+    },
+  },
+  {
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_ADDED,
+    'name'  => HoneyClient::Agent::Integrity::Filesystem::_convertFilename($add_file),
+    'mtime' => HoneyClient::Agent::Integrity::Filesystem::_convertTime($add_file_mtime),
+    'content' => {
+        'size'  => $add_file_size,
+        'type'  => $add_file_type,
+        'sha1'  => $add_file_sha1,
+        'md5'   => $add_file_md5,
+    },
+  },
+  {
+    'status' => $HoneyClient::Agent::Integrity::Filesystem::STATUS_DELETED,
+    'name'  => HoneyClient::Agent::Integrity::Filesystem::_convertFilename($delete_file),
+    'mtime' => HoneyClient::Agent::Integrity::Filesystem::_convertTime($delete_file_mtime),
+  },
+];
+
+is_deeply($foundChanges, $expectedChanges, "check()") or diag("The check() call failed.");
 
 ### Clean up test data.
 close DELETE_FILE;
