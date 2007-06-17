@@ -1069,6 +1069,14 @@ print "RUN THREAD IS DEAD.\n";
             $data->{$driverName}->{'status'}->{'is_running'} = 0;
             $data->{$driverName}->{'state'} = $driver;
 
+# XXX: Delete this, eventually.
+$Data::Dumper::Terse = 0;
+$Data::Dumper::Indent = 1;
+print "Status:\n";
+print Dumper($data->{$driverName}->{'status'}) . "\n";
+print "Next:\n";
+print Dumper($data->{$driverName}->{'next'}) . "\n";
+
             # Release data lock.
             _unlock($data);
         }
