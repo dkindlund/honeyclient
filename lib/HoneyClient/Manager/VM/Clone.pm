@@ -6,6 +6,7 @@
 #              cloned VM on the host system.
 #
 # CVS: $Id$
+# $file $
 #
 # @author kindlund
 #
