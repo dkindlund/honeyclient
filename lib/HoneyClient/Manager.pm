@@ -721,8 +721,8 @@ sub runSession {
                         # Get a local copy of the configuration and kill the global copy.
                         my $vmCfg = $vmCloneConfig;
                         $vmCloneConfig = undef;
-                        $LOG->info("Calling destroyVM(config => " . $vmCfg . ").");
-                        $stubVM->destroyVM(config => $vmCfg);
+                        $LOG->info("Calling suspendVM(config => " . $vmCfg . ").");
+                        $stubVM->suspendVM(config => $vmCloneConfig);
                         print "Done!\n";
                         _cleanup();
 
