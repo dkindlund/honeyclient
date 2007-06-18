@@ -198,14 +198,14 @@ use HoneyClient::Util::Config qw(getVar);
 # XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Agent::Driver') or diag("Can't load HoneyClient::Agent::Driver package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Driver');
-can_ok('HoneyClient::Agent::Driver', 'new');
-can_ok('HoneyClient::Agent::Driver', 'drive');
-can_ok('HoneyClient::Agent::Driver', 'isFinished');
-can_ok('HoneyClient::Agent::Driver', 'next');
-can_ok('HoneyClient::Agent::Driver', 'status');
-use HoneyClient::Agent::Driver;
+BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::VM::Clone');
+can_ok('HoneyClient::Manager::VM::Clone', 'new');
+can_ok('HoneyClient::Manager::VM::Clone', 'drive');
+can_ok('HoneyClient::Manager::VM::Clone', 'isFinished');
+can_ok('HoneyClient::Manager::VM::Clone', 'next');
+can_ok('HoneyClient::Manager::VM::Clone', 'status');
+use HoneyClient::Manager::VM::Clone;
 
 # Suppress all logging messages, since we need clean output for unit testing.
 Log::Log4perl->init({
