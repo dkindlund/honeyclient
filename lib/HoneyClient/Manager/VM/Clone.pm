@@ -351,7 +351,7 @@ sub DESTROY {
 
 The following functions have been implemented by any Clone object.
 
-=head2 HoneyClient::Agent::Driver->new($param => $value, ...)
+=head2 HoneyClient::Manager::VM::Clone->new($param => $value, ...)
 
 =over 4
 
@@ -449,8 +449,8 @@ operation fails.
 =begin testing
 
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected drive() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected drive() to throw an exception.");
 
 =end testing
 
@@ -485,8 +485,8 @@ I<Output>: True if the Driver B<$object> is finished, false otherwise.
 =begin testing
 
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call failed.  Expected isFinished() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call failed.  Expected isFinished() to throw an exception.");
 
 =end testing
 
@@ -570,8 +570,8 @@ structure of this hashtable is not expected to change.
 =begin testing
 
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected next() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected next() to throw an exception.");
 
 =end testing
 
@@ -653,8 +653,8 @@ generic among every Driver implementation.
 =begin testing
 
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->status()} 'status()' or diag("The status() call failed.  Expected status() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->status()} 'status()' or diag("The status() call failed.  Expected status() to throw an exception.");
 
 =end testing
 

@@ -87,8 +87,8 @@ isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, bypass_clone =
 # =begin testing
 {
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected drive() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected drive() to throw an exception.");
 }
 
 
@@ -96,8 +96,8 @@ dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected
 # =begin testing
 {
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call failed.  Expected isFinished() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call failed.  Expected isFinished() to throw an exception.");
 }
 
 
@@ -105,8 +105,8 @@ dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call fa
 # =begin testing
 {
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected next() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected next() to throw an exception.");
 }
 
 
@@ -114,8 +114,8 @@ dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected ne
 # =begin testing
 {
 # Create a generic driver, with test state data.
-my $driver = HoneyClient::Agent::Driver->new(test => 1);
-dies_ok {$driver->status()} 'status()' or diag("The status() call failed.  Expected status() to throw an exception.");
+#my $driver = HoneyClient::Agent::Driver->new(test => 1);
+#dies_ok {$driver->status()} 'status()' or diag("The status() call failed.  Expected status() to throw an exception.");
 }
 
 
