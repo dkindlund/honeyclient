@@ -1291,10 +1291,12 @@ sub _scoreLinks {
 	# Any tag which has an HREF, IMG, or SRC attribute could potentially
 	# have a url of interest, either for scoring or for punching a hole in
     # the firewall.
-	while ($content =~ m{<(IFRAME|A|LINK|IMG|OBJECT|EMBED|SCRIPT)\b([^>]+)>(.*?)</(\1)>}ig) {
+	while ($content =~ m{<(IFRAME|A|LINK|IMG|OBJECT|EMBED|SCRIPT)\b([^>]+)>(.*?)</(\1)>}sig) {
 		my $attr = $2;
 		my $text = $3;
 		my $score = 0;
+
+		if ($1 =~ /iframe/i) {print "got iframe with $attr $text\n\n";}
 
         # Look for the link in the attribute data
         if ($attr =~ m{
@@ -1307,7 +1309,7 @@ sub _scoreLinks {
                     |
                     {[^'">\s]+}
                     )
-            }xi)
+            }six)
         {
 		 	$url = $+;
 
