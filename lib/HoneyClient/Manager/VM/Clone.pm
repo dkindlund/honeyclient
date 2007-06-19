@@ -111,6 +111,7 @@ package HoneyClient::Manager::VM::Clone;
 
 use strict;
 use warnings;
+use Config;
 use Carp ();
 
 #######################################################################
@@ -152,6 +153,11 @@ BEGIN {
 
     # Symbols to autoexport (:DEFAULT tag)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+
+    # Check to see if ithreads are compiled into this version of Perl.
+    if (!$Config{useithreads}) {
+        Carp::croak "Error: Recompile Perl with ithread support, in order to use this module.\n";
+    }
 
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
 }
@@ -228,8 +234,21 @@ use Storable qw(dclone);
 
 #######################################################################
 
+# Include Threading Library
+# TODO: Include unit tests.
+use threads;
+use threads::shared;
+
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
+
+# Include SOAP Library
+# TODO: Include unit tests.
+use HoneyClient::Util::SOAP qw(getClientHandle);
+
+# Include VM Library
+# TODO: Include unit tests.
+use HoneyClient::Manager::VM;
 
 # Use Storable Library
 use Storable qw(dclone);
@@ -242,6 +261,10 @@ use Log::Log4perl qw(:easy);
 
 # The global logging object.
 our $LOG = get_logger();
+
+# The global variable, used to count the number of
+# Clone objects that have been created.
+our $OBJECT_COUNT = 0;
 
 =pod
 
@@ -275,6 +298,10 @@ my %PARAMS = (
     # operation, upon initialization.  Otherwise, cloning will occur
     # as normal, upon initialization.
     bypass_clone => 0,
+
+    # A SOAP handle to the VM manager daemon.  (This internal variable
+    # should never be modified externally.)
+    _vm_handle => undef,
 );
 
 #######################################################################
@@ -339,6 +366,13 @@ sub AUTOLOAD {
 # we can simply leave the garbage collection up to Perl's internal
 # mechanism.
 sub DESTROY {
+    # Decrement our global object count.
+    $OBJECT_COUNT--;
+
+    # Upon last use, destroy the global instance of the VM manager.
+    if ($OBJECT_COUNT <= 0) {
+        HoneyClient::Manager::VM->destroy();
+    }
 }
 
 #######################################################################
@@ -419,12 +453,24 @@ sub new {
     # Now, assign our object the appropriate namespace.
     bless $self, $class;
 
+    # Upon first use, start up a global instance of the VM manager.
+    if ($OBJECT_COUNT <= 0) {
+        HoneyClient::Manager::VM->init();
+    }
+
+    # Make sure
+    #getClientHandle(namespace => "HoneyClient::Manager::VM"),
+
     # Perform baselining, if not bypassed.
     # TODO: Finish this.
     if (!$self->{'bypass_clone'}) {
+
         $LOG->info("Cloning Master VM.");
         #$self->_baseline();
     }
+
+    # Update our global object count.
+    $OBJECT_COUNT++;
 
     # Finally, return the blessed object.
     return $self;
