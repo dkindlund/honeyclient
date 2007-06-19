@@ -1276,11 +1276,11 @@ if ($content) {
 =cut
 
 sub _scoreLinks {
-	my ($base, $content) = @_;
+	my ($base, $content, %wordlists) = @_;
+	my @good_words = @{$wordlists{good}};
+	my @bad_words = @{$wordlists{bad}};
 	my %links = ();
 	my $url;
-	my @goodwords;
-	my @badwords;
 
     # If the page is blank, there is no point trying to parse it
 	if (!$content) {
