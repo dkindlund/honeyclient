@@ -303,6 +303,10 @@ our $LOG = get_logger();
 # for the baseline and check operations.
 my $file_analysis = [ ];
 
+# Temporary global hashtable reference, used to identify duplicate file entries
+# that may be encountered by the File::Find operation.
+my $filename_analysis = { };
+
 # The global delimeter used for storing file analysis information inside
 # a single string.
 our $DELIMETER = ":";
@@ -423,6 +427,8 @@ sub _analyze {
 
     # Clear previous analysis array.
     $file_analysis = [ ];
+    # Clear previous filename analysis hashtable reference.
+    $filename_analysis = { };
 
     # Search the filesystem.
     # Trap and ignore all warnings from the find operation.
@@ -432,8 +438,8 @@ sub _analyze {
     };
 }
 
-# A helper callback function, designed to populate the @file_analysis
-# global array with hashtable entries about filesystem objects.
+# A helper callback function, designed to populate the $file_analysis
+# global array reference with hashtable entries about filesystem objects.
 #
 # Input: none
 # Output: none
@@ -448,8 +454,17 @@ sub _processFile {
         mtime => defined($attr[9]) ? $attr[9] : 0,
     };
 
-    # Push entry onto analysis array.
-	push (@{$file_analysis}, $entry);
+    if (exists($filename_analysis->{$entry->{'name'}})) {
+        $LOG->warn("Encountered duplicate filesystem entry: '" . $entry->{'name'} . "'.");
+
+    } else {
+        # Add the entry to the filename_analysis hash ref.
+        $filename_analysis->{$entry->{'name'}} = $entry;
+
+        # Push entry onto analysis array.
+	    push (@{$file_analysis}, $entry);
+
+    }
 }
 
 # A helper callback function, designed to stringify each filesystem
