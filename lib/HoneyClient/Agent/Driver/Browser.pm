@@ -1296,18 +1296,18 @@ sub _scoreLinks {
 		my $score = 0;
 
         # Look for the link in the attribute data
-		if ($attr =~ m{
-						\b (HREF|SRC|USEMAP|CLASSID|DATA)
-						\s* = \s*
-						(?:
-						  "([^"]*)"
-						  |
-						  '([^']*)'
-						  |
-						  {[^'">\s]+}
-						)
-					 }xi)
-		 {
+        if ($attr =~ m{
+                    \b (HREF|SRC|USEMAP|CLASSID|DATA)
+                    \s* = \s*
+                    (?:
+                    "([^"]*)"
+                    |
+                    '([^']*)'
+                    |
+                    {[^'">\s]+}
+                    )
+            }xi)
+        {
 		 	$url = $+;
 
 		 	# Some programmatic values
