@@ -1010,7 +1010,21 @@ sub _convertTime {
 # Input: cygwin filename path
 # Output: absolute windows filename path
 sub _convertFilename {
-	return lc(fullwin32path(shift));
+    my $path = shift;
+
+    # Unfortunately Filesys::CygwinPaths seems to like
+    # to follow symbolic links, when resolving win32 paths.
+    # This is bad.  To counter this, we make sure the filename
+    # we give it isn't a valid symlink so that it can properly
+    # perform the conversion.
+    if (-l $path) {
+        $path .= "*";
+        $path = lc(fullwin32path($path));
+        chop($path);
+        return $path;
+    } else {
+	    return lc(fullwin32path($path));
+    }
 }
 
 #######################################################################
