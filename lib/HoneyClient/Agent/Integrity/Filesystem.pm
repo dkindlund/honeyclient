@@ -303,10 +303,6 @@ our $LOG = get_logger();
 # for the baseline and check operations.
 my $file_analysis = [ ];
 
-# Temporary global hashtable reference, used to identify duplicate file entries
-# that may be encountered by the File::Find operation.
-my $filename_analysis = { };
-
 # The global delimeter used for storing file analysis information inside
 # a single string.
 our $DELIMETER = ":";
@@ -427,8 +423,6 @@ sub _analyze {
 
     # Clear previous analysis array.
     $file_analysis = [ ];
-    # Clear previous filename analysis hashtable reference.
-    $filename_analysis = { };
 
     # Search the filesystem.
     # Trap and ignore all warnings from the find operation.
@@ -454,23 +448,8 @@ sub _processFile {
         mtime => defined($attr[9]) ? $attr[9] : 0,
     };
 
-    my $convertedName = _convertFilename($entry->{'name'});
-
-    if (exists($filename_analysis->{$convertedName})) {
-        $LOG->warn("Encountered duplicate filesystem entry: OLD - '" . 
-                   $filename_analysis->{$convertedName}->{'name'} . "' NEW - '" .
-                   $entry->{'name'} . "'."
-        );
-
-    }
-    #else {
-        # Add the entry to the filename_analysis hash ref.
-        $filename_analysis->{$convertedName} = $entry;
-
-        # Push entry onto analysis array.
-	    push (@{$file_analysis}, $entry);
-
-    #}
+    # Push entry onto analysis array.
+	push (@{$file_analysis}, $entry);
 }
 
 # A helper callback function, designed to stringify each filesystem
@@ -952,6 +931,16 @@ sub _prepare {
 
                     # XXX: We currently skip all entries that
                     # only correspond to directories.
+                    # This is a known limitation.
+                    next;
+
+                # If the entry is a symlink.
+                } elsif (-l $fh) {
+                    $type = "symlink";
+                    undef $fh;
+
+                    # XXX: We currently skip all entries that
+                    # only correspond to symlinks.
                     # This is a known limitation.
                     next;
 
@@ -1447,8 +1436,8 @@ reverses all its activity (including self-deletion).
 =back
 
 This library also only monitors B<FILE> changes.  Thus, if malware
-manipulates B<EMPTY DIRECTORIES> on the system, then this library will
-B<NOT> report those changes.
+manipulates B<EMPTY DIRECTORIES> or B<SYMLINKS> on the system, then
+this library will B<NOT> report those changes.
 
 =head1 SEE ALSO
 
