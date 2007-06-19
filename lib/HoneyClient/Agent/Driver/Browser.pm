@@ -1401,7 +1401,7 @@ sub _scoreLinks {
 			$url = undef;
 		}
 	}
-	return keys(%links);
+	return %links;
 }
 
 =pod
