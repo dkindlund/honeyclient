@@ -454,17 +454,23 @@ sub _processFile {
         mtime => defined($attr[9]) ? $attr[9] : 0,
     };
 
-    if (exists($filename_analysis->{$entry->{'name'}})) {
-        $LOG->warn("Encountered duplicate filesystem entry: '" . $entry->{'name'} . "'.");
+    my $convertedName = _convertFilename($entry->{'name'});
 
-    } else {
+    if (exists($filename_analysis->{$convertedName})) {
+        $LOG->warn("Encountered duplicate filesystem entry: OLD - '" . 
+                   $filename_analysis->{$convertedName}->{'name'} . "' NEW - '" .
+                   $entry->{'name'} . "'."
+        );
+
+    }
+    #else {
         # Add the entry to the filename_analysis hash ref.
-        $filename_analysis->{$entry->{'name'}} = $entry;
+        $filename_analysis->{$convertedName} = $entry;
 
         # Push entry onto analysis array.
 	    push (@{$file_analysis}, $entry);
 
-    }
+    #}
 }
 
 # A helper callback function, designed to stringify each filesystem
