@@ -903,8 +903,8 @@ For a description of which hashtable is consulted upon each
 iteration of drive(), see the L<next_link_to_visit> documentation, in
 the "DEFAULT PARAMETER LIST" section.
 
-Once a drive() iteration has completed, the corresponding browser process 
-is terminated.  Thus, each call to drive() invokes a new instance of the 
+Once a drive() iteration has completed, the corresponding browser process
+is terminated.  Thus, each call to drive() invokes a new instance of the
 browser.
 
 I<Inputs>:
@@ -1276,26 +1276,28 @@ if ($content) {
 =cut
 
 sub _scoreLinks {
-	my ($base, $content, %wordlists) = @_;
-    my @good_words = @{$wordlists{good}};
-    my @bad_words = @{$wordlists{bad}};
+	my ($base, $content) = @_;
 	my %links = ();
 	my $url;
+	my @goodwords, @badwords;
 
     # If the page is blank, there is no point trying to parse it
 	if (!$content) {
-		return %links;
+		return keys(%links);
 	}
 
-	# Begin to scour the HTML content for <a> tags, parsing attributes and text
-	while ($content =~ m{<a\b([^>]+)>(.*?)</a>}ig) {
-		my $attr = $1;
-		my $text = $2;
+	# Begin to scour the HTML content for tags, parsing attributes and text
+	# Any tag which has an HREF, IMG, or SRC attribute could potentially
+	# have a url of interest, either for scoring or for punching a hole in
+    # the firewall.
+	while ($content =~ m{<(IFRAME|A|LINK|IMG|OBJECT|EMBED|SCRIPT)\b([^>]+)>(.*?)</(\1)>}ig) {
+		my $attr = $2;
+		my $text = $3;
 		my $score = 0;
 
         # Look for the link in the attribute data
 		if ($attr =~ m{
-						\b HREF
+						\b (HREF|SRC|USEMAP|CLASSID|DATA)
 						\s* = \s*
 						(?:
 						  "([^"]*)"
@@ -1319,70 +1321,86 @@ sub _scoreLinks {
 			# before using it as a key in the %links hash
 			$url = url($url, $base)->abs;
 
-		 	# The link must be an HREF and be a http(s) link
-			if ($url =~ /^http/i) {
-				# Begin scoring the link based on surrounding context
-				# This can be improved/customized in many different ways.
-				# Our implementation is only one possible way to assign
-				# values to the context elements.
+			# Begin scoring the link based on surrounding context
+			# This can be improved/customized in many different ways.
+			# Our implementation is only one possible way to assign
+			# values to the context elements.
 
-				# Score length of link text. These are arbitrary lengths, but
-				# the reasoning is that really short text links are not too
-				# visible (we are excluding image links from this criteria),
-				# and really long text would be weird or abnormal to the human
-				# web surfer.
-				if ($text !~ /img /i &&
-					length($text) > $min_text_length &&
-					length($text) < $max_text_length) {
-					$score += length($text);
-				}
-
-                # Score the image content, if it exists
-                # We score the size proportional to a 1024 X 768 display
-				# Image bonus
-				if ($text =~ /img /i) {
-					$score += $image_bonus;
-				}
-				# Score image size
-				my $width;
-				my $height;
-				if ($text =~ /\b WIDTH\s*=\s*.(\d+)/xi) {
-					$width = $1;
-				}
-				if ($text =~ /\b HEIGHT\s*=\s*.(\d+)/xi) {
-				  	$height = $1;
-				}
-				if ($width && $height) {
-					$score += int(($width*$height)/($default_display_size)*100);
-				}
-				elsif ($width) {
-					$score += int($width/10);
-				}
-				elsif ($height) {
-					$score += int($height/10);
-				}
-
-				# Good word bonus
-				foreach (@good_words) {
-	                if ($text =~ /$_/i) {
-	                    $score += $word_value;
-	                }
-				}
-
-				# Bad word penalty
-				foreach (@bad_words) {
-	                if ($text =~ /$_/i) {
-	                    $score -= $word_value;
-	                }
-				}
-
-                # Put it in the return value hash and zero the score
-				$links{$url} = $score;
-				$url = undef;
+			my $width;
+			my $height;
+            # Score the size of an object based on width and height
+			if ($attr =~ /\b WIDTH\s*=\s*.(\d+)/xi) {
+				$width = $1;
 			}
+			if ($attr =~ /\b HEIGHT\s*=\s*.(\d+)/xi) {
+			  	$height = $1;
+			}
+			if ($width && $height) {
+				$score += int(($width*$height)/($default_display_size)*100);
+			}
+			elsif ($width) {
+				$score += int($width/10);
+			}
+			elsif ($height) {
+				$score += int($height/10);
+			}
+
+			# Score length of link text. These are arbitrary lengths, but
+			# the reasoning is that really short text links are not too
+			# visible (we are excluding image links from this criteria),
+			# and really long text would be weird or abnormal to the human
+			# web surfer.
+			if ($text !~ /img /i &&
+				length($text) > $min_text_length &&
+				length($text) < $max_text_length) {
+				$score += length($text);
+			}
+
+            # Score the image content, if it exists
+            # We score the size proportional to a 1024 X 768 display
+			# Image bonus
+			if ($text =~ /img /i) {
+				$score += $image_bonus;
+			}
+			# Score image size
+			$width = undef;
+			$height = undef;
+			if ($text =~ /\b WIDTH\s*=\s*.(\d+)/xi) {
+				$width = $1;
+			}
+			if ($text =~ /\b HEIGHT\s*=\s*.(\d+)/xi) {
+			  	$height = $1;
+			}
+			if ($width && $height) {
+				$score += int(($width*$height)/($default_display_size)*100);
+			}
+			elsif ($width) {
+				$score += int($width/10);
+			}
+			elsif ($height) {
+				$score += int($height/10);
+			}
+
+			# Good word bonus
+			foreach (@good_words) {
+                if ($text =~ /$_/i) {
+                    $score += $word_value;
+                }
+			}
+
+			# Bad word penalty
+			foreach (@bad_words) {
+                if ($text =~ /$_/i) {
+                    $score -= $word_value;
+                }
+			}
+
+            # Put it in the return value hash and zero the score
+			$links{$url} = $score;
+			$url = undef;
 		}
 	}
-	return %links;
+	return keys(%links);
 }
 
 =pod
@@ -1391,7 +1409,7 @@ sub _scoreLinks {
 
 =over 4
 
-Indicates if the Browser driver B<$object> has driven the browser  
+Indicates if the Browser driver B<$object> has driven the browser
 process to all possible links it has found within its hashtables
 and is unable to navigate the browser further without additional, external
 input.
@@ -1503,7 +1521,7 @@ sub status {
     # Figure out if the next_link_to_visit is set.
     my $next_link_is_set = 0;
     if (defined($self->next_link_to_visit)) {
-        $next_link_is_set = 1; 
+        $next_link_is_set = 1;
     }
 
     # Set the number of relative links to process.
