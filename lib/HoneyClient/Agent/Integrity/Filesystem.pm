@@ -443,9 +443,9 @@ sub _processFile {
 
     # Create a new entry.
     my $entry = {
-        name  => $File::Find::name,
-        size  => $attr[7],
-        mtime => $attr[9],
+        name  => defined($File::Find::name) ? $File::Find::name : 'UNKNOWN',
+        size  => defined($attr[7]) ? $attr[7] : 0,
+        mtime => defined($attr[9]) ? $attr[9] : 0,
     };
 
     # Push entry onto analysis array.
