@@ -1279,7 +1279,8 @@ sub _scoreLinks {
 	my ($base, $content) = @_;
 	my %links = ();
 	my $url;
-	my @goodwords, @badwords;
+	my @goodwords;
+	my @badwords;
 
     # If the page is blank, there is no point trying to parse it
 	if (!$content) {
