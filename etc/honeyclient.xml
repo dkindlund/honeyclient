@@ -429,8 +429,10 @@ Keep in mind, though, that some variables should remain module-specific
         </FW>
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
-            <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running on the host system. -->
-            <port description="The TCP port number that the SOAP server for all Manager modules will listen on for requests." default="8089">
+            <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
+                /vm/master-vms/Agent.Master-20/winXPPro.cfg
+            </master_vm_config>
+            <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="8089">
                 8089
             </port>
             <datastore_path description="The absolute path to the parent directory, where all HoneyClient VM data is stored on the host server.  It is assumed that individual VM data is stored in separate subdirectories within this parent directory." default="/vm">
