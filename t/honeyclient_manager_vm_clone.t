@@ -42,17 +42,33 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
+# Make sure HoneyClient::Util::SOAP loads.
+BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::SOAP');
+can_ok('HoneyClient::Util::SOAP', 'getClientHandle');
+use HoneyClient::Util::SOAP qw(getClientHandle);
+
+# Make sure HoneyClient::Manager::VM loads.
+BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::VM');
+use HoneyClient::Manager::VM;
+
+# Make sure VMware::VmPerl loads.
+BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED)) or diag("Can't load VMware::VmPerl package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('VMware::VmPerl');
+use VMware::VmPerl qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED);
+
 # XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Agent::Driver') or diag("Can't load HoneyClient::Agent::Driver package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Driver');
-can_ok('HoneyClient::Agent::Driver', 'new');
-can_ok('HoneyClient::Agent::Driver', 'drive');
-can_ok('HoneyClient::Agent::Driver', 'isFinished');
-can_ok('HoneyClient::Agent::Driver', 'next');
-can_ok('HoneyClient::Agent::Driver', 'status');
-use HoneyClient::Agent::Driver;
+BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::VM::Clone');
+can_ok('HoneyClient::Manager::VM::Clone', 'new');
+can_ok('HoneyClient::Manager::VM::Clone', 'drive');
+can_ok('HoneyClient::Manager::VM::Clone', 'isFinished');
+can_ok('HoneyClient::Manager::VM::Clone', 'next');
+can_ok('HoneyClient::Manager::VM::Clone', 'status');
+use HoneyClient::Manager::VM::Clone;
 
 # Suppress all logging messages, since we need clean output for unit testing.
 Log::Log4perl->init({
@@ -68,54 +84,89 @@ BEGIN { use_ok('Storable', qw(dclone)) or diag("Can't load Storable package.  Ch
 require_ok('Storable');
 can_ok('Storable', 'dclone');
 use Storable qw(dclone);
+
+# Make sure threads loads.
+BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('threads');
+use threads;
+
+# Make sure threads::shared loads.
+BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('threads::shared');
+use threads::shared;
+
+# Make sure File::Basename loads.
+BEGIN { use_ok('File::Basename', qw(dirname basename)) or diag("Can't load File::Basename package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Basename');
+can_ok('File::Basename', 'dirname');
+can_ok('File::Basename', 'basename');
+use File::Basename qw(dirname basename);
 }
 
 
 
 # =begin testing
 {
-# Create a generic clone, with test state data.
-my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, bypass_clone => 1);
-is($clone->{test}, 1, "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
-isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
 
-# TODO: Need more comprehensive test, where the clone actually gets created.
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    $URL = HoneyClient::Manager::VM->init();
+
+    # Connect to daemon as a client.
+    $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+
+    # In order to test setMasterVM(), we're going to fully clone
+    # the testVM, then set the newly created clone as a master VM.
+
+    # Get the test VM's parent directory,
+    # in order to create a temporary master VM.
+    my $testVMDir = dirname($testVM);
+    my $masterVMDir = dirname($testVMDir) . "/test_vm_master";
+    my $masterVM = $masterVMDir . "/" . basename($testVM);
+
+    # Create the master VM.
+    $som = $stub->fullCloneVM(src_config => $testVM, dest_dir => $masterVMDir);
+
+    # Wait a small amount of time for the asynchronous clone
+    # to complete.
+    sleep (60);
+
+    # The master VM should be on.
+    $som = $stub->getStateVM(config => $masterVM);
+
+    # Since the master VM doesn't have an OS installed on it,
+    # the VM may be considered stuck.  Go ahead and answer
+    # this question, if need be.
+    if ($som->result == VM_EXECUTION_STATE_STUCK) {
+        $som = $stub->answerVM(config => $masterVM);
+    }
+
+    HoneyClient::Manager::VM->destroy();
+    sleep (1);
+
+    # Create a generic clone, with test state data.
+    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM);
+    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
+    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
+
+    # Destroy the master VM.
+    $som = $stub->destroyVM(config => $masterVM);
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+sleep (1);
+
+# Report any failure found.
+if ($@) {
+    fail($@);
 }
-
-
-
-# =begin testing
-{
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected drive() to throw an exception.");
-}
-
-
-
-# =begin testing
-{
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call failed.  Expected isFinished() to throw an exception.");
-}
-
-
-
-# =begin testing
-{
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected next() to throw an exception.");
-}
-
-
-
-# =begin testing
-{
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->status()} 'status()' or diag("The status() call failed.  Expected status() to throw an exception.");
 }
 
 

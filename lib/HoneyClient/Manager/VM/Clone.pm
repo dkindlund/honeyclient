@@ -201,6 +201,22 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
+# Make sure HoneyClient::Util::SOAP loads.
+BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::SOAP');
+can_ok('HoneyClient::Util::SOAP', 'getClientHandle');
+use HoneyClient::Util::SOAP qw(getClientHandle);
+
+# Make sure HoneyClient::Manager::VM loads.
+BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::VM');
+use HoneyClient::Manager::VM;
+
+# Make sure VMware::VmPerl loads.
+BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED)) or diag("Can't load VMware::VmPerl package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('VMware::VmPerl');
+use VMware::VmPerl qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED);
+
 # XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
@@ -228,6 +244,23 @@ require_ok('Storable');
 can_ok('Storable', 'dclone');
 use Storable qw(dclone);
 
+# Make sure threads loads.
+BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('threads');
+use threads;
+
+# Make sure threads::shared loads.
+BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('threads::shared');
+use threads::shared;
+
+# Make sure File::Basename loads.
+BEGIN { use_ok('File::Basename', qw(dirname basename)) or diag("Can't load File::Basename package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Basename');
+can_ok('File::Basename', 'dirname');
+can_ok('File::Basename', 'basename');
+use File::Basename qw(dirname basename);
+
 =end testing
 
 =cut
@@ -235,7 +268,6 @@ use Storable qw(dclone);
 #######################################################################
 
 # Include Threading Library
-# TODO: Include unit tests.
 use threads;
 use threads::shared;
 
@@ -243,11 +275,13 @@ use threads::shared;
 use HoneyClient::Util::Config qw(getVar);
 
 # Include SOAP Library
-# TODO: Include unit tests.
 use HoneyClient::Util::SOAP qw(getClientHandle);
 
-# Include VM Library
-# TODO: Include unit tests.
+# Include VM Libraries
+use VMware::VmPerl qw(VM_EXECUTION_STATE_ON
+                      VM_EXECUTION_STATE_OFF
+                      VM_EXECUTION_STATE_STUCK
+                      VM_EXECUTION_STATE_SUSPENDED);
 use HoneyClient::Manager::VM;
 
 # Use Storable Library
@@ -281,16 +315,6 @@ retrieved and set at any time, using the following syntax:
   my $value = $object->{key}; # Gets key's value.
   $object->{key} = $value;    # Sets key's value.
 
-=head2 bypass_clone
-
-=over 4
-
-When set to 1, the object will forgo any type of initial cloning
-operation, upon initialization.  Otherwise, cloning will occur
-as normal, upon initialization.
-
-=back
-
 =head2 master_vm_config
 
 =over 4
@@ -303,11 +327,6 @@ contents will be the basis for each subsequently cloned VM.
 =cut
 
 my %PARAMS = (
-    # When set to 1, the object will forgo any type of initial cloning
-    # operation, upon initialization.  Otherwise, cloning will occur
-    # as normal, upon initialization.
-    bypass_clone => 0,
-
     # The full absolute path to the master VM's configuration file, whose
     # contents will be the basis for each subsequently cloned VM.
     master_vm_config => getVar(name => "master_vm_config"),
@@ -419,12 +438,66 @@ I<Output>: The instantiated Clone B<$object>, fully initialized.
 
 =begin testing
 
-# Create a generic clone, with test state data.
-my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, bypass_clone => 1);
-is($clone->{test}, 1, "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
-isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, bypass_clone => 1)") or diag("The new() call failed.");
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
 
-# TODO: Need more comprehensive test, where the clone actually gets created.
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    $URL = HoneyClient::Manager::VM->init();
+
+    # Connect to daemon as a client.
+    $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+
+    # In order to test setMasterVM(), we're going to fully clone
+    # the testVM, then set the newly created clone as a master VM.
+
+    # Get the test VM's parent directory,
+    # in order to create a temporary master VM.
+    my $testVMDir = dirname($testVM);
+    my $masterVMDir = dirname($testVMDir) . "/test_vm_master";
+    my $masterVM = $masterVMDir . "/" . basename($testVM);
+
+    # Create the master VM.
+    $som = $stub->fullCloneVM(src_config => $testVM, dest_dir => $masterVMDir);
+
+    # Wait a small amount of time for the asynchronous clone
+    # to complete.
+    sleep (60);
+
+    # The master VM should be on.
+    $som = $stub->getStateVM(config => $masterVM);
+
+    # Since the master VM doesn't have an OS installed on it,
+    # the VM may be considered stuck.  Go ahead and answer
+    # this question, if need be.
+    if ($som->result == VM_EXECUTION_STATE_STUCK) {
+        $som = $stub->answerVM(config => $masterVM);
+    }
+
+    HoneyClient::Manager::VM->destroy();
+    sleep (1);
+
+    # Create a generic clone, with test state data.
+    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM);
+    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
+    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
+
+    # Destroy the master VM.
+    $som = $stub->destroyVM(config => $masterVM);
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+sleep (1);
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
 
 =end testing
 
@@ -474,12 +547,11 @@ sub new {
     # Set a valid handle for the VM daemon.
     $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
 
-    # Perform baselining, if not bypassed.
-    # TODO: Finish this.
-    if (!$self->{'bypass_clone'}) {
-
-        $LOG->info("Cloning Master VM.");
-        #$self->_baseline();
+    # Set the master VM.
+    my $som = $self->{'_vm_handle'}->setMasterVM(config => $self->{'master_vm_config'});
+    if (!$som->result()) {
+        $LOG->fatal("Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.");
+        Carp::croak "Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.";
     }
 
     # Update our global object count.

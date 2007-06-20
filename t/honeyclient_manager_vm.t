@@ -1158,7 +1158,7 @@ eval {
     # the VM may be considered stuck.  Go ahead and answer
     # this question, if need be.
     if ($som->result == VM_EXECUTION_STATE_STUCK) {
-        $som = $stub->answerVM(config => $cloneVM);
+        $som = $stub->answerVM(config => $masterVM);
     }
 
     # Set the master VM as a true master.
