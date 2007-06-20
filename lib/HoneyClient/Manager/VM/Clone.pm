@@ -291,6 +291,15 @@ as normal, upon initialization.
 
 =back
 
+=head2 master_vm_config
+
+=over 4
+
+The full absolute path to the master VM's configuration file, whose
+contents will be the basis for each subsequently cloned VM.
+
+=back
+
 =cut
 
 my %PARAMS = (
@@ -298,6 +307,10 @@ my %PARAMS = (
     # operation, upon initialization.  Otherwise, cloning will occur
     # as normal, upon initialization.
     bypass_clone => 0,
+
+    # The full absolute path to the master VM's configuration file, whose
+    # contents will be the basis for each subsequently cloned VM.
+    master_vm_config => getVar(name => "master_vm_config"),
 
     # A SOAP handle to the VM manager daemon.  (This internal variable
     # should never be modified externally.)
@@ -458,8 +471,8 @@ sub new {
         HoneyClient::Manager::VM->init();
     }
 
-    # Make sure
-    #getClientHandle(namespace => "HoneyClient::Manager::VM"),
+    # Set a valid handle for the VM daemon.
+    $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
 
     # Perform baselining, if not bypassed.
     # TODO: Finish this.
