@@ -1296,8 +1296,6 @@ sub _scoreLinks {
 		my $text = $3;
 		my $score = 0;
 
-		if ($1 =~ /iframe/i) {print "got iframe with $attr $text\n\n";}
-
         # Look for the link in the attribute data
         if ($attr =~ m{
                     \b (HREF|SRC|USEMAP|CLASSID|DATA)
