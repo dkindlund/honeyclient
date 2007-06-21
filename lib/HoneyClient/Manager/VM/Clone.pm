@@ -292,7 +292,7 @@ our $LOG = get_logger();
 
 # The global variable, used to count the number of
 # Clone objects that have been created.
-our $OBJECT_COUNT = 0;
+our $OBJECT_COUNT : shared = 0;
 
 =pod
 
@@ -332,6 +332,27 @@ my %PARAMS = (
     # A variable containing the absolute path to the cloned VM.  (This
     # internal variable should never be modified externally.)
     _clone_vm_config => undef,
+
+    # A variable containing the MAC address of the cloned VM's primary
+    # interface.  (This internal variable should never be modified
+    # externally.)
+    _clone_vm_mac => undef,
+    
+    # A variable containing the IP address of the cloned VM's primary
+    # interface.  (This internal variable should never be modified
+    # externally.)
+    _clone_vm_ip => undef,
+    
+    # A variable containing the name the cloned VM.
+    # (This internal variable should never be modified
+    # externally.)
+    _clone_vm_name => undef,
+
+    # A variable indicated how long the object should wait for
+    # between subsequent retries to the HoneyClient::Manager::VM
+    # daemon (in seconds).  (This internal variable should never
+    # be modified externally.)
+    _retry_period => 2,
 );
 
 #######################################################################
@@ -396,6 +417,16 @@ sub AUTOLOAD {
 # we can simply leave the garbage collection up to Perl's internal
 # mechanism.
 sub DESTROY {
+    # Get the object.
+    my $self = shift;
+
+    if (defined($self->{'_clone_vm_config'})) {
+        my $som = $self->{'_vm_handle'}->getMACaddrVM(config => $self->{'_clone_vm_config'});
+        if (!$som->result()) {
+            $LOG->error("Unable to suspend VM (" . $self->{'_clone_vm_config'} . ").");
+        }
+    }
+
     # Decrement our global object count.
     $OBJECT_COUNT--;
 
@@ -590,6 +621,7 @@ from starting the clone VM.  Will croak if this operation fails.
 =cut
 
 sub start {
+
     # Extract arguments.
     my ($self, %args) = @_;
 
@@ -627,12 +659,69 @@ sub start {
 
         # If the VM isn't registered yet, wait before trying again.
         if (!defined($ret) or !$ret) {
-            sleep (2);
+            sleep ($self->{'_retry_period'});
         }
     }
 
     # Once registered, check if the VM is ON yet.
     $ret = undef;
+    while (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
+        $som = $self->{'_vm_handle'}->getStateVM(config => $self->{'_clone_vm_config'});
+        $ret = $som->result();
+
+        # If the VM isn't ON yet, wait before trying again.
+        if (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
+            sleep ($self->{'_retry_period'});
+        }
+    }
+
+    # Now, get the VM's MAC address.
+    $som = $self->{'_vm_handle'}->getMACaddrVM(config => $self->{'_clone_vm_config'});
+    $self->{'_clone_vm_mac'} = $som->result();
+
+    # Now, get the VM's name.
+    $som = $self->{'_vm_handle'}->getNameVM(config => $self->{'_clone_vm_config'});
+    $self->{'_clone_vm_name'} = $som->result();
+
+    # Now, get the VM's IP address.
+    $ret = undef;
+    my $stubAgent = undef;
+    my $logMsgPrinted = 0;
+    while (!defined($self->{'_clone_vm_ip'}) or !defined($ret)) {
+        $som = $self->{'_vm_handle'}->getIPaddrVM(config => $self->{'_clone_vm_config'});
+        $self->{'_clone_vm_ip'} = $som->result();
+
+        # If the VM isn't booted yet, wait before trying again.
+        if (!defined($self->{'_clone_vm_ip'})) {
+            sleep ($self->{'_retry_period'});
+            next; # skip further processing
+        } elsif (!$logMsgPrinted) {
+            $LOG->info("Created clone VM (" . $self->{'_clone_vm_name'} . ") using IP (" .
+                       $self->{'_clone_vm_ip'} . ") and MAC (" . $self->{'_clone_vm_mac'} . ".");
+            $logMsgPrinted = 1;
+        }
+        
+        # Now, try contacting the Agent.
+        $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
+                                     address       => $self->{'_clone_vm_ip'},
+                                     fault_handler => undef);
+
+        eval {
+            $som = $stubAgent->getStatus();
+            $ret = $som->result();
+        };
+        # Clear returned state, if any fault occurs.
+        if ($@) {
+            $ret = undef;
+        }
+
+        # If the Agent daemon isn't responding yet, wait before trying again.
+        if (!defined($ret)) {
+            sleep ($self->{'_retry_period'});
+        }
+    }
+
+    return $self;
 }
 
 =pod
