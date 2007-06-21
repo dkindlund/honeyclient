@@ -8,8 +8,21 @@ $| = 1;
 
 # =begin testing
 {
+# Make sure ExtUtils::MakeMaker loads.
+BEGIN { use_ok('ExtUtils::MakeMaker', qw(prompt)) or diag("Can't load ExtUtils::MakeMaker package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('ExtUtils::MakeMaker');
+can_ok('ExtUtils::MakeMaker', 'prompt');
+use ExtUtils::MakeMaker qw(prompt);
+
 # Generate a notice, to clarify our assumptions.
-diag("Note: These unit tests *expect* the VMware Server / GSX daemon to be operational on this system beforehand.");
+diag("About to run basic unit tests.");
+diag("Note: These tests *expect* VMware Server or VMware GSX to be installed and running on this system beforehand.");
+
+my $question;
+$question = prompt("# Do you want to run basic tests?", "yes");
+if ($question !~ /^y.*/i) {
+    exit;
+}
 
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
@@ -153,13 +166,15 @@ BEGIN { use_ok('Thread::Semaphore') or diag("Can't load Thread::Semaphore packag
 require_ok('Thread::Semaphore');
 use Thread::Semaphore;
 
-# TODO: Remove this once unit testing should actually be used.
-# Ideally, this should be handled programmatically, based upon user prompt.
-#exit;
-
+diag("About to run extended tests.");
 # Generate a notice, to inform the tester that these tests are not
 # exactly quick.
-diag("Note: These unit tests will take *significant* time to complete (10-30 minutes).");
+diag("Note: These extended tests will take *significant* time to complete (10-30 minutes).");
+
+my $question = prompt("# Do you want to run extended tests?", "no");
+if ($question !~ /^y.*/i) {
+    exit;
+}
 }
 
 

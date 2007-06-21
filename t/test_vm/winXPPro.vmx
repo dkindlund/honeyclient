@@ -24,13 +24,13 @@ ide1:0.startConnected = "FALSE"
 floppy0.startConnected = "FALSE"
 redoLogDir = "."
 
-uuid.location = "56 4d 47 6f 36 7b e1 31-d6 26 da 2e 4f a7 f0 c4"
-uuid.bios = "56 4d 47 6f 36 7b e1 31-d6 26 da 2e 4f a7 f0 c4"
+uuid.location = "56 4d 63 26 ef 9e 06 a5-3e 05 81 73 13 e7 c2 0a"
+uuid.bios = "56 4d 63 26 ef 9e 06 a5-3e 05 81 73 13 e7 c2 0a"
 
 Ethernet0.present = "TRUE"
 
 Ethernet0.addressType = "generated"
-ethernet0.generatedAddress = "00:0c:29:a7:f0:c4"
+ethernet0.generatedAddress = "00:0c:29:e7:c2:0a"
 ethernet0.generatedAddressOffset = "0"
 
 Ethernet0.startConnected = "TRUE"

@@ -217,16 +217,10 @@ BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF
 require_ok('VMware::VmPerl');
 use VMware::VmPerl qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED);
 
-# XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::VM::Clone');
-can_ok('HoneyClient::Manager::VM::Clone', 'new');
-can_ok('HoneyClient::Manager::VM::Clone', 'drive');
-can_ok('HoneyClient::Manager::VM::Clone', 'isFinished');
-can_ok('HoneyClient::Manager::VM::Clone', 'next');
-can_ok('HoneyClient::Manager::VM::Clone', 'status');
 use HoneyClient::Manager::VM::Clone;
 
 # Suppress all logging messages, since we need clean output for unit testing.
@@ -423,7 +417,6 @@ The following functions have been implemented by any Clone object.
 
 Creates a new Clone object, which contains a hashtable
 containing any of the supplied "param => value" arguments.
-Upon creation, the Clone object clones the supplied master VM.
 
 I<Inputs>:
  B<$param> is an optional parameter variable.
@@ -548,6 +541,7 @@ sub new {
     $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
 
     # Set the master VM.
+    $LOG->info("Setting VM (" . $self->{'master_vm_config'} . ") as master.");
     my $som = $self->{'_vm_handle'}->setMasterVM(config => $self->{'master_vm_config'});
     if (!$som->result()) {
         $LOG->fatal("Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.");
@@ -563,20 +557,24 @@ sub new {
 
 =pod
 
-=head2 $object->drive()
+=head2 $object->start()
 
 =over 4
 
-Drives the back-end application for one iteration, updating the
-corresponding internal object state with information obtained
-from driving this application for one iteration.
+If not previously called, this method creates a new clone VM
+from the supplied master VM.  Furthermore, this method will power
+on the clone, and wait until the clone VM has fully booted and
+has an operational Agent daemon running on it.
 
-I<Output>: The updated Driver B<$object>, containing state information
-from driving the application for one iteration.  Will croak if
-operation fails.
+During this power on process, the name, MAC address, and 
+IP address of the running clone are recorded in the object.
+
+I<Output>: The updated Clone B<$object>, containing state information
+from starting the clone VM.  Will croak if this operation fails.
 
 =back
 
+# XXX: FINISH THIS
 #=begin testing
 #
 # Create a generic driver, with test state data.
@@ -587,16 +585,28 @@ operation fails.
 
 =cut
 
-sub drive {
-    # Get the class name.
-    my $self = shift;
-    
-    # Check to see if the class name is inherited or defined.
-    my $class = ref($self) || $self;
+sub start {
+    # Extract arguments.
+    my ($self, %args) = @_;
 
-    # Emit generic "not implemented" error message.
-    $LOG->error($class . "->drive() is not implemented!");
-    Carp::croak "Error: " . $class . "->drive() is not implemented!\n";
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!";
+    }
+    
+    # Temporary variable to hold SOAP Object Message.
+    my $som = undef;
+
+    # Perform the quick clone operation.
+    $LOG->info("Quick cloning master VM (" . $self->{'master_vm_config'} . ").");
+    $som = $self->{'_vm_handle'}->quickCloneVM(src_config => $self->{'master_vm_config'});
+    if (!$som->result()) {
+        $LOG->fatal("Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").");
+        Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").";
+    }
 }
 
 =pod

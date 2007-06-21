@@ -58,16 +58,10 @@ BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF
 require_ok('VMware::VmPerl');
 use VMware::VmPerl qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED);
 
-# XXX: FIX THIS
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::VM::Clone');
-can_ok('HoneyClient::Manager::VM::Clone', 'new');
-can_ok('HoneyClient::Manager::VM::Clone', 'drive');
-can_ok('HoneyClient::Manager::VM::Clone', 'isFinished');
-can_ok('HoneyClient::Manager::VM::Clone', 'next');
-can_ok('HoneyClient::Manager::VM::Clone', 'status');
 use HoneyClient::Manager::VM::Clone;
 
 # Suppress all logging messages, since we need clean output for unit testing.
