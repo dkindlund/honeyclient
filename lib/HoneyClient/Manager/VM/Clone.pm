@@ -328,6 +328,10 @@ my %PARAMS = (
     # A SOAP handle to the VM manager daemon.  (This internal variable
     # should never be modified externally.)
     _vm_handle => undef,
+
+    # A variable containing the absolute path to the cloned VM.  (This
+    # internal variable should never be modified externally.)
+    _clone_vm_config => undef,
 );
 
 #######################################################################
@@ -600,13 +604,35 @@ sub start {
     # Temporary variable to hold SOAP Object Message.
     my $som = undef;
 
+    # Temporary variable to hold return message data.
+    my $ret = undef;
+
     # Perform the quick clone operation.
     $LOG->info("Quick cloning master VM (" . $self->{'master_vm_config'} . ").");
     $som = $self->{'_vm_handle'}->quickCloneVM(src_config => $self->{'master_vm_config'});
-    if (!$som->result()) {
+    $ret = $som->result();
+    if (!$ret) {
         $LOG->fatal("Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").");
         Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").";
     }
+    # Set the cloned VM configuration.
+    $self->{'_clone_vm_config'} = $ret;
+
+    # Wait until the VM gets registered, before proceeding.
+    $LOG->info("Checking if clone VM (" . $self->{'_clone_vm_config'} . ") is registered.");
+    $ret = undef;
+    while (!defined($ret) or !$ret) {
+        $som = $self->{'_vm_handle'}->isRegisteredVM(config => $self->{'_clone_vm_config'});
+        $ret = $som->result();
+
+        # If the VM isn't registered yet, wait before trying again.
+        if (!defined($ret) or !$ret) {
+            sleep (2);
+        }
+    }
+
+    # Once registered, check if the VM is ON yet.
+    $ret = undef;
 }
 
 =pod

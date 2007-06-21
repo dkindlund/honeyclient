@@ -935,7 +935,7 @@ sub _prepare {
                     next;
 
                 # If the entry is a symlink.
-                } elsif (-l $fh) {
+                } elsif (-l $newEntry->{'name'}) {
                     $type = "symlink";
                     undef $fh;
 
