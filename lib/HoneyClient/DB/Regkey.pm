@@ -1,7 +1,6 @@
-#----------- !boilerplate -----------
+use strict;
 use HoneyClient::DB;
 use HoneyClient::DB::Note;
-use strict;
 
 package HoneyClient::DB::Regkey::Entry;
 

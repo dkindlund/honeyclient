@@ -300,7 +300,7 @@ Keep in mind, though, that some variables should remain module-specific
 			1
 		</enable>
 	    <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
-	        172.16.164.1
+            172.16.164.1
 	    </host>
 	    <dbname description="The name of the HoneyClient database." default="HoneyClient">
 	        HoneyClient

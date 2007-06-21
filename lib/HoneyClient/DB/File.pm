@@ -1,8 +1,6 @@
-#----------- !boilerplate -----------
+use strict;
 use HoneyClient::DB;
 use HoneyClient::DB::Note;
-use strict;
-#----------- boilerplate! -----------
 
 package HoneyClient::DB::File::Content;
 
@@ -13,12 +11,10 @@ BEGIN {
         string => {
             md5 => {
                 required => 1,
-                size => 32,
                 key => $HoneyClient::DB::KEY_UNIQUE_MULT,
             },
             sha1 => {
                 required => 1,
-                size => 40,
                 key => $HoneyClient::DB::KEY_UNIQUE_MULT,
             },
             type => {

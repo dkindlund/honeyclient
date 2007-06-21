@@ -1,7 +1,5 @@
-#----------- !boilerplate -----------
-use HoneyClient::DB;
 use strict;
-#----------- boilerplate! -----------
+use HoneyClient::DB;
 
 package HoneyClient::DB::Note;
 
@@ -28,10 +26,6 @@ BEGIN {
             },
         },
     );
-}
-
-sub test {
-    Carp::carp("THIS IS A TEST");
 }
 
 1;
