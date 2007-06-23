@@ -170,6 +170,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>C:/WINDOWS/SYSTEM32/PerfStringBackup.INI</regex>
                     <regex>C:/WINDOWS/SYSTEM32/wbem.*</regex>
                     <regex>C:/WINDOWS/WindowsUpdate.log</regex>
+                    <regex>C:/WINDOWS/wmsetup.log</regex>
                     <!-- To exclude entries inside cygwin, use the following format. -->
                     <regex>/cygdrive/c/cygwin/tmp.*</regex>
                     <regex>/cygdrive/c/cygwin/home/Administrator/honeyclient.*</regex>
@@ -208,7 +209,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Multimedia.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\CPC\\Volume.*$</regex>
+                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\.+\\Count.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.*$</regex>
@@ -217,10 +218,13 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\ShellNoRoam\\DUIBags\\ShellFolders\\.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\ShellNoRoam\\MUICache.*$</regex>
+                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows Media\\WMSDK\\General.*$</regex>
                     <regex>^HKEY_CURRENT_USER\\Volatile Environment$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia\\FlashPlayer$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography\\RNG$</regex>
+                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Dfrg\\BootOptimizeFunction$</regex>
+                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Direct3D\\MostRecentApplication$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PCHealth\\PchSvc$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SystemCertificates\\.*$</regex>
                     <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\WBEM.*$</regex>
@@ -256,13 +260,14 @@ Keep in mind, though, that some variables should remain module-specific
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Multimedia.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\CPC\\Volume.*$</regex>
+                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Connections.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\ShellNoRoam\\DUIBags\\ShellFolders\\.*$</regex>
                     <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\ShellNoRoam\\MUICache.*$</regex>
+                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows Media\\WMSDK\\General.*$</regex>
                 </exclude_list>
                 <!-- HoneyClient::Agent::Integrity::Registry::Test Options -->
                 <Test>
