@@ -318,7 +318,7 @@ BEGIN {
 
 	@ISA = qw(Exporter);
 
-	# Symbols to export on request
+	# Symbols to export automatically
 	@EXPORT =
 	  qw( _parseHash _validateInit init_fw destroy_fw _doFullBackup _flushChains _setAcceptPolicy _setDefaultDeny _set_log_rules _setstaticrate _setDefaultRules _remoteConnection _set_ip_forwarding _getpid);
 
@@ -332,7 +332,7 @@ BEGIN {
 
 	%EXPORT_TAGS = ( 'all' => [qw(init_fw destroy_fw)], );
 
-	# Symbols to autoexport (:DEFAULT tag)
+	# Symbols to autoexport (when qw(:all) tag is used)
 	@EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 	$SIG{PIPE} = 'IGNORE';    # Do not exit on broken pipes.

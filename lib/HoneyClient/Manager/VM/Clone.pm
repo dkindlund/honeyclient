@@ -128,7 +128,7 @@ BEGIN {
 
     @ISA = qw(Exporter);
 
-    # Symbols to export on request
+    # Symbols to export automatically
     # Note: Since this module is object-oriented, we do *NOT* export
     # any functions other than "new" to call statically.  Each function
     # for this module *must* be called as a method from a unique
@@ -151,7 +151,7 @@ BEGIN {
         'all' => [ qw() ],
     );
 
-    # Symbols to autoexport (:DEFAULT tag)
+    # Symbols to autoexport (when qw(:all) tag is used)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
     # Check to see if ithreads are compiled into this version of Perl.

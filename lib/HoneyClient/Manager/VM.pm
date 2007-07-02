@@ -323,7 +323,7 @@ BEGIN {
 
     @ISA = qw(Exporter);
 
-    # Symbols to export on request
+    # Symbols to export automatically
     @EXPORT = qw();
 
     # Items to export into callers namespace by default. Note: do not export
@@ -338,7 +338,7 @@ BEGIN {
         'all' => [ qw() ],
     );
 
-    # Symbols to autoexport (:DEFAULT tag)
+    # Symbols to autoexport (when qw(:all) tag is used)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
     # Check to see if ithreads are compiled into this version of Perl.

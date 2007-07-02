@@ -133,7 +133,7 @@ BEGIN {
 
     @ISA = qw(Exporter);
 
-    # Symbols to export on request
+    # Symbols to export automatically
     @EXPORT = qw(getServerHandle getClientHandle);
 
     # Items to export into callers namespace by default. Note: do not export
@@ -148,7 +148,7 @@ BEGIN {
         'all' => [ qw(getServerHandle getClientHandle) ],
     );
 
-    # Symbols to autoexport (:DEFAULT tag)
+    # Symbols to autoexport (when qw(:all) tag is used)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.

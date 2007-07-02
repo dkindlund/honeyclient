@@ -59,7 +59,7 @@ BEGIN {
 
 	@ISA = qw(Exporter HoneyClient::Agent::Driver::Browser);
 
-	# Symbols to export on request
+	# Symbols to export automatically
 	# Note: Since this module is object-oriented, we do *NOT* export
 	# any functions other than "new" to call statically.  Each function
 	# for this module *must* be called as a method from a unique
@@ -80,7 +80,7 @@ BEGIN {
 	# object instance.
 	%EXPORT_TAGS = ( 'all' => [qw()], );
 
-	# Symbols to autoexport (:DEFAULT tag)
+	# Symbols to autoexport (when qw(:all) tag is used)
 	@EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 # XXX: Fix this!
