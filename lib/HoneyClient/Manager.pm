@@ -722,7 +722,7 @@ sub runSession {
                         my $vmCfg = $vmCloneConfig;
                         $vmCloneConfig = undef;
                         $LOG->info("Calling suspendVM(config => " . $vmCfg . ").");
-                        $stubVM->suspendVM(config => $vmCloneConfig);
+                        $stubVM->suspendVM(config => $vmCfg);
                         print "Done!\n";
                         _cleanup();
 
