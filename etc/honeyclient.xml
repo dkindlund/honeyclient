@@ -85,13 +85,30 @@ Keep in mind, though, that some variables should remain module-specific
 	            </process_name>
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
 	                -1
-	            </max_relative_links_to_visit>
-                <goodwords description="A comma-separated list of good words which will increase the score of links within a webpage." default="">
-                    news,new,big,latest,main,update,sell,free,buy
-                </goodwords>
-                <badwords description="A comma-separated list of bad words which will decrease the score of links within a webpage." default="">
-	                archive,privacy,legal,disclaim,about,contact,copyright,jobs,careers
-	            </badwords>
+                </max_relative_links_to_visit>
+                <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
+                    <word>news</word>
+                    <word>new</word>
+                    <word>big</word>
+                    <word>latest</word>
+                    <word>main</word>
+                    <word>update</word>
+                    <word>sell</word>
+                    <word>free</word>
+                    <word>buy</word>
+                    <word>science</word>
+                </positive_words>
+                <negative_words description="If a link contains any number of these words, then its probability of being visited (its score) will decrease.">
+                    <word>archive</word>
+                    <word>privacy</word>
+                    <word>legal</word>
+                    <word>disclaim</word>
+                    <word>about</word>
+                    <word>contact</word>
+                    <word>copyright</word>
+                    <word>jobs</word>
+                    <word>careers</word>
+                </negative_words>
                 <IE>
                     <!-- HoneyClient::Agent::Driver::IE Options -->
                     <!-- TODO: Update this. -->

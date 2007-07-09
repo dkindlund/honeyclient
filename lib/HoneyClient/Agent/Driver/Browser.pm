@@ -386,6 +386,26 @@ websites.
 
 =back
 
+=head2 positive_words
+
+=over 4
+ 
+An array of positive words, where a link's probability of being
+visited (its score) will increase, if the link contains any of these
+words.
+
+=back
+
+=head2 negative_words
+
+=over 4
+
+An array of negative words, where a link's probability of being
+visited (its score) will decrease, if the link contains any of these
+words.
+
+=back
+
 =cut
 
 my %PARAMS = (
@@ -480,11 +500,15 @@ my %PARAMS = (
     # websites.
     max_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
 
-	# Comma-separated string containing the good words and bad words for link scoring purposes
-    # TODO: Need to fix this to support proper XML list elements.
-	goodwords => getVar(name => "goodwords", namespace => "HoneyClient::Agent::Driver::Browser"),
-	badwords => getVar(name => "badwords", namespace => "HoneyClient::Agent::Driver::Browser"),
+    # An array of positive words, where a link's probability of being
+    # visited (its score) will increase, if the link contains any of these
+    # words.
+    positive_words => getVar(name => "positive_words")->{word},
 
+    # An array of negative words, where a link's probability of being
+    # visited (its score) will decrease, if the link contains any of these
+    # words.
+    negative_words => getVar(name => "negative_words")->{word},
 );
 
 #######################################################################
@@ -999,9 +1023,8 @@ sub drive {
     my %scored_links;
     if ($content) {
     	# Extract the good word and bad word lists into arrays;
-	    my @good_words = split /,/, $self->goodwords;
-	    my @bad_words = split /,/, $self->badwords;
-    	my %wordlists = ('good' => \@good_words, 'bad' => \@bad_words);
+    	my %wordlists = ('good' => $self->{'positive_words'},
+                         'bad'  => $self->{'negative_words'});
     	# Call the link scoring function
     	%scored_links = _scoreLinks($base, $content, %wordlists);
     }
@@ -1316,7 +1339,7 @@ sub _scoreLinks {
    		 	my $max_text_length = 20;
    		 	my $image_bonus = 50;
    		 	my $default_display_size = 1024 * 768;
-   		 	my $word_value = 6;
+            my $word_value = 6;
 
 			# We have to make this an absolute url (if it's not)
 			# before using it as a key in the %links hash
