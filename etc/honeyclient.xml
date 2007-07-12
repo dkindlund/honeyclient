@@ -77,14 +77,14 @@ Keep in mind, though, that some variables should remain module-specific
                 <!-- HoneyClient::Agent::Driver::IE Options -->
                 <!-- TODO: Update this. -->
                 <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
-	                1
-	            </ignore_links_timed_out>
+                    1
+                </ignore_links_timed_out>
                 <!-- TODO: Update this. -->
                 <process_name description="The name of the Internet Explorer application process, as it appears in the Task Manager." default="iexplore.exe">
-	                iexplore.exe
-	            </process_name>
+                    iexplore.exe
+                </process_name>
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-	                -1
+                    -1
                 </max_relative_links_to_visit>
                 <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
                     <word>news</word>
@@ -113,27 +113,27 @@ Keep in mind, though, that some variables should remain module-specific
                     <!-- HoneyClient::Agent::Driver::IE Options -->
                     <!-- TODO: Update this. -->
                     <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
-	                    1
-	                </ignore_links_timed_out>
+                        1
+                    </ignore_links_timed_out>
                     <!-- TODO: Update this. -->
                     <process_name description="The name of the Internet Explorer application process, as it appears in the Task Manager." default="iexplore.exe">
-	                    iexplore.exe
-	                </process_name>
+                        iexplore.exe
+                    </process_name>
                     <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-	                    -1
-	                </max_relative_links_to_visit>
+                        -1
+                    </max_relative_links_to_visit>
                 </IE>
                 <FF>
                     <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-	                    5
-	                </max_relative_links_to_visit>
+                        5
+                    </max_relative_links_to_visit>
                     <!-- http://gatekeeper-w.mitre.org:80 -->
                     <http_proxy description="Set to your HTTP Proxy if you have one, otherwise set to 'none'">
-	                    none
-	                </http_proxy>
+                        none
+                    </http_proxy>
                     <ff_exec description="path to the firefox executable (default install path is C:\Program Files\Mozilla Firefox\firefox.exe)">
-	                	C:\Program Files\Mozilla Firefox\firefox.exe
-	                </ff_exec>
+                        C:\Program Files\Mozilla Firefox\firefox.exe
+                    </ff_exec>
                 </FF>
             </Browser>
             <EmailClient>
@@ -317,26 +317,26 @@ Keep in mind, though, that some variables should remain module-specific
         </Integrity>
     </Agent>
     <!-- HoneyClient::DB Options -->
-	<DB>
-		<enable description="Enables database operations. 1 enables, 0 disables." default="0">
-			1
-		</enable>
-	    <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
+    <DB>
+        <enable description="Enables database operations. 1 enables, 0 disables." default="0">
+            1
+        </enable>
+        <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
             172.16.164.1
-	    </host>
-	    <dbname description="The name of the HoneyClient database." default="HoneyClient">
-	        HoneyClient
-	    </dbname>
-	    <user description="The username to use, when connecting to the HoneyClient database.">
-	        honeyclient_user
-	    </user>
-	    <pass description="The password to use, when connecting to the HoneyClient database.">
+        </host>
+        <dbname description="The name of the HoneyClient database." default="HoneyClient">
+            HoneyClient
+        </dbname>
+        <user description="The username to use, when connecting to the HoneyClient database.">
+            honeyclient_user
+        </user>
+        <pass description="The password to use, when connecting to the HoneyClient database.">
             honeyclient_password 
-	    </pass>
-	    <port description="The default TCP port number used to communicate with the database." default="3306">
-	        3306
-	    </port>
-	</DB>
+        </pass>
+        <port description="The default TCP port number used to communicate with the database." default="3306">
+            3306
+        </port>
+    </DB>
     <Manager>
         <!-- TODO: Update this. -->
         <manager_state description="Upon termination, the Manager will attempt to save a complete copy of its state into this file, if specified." default="">
