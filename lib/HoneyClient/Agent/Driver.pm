@@ -272,10 +272,6 @@ namespace.  See L<HoneyClient::Util::Config> for more information.
 
 =cut
 
-my %PARAMS = (
-    timeout     => getVar(name => "timeout"), # Timeout (in seconds).
-);
-
 #######################################################################
 # Private Methods Implemented                                         #
 #######################################################################
@@ -386,7 +382,7 @@ sub new {
     #   parameters.
     #
     # - For each parameter given, it overwrites any corresponding
-    #   parameters specified within the default hashtable, %PARAMS, 
+    #   parameters specified within the default hashtable, %params, 
     #   with custom entries that were given as parameters.
     #
     # - Finally, it returns a blessed instance of the
@@ -406,7 +402,10 @@ sub new {
 
     # Initialize default parameters.
     $self = { };
-    my %params = %{dclone(\%PARAMS)};
+    my %params = (
+        timeout     => getVar(name => "timeout"), # Timeout (in seconds).
+    );
+
     @{$self}{keys %params} = values %params;
 
     # Now, overwrite any default parameters that were redefined
