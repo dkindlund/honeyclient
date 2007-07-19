@@ -120,30 +120,17 @@ Keep in mind, though, that some variables should remain module-specific
                     <word>careers</word>
                 </negative_words>
                 <IE>
-                    <!-- HoneyClient::Agent::Driver::IE Options -->
+                    <!-- HoneyClient::Agent::Driver::Browser::IE Options -->
                     <!-- TODO: Update this. -->
-                    <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
-                        1
-                    </ignore_links_timed_out>
-                    <!-- TODO: Update this. -->
-                    <process_name description="The name of the Internet Explorer application process, as it appears in the Task Manager." default="iexplore.exe">
-                        iexplore.exe
-                    </process_name>
-                    <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-                        -1
-                    </max_relative_links_to_visit>
+                    <process_exec description="The absolute path to the Internet Explorer application process, as it sits in the VM filesystem." default="C:\Program Files\Internet Explorer\iexplore.exe">
+                        C:\Program Files\Internet Explorer\iexplore.exe
+                    </process_exec>
                 </IE>
                 <FF>
-                    <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-                        5
-                    </max_relative_links_to_visit>
-                    <!-- http://gatekeeper-w.mitre.org:80 -->
-                    <http_proxy description="Set to your HTTP Proxy if you have one, otherwise set to 'none'">
-                        none
-                    </http_proxy>
-                    <ff_exec description="path to the firefox executable (default install path is C:\Program Files\Mozilla Firefox\firefox.exe)">
+                    <!-- HoneyClient::Agent::Driver::Browser::FF Options -->
+                    <process_exec description="The absolute path to the Mozilla Firefox application process, as it sits in the VM filesystem." default="C:\Program Files\Mozilla Firefox\firefox.exe">
                         C:\Program Files\Mozilla Firefox\firefox.exe
-                    </ff_exec>
+                    </process_exec>
                 </FF>
             </Browser>
             <EmailClient>
