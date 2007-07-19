@@ -3,7 +3,7 @@
 echo "Starting up Agent - (Hit CTRL-C multiple times to exit.)"
 
 # Remove all old /tmp/* entries.
-rm /tmp/*
+rm /tmp/* > /dev/null 2>&1
 
 IP=$(/cygdrive/c/Program\ Files/VMware/VMware\ Tools/VMip.exe -get)
 echo "IP = $IP"

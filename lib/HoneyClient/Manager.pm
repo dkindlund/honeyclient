@@ -402,7 +402,7 @@ sub _cleanup {
     if (length($STATE_FILE) > 0 &&
         defined($globalAgentState)) {
         $LOG->info("Saving state to '" . $STATE_FILE . "'.");
-        my $dump_file = new IO::File($STATE_FILE, "w");
+        my $dump_file = new IO::File($STATE_FILE, "a");
 
         # XXX: Delete this block, eventually.
         $Data::Dumper::Terse = 0;

@@ -73,6 +73,16 @@ Keep in mind, though, that some variables should remain module-specific
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
                 20 
             </timeout>
+            <ActiveContent>
+                <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
+                    1
+                </enable>
+                <Flash>
+                    <flasm_exec description="Path to the flasm executable." default="thirdparty/flasm/flasm.exe">
+                        thirdparty/flasm/flasm.exe
+                    </flasm_exec>
+                </Flash>
+            </ActiveContent>
             <Browser>
                 <!-- HoneyClient::Agent::Driver::IE Options -->
                 <!-- TODO: Update this. -->

@@ -202,6 +202,14 @@ our (@EXPORT_OK, $VERSION);
 # Include the Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
 
+# Include the ActiveContent Processing Library
+# TODO: Need unit testing.
+use HoneyClient::Agent::Driver::ActiveContent;
+
+# Include Temp File Library
+# TODO: Need unit testing.
+use File::Temp;
+
 # Use ISO 8601 DateTime Libraries
 use DateTime::HiRes;
 
@@ -232,7 +240,13 @@ use HTTP::Request::Common;
 use HTML::LinkExtor;
 
 # TODO: Need unit testing.
+use HTML::TokeParser;
+
+# TODO: Need unit testing.
 use URI::URL;
+
+# TODO: Need unit testing.
+use Data::Validate::URI qw(is_uri is_web_uri);
 
 # Include Logging Library
 use Log::Log4perl qw(:easy);
@@ -389,7 +403,7 @@ websites.
 =head2 positive_words
 
 =over 4
- 
+
 An array of positive words, where a link's probability of being
 visited (its score) will increase, if the link contains any of these
 words.
@@ -403,6 +417,16 @@ words.
 An array of negative words, where a link's probability of being
 visited (its score) will decrease, if the link contains any of these
 words.
+
+=back
+
+=head2 parse_active_content
+
+=over 4
+
+If set to 1, then the code will attempt to parse and extract links
+within active content (e.g., Flash animations).  Otherwise, the
+code will ignore all active content. 
 
 =back
 
@@ -509,6 +533,12 @@ my %PARAMS = (
     # visited (its score) will decrease, if the link contains any of these
     # words.
     negative_words => getVar(name => "negative_words")->{word},
+
+    # If set to 1, then the code will attempt to parse and extract links
+    # within active content (e.g., Flash animations).  Otherwise, the
+    # code will ignore all active content. 
+    parse_active_content => getVar(name      => "enable",
+                                   namespace => "HoneyClient::Agent::Driver::ActiveContent"),
 );
 
 #######################################################################
@@ -620,8 +650,8 @@ sub _pop {
 # (and, if it exists, the port number) from a given
 # URL.
 #
-# For example, if "http://hostname.com:80/path/index.html"
-# is given, then "hostname:80" would be returned.
+# For example, if "http://hostname.com:8080/path/index.html"
+# is given, then "hostname:8080" would be returned.
 #
 # Inputs: URL
 # Outputs: hostname[:port]
@@ -634,15 +664,8 @@ sub _extractHostname {
         return "";
     }
 
-    # Get the URL supplied.
-    my $url = $arg . "/"; # Tack on an ending delimeter.
-
-    # Note: The '?' chars make a critical difference
-    # in how this regex operates.
-    $url =~ s/^.*?\/\/(.*?)\/.*$/$1/;
-
-    # Return the extracted hostname.
-    return $url;
+    # Get the hostname supplied.
+    return URI::URL->new($arg)->authority();
 }
 
 # Helper function, designed to process all links found at a
@@ -688,7 +711,7 @@ sub _processLinks {
     my ($referrer, %links) = @_;
 
     foreach my $url (keys %links) {
-    	my $score = $links{$url};
+        my $score = $links{$url};
 
         # Skip over any undefined links.
         unless (defined($url)) {
@@ -762,11 +785,15 @@ sub _validateLink {
     # http://www.mitre.org/path/index.html#bookmark?arg=value
     # ... where we would want to strip the bookmark, but keep the
     # arg=value piece (which may not be a valid URL syntax, anyway).
-    $link =~ s/\#.*//;
+    my $url = URI::URL->new($link);
+    $url->fragment(undef);
+    # XXX: Do we need to clear the query() part, also?
+    $link = $url->canonical()->as_string();
 
     # First, check to see if the link is either an
     # "http://" or "https://" URL.
-    unless ($link =~ /^http[s]?:\/\/.*/i) {
+    unless (is_uri($link) && is_web_uri($link)) {
+
         # The link is invalid, so we check to see if it's already
         # in our 'links_ignored' history.
 
@@ -954,7 +981,7 @@ to navigate to a new link, because its list of links to visit is empty.
 sub drive {
 
     # Extract arguments.
-	my ($self, %args) = @_;
+    my ($self, %args) = @_;
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
@@ -990,7 +1017,7 @@ sub drive {
         timeout           => $timeout,            # Fixed timeout.
         #max_redirect      => 0,                   # Ignore redirects.
         protocols_allowed => [ 'http', 'https' ], # Allow only web protocols.
-        max_size		  => 1*1024*1024,         # Don't get larger than 1MB for testing
+        max_size          => 1*1024*1024,         # Don't get larger than 1MB for testing
     );
 
     # TODO: Look at the content type "text/html" on the response, to make this
@@ -998,35 +1025,52 @@ sub drive {
     # TODO: Set the default headers, to mimic a regular browser (if need be).
     # I'm thinking this could be set by IE/FF and passed via $args{'default_headers'}
     # as a HTTP::Headers object.
-    $ua->default_header( 'Accept' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5' );
+    $ua->default_header( 'Accept' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,application/x-shockwave-flash,*/*;q=0.5' );
 
     my $response = $ua->request(
                         HTTP::Request->new(
                             GET => $args{'url'},
                             HTTP::Headers->new(
                                 # TODO: Add custom headers here?
-                                'Accept' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
+                                'Accept' => 'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,application/x-shockwave-flash,*/*;q=0.5',
                             ),
                         )
     );
-
+ 
     # Get the base url from the response
     my $base = $response->base;
     my $content = $response->content;
+    my $type = $response->header('Content-Type');
 
     # Get the current time.
     my $timestamp = _getTimestamp();
 
-    # Score the new links based on their surrounding HTML context
-    # If %scored_links is emtpy upon return, there are no links
-    # and we will not perform any of the following code
+    # Score the new links based on their surrounding HTML context.
+    # If %scored_links is empty upon return, there are no links
+    # and we will not perform any of the following code.
     my %scored_links;
     if ($content) {
-    	# Extract the good word and bad word lists into arrays;
-    	my %wordlists = ('good' => $self->{'positive_words'},
-                         'bad'  => $self->{'negative_words'});
-    	# Call the link scoring function
-    	%scored_links = _scoreLinks($base, $content, %wordlists);
+
+        # TODO: Need to call ActiveContent::isActiveContent() function.
+        # Check to see if the content is Flash-based.
+        if (($type eq "application/x-shockwave-flash") &&
+            ($self->{parse_active_content})) {
+
+            # Save content to a temp file on disk.
+            my $tempFile = new File::Temp(SUFFIX => '.swf');
+            print $tempFile $content;
+            $tempFile->close();
+
+            %scored_links = HoneyClient::Agent::Driver::ActiveContent::process(
+                                file => $tempFile,
+                                url  => $args{'url'},
+                            );
+
+        # Assume that all other content types are HTML-based.
+        } else {
+            # Call the link scoring function
+            %scored_links = $self->_scoreLinks($base, $content);
+        }
     }
 
     # Check to see if the request timed out.
@@ -1049,7 +1093,7 @@ sub drive {
         # returned content does not need to be checked.
         $self->_processLinks(_extractHostname($args{'url'}), %scored_links);
     }
-
+    
     # Check our internal relative links counter.
     if ($self->_remaining_number_of_relative_links_to_visit == 1) {
 
@@ -1279,12 +1323,8 @@ For example, if your raw HTML content is $content, and the base url is
 $base you would use the following call to this function.
 
 if ($content) {
-    # Extract the good word and bad word lists into arrays;
-    my @good_words = split /,/, $self->goodwords;
-    my @bad_words = split /,/, $self->badwords;
-    my %wordlists = ('good' => \@good_words, 'bad' => \@bad_words);
     # Call the link scoring function
-    %scored_links = _scoreLinks($base, $content, %wordlists);
+    %scored_links = $self->_scoreLinks($base, $content);
 }
 
 =back
@@ -1299,132 +1339,215 @@ if ($content) {
 =cut
 
 sub _scoreLinks {
-	my ($base, $content, %wordlists) = @_;
-	my @good_words = @{$wordlists{good}};
-	my @bad_words = @{$wordlists{bad}};
-	my %links = ();
-	my $url;
+    # Extract arguments.
+    my ($self, $base, $content) = @_;
+    my %links = ();
+    my $url = undef;
 
     # If the page is blank, there is no point trying to parse it
-	if (!$content) {
-		return keys(%links);
-	}
+    if (!$content) {
+        return %links;
+    }
 
-	# Begin to scour the HTML content for tags, parsing attributes and text
-	# Any tag which has an HREF, IMG, or SRC attribute could potentially
-	# have a url of interest, either for scoring or for punching a hole in
-    # the firewall.
-	while ($content =~ m{<(IFRAME|A|LINK|IMG|OBJECT|EMBED|SCRIPT)\b([^>]+)>(.*?)</(\1)>}sig) {
-		my $attr = $2;
-		my $text = $3;
-		my $score = 0;
+    # Begin to scour the HTML content for tags, parsing attributes and text.
+    # Find any tags which could potentially have URLs of interest, either for
+    # scoring or for punching corresponding holes in the firewall.
 
-        # Look for the link in the attribute data
-        if ($attr =~ m{
-                    \b (HREF|SRC|USEMAP|CLASSID|DATA)
-                    \s* = \s*
-                    (?:
-                    "([^"]*)"
-                    |
-                    '([^']*)'
-                    |
-                    {[^'">\s]+}
-                    )
-            }six)
-        {
-		 	$url = $+;
+    # Create a new parser.
+    my $parser = HTML::TokeParser->new(\$content);
 
-		 	# Some programmatic values
-		 	my $min_text_length = 6;
-   		 	my $max_text_length = 20;
-   		 	my $image_bonus = 50;
-   		 	my $default_display_size = 1024 * 768;
-            my $word_value = 6;
+    # Don't try to textify anything.
+    $parser->{textify} = { };
 
-			# We have to make this an absolute url (if it's not)
-			# before using it as a key in the %links hash
-			$url = url($url, $base)->abs;
+    # List of HTML tags to look for.
+    # TODO: Expose this list to the global configuration file.
+    # TODO: Make sure all entries are lowercase.
+    my $tags = {
+        'iframe' => 1,
+        'a'      => 1,
+        'link'   => 1,
+        'img'    => 1,
+        'object' => 1,
+        'embed'  => 1,
+        'script' => 1,
+    };
 
-			# Begin scoring the link based on surrounding context
-			# This can be improved/customized in many different ways.
-			# Our implementation is only one possible way to assign
-			# values to the context elements.
+    # List of HTML attributes to look for.
+    # TODO: Expose this list to the global configuration file.
+    # TODO: Make sure all entries are lowercase.
+    my $attrs = {
+        'href'    => 1,
+        'src'     => 1,
+        'usemap'  => 1,
+        'classid' => 1,
+        'data'    => 1,
+    };
 
-			my $width;
-			my $height;
-            # Score the size of an object based on width and height
-			if ($attr =~ /\b WIDTH\s*=\s*.(\d+)/xi) {
-				$width = $1;
-			}
-			if ($attr =~ /\b HEIGHT\s*=\s*.(\d+)/xi) {
-			  	$height = $1;
-			}
-			if ($width && $height) {
-				$score += int(($width*$height)/($default_display_size)*100);
-			}
-			elsif ($width) {
-				$score += int($width/10);
-			}
-			elsif ($height) {
-				$score += int($height/10);
-			}
+    # Helper stack (an array), used to determine the URL of the
+    # currently encapsulated <A></A> block.
+    my @link_stack = ();
 
-			# Score length of link text. These are arbitrary lengths, but
-			# the reasoning is that really short text links are not too
-			# visible (we are excluding image links from this criteria),
-			# and really long text would be weird or abnormal to the human
-			# web surfer.
-			if ($text !~ /img /i &&
-				length($text) > $min_text_length &&
-				length($text) < $max_text_length) {
-				$score += length($text);
-			}
+    while (my $token = $parser->get_token()) {
 
-            # Score the image content, if it exists
-            # We score the size proportional to a 1024 X 768 display
-			# Image bonus
-			if ($text =~ /img /i) {
-				$score += $image_bonus;
-			}
-			# Score image size
-			$width = undef;
-			$height = undef;
-			if ($text =~ /\b WIDTH\s*=\s*.(\d+)/xi) {
-				$width = $1;
-			}
-			if ($text =~ /\b HEIGHT\s*=\s*.(\d+)/xi) {
-			  	$height = $1;
-			}
-			if ($width && $height) {
-				$score += int(($width*$height)/($default_display_size)*100);
-			}
-			elsif ($width) {
-				$score += int($width/10);
-			}
-			elsif ($height) {
-				$score += int($height/10);
-			}
+        # The type of tag found ("S" = starting, "E" = ending).
+        my $tag_type = $token->[0];
 
-			# Good word bonus
-			foreach (@good_words) {
-                if ($text =~ /$_/i) {
-                    $score += $word_value;
-                }
-			}
+        # The tag name found.
+        my $tag = $token->[1];
 
-			# Bad word penalty
-			foreach (@bad_words) {
-                if ($text =~ /$_/i) {
-                    $score -= $word_value;
-                }
-			}
+        # The hashtable of attributes found in this tag.
+        my $attrib_hash = $token->[2];
 
-            # Put it in the return value hash and zero the score
-			$links{$url} = $score;
-			$url = undef;
-		}
-	}
-	return %links;
+        # We're only interested in the start and end HTML tags.
+        # Ignore all others.
+        unless (($tag_type eq "S") || ($tag_type eq "E")) {
+            next; 
+        }
+
+        # We're only interested in the specified HTML tags.
+        # Ignore all others.
+        unless (exists($tags->{$tag})) {
+            next;
+        }
+
+        # Check if we have an ending tag.
+        if ($tag_type eq "E") {
+
+            # If it's an ending </A> tag, then pop the last
+            # url off the link_stack.
+            if ($tag eq "a") {
+                pop(@link_stack);
+            }
+
+            # Don't bother parsing ending tags any further.
+            next;
+        }
+
+        # We only pay attention to starting <IMG> tags, if we're inside
+        # a nested link.
+        if (($tag eq "img") && (scalar(@link_stack) <= 0)) {
+            next;
+        }
+
+        # Set the score to zero.
+        my $score = 0;
+
+        # Try to extract any possible URL from any attribute.
+        # Stop when we first encounter one.
+        my $counter = 0;
+        my @attrs_list = keys(%{$attrs});
+        while (!defined($url) && ($counter < scalar(@attrs_list))) {
+            if (exists($attrib_hash->{$attrs_list[$counter]})) {
+                $url = $attrib_hash->{$attrs_list[$counter]};
+            }
+            $counter++;
+        }
+
+        # If it's a starting <A> tag, then push the URL onto the
+        # link_stack.
+        # Also, don't increment, when tag is atomic, like:
+        #     <a href="http://www.foo.com" />
+        if (($tag_type eq "S") && ($tag eq "a") &&
+            !exists($attrib_hash->{'/'})) {
+            push(@link_stack, $url);
+        }
+
+        # Skip if no URL was found.
+        unless (defined($url)) {
+            next;
+        }
+
+        # TODO: Expose these values as global options.
+        # Some programmatic values
+        my $min_text_length = 6;
+        my $max_text_length = 20;
+        my $image_bonus = 50;
+        my $default_display_size = 1024 * 768;
+        my $word_value = 6;
+
+        # We have to make this an absolute url (if it's not)
+        # before using it as a key in the %links hash.
+        $url = url($url, $base)->abs;
+
+        # Begin scoring the link based on surrounding context
+        # This can be improved/customized in many different ways.
+        # Our implementation is only one possible way to assign
+        # values to the context elements.
+
+        my $width = undef;
+        my $height = undef;
+
+        # Score the size of an object/image based on width and height.
+        if (exists($attrib_hash->{width})) {
+            $width = int($attrib_hash->{width});
+        }
+        if (exists($attrib_hash->{height})) {
+            $height = int($attrib_hash->{height});
+        }
+        if (defined($width) && defined($height)) {
+            $score += int(($width*$height)/($default_display_size)*100);
+        } elsif (defined($width)) {
+            $score += int($width/10);
+        } elsif (defined($height)) {
+            $score += int($height/10);
+        }
+
+        # Extract any link text.
+        my $text = $parser->get_trimmed_text();
+
+        # Score length of link text. These are arbitrary lengths, but
+        # the reasoning is that really short text links are not too
+        # visible (we are excluding image links from this criteria),
+        # and really long text would be weird or abnormal to the human
+        # web surfer.
+        if (($tag ne "img") &&
+            (length($text) > $min_text_length) &&
+            (length($text) < $max_text_length)) {
+            $score += length($text);
+        }
+
+        # Score the image content, if it exists
+        # We score the size proportional to a 1024 X 768 display
+        # Image bonus
+        if ($tag eq "img") {
+            $score += $image_bonus;
+        }
+
+        # Good word bonus
+        foreach (@{$self->{'positive_words'}}) {
+            if ($text =~ /$_/i) {
+                $score += $word_value;
+            }
+        }
+
+        # Bad word penalty
+        foreach (@{$self->{'negative_words'}}) {
+            if ($text =~ /$_/i) {
+                $score -= $word_value;
+            }
+        }
+
+        # Put it in the return value hash and zero the score.
+        $links{$url} = $score;
+
+        # If we're dealing with an <IMG> tag, then we must
+        # be within a <A></A> tag block.  If so, then our
+        # score should also modify the value of the previously
+        # found <A HREF="this link">.
+
+        # Get the enclosed link's URL.
+        if (($tag eq "img") && (scalar(@link_stack) > 0)) {
+            my $parent_url = $link_stack[-1];
+            # If defined, then adjust the parent URL's score, too.
+            if (defined($parent_url)) {
+                $links{$parent_url} += $score;
+            }
+        }
+
+        $url = undef;
+    }
+
+    return %links;
 }
 
 =pod
@@ -1555,7 +1678,7 @@ sub status {
     # Figure out how many total links are left to process.
     $status->{links_remaining} = $status->{relative_links_remaining} +
                                  scalar(keys(%{$self->links_to_visit}));
-
+ 
     # Set the total number of links in the object's state.
     $status->{links_total} = $status->{links_processed} +
                              $status->{links_remaining};
