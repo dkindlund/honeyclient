@@ -25,7 +25,7 @@ use HoneyClient::Manager;
 
 # Change to 'HoneyClient::Agent::Driver::Browser::IE' or
 #           'HoneyClient::Agent::Driver::Browser::FF'
-my $driver = "HoneyClient::Agent::Driver::Browser::FF";
+my $driver = "HoneyClient::Agent::Driver::Browser::IE";
 my $config = "/vm/master-vms/Agent.Master-23/winXPPro.cfg";
 my $maxrel = 5;
 my $nexturl = "";
