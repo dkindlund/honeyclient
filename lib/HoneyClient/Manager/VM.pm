@@ -3745,11 +3745,12 @@ sub setMasterVM {
     }
 
     # Modify the permissions of all Master *.vmdk*, *.vms*, and *.vme* files
-    # to 0400, in order to prevent any accidental overwrites by a quick
+    # to 0440, in order to prevent any accidental overwrites by a quick
     # clone VM...
-    chmod(oct(400), glob($srcDir . "/*.vmdk*"));
-    chmod(oct(400), glob($srcDir . "/*.vms*"));
-    chmod(oct(400), glob($srcDir . "/*.vme*"));
+    chmod(oct(440), glob($srcDir . "/*.vmdk*"));
+    chmod(oct(440), glob($srcDir . "/*.vms*"));
+    chmod(oct(440), glob($srcDir . "/*.vme*"));
+    chmod(oct(660), glob($srcDir . "/*.vmdk.READLOCK"));
     
     # Now, edit the Master configuration file in order to support
     # quick clones...

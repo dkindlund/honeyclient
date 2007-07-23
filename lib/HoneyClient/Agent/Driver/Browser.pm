@@ -86,36 +86,42 @@ This documentation refers to HoneyClient::Agent::Driver::Browser version 0.97.
   # Now, drive the browser for one iteration.
   $browser->drive();
 
+  # Or, we can specify the URL as an argument.
+  $browser->drive(url => "http://www.mitre.org");
+
 =head1 DESCRIPTION
 
-This library allows the Agent module to drive an instance of any broswer,
+This library allows the Agent module to drive an instance of any browser,
 running inside the HoneyClient VM.  The purpose of this module is to
 programmatically navigate the browser to different websites, in order to
 become purposefully infected with new malware.
 
 This module is object-oriented in design, retaining all state information
-within itself for easy access.  A specific browser class must inherit from
-Browser.
+within itself for easy access.  A specific browser implementation, such as
+'IE' or 'FF', must inherit from this package.
 
-Fundamentally, the browser driver is initialized with a set of absolute URLs
+Fundamentally, the Browser driver is initialized with a set of absolute URLs
 for the browser to drive to.  Upon visiting each URL, the driver collects
 any B<new> links found and will attempt to drive the browser to each
 valid URL upon subsequent iterations of work.
 
 For each top-level URL given, the driver will attempt to process all
 corresponding links that are hosted on the same server, in order to
-simulate a complete 'spider' of each server.  B<However>, because
-URLs are added and removed from hashtables, the order of which URLs
-are processed B<cannot be guaranteed nor maintained across subsequent
-iterations of work>.
+simulate a complete 'spider' of each server.  
 
-This means that the browser driver will try to visit all links shared by a
-common server in random order before moving on to drive to other,
-external links in a random fashion.  B<However>, this cannot be
-guaranteed, as additional links from the same server may be found
-later, after processing the contents of an external link.
+URLs are added and removed from hashtables, as keys.  For each URL, a
+calculated "priority" (a positive integer) of the URL is assigned the
+value.  When the Browser is ready to go to a new link, it will always go
+to the next link that has the highest priority.  If two URLs have the same
+priority, then the Browser will chose among those two at random.
 
-As the browser driver navigates the browser to each link, it
+Furthermore, the Browser driver will try to visit all links shared by a
+common server in order before moving on to drive to other,
+external links in an ordered fashion.  B<However>, the Browser may end
+up re-visiting old sites, if new links were found that the
+Browser has not visited yet. 
+
+As the Browser driver navigates the browser to each link, it
 maintains a set of hashtables that record when valid links were
 visited (see L<links_visited>); when invalid links were found
 (see L<links_ignored>); and when the browser attempted to visit
@@ -624,8 +630,6 @@ sub _getTimestamp {
 # from the hashtable and delete the (key, value) pair from the
 # hashtable.  The link with the highest score is returned.
 #
-#
-#
 # Inputs: hashref
 # Outputs: valid key, or undef if the hash is empty
 sub _pop {
@@ -827,6 +831,7 @@ sub _validateLink {
     return $link;
 }
 
+# XXX: Is this really needed?
 # Helper function designed to kill all instances of the driven
 # application.
 #
@@ -847,6 +852,7 @@ sub _killProcess {
     my $som = $stub->killProcess($self->process_name);
 
     if (!$som->result) {
+        $LOG->warn("Failed to kill process: '" . $self->process_name . "'!");
         Carp::carp "Failed to kill process: '" . $self->process_name . "'!\n";
     }
 }
@@ -965,7 +971,8 @@ I<Output>: The updated Browser driver B<$object>, containing state information
 from driving the browser for one iteration.
 
 B<Warning>: This method will B<croak> if the Browser driver object is B<unable>
-to navigate to a new link, because its list of links to visit is empty.
+to navigate to a new link, because its list of links to visit is empty and
+no new URL was supplied.
 
 =back
 
@@ -985,6 +992,8 @@ sub drive {
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
         Carp::croak "Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!\n";
     }
@@ -1001,8 +1010,8 @@ sub drive {
 
     # Sanity check: Make sure our next URL is defined.
     unless (defined($args{'url'})) {
-        Carp::croak "Error: Unable to drive browser - 'links_to_visit' " .
-                    "hashtable is empty!\n";
+        $LOG->error("Error: Unable to drive browser - no links left to browse!");
+        Carp::croak "Error: Unable to drive browser - no links left to browse!\n";
     }
 
     # Indicates how long we wait for each drive operation to complete,
@@ -1151,6 +1160,8 @@ sub getNextLink {
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
         Carp::croak "Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!\n";
     }
@@ -1247,6 +1258,8 @@ sub next {
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
         Carp::croak "Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!\n";
     }
@@ -1590,6 +1603,8 @@ sub isFinished {
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
         Carp::croak "Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!\n";
     }
@@ -1653,6 +1668,8 @@ sub status {
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
         Carp::croak "Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!\n";
     }
@@ -1734,13 +1751,17 @@ is 30% and then this value drops to 15% upon another iteration, then
 this means that the total number of links to drive to has greatly
 increased.
 
-Currently we assume that the browser is configured to not cache anything
-
-=head1 TODO
-
-Add documentation for proper configuration of browser to not cache stuff
+Lastly, we assume the driven browser has been preconfigured to
+B<not cache any data>.  This ensures the browser will render the most
+recent version of the content hosted at each URL.
 
 =head1 SEE ALSO
+
+L<HoneyClient::Agent::Driver>
+
+L<HoneyClient::Agent::Driver::Browser::IE>
+
+L<HoneyClient::Agent::Driver::Browser::FF>
 
 L<http://www.honeyclient.org/trac>
 

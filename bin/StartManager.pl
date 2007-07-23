@@ -23,9 +23,11 @@ use HoneyClient::Manager;
 # Namely, the initial URL that they want the Agent to use.
 # They can however supply multiple urls which will be processed in order
 
-my $driver = "IE";
-my $config = "/vm/master-vms/Agent.Master-22/winXPPro.cfg";
-my $maxrel = 10;
+# Change to 'HoneyClient::Agent::Driver::Browser::IE' or
+#           'HoneyClient::Agent::Driver::Browser::FF'
+my $driver = "HoneyClient::Agent::Driver::Browser::FF";
+my $config = "/vm/master-vms/Agent.Master-23/winXPPro.cfg";
+my $maxrel = 5;
 my $nexturl = "";
 my $urllist= "";
 
@@ -59,10 +61,10 @@ foreach(@urls){
 }
 
 my $agentState = HoneyClient::Manager->run(
-                    driver           => $driver, # Change to 'IE' or 'FF'
+                    driver           => $driver,
                     master_vm_config => $config,
                     agent_state      => encode_base64(nfreeze({
-                        $driver => { # Change to 'IE' or 'FF'
+                        $driver => {
                             next_link_to_visit => $firsturl,
                             # Enable this line, if you want to only go to the
                             # first 5 links for each domain.

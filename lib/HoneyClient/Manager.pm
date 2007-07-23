@@ -648,6 +648,17 @@ sub runSession {
    
     sleep (2);
 
+    # Recreate the client stub; handle faults.
+    $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
+                                 address       => $vmIP,
+                                 fault_handler => \&_handleFaultAndCleanup);
+
+    # Call updateState() first, to seed initial data.
+    # TODO: Need to support asynchronous updates (url adding)
+    # from user input.
+    print "Calling updateState()...\n";
+    $som = $stubAgent->updateState($args{'agent_state'});
+
     # Recreate the client stub; ignore faults.
     $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
                                  address       => $vmIP,
@@ -656,12 +667,6 @@ sub runSession {
     # Recreate the firewall stub; ignore faults.
     $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
                               fault_handler => \&_handleFault);
-
-    # Call updateState() first, to seed initial data.
-    # TODO: Need to support asynchronous updates (url adding)
-    # from user input.
-    print "Calling updateState()...\n";
-    $som = $stubAgent->updateState($args{'agent_state'});
 
     for (my $counter = 1;; $counter++) {
 
@@ -748,7 +753,7 @@ sub runSession {
                         $stubFW->addRules($vmStateTable);
 
                         print "Calling run()...\n";
-                        $som = $stubAgent->run();
+                        $som = $stubAgent->run(driver_name => $args{'driver'});
                     }
                 }
             }

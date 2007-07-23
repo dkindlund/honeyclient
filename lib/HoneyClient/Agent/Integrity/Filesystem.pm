@@ -1369,6 +1369,14 @@ sub check {
     # Extract arguments.
     my ($self, %args) = @_;
 
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
     # Log resolved arguments.
     $LOG->debug(sub {
         # Make Dumper format more terse.

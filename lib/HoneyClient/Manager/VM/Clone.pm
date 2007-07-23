@@ -754,6 +754,14 @@ sub isFinished {
     
     # Check to see if the class name is inherited or defined.
     my $class = ref($self) || $self;
+    
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!";
+    }
 
     # Emit generic "not implemented" error message.
     $LOG->error($class . "->isFinished() is not implemented!");
@@ -839,6 +847,14 @@ sub next {
     
     # Check to see if the class name is inherited or defined.
     my $class = ref($self) || $self;
+    
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!";
+    }
 
     # Emit generic "not implemented" error message.
     $LOG->error($class . "->next() is not implemented!");
@@ -922,6 +938,14 @@ sub status {
     
     # Check to see if the class name is inherited or defined.
     my $class = ref($self) || $self;
+    
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!";
+    }
 
     # Emit generic "not implemented" error message.
     $LOG->error($class . "->next() is not implemented!");

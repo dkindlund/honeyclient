@@ -305,7 +305,11 @@ sub AUTOLOAD {
     my $self = shift;
 
     # Sanity check: Make sure the supplied value is an object.
-    my $type = ref($self) or Carp::croak "Error: $self is not an object!\n";
+    my $type = ref($self);
+    unless(defined($type)) {
+        $LOG->error("Error: $self is not an object!");
+        Carp::croak "Error: $self is not an object!\n";
+    }
 
     # Now, get the name of the function.
     my $name = $AUTOLOAD;

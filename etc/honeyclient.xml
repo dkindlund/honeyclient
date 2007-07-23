@@ -67,6 +67,10 @@ Keep in mind, though, that some variables should remain module-specific
         <port description="The TCP port number that the SOAP server for all Agent modules will listen on for requests." default="9000">
             9000
         </port>
+        <allowed_drivers description="List of implemented Drivers that the Agent is allowed to run directly.">
+            <name>HoneyClient::Agent::Driver::Browser::IE</name>
+            <name>HoneyClient::Agent::Driver::Browser::FF</name>
+        </allowed_drivers>
         <!-- HoneyClient::Agent::Driver Options -->
         <Driver>
             <!-- TODO: Update this. -->
@@ -121,16 +125,21 @@ Keep in mind, though, that some variables should remain module-specific
                 </negative_words>
                 <IE>
                     <!-- HoneyClient::Agent::Driver::Browser::IE Options -->
-                    <!-- TODO: Update this. -->
                     <process_exec description="The absolute path to the Internet Explorer application process, as it sits in the VM filesystem." default="C:\Program Files\Internet Explorer\iexplore.exe">
                         C:\Program Files\Internet Explorer\iexplore.exe
                     </process_exec>
+                    <process_name description="The name of the Internet Explorer executable, as it appears on the VM filesystem." default="iexplore.exe">
+                        iexplore.exe
+                    </process_name>
                 </IE>
                 <FF>
                     <!-- HoneyClient::Agent::Driver::Browser::FF Options -->
                     <process_exec description="The absolute path to the Mozilla Firefox application process, as it sits in the VM filesystem." default="C:\Program Files\Mozilla Firefox\firefox.exe">
                         C:\Program Files\Mozilla Firefox\firefox.exe
                     </process_exec>
+                    <process_name description="The name of the Mozilla Firefox executable, as it appears on the VM filesystem." default="firefox.exe">
+                        firefox.exe
+                    </process_name>
                 </FF>
             </Browser>
             <EmailClient>

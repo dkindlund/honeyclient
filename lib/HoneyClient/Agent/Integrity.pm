@@ -533,6 +533,14 @@ sub check {
     # Extract arguments.
     my ($self, %args) = @_;
 
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
     # Log resolved arguments.
     $LOG->debug(sub {
         # Make Dumper format more terse.
@@ -567,6 +575,14 @@ sub check {
 sub closeFiles {
     my $self = shift;
 
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
     if (defined($self->{'_registry'})) {
         $self->{'_registry'}->closeFiles();
     }
@@ -575,6 +591,14 @@ sub closeFiles {
 # TODO: Comment this.
 sub destroy {
     my $self = shift;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
 
     if (defined($self->{'_registry'})) {
         $self->{'_registry'}->destroy();

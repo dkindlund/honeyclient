@@ -44,15 +44,15 @@ use HoneyClient::Util::Config qw(getVar);
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Agent::Driver::Browser::IE') or diag("Can't load HoneyClient::Agent::Driver::Browser::IE package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Driver::Browser::IE');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'new');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'drive');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'isFinished');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'next');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'status');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'getNextLink');
-use HoneyClient::Agent::Driver::Browser::IE;
+BEGIN { use_ok('HoneyClient::Agent::Driver::Browser::FF') or diag("Can't load HoneyClient::Agent::Driver::Browser::FF package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Driver::Browser::FF');
+can_ok('HoneyClient::Agent::Driver::Browser::FF', 'new');
+can_ok('HoneyClient::Agent::Driver::Browser::FF', 'drive');
+can_ok('HoneyClient::Agent::Driver::Browser::FF', 'isFinished');
+can_ok('HoneyClient::Agent::Driver::Browser::FF', 'next');
+can_ok('HoneyClient::Agent::Driver::Browser::FF', 'status');
+can_ok('HoneyClient::Agent::Driver::Browser::FF', 'getNextLink');
+use HoneyClient::Agent::Driver::Browser::FF;
 
 # Suppress all logging messages, since we need clean output for unit testing.
 Log::Log4perl->init({
@@ -81,23 +81,23 @@ use ExtUtils::MakeMaker qw(prompt);
 {
 # Generate a notice, to clarify our assumptions.
 diag("");
-diag("About to run basic IE-specific browser tests.");
+diag("About to run basic FF-specific browser tests.");
 diag("Note: These tests *require* network connectivity and");
-diag("*expect* IE to be installed at the following location.");
+diag("*expect* FF to be installed at the following location.");
 diag("");
 
 my $processExec = getVar(name      => "process_exec",
-                         namespace => "HoneyClient::Agent::Driver::Browser::IE");
+                         namespace => "HoneyClient::Agent::Driver::Browser::FF");
 my $processName = getVar(name      => "process_name",
-                         namespace => "HoneyClient::Agent::Driver::Browser::IE");
+                         namespace => "HoneyClient::Agent::Driver::Browser::FF");
 
 diag("Process Name:\t\t'" . $processName . "'");
 diag("Process Location:\t'" . $processExec . "'");
 diag("");
-diag("If IE is installed in a different location or has a different executable name,");
+diag("If FF is installed in a different location or has a different executable name,");
 diag("then please answer *NO* to the next question and update your etc/honeyclient.xml");
 diag("file, changing the 'process_name' and 'process_exec' elements in the");
-diag("<HoneyClient/><Agent/><Driver/><Browser/><IE/> section.");
+diag("<HoneyClient/><Agent/><Driver/><Browser/><FF/> section.");
 diag("");
 diag("Then, once updated, re-run these tests.");
 diag("");
@@ -108,23 +108,46 @@ if ($question !~ /^y.*/i) {
     exit;
 }
 
-my $ie = HoneyClient::Agent::Driver::Browser::IE->new(test => 1);
+my $ie = HoneyClient::Agent::Driver::Browser::FF->new(test => 1);
 is($ie->{test}, 1, "new(test => 1)") or diag("The new() call failed.");
-isa_ok($ie, 'HoneyClient::Agent::Driver::Browser::IE', "new(test => 1)") or diag("The new() call failed.");
+isa_ok($ie, 'HoneyClient::Agent::Driver::Browser::FF', "new(test => 1)") or diag("The new() call failed.");
 
 diag("");
-diag("About to drive IE to a specific website for *exactly* " . $ie->{timeout} . " seconds.");
+diag("About to drive FF to a specific website for *exactly* " . $ie->{timeout} . " seconds.");
 diag("Note: Please do *NOT* close the browser manually; the test code should close it automatically.");
 diag("");
 
-$question = prompt("# Which website should IE browse to?", "http://www.google.com");
+$question = prompt("# Which website should FF browse to?", "http://www.google.com");
 $ie->drive(url => $question);
 
 diag("");
-$question = prompt("# Did IE properly render the page and automatically exit?", "yes");
+$question = prompt("# Did FF properly render the page and automatically exit?", "yes");
+diag("");
 if ($question !~ /^y.*/i) {
+    diag("Check your network connectivity and verify that you can manually browse this page in FF.");
+    diag("Then, re-run these tests.");
     diag("");
-    diag("Check your network connectivity and verify that you can manually browse this page in IE.");
+    diag("If the tests still do not work, please submit a ticket to:");
+    diag("http://www.honeyclient.org/trac/newticket");
+    diag("");
+    fail("The drive() call failed.");
+}
+
+diag("About to restart FF.  Please check if the \"Restore Previous Session\" dialog box appears.");
+diag("");
+$question = prompt("# Pick another website for FF to browse to:", "http://www.mitre.org");
+$ie->drive(url => $question);
+
+diag("");
+$question = prompt("# Did the \"Restore Previous Session\" dialog box appear?", "yes");
+diag("");
+if ($question !~ /^n.*/i) {
+    diag("You will need to disable the \"Restore Previous Session\" dialog box manually in Firefox.");
+    diag("Here's how:");
+    diag("1) Start up Firefox manually.");
+    diag("2) Go to 'about:config'.");
+    diag("3) Change the 'browser.sessionstore.resume_from_crash' value to 'false'.");
+    diag("");
     diag("Then, re-run these tests.");
     diag("");
     diag("If the tests still do not work, please submit a ticket to:");

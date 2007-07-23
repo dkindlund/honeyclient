@@ -29,17 +29,18 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
-# TODO: Change Driver::IE to Driver::Browser::IE
-# Make sure HoneyClient::Agent::Driver::IE loads.
-BEGIN { use_ok('HoneyClient::Agent::Driver::IE') or diag("Can't load HoneyClient::Agent::Driver::IE package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Driver::IE');
-can_ok('HoneyClient::Agent::Driver::IE', 'new');
-can_ok('HoneyClient::Agent::Driver::IE', 'drive');
-can_ok('HoneyClient::Agent::Driver::IE', 'getNextLink');
-can_ok('HoneyClient::Agent::Driver::IE', 'next');
-can_ok('HoneyClient::Agent::Driver::IE', 'isFinished');
-can_ok('HoneyClient::Agent::Driver::IE', 'status');
-use HoneyClient::Agent::Driver::IE;
+# TODO: Include FF
+# Make sure HoneyClient::Agent::Driver::Browser::IE loads.
+BEGIN { use_ok('HoneyClient::Agent::Driver::Browser::IE') or diag("Can't load HoneyClient::Agent::Driver::Browser::IE package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Driver::Browser::IE');
+# TODO: Update this list of function names.
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'new');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'drive');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'getNextLink');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'next');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'isFinished');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'status');
+use HoneyClient::Agent::Driver::Browser::IE;
 
 # Make sure Storable loads.
 BEGIN { use_ok('Storable', qw(freeze nfreeze thaw dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
@@ -86,14 +87,6 @@ is(HoneyClient::Agent->destroy(), 1, "destroy()") or diag("Unable to terminate A
 
 # TODO: delete this.
 #exit;
-}
-
-
-
-# =begin testing
-{
-# XXX: Fill this in.
-1;
 }
 
 

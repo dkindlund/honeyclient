@@ -406,10 +406,19 @@ my %PARAMS = (
 # Private Methods Implemented                                         #
 #######################################################################
 
+# TODO: Move down to public area, document, and update unit tests.
 # Base destructor function.
 sub destroy {
     # Extract arguments.
     my $self = shift;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
 
     # Delete any temporary files created by the baseline
     # and checkpoint parsers.
@@ -1470,6 +1479,14 @@ sub check {
     # Extract arguments.
     my ($self, %args) = @_;
 
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
     # Log resolved arguments.
     $LOG->debug(sub {
         # Make Dumper format more terse.
@@ -1584,6 +1601,14 @@ sub getFilesCreated {
     # Extract arguments.
     my ($self, %args) = @_;
 
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
     # Log resolved arguments.
     $LOG->debug(sub {
         # Make Dumper format more terse.
@@ -1637,6 +1662,14 @@ foreach my $file (@files_created) {
 sub closeFiles {
     # Extract arguments.
     my ($self, %args) = @_;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
 
     # Log resolved arguments.
     $LOG->debug(sub {

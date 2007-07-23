@@ -75,7 +75,7 @@ use POSIX qw(SIGALRM);
 BEGIN {
     # Defines which functions can be called externally.
     require Exporter;
-    our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION, @DRIVERS);
+    our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
     $VERSION = 0.97;
@@ -109,20 +109,9 @@ BEGIN {
     # Check to see if ithreads are compiled into this version of Perl.
     $Config{useithreads} or Carp::croak "Error: Recompile Perl with ithread support, in order to use this module.\n";
 
-    # Registered driver list.
-    # TODO: Eventually, make this more dynamic, based upon the presence of HoneyClient::Agent::Driver::* elements
-    # within the global configuration file.  Or, feed the initialization logic through init() as part of the arguments.
-    @DRIVERS = ( 'IE' );
-    foreach (@DRIVERS) {
-        eval "use HoneyClient::Agent::Driver::Browser::$_";
-        if ($@) {
-            Carp::croak "$@";
-        }
-    }
-
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
 }
-our (@EXPORT_OK, $VERSION, @DRIVERS);
+our (@EXPORT_OK, $VERSION);
 
 =pod
 
@@ -149,17 +138,18 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
-# TODO: Change Driver::IE to Driver::Browser::IE
-# Make sure HoneyClient::Agent::Driver::IE loads.
-BEGIN { use_ok('HoneyClient::Agent::Driver::IE') or diag("Can't load HoneyClient::Agent::Driver::IE package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Driver::IE');
-can_ok('HoneyClient::Agent::Driver::IE', 'new');
-can_ok('HoneyClient::Agent::Driver::IE', 'drive');
-can_ok('HoneyClient::Agent::Driver::IE', 'getNextLink');
-can_ok('HoneyClient::Agent::Driver::IE', 'next');
-can_ok('HoneyClient::Agent::Driver::IE', 'isFinished');
-can_ok('HoneyClient::Agent::Driver::IE', 'status');
-use HoneyClient::Agent::Driver::IE;
+# TODO: Include FF
+# Make sure HoneyClient::Agent::Driver::Browser::IE loads.
+BEGIN { use_ok('HoneyClient::Agent::Driver::Browser::IE') or diag("Can't load HoneyClient::Agent::Driver::Browser::IE package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Driver::Browser::IE');
+# TODO: Update this list of function names.
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'new');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'drive');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'getNextLink');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'next');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'isFinished');
+can_ok('HoneyClient::Agent::Driver::Browser::IE', 'status');
+use HoneyClient::Agent::Driver::Browser::IE;
 
 # Make sure Storable loads.
 BEGIN { use_ok('Storable', qw(freeze nfreeze thaw dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
@@ -240,7 +230,11 @@ our $URL            : shared = undef;
 # The process ID of the SOAP server daemon, once created.
 our $DAEMON_PID     : shared = undef;
 
-# Global static value, to indicate if the Agent should perform
+# Global array, to indicate which implemented Drivers the
+# Agent is allowed to run.
+our $ALLOWED_DRIVERS = getVar(name => 'allowed_drivers')->{name};
+
+# Global value, to indicate if the Agent should perform
 # any integrity checks.
 our $PERFORM_INTEGRITY_CHECKS : shared =
     getVar(name => "perform_integrity_checks");
@@ -352,17 +346,22 @@ sub init {
         Carp::croak "Error: " . __PACKAGE__ . " daemon is already running (PID = $DAEMON_PID)!\n";
     }
 
+    # Figure out what our list of allowed Drivers are. 
+    $ALLOWED_DRIVERS = getVar(name => 'allowed_drivers')->{name};
+
     # Acquire data lock.
     _lock();
 
     # Initialize the $driverData shared hashtable.
     my $data = { };
-    for my $driverName (@DRIVERS) {
+    for my $driverName (@{$ALLOWED_DRIVERS}) {
 
-        # TODO: Figure out which drivers' data to initialize, based upon
-        # which driver argument hashtables were provided.  Then keep
-        # that list in a globally, defined array.
-        
+        eval "use $driverName";
+        if ($@) {
+            $LOG->fatal($@);
+            Carp::croak $@;
+        }
+ 
         $data->{$driverName} = { 
             'state'     => undef,
             'thread_id' => undef,
@@ -589,8 +588,7 @@ sub _update {
     my $driver = shift;
 
     # Figure out the corresponding driver name.
-    my @package = split(/::/, ref($driver));
-    my $driverName = pop(@package);
+    my $driverName = ref($driver);
 
     # Extract the corresponding queue.
     my $queue = $driverUpdateQueues{$driverName};
@@ -629,33 +627,89 @@ sub _update {
 
 =pod
 
-=head1 EXPORTS
+=head1 EXTERNAL SOAP FUNCTIONS
 
-=head2 run()
+=head2 run(driver_name => $driverName)
 
 =over 4
+
+Runs the Agent for one cycle.  In this cycle, the following happens:
+
+=over 4
+
+=item 1)
+
+The specified Driver is driven for multiple work units, where each
+consecutive drive operation contacts the same network resources
+(aka. "targets").  The Driver ceases its operation, as soon as
+it has exhausted all targets or until it is ready to contact a
+different set of targets.
+
+=item 2)
+
+Once the specified driver has stopped, the Agent performs a corresponding
+Integrity check.
+
+=back 
 
 # XXX: Fill this in.
 
 I<Inputs>: 
- B<$arg> is an optional argument.
-SOAP server to listen on.
+ B<$driverName> is the name of the Driver to use, when running this 
+cycle.
  
-I<Output>: XXX: Fill this in.
+I<Output>: Returns true if the Agent successfully started a new cycle;
+returns false, if the Agent is still running an existing cycle and
+has not finished yet.
+
+I<Notes>:
+During a single run() cycle, it is expected that the driven application
+will only contact the same targets.  This allows the Manager to update
+firewall rules between cycles.
 
 =back
 
-=begin testing
-
+#=begin testing
+#
 # XXX: Fill this in.
-1;
-
-=end testing
+#
+#=end testing
 
 =cut
 
 sub run {
     # Extract arguments.
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Sanity check.  Make sure we get a valid argument.
+    my $argsExist = scalar(%args);
+    if (!$argsExist ||
+        !exists($args{'driver_name'}) ||
+        !defined($args{'driver_name'})) {
+
+        # Die if no valid argument is supplied.
+        $LOG->warn("No Driver name specified.");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->run()")
+                       ->faultstring("No Driver name specified.");
+    }
+
+    # Sanity check.  Make sure the driver name specified is
+    # on our allowed list.
+    my @drivers_found = grep(/^$args{'driver_name'}$/, @{$ALLOWED_DRIVERS});
+    my $driverName = pop(@drivers_found);
+    unless (defined($driverName)) {
+        $LOG->warn("Not allowed to run Driver (" . $args{'driver_name'} . ").");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->run()")
+                       ->faultstring("Not allowed to run Driver (" . $args{'driver_name'} . ").");
+    }
 
     # Temporary variable, used to hold thawed driver data.
     my $data = undef;
@@ -666,9 +720,7 @@ sub run {
     # Temporary variable, used to hold thread objects.
     my $thread = undef;
 
-    # TODO: Eventually, use the globally defined array
-    # of actual drivers used (set by init()).
-    for my $driverName (@DRIVERS) {
+    if (defined($driverName)) {
 
         # Acquire data lock.
         $data = _lock();
@@ -677,16 +729,16 @@ sub run {
         $tid = $data->{$driverName}->{'thread_id'};
 
 # XXX: Delete this, eventually.
-print "Checking TID = " . Dumper($tid) . "\n";
+print $driverName . " - Checking TID = " . Dumper($tid) . "\n";
 if (defined(threads->object($tid))) {
-    print "Thread defined.\n";
+    print $driverName . " - Thread defined.\n";
     if (threads->object($tid)->is_running()) {
-        print "Thread is running.\n";
+        print $driverName . " - Thread is running.\n";
     } else {
-        print "Thread is NOT running.\n";
+        print $driverName . " - Thread is NOT running.\n";
     }
 } else {
-    print "Thread NOT defined.\n";
+    print $driverName . " - Thread NOT defined.\n";
 }
         
         # Sanity check: Return false, if we already have a
@@ -701,7 +753,7 @@ if (defined(threads->object($tid))) {
             return 0;
         } else {
             # XXX: Remove this, eventually.
-            print "Creating a new run() child thread...\n";
+            print $driverName . " - Creating a new run() child thread...\n";
         }
 
         # Quickly define a temporary thread ID.
@@ -735,10 +787,10 @@ if (defined(threads->object($tid))) {
         $data->{$driverName}->{'thread_id'} = $thread->tid();
         if ($thread->is_running()) {
             # XXX: Debugging, remove eventually. 
-            print "Thread ID = " . $thread->tid() . "\n";
+            print $driverName . " - Thread ID = " . $thread->tid() . "\n";
         } else {
             # XXX: Debugging, remove eventually. 
-            print "Thread ID = " . $thread->tid() . " (NOT RUNNING)\n";
+            print $driverName . " - Thread ID = " . $thread->tid() . " (NOT RUNNING)\n";
         }
 
         # Release data lock.
@@ -746,7 +798,7 @@ if (defined(threads->object($tid))) {
     }
 
     # XXX: Debugging, remove eventually. 
-    print "Run thread initialized.\n";
+    print "Run thread(s) initialized.\n";
 
     # At this point, the driver thread is initialized and running,
     # return true.
@@ -800,7 +852,7 @@ sub worker {
 
         # Now, initialize each driver object. 
         # Figure out which $driver object to use...
-        my $driverClass = 'HoneyClient::Agent::Driver::Browser::' . $driverName;
+        my $driverClass = $driverName;
 
         if (!defined($data->{$driverName}->{'state'})) {
     
@@ -847,7 +899,7 @@ sub worker {
             # XXX: Debug.  Remove this.
             # We assume $driver->next() returns defined data.
             foreach my $resource (keys %{$driver->next()->{resources}}) {
-                $LOG->info("Driving To Resource: " . $resource);
+                $LOG->info($driverName . " - Driving To Resource: " . $resource);
                 $lastResource = $resource;
             }
 
@@ -865,7 +917,7 @@ sub worker {
             $driverTargetsChanged = not(Compare($data->{$driverName}->{'next'}->{'targets'}, $driver->next()->{'targets'}));
             # XXX: Delete this, eventually.
             if ($driverTargetsChanged) {
-                $LOG->info("Driver targets have changed.");
+                $LOG->info($driverName . " - Driver targets have changed.");
                 #$Data::Dumper::Terse = 0;
                 #$Data::Dumper::Indent = 1;
                 #print "Current: " . Dumper($data->{$driverName}->{'next'}->{'targets'}) . "\n";
@@ -883,21 +935,25 @@ sub worker {
             _unlock($data);
         }
                 
-        # TODO: Perform Integrity Check
+        # Perform Integrity Check
+        # XXX: We may want this logic moved out of the child thread,
+        # in case we ever have more than one worker thread simultaneously going.
+        # (We wouldn't want to have 2 worker threads simultaneously performing
+        # this check, as VM performance would slow to a crawl.)
         my $isCompromised = 0;
         my $changes = undef;
         if (defined($integrity)) {
             # For now, we update a scalar called 'is_compromised' within
             # the $data->{$driverName}->{'status'} sub-hashtable.
-            $LOG->info("Performing Integrity Checks.");
+            $LOG->info($driverName . " - Performing Integrity Checks.");
             $changes = $integrity->check();
             if (scalar(@{$changes->{registry}}) || 
                 scalar(@{$changes->{filesystem}})) {
-                $LOG->warn("Integrity Check: FAILED");
+                $LOG->warn($driverName . " - Integrity Check: FAILED");
                 $isCompromised = 1;
                 $changes->{'last_resource'} = $lastResource;
             } else {
-                $LOG->info("Integrity Check: PASSED");
+                $LOG->info($driverName . " - Integrity Check: PASSED");
             }
         }
         # Release our copy of the integrity object, but do not destroy 
@@ -935,11 +991,11 @@ sub worker {
         _unlock();
 
         # TODO: Do proper fault queuing.
-        $LOG->error("FAULT: " . $@);
+        $LOG->error($driverName . " - FAULT: " . $@);
     }
 
     # XXX: Debugging, remove eventually. 
-    print "About to return out of child thread.\n";
+    print $driverName . " - About to return out of child thread.\n";
     if (!threads->is_detached()) {
         threads->detach();
     }
@@ -993,7 +1049,7 @@ sub updateState {
     my $thread = undef;
 
     # Figure out which driver to use.
-    for my $driverName (@DRIVERS) {
+    for my $driverName (@{$ALLOWED_DRIVERS}) {
   
         # If the corresponding key within the argument
         # hash does not exist or is not defined, then
@@ -1033,7 +1089,7 @@ sub updateState {
 
             # Initialize the driver object. 
             # Figure out which $driver object to use...
-            my $driverClass = 'HoneyClient::Agent::Driver::Browser::' . $driverName;
+            my $driverClass = $driverName;
 
             if (!defined($data->{$driverName}->{'state'})) {
     
