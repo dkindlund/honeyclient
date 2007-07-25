@@ -187,7 +187,7 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Include FW Utility Library
 # TODO: Include unit tests.
-use HoneyClient::Manager::FW;
+#use HoneyClient::Manager::FW;
 
 # Include Hash Serialization Utility Libraries
 # TODO: Include unit tests.
