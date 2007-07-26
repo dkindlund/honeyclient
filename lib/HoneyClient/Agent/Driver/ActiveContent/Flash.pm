@@ -236,9 +236,9 @@ sub extract {
         Carp::croak "Error: Call to flasm exited on signal $signal";
     }
 
-	# Strip out all control characters and place each line as
-	# separate entry in an array.
-	my @bytecode = split(/[[:cntrl:]]+/, $code);
+    # Strip out all control characters and place each line as
+    # separate entry in an array.
+    my @bytecode = split(/[[:cntrl:]]+/, $code);
 
     # Parse out lines that contain the getURL method (exclude any
     # getURL2 calls from this, as they need to be handled differently)

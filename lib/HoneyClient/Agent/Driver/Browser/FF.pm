@@ -154,43 +154,43 @@ use sigtrap qw(die untrapped normal-signals error-signals);
 
 BEGIN {
 
-	# Defines which functions can be called externally.
-	require Exporter;
-	our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION );
+    # Defines which functions can be called externally.
+    require Exporter;
+    our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION );
 
-	# Set our package version.
-	$VERSION = 0.97;
+    # Set our package version.
+    $VERSION = 0.97;
 
-	# Define inherited modules.
-	use HoneyClient::Agent::Driver::Browser;
+    # Define inherited modules.
+    use HoneyClient::Agent::Driver::Browser;
 
-	@ISA = qw(Exporter HoneyClient::Agent::Driver::Browser);
+    @ISA = qw(Exporter HoneyClient::Agent::Driver::Browser);
 
-	# Symbols to export automatically
-	# Note: Since this module is object-oriented, we do *NOT* export
-	# any functions other than "new" to call statically.  Each function
-	# for this module *must* be called as a method from a unique
-	# object instance.
-	@EXPORT = qw();
+    # Symbols to export automatically
+    # Note: Since this module is object-oriented, we do *NOT* export
+    # any functions other than "new" to call statically.  Each function
+    # for this module *must* be called as a method from a unique
+    # object instance.
+    @EXPORT = qw();
 
-	# Items to export into callers namespace by default. Note: do not export
-	# names by default without a very good reason. Use EXPORT_OK instead.
-	# Do not simply export all your public functions/methods/constants.
+    # Items to export into callers namespace by default. Note: do not export
+    # names by default without a very good reason. Use EXPORT_OK instead.
+    # Do not simply export all your public functions/methods/constants.
 
-	# This allows declaration use HoneyClient::Agent::Driver::Browser::FF ':all';
-	# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-	# will save memory.
+    # This allows declaration use HoneyClient::Agent::Driver::Browser::FF ':all';
+    # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
+    # will save memory.
 
-	# Note: Since this module is object-oriented, we do *NOT* export
-	# any functions other than "new" to call statically.  Each function
-	# for this module *must* be called as a method from a unique
-	# object instance.
-	%EXPORT_TAGS = ( 'all' => [qw()], );
+    # Note: Since this module is object-oriented, we do *NOT* export
+    # any functions other than "new" to call statically.  Each function
+    # for this module *must* be called as a method from a unique
+    # object instance.
+    %EXPORT_TAGS = ( 'all' => [qw()], );
 
-	# Symbols to autoexport (when qw(:all) tag is used)
-	@EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+    # Symbols to autoexport (when qw(:all) tag is used)
+    @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-	$SIG{PIPE} = 'IGNORE';    # Do not exit on broken pipes.
+    $SIG{PIPE} = 'IGNORE';    # Do not exit on broken pipes.
 }
 our ( @EXPORT_OK, $VERSION );
 
@@ -411,7 +411,7 @@ if ($question !~ /^n.*/i) {
 sub drive {
 
     # Extract arguments.
-	my ($self, %args) = @_;
+    my ($self, %args) = @_;
 
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
@@ -431,8 +431,8 @@ sub drive {
         $args{'url'} = $self->_getNextLink();
     }
 
-	# Drive the generic browser before opening with FF
-	$self = $self->SUPER::drive(%args);
+    # Drive the generic browser before opening with FF
+    $self = $self->SUPER::drive(%args);
     
     # Sanity check: Make sure our next URL is defined.
     unless (defined($args{'url'})) {

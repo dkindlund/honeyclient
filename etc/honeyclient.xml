@@ -457,7 +457,6 @@ Keep in mind, though, that some variables should remain module-specific
         </FW>
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
-			<!-- TODO: Need to include logic to use this variable. -->
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
                 /vm/master-vms/Agent.Master-23/winXPPro.cfg
             </master_vm_config>
