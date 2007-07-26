@@ -64,6 +64,10 @@ foreach(@ARGV){
     }
     find({wanted => \&process, no_chdir => 1} ,"$src_path/$path/$module");
 
+    # Copy the LICENSE and INSTALL files.
+    my_copy("LICENSE",$pkg_name,1);
+    my_copy("INSTALL",$pkg_name,1);
+
     l('');
 }
 
@@ -103,6 +107,7 @@ sub process { #{{{
 #        }
     }
 }#}}}
+
 
 # All of the calls are the same, and I wanted to unclutter the above code
 sub my_copy { #{{{
