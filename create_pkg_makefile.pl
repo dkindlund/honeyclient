@@ -48,6 +48,7 @@ print   FILE "# Define metadata\n";
 printf  FILE "%s\t\t'%s';\n","name",join("-",@name);
 print   FILE "license\t\t'gpl';\n";
 print   FILE "perl_version\t'5.006';\n";
+print   FILE "author\t\t'MITRE Honeyclient Project <honeyclient\@mitre.org>';\n";
 
 
 my $file = 'lib/'.join("/",@name).'.pm';
