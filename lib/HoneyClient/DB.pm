@@ -37,7 +37,7 @@ storing HoneyClient data into a database.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::DB version 0.97.
+This documentation refers to HoneyClient::DB version 0.98.
 
 =head1 SYNOPSIS
 
