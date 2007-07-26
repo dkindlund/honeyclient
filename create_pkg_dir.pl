@@ -15,9 +15,11 @@ if(!@ARGV){@ARGV = qw(HoneyClient::Util HoneyClient::Agent HoneyClient::Manager)
 my $src_path  = "lib";
 
 #   Directories to include in the distribution 
-my %inc_dirs = (etc => $src_path . '/etc',
-                bin => $src_path . '/bin',
-                inc => 'thirdparty/inc',);
+my %inc_dirs = (etc                            => $src_path . '/etc',
+                bin                            => $src_path . '/bin',
+                inc                            => 'thirdparty/inc',
+                'thirdparty'                   => 'thirdparty',
+               );
 #--------------------------------------#
 
 
