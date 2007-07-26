@@ -463,6 +463,17 @@ sub run {
     my ($class, %args) = @_;
     my $agentState = undef;
 
+    # Sanity check, make sure the master_vm_config has
+    # been specified.
+    my $argsExist = scalar(%args);
+    if (!$argsExist ||
+        !exists($args{'master_vm_config'}) ||
+        !defined($args{'master_vm_config'})) {
+        # Get the master_vm_config from the configuration file.
+        $args{'master_vm_config'} = getVar(name      => "master_vm_config",
+                                           namespace => "HoneyClient::Manager::VM");
+    }
+
     for (;;) {
         print "Starting new session...\n";
         $agentState = $class->runSession(%args);

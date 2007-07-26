@@ -26,8 +26,8 @@ use HoneyClient::Manager;
 # Change to 'HoneyClient::Agent::Driver::Browser::IE' or
 #           'HoneyClient::Agent::Driver::Browser::FF'
 my $driver = "HoneyClient::Agent::Driver::Browser::IE";
-my $config = "/vm/master-vms/Agent.Master-23/winXPPro.cfg";
-my $maxrel = 10;
+my $config = undef;
+my $maxrel = -1;
 my $nexturl = "";
 my $urllist= "";
 
@@ -66,8 +66,6 @@ my $agentState = HoneyClient::Manager->run(
                     agent_state      => encode_base64(nfreeze({
                         $driver => {
                             next_link_to_visit => $firsturl,
-                            # Enable this line, if you want to only go to the
-                            # first 5 links for each domain.
                             max_relative_links_to_visit => $maxrel,
                             links_to_visit => \%remaining_urls,
                          },
