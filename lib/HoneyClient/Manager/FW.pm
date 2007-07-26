@@ -3328,10 +3328,8 @@ SOAP::Lite, SOAP::Transport::HTTP
 L<http://www.soaplite.com>
 
 IPTables::IPv4
-L<http://search.cpan.org/~dpates/IPTables-IPv4-0.98/IPv4.pm>
 
 Net::DNS
-L<http://search.cpan.org/~olaf/Net-DNS-0.57/lib/Net/DNS.pm>
 
 IPTables Perl API
 L<http://sourceforge.net/projects/iptperl/>
