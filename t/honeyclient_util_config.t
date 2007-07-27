@@ -68,6 +68,12 @@ BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
+
+# Make sure Log::Dispatch::Syslog loads
+BEGIN { use_ok('Log::Dispatch::Syslog')
+        or diag("Can't load Log::Dispatch::Syslog package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Log::Dispatch::Syslog');
+use Log::Dispatch::Syslog;
 }
 
 
