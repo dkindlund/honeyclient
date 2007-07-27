@@ -36,7 +36,7 @@ sub get_dependencies{
     $package = shift;
 	find(\&process,'lib');
     foreach( sort keys %requires){
-        printf FILE "requires\t%s => %s;\n",$_,$requires{$_};
+        printf FILE "requires\t'%s' => '%s';\n",$_,$requires{$_};
     }
 }
 
@@ -60,6 +60,10 @@ if( -f $file ){
 print   FILE "clean_files\t't/';\n";
 print   FILE "\n";
 get_dependencies(join("::",@name));
+print   FILE "\n";
+print   FILE "no_index\t'directory' => 'etc';\n";
+print   FILE "no_index\t'directory' => 'inc';\n";
+print   FILE "no_index\t'directory' => 'thirdparty';\n";
 print   FILE "\n";
 print   FILE "auto_install;\n";
 print   FILE "WriteAll;\n";
