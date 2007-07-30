@@ -22,6 +22,7 @@ my %inc_dirs = (etc                            => $src_path . '/etc',
                 bin                            => $src_path . '/bin',
                 inc                            => 'thirdparty/inc',
                 'thirdparty'                   => 'thirdparty',
+                't'                            => 't',
                );
 #--------------------------------------#
 

@@ -3635,7 +3635,7 @@ eval {
              glob($cloneVMDir . "/*.vms*"),
              glob($cloneVMDir . "/*.vme*")) {
         $mode = sprintf("%04o", stat($_)->mode & 07777);
-        is($mode, "0400", "setMasterVM(config => '$cloneVM')") or diag("The setMasterVM() call failed.  Expected file ($_) to be mode 0400, but it was mode $mode instead.");
+        is($mode, "0440", "setMasterVM(config => '$cloneVM')") or diag("The setMasterVM() call failed.  Expected file ($_) to be mode 0440, but it was mode $mode instead.");
     }
 
     # Destroy the clone VM.
