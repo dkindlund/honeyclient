@@ -355,7 +355,7 @@ BEGIN {
     our @ISA    = qw(Exporter);
     our @EXPORT = qw();
     our @EXPORT_OK;
-    our $VERSION = 0.9;
+    our $VERSION = 0.98;
 
     my $database_version;     #  = $dbh->get_info(  18 ); # SQL_DBMS_VER
 }
