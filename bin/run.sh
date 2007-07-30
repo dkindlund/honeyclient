@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# $Id$
+
 echo "Starting up Agent - (Hit CTRL-C multiple times to exit.)"
 
 # Remove all old /tmp/* entries.

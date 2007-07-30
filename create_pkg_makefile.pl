@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+
+# $Id$
+
 # Remember to add $name to this, or else it will not work
 use warnings;
 use strict;

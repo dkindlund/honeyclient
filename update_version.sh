@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+# $Id$
+
 if [ -z $1 ] || [ -z $2 ] ; then
     echo "Code Version Updater"
     echo "Usage: $0 <old_version> <new_version>"
