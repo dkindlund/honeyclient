@@ -171,7 +171,7 @@ diag("About to run extended tests.");
 # exactly quick.
 diag("Note: These extended tests will take *significant* time to complete (10-30 minutes).");
 
-my $question = prompt("# Do you want to run extended tests?", "no");
+$question = prompt("# Do you want to run extended tests?", "no");
 if ($question !~ /^y.*/i) {
     exit;
 }
