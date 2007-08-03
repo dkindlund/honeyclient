@@ -169,7 +169,7 @@ our $DB_ENABLE = getVar(name      => "enable",
 if ($DB_ENABLE) {
     # Include DB Utility Library
     # TODO: Include unit tests.
-    use HoneyClient::DB::Fingerprint;
+    require HoneyClient::DB::Fingerprint;
 }
 
 # XXX: Remove this, eventually.
