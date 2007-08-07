@@ -36,7 +36,7 @@ to the HoneyClient global configuration file.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Util::Config version 0.98.
+This documentation refers to HoneyClient::Util::Config version 0.99.
 
 =head1 SYNOPSIS
 
@@ -95,7 +95,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
-    $VERSION = 0.98;
+    $VERSION = 0.99;
 
     @ISA = qw(Exporter);
 

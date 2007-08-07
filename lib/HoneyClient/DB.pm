@@ -37,7 +37,7 @@ storing HoneyClient data into a database.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::DB version 0.98.
+This documentation refers to HoneyClient::DB version 0.99.
 
 =head1 SYNOPSIS
 
@@ -355,7 +355,7 @@ BEGIN {
     our @ISA    = qw(Exporter);
     our @EXPORT = qw();
     our @EXPORT_OK;
-    our $VERSION = 0.98;
+    our $VERSION = 0.99;
 
     my $database_version;     #  = $dbh->get_info(  18 ); # SQL_DBMS_VER
 }

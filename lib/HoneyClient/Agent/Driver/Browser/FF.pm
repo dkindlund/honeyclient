@@ -40,7 +40,7 @@ HoneyClient::Agent::Driver::Browser package, by overridding the drive() method.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Agent::Driver::Browser::FF version 0.98.
+This documentation refers to HoneyClient::Agent::Driver::Browser::FF version 0.99.
 
 =head1 SYNOPSIS
 
@@ -159,7 +159,7 @@ BEGIN {
     our ( @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION );
 
     # Set our package version.
-    $VERSION = 0.98;
+    $VERSION = 0.99;
 
     # Define inherited modules.
     use HoneyClient::Agent::Driver::Browser;
