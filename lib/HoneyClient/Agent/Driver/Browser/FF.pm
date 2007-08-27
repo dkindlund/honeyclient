@@ -460,8 +460,8 @@ sub drive {
 
     # Sanity check.
     if (!defined($status)) {
-        $LOG->error("Error: Unable to spawn a new browser - " . $^E . ".");
-        Carp::croak "Error: Unable to spawn a new browser - " . $^E . ".\n";
+        $LOG->error("Error: Unable to execute '" . $processExec . "'");
+        Carp::croak "Error: Unable to execute '" . $processExec . "'\n";
     }
 
     # Run the job.
