@@ -1104,7 +1104,8 @@ sub drive {
     }
     
     # Check our internal relative links counter.
-    if ($self->_remaining_number_of_relative_links_to_visit == 1) {
+    if (($self->_remaining_number_of_relative_links_to_visit == 0) ||
+        ($self->_remaining_number_of_relative_links_to_visit == 1)) {
 
         # XXX: Do we need this message in here?
         $LOG->info("Resetting relative links to visit counter.");
