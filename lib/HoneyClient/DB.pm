@@ -53,7 +53,7 @@ As a generic example, let's store data about superheroes.
   # Define Ability Schema
   our %fields = (
       string => {
-          # Each ability should have a name. 
+          # Each ability should have a name.
           name => {
               # This name should be required.
               required => 1, # Must exist and is not null
@@ -66,12 +66,12 @@ As a generic example, let's store data about superheroes.
       # Each ability may have an optional recharge time.
       int  => [ 'recharge_time' ],
   );
-  
+
   # Next, we define a schema for each superhero (parent object).
   package HoneyClient::DB::SuperHero;
   use base("HoneyClient::DB");
-  
-  # Define SuperHero Schema 
+
+  # Define SuperHero Schema
   our %fields = (
       string => {
           # Each superhero should have a name.
@@ -87,8 +87,8 @@ As a generic example, let's store data about superheroes.
           # If 2 SuperHero Objects have the same 'name' and 'real_name'
           # fields, then only the first object will be inserted succesfully
       },
-      
-      # Each superhero may have optional height and weight stats. 
+
+      # Each superhero may have optional height and weight stats.
       int => [ 'height', 'weight' ],
 
       # Each superhero must have a primary ability.
@@ -117,7 +117,7 @@ As a generic example, let's store data about superheroes.
           },
       },
   );
-  
+
   1;
 
 =head2 USE SCHEMAS
@@ -149,20 +149,20 @@ As a generic example, let's store data about superheroes.
           },
       ],
   };
-    
+
   # Instantiate a new SuperHero object.
   # Upon creation, the data will be checked against the schema.
-  # This call will croak if any errors occur. 
+  # This call will croak if any errors occur.
   $hero = HoneyClient::DB::SuperHero->new($hero);
 
   # Insert the data into the database.
   $hero->insert();
-  
+
   # Retrieve the superhero.
   my $filter = {
       name => 'Superman',
   };
-    
+
   # Retrieves rows in the SuperHero table where name is 'Superman'.
   # NOTE: At this time, the returned data is NOT identical to
   # the object inserted.
@@ -235,7 +235,7 @@ must be set within each column name.
 
 Column names are defined as keys in the second level of B<%fields>.  If
 each column does not need any special options (e.g., making the column
-required), then an array reference can hold all the column names. 
+required), then an array reference can hold all the column names.
 For example, the following schema defines 3 default integer fields:
 
   %our fields = {
@@ -250,7 +250,7 @@ However, if some of the columns need special options set (e.g., making 'col_b'
 required), then a sub-hash table should be defined instead, as follows:
 
   %our fields = {
-      int => { 
+      int => {
           'col_a' => {},
           'col_b' => {
               'required' => 1,
@@ -312,7 +312,7 @@ This option is required and only used by the L<'array'> and L<'ref'>
 data types.  The value should be a string which contains the package name of
 the schema to include as a child.
 
-=item * B<'required'> 
+=item * B<'required'>
 
 If defined and set to 1, then this option will cause all subsequent
 B<HoneyClient::DB::*-E<gt>L<new>($data)> operations to fail, if the B<$data>
@@ -367,15 +367,18 @@ our $dbhandle;
 
 # To be used ONLY INTERNALLY!
 our ( %_types, %_check, %_required, %_init_val, %_keys, %defaults );
+our (%display_rank);
 
 # %fields must be defined by all children classes
 our %fields;
 
 #constants
-our ( $STATUS_DELETED, $STATUS_ADDED, $STATUS_MODIFIED ) =
-  ( 0, 1, 2 );    # Integrity status field
-our ( $KEY_INDEX, $KEY_UNIQUE, $KEY_UNIQUE_MULT ) =
-  ( 0, 1, 2 );    # Uniqueness of Attributes
+# Integrity status field
+our ( $STATUS_DELETED, $STATUS_ADDED, $STATUS_MODIFIED ) = ( 0, 1, 2 );
+# Uniqueness of Attributes
+our ( $KEY_INDEX, $KEY_UNIQUE, $KEY_UNIQUE_MULT ) = ( 0, 1, 2 );
+# Option for get_fields()
+our ( $FIELDS_ALL, $FIELDS_SEARCH, $FIELDS_DISPLAY ) = ( 0 , 1, 2);
 our $debug = 0;
 
 # Initialize Connection
@@ -493,6 +496,9 @@ sub _check_required {
 sub _import_schema {
     my $class  = shift;
     my $schema = \%{ $class . "::fields" };
+	#TODO: Give better names for these:
+	my (%rank_me_display, %rank_me_search);
+	my $MAX_RANK = 10000;
 
     # Parase Attributes; store types and options.
     while ( my ( $type, $attrib ) = each(%$schema) ) {
@@ -550,12 +556,35 @@ sub _import_schema {
                 if ( $opts->{init_val} ) {
                     $_init_val{$class}{$a} = $opts->{key};
                 }
+				#DEBUG: Test new code
+				if( $opts->{searchable} ) {
+					1;#TODO: $_search_fields{$class}
+				}
+				if( exists $opts->{display_rank} ) {
+					#TODO: Add logic to handle inappropriatly ranked items
+					my $rank = $opts->{display_rank};
+					if ($opts->{display_rank}) {
+						while (exists $rank_me_display{$rank}) {
+								$rank++;
+						}
+					   	$rank_me_display{$rank} = $a;
+					}
+				}
+				elsif ($type =~ m/^(array|ref)$/) {}
+				else {
+					#TODO: Eliminate Constant here:
+					$rank_me_display{$MAX_RANK++} = $a;
+				}
             }
         }
         else {
             $LOG->warn("$class\{$type\} is defined improperly");
         }
     }
+	my @temp = map $rank_me_display{$_}, sort( keys( %rank_me_display ) );
+	$display_rank{$class} = \@temp;
+	use Data::Dumper;
+	print "Rank $class: ".Dumper($display_rank{$class})."\n";
 
     # Add the table to the DB if necessary
     # TODO: Move to install script??
@@ -754,7 +783,20 @@ sub select {
     my @results;
     eval {
         $dbhandle = HoneyClient::DB::_connect(%config);
-        @results  = _select(@_);
+
+		# Create SQL query
+		my $sql = _select(@_);
+		$LOG->debug($sql);
+
+		# Execute SQL query
+		my $sth = $dbhandle->prepare($sql);
+		#XXX: print "<p>$sql<p>";
+		$sth->execute();
+
+		# Retrieve results and exit
+		while ( my $row = $sth->fetchrow_hashref() ) {
+				push @results, $row;
+		}
         $dbhandle->disconnect() if $dbhandle;
     };
     if ($@) {
@@ -773,21 +815,21 @@ sub _select {
         unshift( @fields, $filter );
         $filter = {};
     }
+	@fields = $class->get_fields() unless scalar(@fields);
+	#foreach (@fields) {
+	#	if
+	#}
 
     # Prepare SQL statements
     my $sql = "SELECT ";
-    $sql .=
-      (
-        scalar(@fields)
-        ? join( ',', @fields )
-        : join( ',', $class->get_fields() ) );
-    $sql .= " FROM " . $class->_get_table() . " WHERE ";
-    my @conditions;
+    $sql .= join( ',', @fields);
+    $sql .= " FROM " . $class->_get_table();
 
     # Set condition statements
+    my @conditions;
+	$sql .= " WHERE " if (keys %$filter);
     while ( my ( $col, $data ) = each %$filter ) {
-        if ( !exists $_types{$class}{$col} ) {
-
+        if ( !exists $_types{$class}{$col} && $col ne 'id' && $col !~ m/_fk$/) {
             # TODO: Handle non-existent field
         }
         elsif ( $_types{$class}{$col} =~ /array:.*/ ) {
@@ -799,21 +841,24 @@ sub _select {
             push @conditions,
               ( $1->_get_table() . '_fk=' . $dbhandle->quote($data) );
         }
+		elsif ( $_types{$class}{$col} =~ /timestamp/ && ref $data eq 'ARRAY') {
+			eval {
+				if (check_timestamp($data->[0])) {
+					if (check_timestamp($data->[1])) {
+						push @conditions, ( $col . ' BETWEEN ' .
+							$dbhandle->quote($data->[0]) . ' AND '.
+							$dbhandle->quote($data->[1])
+						);
+					}
+				}
+			}; #TODO: Handle flawed query?
+		}
         else {
             push @conditions, ( $col . '=' . $dbhandle->quote($data) );
         }
     }
     $sql .= join( ' AND ', @conditions );
 
-    $LOG->debug($sql);
-    my @results = ();
-    my $sth = $dbhandle->prepare($sql);
-    $sth->execute();
-    while ( my $row = $sth->fetchrow_hashref() ) {
-        push @results, $row;
-    }
-   
-    return @results;
 }
 
 sub includes {
@@ -858,19 +903,33 @@ query that retrieves all fields.
 sub get_fields {
     my $self = shift;
     my $class = ( ref($self) or $self );
+	my $type = shift;
+	$type = $FIELDS_ALL if ($type == undef);
+	# $FIELDS_ALL,$FIELDS_SEARCH,$FIELDS_DISPLAY
 
     my @fields;
     # Begin Fields list w/ record id
     push @fields,'id';
-
-    foreach ( keys %{ $_types{$class} } ) {
-        if ( $_types{$class}{$_} !~ m/array:.*/ ) {
-            if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
-                push( @fields, $1->_get_table . '_fk' );
-            }
-            else { push @fields, $_; }
-        }
+    if ($type == $FIELDS_DISPLAY) {
+    	@fields = @{$display_rank{$class}};
+	    foreach ( keys %{ $_types{$class} } ) {
+	        if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
+	            push( @fields, $1->_get_table . '_fk' );
+	        }
+	    }
+	    
+    	return @fields;
     }
+    else {
+	    foreach ( keys %{ $_types{$class} } ) {
+	        if ( $_types{$class}{$_} !~ m/array:.*/ ) {
+	            if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
+	                push( @fields, $1->_get_table . '_fk' );
+	            }
+	            else { push @fields, $_; }
+	        }
+	    }
+	}
     return @fields;
 }
 
@@ -1030,7 +1089,7 @@ sub _create_array_fk {
     my $pt = $class->_get_table();
 
 # Initialize SQL ALTER TABLE statement to add Foreign Key to Parent Table in Child Table
-    my $sql = "ALTER TABLE ${ct} ADD ${pt}_fk INT UNSIGNED,\n\tADD " . 
+    my $sql = "ALTER TABLE ${ct} ADD ${pt}_fk INT UNSIGNED,\n\tADD " .
         $class->sql_foreign_key();
     my $sql_cols = "";
 
@@ -1172,7 +1231,7 @@ sub check_timestamp {
 
 =head1 BUGS & ASSUMPTIONS
 
-It is assumed that the <HoneyClient/><DB/> section of the 
+It is assumed that the <HoneyClient/><DB/> section of the
 etc/honeyclient.xml configuration file is properly configured
 and the host refered to in that section has MySQL v5.0 or
 greater running.
