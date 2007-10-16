@@ -367,10 +367,12 @@ our $dbhandle;
 
 # To be used ONLY INTERNALLY!
 our ( %_types, %_check, %_required, %_init_val, %_keys, %defaults );
-our (%display_rank);
+our %display_rank;
 
 # %fields must be defined by all children classes
 our %fields;
+
+our $last_error_code;
 
 #constants
 # Integrity status field
@@ -379,7 +381,16 @@ our ( $STATUS_DELETED, $STATUS_ADDED, $STATUS_MODIFIED ) = ( 0, 1, 2 );
 our ( $KEY_INDEX, $KEY_UNIQUE, $KEY_UNIQUE_MULT ) = ( 0, 1, 2 );
 # Option for get_fields()
 our ( $FIELDS_ALL, $FIELDS_SEARCH, $FIELDS_DISPLAY ) = ( 0 , 1, 2);
-our $debug = 0;
+# Error Codes
+our ($ERROR_NONE,$ERROR_INSERT_FAILED,$ERROR_DUPLICATE_FOUND,$ERROR_DUPLICATE_UNRESOLVED)
+    = (0,1,2,3);
+our @ERROR_MESSAGES = (
+	"Success!",
+	"Failed with a fatal error",
+	"Duplicate object found. Non-fatal warning.",
+	"Duplicate object found. Unable to retrieve ID of duplicate record.",
+);
+our $LAST_ERROR = $ERROR_NONE;
 
 # Initialize Connection
 our %config;
@@ -414,7 +425,7 @@ required fields contain the proper data, and returns the blessed object.
 It must be called using an object class derived from HoneyClient::DB.
 For Example:
 
-  $my_obj = new HoneyClient::DB::SomeObj->new({
+  $my_obj = HoneyClient::DB::SomeObj->new({
           field_a => "foo",
           field_b => "bar"
   });
@@ -423,24 +434,21 @@ For Example:
 
 sub new {
     my ( $class, $self ) = @_;
-
     bless( $self, $class );
 
     # Check if Schema has been imported
-    _import_schema($class) if ( !exists( $_types{$class} ) );
+    import_schema($class) if ( !exists( $_types{$class} ) );
 
     # Make sure required Attributes are set. Fail if not.
     my @missing = $self->_check_required();
     if ( scalar @missing ) {
-        $LOG->fatal( "Object missing required attribute(s): "
-              . join( ', ', @missing )
-              . '.' );
-        Carp::croak( "Object missing required attribute(s): "
-              . join( ', ', @missing )
-              . '.\n' );
+        $LOG->fatal( "$class->new(): Object missing required attribute(s): " .
+        	join( ', ', @missing ) . '.' );
+        Carp::croak( "$class->new(): Object missing required attribute(s): " .
+        	join( ', ', @missing ) . '.\n' );
     }
 
-    # Check if ref and array objects have been initialized. If not call new
+    # Check data validity. Initialize uninitialized ref and array objects
     foreach my $key ( keys %$self ) {
         eval {
             if ( $self->{$key} )
@@ -453,11 +461,11 @@ sub new {
             Carp::croak "Invalid Object $key\n\t$@";
         }
         if ( $_types{$class}{$key} =~ m/(array|ref):(.*)/ ) {
-            my $ref        = ref( $self->{$key} );
-            my $childType  = $1;
-            my $childClass = $2;
+            my $ref = ref( $self->{$key} );
+            my ($childType,$childClass)  = ($1,$2);
+
             if ( $childClass->can('new') ) {
-                if ( $ref eq 'HASH' and $childType eq 'ref' ) {
+                if ( $childType eq 'ref' ) {
                     $self->{$key} = $childClass->new( $self->{$key} );
                 }
                 if ( $ref eq 'ARRAY' and $childType eq 'array' ) {
@@ -481,7 +489,7 @@ sub _check_required {
     my $self  = shift;
     my $class = ref $self;
 
-    # make sure field is not undef if 'required' option is set
+    # make sure field is not undefined if 'required' option is set
     if ( exists $_required{$class} ) {
         my @missing;
         foreach ( keys %{ $_required{$class} } ) {
@@ -493,11 +501,10 @@ sub _check_required {
     return;
 }
 
-sub _import_schema {
+sub import_schema {
     my $class  = shift;
     my $schema = \%{ $class . "::fields" };
-	#TODO: Give better names for these:
-	my (%rank_me_display, %rank_me_search);
+	my (%rank_display, %rank_search);
 	my $MAX_RANK = 10000;
 
     # Parase Attributes; store types and options.
@@ -524,7 +531,7 @@ sub _import_schema {
         elsif ( $ref eq 'HASH' ) {
             while ( my ( $a, $opts ) = each %$attrib ) {
                 $_types{$class}{$a} = $type;
-                if ( $opts->{required} ) {
+                if ( exists $opts->{required} && $opts->{required}) {
                     $_required{$class}{$a} = 1;
                 }
 
@@ -535,7 +542,7 @@ sub _import_schema {
                         Carp::croak "$1 of unknown class: $a";
                     }
                     if ( !exists $_types{ $opts->{objclass} } ) {
-                        _import_schema( $opts->{objclass} );
+                        import_schema( $opts->{objclass} );
                     }
                     $_types{$class}{$a} .= ':' . $opts->{objclass};
                 }
@@ -558,22 +565,20 @@ sub _import_schema {
                 }
 				#DEBUG: Test new code
 				if( $opts->{searchable} ) {
-					1;#TODO: $_search_fields{$class}
+					#TODO: $_search_fields{$class}
 				}
 				if( exists $opts->{display_rank} ) {
-					#TODO: Add logic to handle inappropriatly ranked items
 					my $rank = $opts->{display_rank};
 					if ($opts->{display_rank}) {
-						while (exists $rank_me_display{$rank}) {
+						while (exists $rank_display{$rank}) {
 								$rank++;
 						}
-					   	$rank_me_display{$rank} = $a;
+					   	$rank_display{$rank} = $a;
 					}
 				}
 				elsif ($type =~ m/^(array|ref)$/) {}
 				else {
-					#TODO: Eliminate Constant here:
-					$rank_me_display{$MAX_RANK++} = $a;
+					$rank_display{$MAX_RANK++} = $a;
 				}
             }
         }
@@ -581,16 +586,13 @@ sub _import_schema {
             $LOG->warn("$class\{$type\} is defined improperly");
         }
     }
-	my @temp = map $rank_me_display{$_}, sort( keys( %rank_me_display ) );
+	my @temp = map $rank_display{$_}, sort( keys( %rank_display ) );
 	$display_rank{$class} = \@temp;
-	use Data::Dumper;
-	print "Rank $class: ".Dumper($display_rank{$class})."\n";
 
     # Add the table to the DB if necessary
-    # TODO: Move to install script??
     if (!$class->deploy_table()) {
-        $LOG->fatal("${class}->_import_schema: " . "Failed to deploy table");
-        Carp::croak("${class}->_import_schema: " . "Failed to deploy table");
+        $LOG->fatal("${class}->import_schema: " . "Failed to deploy table");
+        Carp::croak("${class}->import_schema: " . "Failed to deploy table");
     }
 }
 
@@ -621,6 +623,7 @@ Returns the 'id' of the (parent) object inserted.
 sub insert {
     my $obj = shift;
     my $id  = undef;
+	my $objType  = ref $obj;
 
     $dbhandle = HoneyClient::DB::_connect(%config);
 
@@ -630,6 +633,10 @@ sub insert {
     if ($@) {
         $LOG->warn("insert failed, Rolling Back: $@");
         $dbhandle->rollback();
+    }
+    elsif ($LAST_ERROR != $ERROR_NONE) {
+    	$LOG->warn("Rolling Back $objType Insert. Code #$LAST_ERROR: ".$ERROR_MESSAGES[$LAST_ERROR]);
+    	$dbhandle->rollback();
     }
     else {
         $dbhandle->commit();
@@ -673,44 +680,39 @@ sub _insert_obj {
     my ( $obj, $fk_col, $fk_id ) = @_;
     my ( $class, $table ) = ( ref($obj), _get_table($obj) );
     my ( $id, %insert, %index, %children );
+    my $error = $ERROR_NONE;
 
-    # Process object attributes
+# Process object attributes
     while ( my ( $col, $data ) = each %$obj ) {
         if ( !$_types{$class}{$col} ) {
             $LOG->warn("$col=>$data is not a valid field in $class");
             delete $obj->{$col};
         }
-        # Store Arrays of child objects to insert later
+# Store Arrays of child objects to insert later
         elsif ( $_types{$class}{$col} =~ m/(array)/ ) {
             $children{$col} = $data;
         }
-        # Insert child w/ 1 to 1 relationships and create a foreign key to it
+# Insert child w/ 1 to 1 relationships and create a foreign key to it
         elsif ( $_types{$class}{$col} =~ m/ref:(.*)/ ) {
             if ( my $ft = $1->_get_table() ) {
-                $insert{ $ft . '_fk' } = _insert($data);
+                $insert{ $ft . '_' .$col . '_fk' } = _insert($data);
             }
         }
-        # Add scalar attribute insert hash to be used @ INSERT time
+# Add scalar attribute insert hash to be used @ INSERT time
         else {
             $insert{$col} = $dbhandle->quote($data);
         }
     }
-
-    # In case this is a child object, add the foreign key to parent
+# In case this is a child object, add the foreign key to parent
     $insert{$fk_col} = $fk_id if ( $fk_col && $fk_id );
 
-    # Generate and execute SQL INSERT statement
-    my $sql =
-        "INSERT INTO $table ("
-      . join( ',', keys %insert )
-      . ") VALUES ("
-      . join( ',', values(%insert) ) . ')';
+# Generate and execute SQL INSERT statement
+    my $sql = "INSERT INTO $table (" . join( ',', keys %insert ) . ") VALUES (" . join( ',', values(%insert) ) . ')';
     eval {
         $LOG->debug($sql);
         $dbhandle->do($sql);
     };
-
-    # Handle DB errors. If 1062 (collision) get the ID of pre-existing row
+# Handle DB errors. If 1062 (collision) get the ID of pre-existing row
     if ($@) {
         if ( $dbhandle->err == 1062 ) {
             my $filter;
@@ -720,159 +722,365 @@ sub _insert_obj {
                     $filter->{$col} = $obj->{$col};
                 }
             }
-            my @rows = $class->_select( $filter, 'id' );
+            my @rows = $class->_select(
+            	'-columns'=>['id'],
+            	'-where'=>$filter,
+            );
             if (scalar @rows) {
                 $id = $rows[0]->{id};
+            	$error = $ERROR_DUPLICATE_FOUND;
             }
             else {
+                $LAST_ERROR = $ERROR_DUPLICATE_UNRESOLVED;
                 $LOG->fatal("Error: Can't resolve duplicate records\t" . $dbhandle->err . ": $@");
                 Carp::croak("Error: Can't resolve duplicate records\n\t" . $dbhandle->err . ": $@");
             }
         }
         else {
-            $LOG->fatal("Error: " . $dbhandle->err . ": $@");
-            Carp::croak("Error: " . $dbhandle->err . ": $@");
+            $LAST_ERROR = $ERROR_INSERT_FAILED;
+            $LOG->fatal("Error #".$dbhandle->err."while executing SQL:\n\t$sql\n$@");
+            Carp::croak("Error #".$dbhandle->err."while executing SQL:\n\t$sql\n$@");
         }
     }
     else {
         $id = $dbhandle->{'mysql_insertid'};
     }
-
-    # Insert Children
+# Insert Children
     foreach ( keys %children ) {
-        my $rv = _insert( $children{$_}, $table . '_fk', $id );
-
-        #TODO: Handle Insert Failure
+        my $rv = _insert( $children{$_}, $table . '_' .$_ . '_fk', $id );
     }
+    $LAST_ERROR = $error;
     return $id;
 }
+
+=head3 QUERY CONDITIONS
+
+The following functions accept conditions using the '-where' argument. These
+conditions filter results to the desired information. Currently any scalar field
+is searchable (string, int, text, timestamp), while ref objects are searchable
+only by their ids (for now).
+
+The following query will list Regkey changes that occurred to the Windows
+auto-start key .
+
+  @runKeys = HoneyClient::DB::Regkey->select(
+  	  -where => {
+  	  	  key_name => 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run',
+  	  },
+  );
+
+In order to perform a partial match search, a tilda can be added to the front
+of the column name. This is not applicable to ranges. The following query will
+return any Registry change with the string 'Run' in the key name(path).
+
+  @runKeys = HoneyClient::DB::Regkey->select(
+  	  -where => {
+  	  	  '~key_name' => 'Run',
+  	  },
+  );
+
+B<NOTE:> In this case, the column name must be quoted, or used as a variable.
+
+A query can search a range, for instance, the following will show all
+Honeyclients in a given date range.
+
+  @octoberClients = HoneyClient::DB::Client->select(
+	  -where => {
+	  	  start_time => ['2007-10-01 00::00::00','2007-10-31 23::59::59'
+	  },
+  );
+
+The '-where' option accepts filters on multiple columns as well.
+
 
 =item select
 
 Creates and executes a SQL SELECT statement and returns an array of hash refs
-containing result rows. If no fields are specified, all fields are returned.
-The first parameter is a hash reference to a query filter. The filter may be
-followed by a list of field names to retrieve.
+containing result rows.
 
-  @my_objects = HoneyClient::DB::SomeObj->select($my_filter,@columns);
+The following would select the name, age, address, and phone columns for all
+records with the name 'bob', and an age in the range of 25-50 (inclusive).
 
-or
-
-  $my_objects_ref = HoneyClient::DB::SomeObj->select($my_filter,@columns);
+  @my_objects = HoneyClient::DB::Process->select(
+  	  -columns => qw(name,pid,parent_name,created_time),
+  	  -where => {
+  	  	  name => 'bob',
+  	  	  age => [25,50],
+  	  },
+  );
 
 B<Input>
 
-The first parameter is a hash_ref containing a filter. The filter is used to
-generate a SQL query.
+The select() function can take as arguments a hash containing the following keys:
 
-The filter is followed by a list of column to select.
+=item * B<'-columns'>
 
-Both parameters are optional. If the first parameter is a scalar, it is assumed
-that there is no filter.
+List of columns to be selected. By default, if no -columns argument is given,
+all columns are selected. See L<get_fields>.
 
-B<**NOTE**> Currently it is not possible to include a child object (ref or
-array type) in the filter. Only 'id's of child objects are accepted.
+=item * B<'-where'>
 
-B<Return Value>
-
-Returns the 'id' of the (parent) object inserted.
+This field can contain a set of conditions used to filter the results. Refer to
+L<QUERY CONDITIONS> for more info.
 
 =cut
 
 sub select {
-    my @results;
-    eval {
-        $dbhandle = HoneyClient::DB::_connect(%config);
+# Connect, Create, and execute SQL query
+    $dbhandle = HoneyClient::DB::_connect(%config);
+    my @results = _select(@_);
 
-		# Create SQL query
-		my $sql = _select(@_);
-		$LOG->debug($sql);
-
-		# Execute SQL query
-		my $sth = $dbhandle->prepare($sql);
-		#XXX: print "<p>$sql<p>";
-		$sth->execute();
-
-		# Retrieve results and exit
-		while ( my $row = $sth->fetchrow_hashref() ) {
-				push @results, $row;
-		}
-        $dbhandle->disconnect() if $dbhandle;
-    };
-    if ($@) {
-        $LOG->fatal("select error: $@");
-        Carp::croak("select error: $@");
-        @results = ();
-    }
+# Disconnect and return results
+    $dbhandle->disconnect() if $dbhandle;
     wantarray ? return @results : return \@results;
 }
 
 sub _select {
-    my ( $class, $filter, @fields ) = @_;
+	my (@results,$sql);
+    eval {
+# Create SQL query
+        $sql = _build_query(@_);
+        $LOG->debug($sql);
 
-    # If 2nd argument is not a hashref, assume it is the first field.
-    if ( $filter && ref($filter) ne 'HASH' ) {
-        unshift( @fields, $filter );
-        $filter = {};
+# Execute SQL query
+        my $sth = $dbhandle->prepare($sql);
+        $sth->execute();
+
+# Retrieve results and exit
+        while ( my $row = $sth->fetchrow_hashref() ) {
+            push @results, $row;
+        }
+    };
+    if ($@) {
+        $LOG->warn("Error while executing SQL:\n\t$sql\n$@");
+        return ();
     }
-	@fields = $class->get_fields() unless scalar(@fields);
-	#foreach (@fields) {
-	#	if
-	#}
-
-    # Prepare SQL statements
-    my $sql = "SELECT ";
-    $sql .= join( ',', @fields);
-    $sql .= " FROM " . $class->_get_table();
-
-    # Set condition statements
-    my @conditions;
-	$sql .= " WHERE " if (keys %$filter);
-    while ( my ( $col, $data ) = each %$filter ) {
-        if ( !exists $_types{$class}{$col} && $col ne 'id' && $col !~ m/_fk$/) {
-            # TODO: Handle non-existent field
-        }
-        elsif ( $_types{$class}{$col} =~ /array:.*/ ) {
-            @$data = map $dbhandle->quote($_), @$data;
-            push( @conditions, 'id IN (' . join( ',', @$data ) . ')' )
-              if ( scalar(@$data) );
-        }
-        elsif ( $_types{$class}{$col} =~ /ref:(.*)/ ) {
-            push @conditions,
-              ( $1->_get_table() . '_fk=' . $dbhandle->quote($data) );
-        }
-		elsif ( $_types{$class}{$col} =~ /timestamp/ && ref $data eq 'ARRAY') {
-			eval {
-				if (check_timestamp($data->[0])) {
-					if (check_timestamp($data->[1])) {
-						push @conditions, ( $col . ' BETWEEN ' .
-							$dbhandle->quote($data->[0]) . ' AND '.
-							$dbhandle->quote($data->[1])
-						);
-					}
-				}
-			}; #TODO: Handle flawed query?
-		}
-        else {
-            push @conditions, ( $col . '=' . $dbhandle->quote($data) );
-        }
-    }
-    $sql .= join( ' AND ', @conditions );
-
+	return @results;
 }
 
-sub includes {
-    my @ids;
-    foreach (@_) {
-        push( @ids, $_ ) if ( !( ref $_ ) && ( $_ =~ /^\d+$/ ) );
-        if ( exists $_->{id} ) {
-            push @ids, $_->{id};
+sub _build_query {
+    my ( $class, %args) = @_;
+	my @fields;
+	if (exists($args{'-columns'}) && scalar(@{$args{'-columns'}})) {
+		@fields = @{$args{'-columns'}};
+	}
+	else {
+		@fields = $class->get_fields();
+	}
+# Column Rename where columns are passed as a hash table e.g. {col_name => "Display Name"} becomes "col_name AS 'Display Name'"
+	foreach my $col_def (@fields) {
+		if (ref $col_def eq 'HASH') {
+             while (my ($col,$as) = (each %$col_def)) {
+                 push @fields, "$col AS '$as'";
+             }
+         }
+     }
+# Prepare SQL statement
+    my $sql = "SELECT "; $sql .= join( ',', @fields); $sql .= " FROM " . $class->_get_table();
+# Set condition statements
+    $sql .= _where_condition($args{'-where'});
+    return $sql;
+}
+
+# Generates a where condition (e.g. " WHERE id=5 AND name='foo'")
+sub _where_condition {
+	my ($class,$cond) = @_;
+	my @conditions;
+	if (!keys(%$cond)) {
+		return '';
+	}
+	while ( my ( $col, $data ) = each %$cond ) {
+		my $partial = 0;
+		if ($col =~ /^\~(.*)/) {
+			$col = $1;
+			$partial = 1;
+		}
+		if ( !exists $_types{$class}{$col} && $col ne 'id' && $col !~ m/_fk$/) {
+            next; #TODO: Handle non-existent field
         }
-        else {
-            next;    #push @ids, $_->_get_id();
+        my $cf = ($_check{$class}{$col} || \&check_nothing);
+		if (my $ref = ref($data)) {
+			eval {
+				if (my ($type,$sub_class) = $_types{$class}{$col} =~ /(array|ref):(.*)/ ) {
+					if ($ref eq 'HASH') {
+						my ($left,$right) = ('id',$class->get_col_name($col));
+						if ($type eq 'ref') {
+							($left, $right) = ($right,$left);
+						}
+	                    my $sub_query = $sub_class->select(
+	                       -columns => [$right],
+	                       -where => $data,
+	                    );
+						push @conditions, $left.' IN ('.$sub_query.')';
+					}
+				}
+				elsif ($ref eq 'ARRAY' && &$cf($data->[0]) && &$cf($data->[1])) {
+					push @conditions, ( $class->get_col_name($col) . ' BETWEEN ' .
+						$dbhandle->quote($data->[0]) . ' AND '.
+	                    $dbhandle->quote($data->[1])
+					);
+				}
+			};
+			#TODO: Handle Failure
+		}
+		else {
+        	if (exists $_types{$class}{$col} && $_types{$class}{$col} =~ /ref:(.*)/ ) {
+               if (check_int($data)) {
+                   push @conditions,($class->get_col_name($col).'='.$dbhandle->quote($data));
+               }
+        	}
+			elsif ($cf->($data)) {
+				if ($partial) {
+					my $wc_data = "%".$data."%";
+					push @conditions, ( $col . ' LIKE ' . $dbhandle->quote($wc_data) )
+				}
+				else {
+					push @conditions, ( $col . '=' . $dbhandle->quote($data) )
+				}
+			}
+			else {
+				next; #TODO: Die on failure
+			}
         }
     }
-    return \@ids;
+    if (scalar @conditions) {
+	    return ' WHERE '.join( ' AND ', @conditions );
+	}
+	return '';
+}
+
+=item update
+
+Creates and executes a SQL SELECT statement and returns an array of hash refs
+containing result rows.
+
+The following would change the status of all jobs held by John Doe of HcTeam
+to closed.
+
+  @my_objects = HoneyClient::DB::Analyst::Job->update(
+  	  -set => {
+  	  	  status => $STATUS_CLOSED,
+  	  }
+  	  -where => {
+  	  	  analyst => {
+  	  	  	  name => 'John Doe',
+  	  	  	  organization => 'HcTeam',
+  	  	  },
+  	  },
+  );
+
+B<NOTE:> In the above example, the uses a filter based on another table. This is
+possible for both reference and array types. In both cases, a hash table
+reference containing a single record can be used as an argument for the field.
+
+B<Input>
+
+The update() function can take as arguments a hash containing the following keys:
+
+=item * B<'-set'>
+
+The column name and value pairs to be set by the update. If no valid -set option
+is provided, the update will fail.
+
+=item * B<'-where'>
+
+This field can contain a set of conditions used to filter the records to be
+updated. Refer to L<QUERY CONDITIONS> for more info.
+
+=cut
+
+sub update {
+    my ( $class, %args ) = @_;
+
+	my @set_expr;
+    # Prepare SQL statements
+    while (my ($col,$data) = each %{$args{'-set'}}) {
+		if (exists $_types{$class}{$col} || $col eq 'id' || $col =~ m/_fk$/) {
+    		eval {
+				my $foo = -1;
+				$foo = $_check{$class}{$col}->($data) if(exists $_check{$class}{$col});
+            };
+    		if (!$@) {
+                push @set_expr, ( $class->get_col_name($col) . '=' . $dbhandle->quote($data) )
+    		}
+    	}
+		else {
+			#TODO: Warn or Fail, bad set argument
+		}
+    }
+    if (scalar(@set_expr)) {
+   		$dbhandle = HoneyClient::DB::_connect(%config);
+    	my $rc = $class->_update(join( ',', @set_expr ),$args{'-where'});
+		if($rc >= 0) {
+			$dbhandle->commit();
+			$dbhandle->disconnect() if $dbhandle;
+	        return $rc;
+		}
+		$LOG->warn("Update failed, invalid or missing -set arguments");
+		$dbhandle->rollback();
+		$dbhandle->disconnect() if $dbhandle;
+    }
+    return -1;
+}
+
+sub _update {
+	my ($class,$update,$conditions) = @_;
+	my $rc = -1;
+	my $sql = "UPDATE ". $class->_get_table()." SET " . $update . $class->_where_condition($conditions);
+    eval {
+# Execute UPDATE and Parse mysql_info (e.g. Rows matched: 1  Changed: 1  Warnings: 0)
+        $dbhandle->do($sql);
+        my $info = $dbhandle->{'mysql_info'};
+        if ($info =~ m/Changed:\s*(\d+)\s*Warnings:\s*(\d+)/) {
+            if (0+$2) {
+                $LOG->warn("Update reported ".$2." Warnings for SQL:\n\t".$sql);
+            }
+            $rc = 0+$1;
+        }
+    };
+	if ($@) {
+		$LOG->fatal("Update failure. SQL:\n\t".$sql."\n".$@);
+		Carp::croak("Update failure. SQL:\n\t".$sql."\n".$@);
+	}
+    return $rc;
+}
+
+
+sub incrementColumn {
+	my ($class,%args) = @_;
+    return $class->_incOrDecColumn('+',%args);
+}
+sub decrementColumn {
+	my ($class,%args) = @_;
+    return $class->_incOrDecColumn('-',%args);
+}
+# Helper function, performs increment or decrement work.
+sub _incOrDecColumn {
+	my ($class,$op,%args) = @_;
+	my $col = (exists $args{'-column'} ? $args{'-column'} : undef);
+	my $cond = (exists $args{'-where'} ? $args{'-where'} : undef);
+# Get amount to be changed by. Default to 1.
+	my $amt = (exists $args{'-amount'} ? 0+$args{'-amount'} : 1);
+	return -1 if ($op ne '+' && $op ne '-' && !(check_int($amt)));
+	$dbhandle = HoneyClient::DB::_connect(%config);
+
+# Ensure column exists AND the column is of type 'int'
+    if ( $col && (exists $_types{$class}{$col}) && ($_types{$class}{$col} eq int)) {
+# Execute update and get number of columns changed.
+		my $rc = $class->_update("$col=$col".$op.$amt,$cond);
+		if($rc >= 0) {
+			$dbhandle->commit();
+			$dbhandle->disconnect() if $dbhandle;
+			return $rc;
+		}
+    }
+	else {
+		$op = ($op eq '+' ? 'increment' : 'decrement');
+		$LOG->warn($op."Column failed. Invalid or missing '-column' argument: $col");
+	}
+	$dbhandle->rollback();
+	$dbhandle->disconnect() if $dbhandle;
+    return -1;
 }
 
 sub _get_table {
@@ -882,6 +1090,24 @@ sub _get_table {
     $table =~ s/HoneyClient::DB:://g;
     $table =~ s/::/_/g;
     $table;
+}
+
+sub get_col_name {
+	my ($class,$field) = @_;
+	if ($field eq 'id' || $field =~ m/\w*?_fk$/) {
+		return $field;
+	}
+	if(!exists $_types{$class}{$field}) {
+		return undef;
+	}
+	if ($_types{$class}{$field} =~ m/(array|ref):(.*)/) {
+		my $col_name = "_".$field."_fk";
+		if ($1 eq 'array') {
+			return _get_table($class).$col_name;
+		}
+		return _get_table($2).$col_name;
+	}
+	return $field;
 }
 
 =back
@@ -909,22 +1135,23 @@ sub get_fields {
 
     my @fields;
     # Begin Fields list w/ record id
+    #TODO: Chop?
     push @fields,'id';
     if ($type == $FIELDS_DISPLAY) {
     	@fields = @{$display_rank{$class}};
 	    foreach ( keys %{ $_types{$class} } ) {
 	        if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
-	            push( @fields, $1->_get_table . '_fk' );
+	            push( @fields, $1->_get_table . '_' .$_ . '_fk' );
 	        }
 	    }
-	    
+
     	return @fields;
     }
     else {
 	    foreach ( keys %{ $_types{$class} } ) {
 	        if ( $_types{$class}{$_} !~ m/array:.*/ ) {
 	            if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
-	                push( @fields, $1->_get_table . '_fk' );
+	                push( @fields, $1->_get_table . '_' .$_ . '_fk' );
 	            }
 	            else { push @fields, $_; }
 	        }
@@ -935,23 +1162,15 @@ sub get_fields {
 
 sub _connect {
     my %conf = @_;
-    my $dsn  = "DBI:"
-      . $conf{driver}
-      . ":database="
-      . $conf{dbname}
-      . ";host="
-      . $conf{host}
-      . ";port="
-      . $conf{port};
+    my $dsn  = "DBI:" . $conf{driver}
+      . ":database=" . $conf{dbname}
+      . ";host=" . $conf{host}
+      . ";port=" . $conf{port};
     my $dbh =
-      DBI->connect_cached( $dsn, $conf{user}, $conf{pass},
-        { 'RaiseError' => 1, 'PrintError' => 0 } );
+      DBI->connect_cached( $dsn, $conf{user}, $conf{pass},{ 'RaiseError' => 1, 'PrintError' => 0 } );
 
     if ( $dbh ne '' ) {
-        $dbh->{'AutoCommit'} = 0;    # In order to use Auto_Reconnect
-                                     #$dbh->{mysql_auto_reconnect} = 1;
-
-        #        _SigSetup(); # Signal handling if necessary
+        $dbh->{'AutoCommit'} = 0;
         return $dbh;
     }
     else {
@@ -961,32 +1180,29 @@ sub _connect {
 }
 
 # Creates the table for the referenced class unless it exists
-
 sub deploy_table {
     my $class = shift;
     my $table = $class->_get_table();
 
     # Check for existence of table in DB
     if ( table_exists($table) ) {
-        if ($debug) {
-            $LOG->warn("${class}->deploy_table: Table $table exists!!");
-        }
+        $LOG->debug("${class}->deploy_table: Table $table exists!!");
         return 1;
     }
     $dbhandle = HoneyClient::DB::_connect(%config);
     my ( @mult_unique_key, @foreign_keys, %arrays );
 
     # Create SQL statement to create table
-    my $sql = "CREATE TABLE $table (\n"
-      . "\tid INT UNSIGNED AUTO_INCREMENT PRIMARY KEY";
+    my $sql = "CREATE TABLE $table (\n\tid INT UNSIGNED AUTO_INCREMENT PRIMARY KEY";
 
     # Process each column in the %_types table
     while ( my ( $col, $type ) = each %{ $_types{$class} } )
-    {    #each %{$class."::fields"}) {
-            # Create a foreign key for reference types in new table
+    {
+        # Create a foreign key for reference types in new table
         if ( $type =~ m/ref:(.*)/ ) {
-            $sql .= ",\n\t" . $1->_get_table() . "_fk INT UNSIGNED";
-            push @foreign_keys, $1;
+        	my $key_name = $1->_get_table() . '_' .$col . "_fk";
+            $sql .= ",\n\t" . $key_name . " INT UNSIGNED";
+            push @foreign_keys, [$1,$key_name];
         }
 
         # Create a foreign key to new table for array types in the child table
@@ -1012,20 +1228,24 @@ sub deploy_table {
 
         # Add Index if necessary
         if ( exists $_keys{$class} && exists $_keys{$class}{$col} ) {
+        	my $size_limit = '';
+        	if ($_types{$class}{$col} eq 'text') {
+        		$size_limit = '(1000)';
+        	}
             if ( $_keys{$class}{$col} == $KEY_INDEX ) {
-                $sql .= " INDEX";
+                $sql .= ",\tINDEX (".$col.$size_limit.")";
             }
             elsif ( $_keys{$class}{$col} == $KEY_UNIQUE ) {
-                $sql .= " UNIQUE";
+                $sql .= ",\n\tUNIQUE  (".$col.$size_limit.")";
             }
 
             # Prevent collisions between records across several fields
             elsif ( $_keys{$class}{$col} == $KEY_UNIQUE_MULT ) {
                 if ( $type =~ m/ref:(.*)/ ) {
-                    push @mult_unique_key, $1->_get_table() . "_fk";
+                    push @mult_unique_key, $1->_get_table() . '_' .$col . "_fk";
                 }
                 else {
-                    push @mult_unique_key, $col;
+	                 push @mult_unique_key, $col.$size_limit;
                 }
             }
         }
@@ -1033,14 +1253,12 @@ sub deploy_table {
 
     # Create FOREIGN KEY for each onsisting of several fields if necessary
     map {
-        $sql .= ",\n\t"
-          . $_->sql_foreign_key()    #INDEX (".$_->_get_table()."_fk),\n\t".$_->sql_foreign_key()
-    } @foreign_keys;
+        $sql .= ",\n\t" . $_->[0]->sql_foreign_key($_->[1])
+    } @foreign_keys; # $_->[0] is class name, $_->[1] is key name
 
     # Create the UNIQUE Index consisting of several fields if necessary
     if ( scalar @mult_unique_key ) {
-        $sql .=
-          ",\n\tUNIQUE ${table}_unique (" . join( ',', @mult_unique_key ) . ')';
+        $sql .= ",\n\tUNIQUE ${table}_unique (" . join( ',', @mult_unique_key ) . ')';
     }
 
     # Use InnoDB engine to utilize transactions
@@ -1055,7 +1273,7 @@ sub deploy_table {
         }
     };
     if ($@) {
-        $LOG->warn("Failed Creating Table: $@");
+        $LOG->warn("Failed Creating Table using SQL:\n$sql\n: $@");
         $dbhandle->rollback();
         return 0;
     }
@@ -1089,8 +1307,8 @@ sub _create_array_fk {
     my $pt = $class->_get_table();
 
 # Initialize SQL ALTER TABLE statement to add Foreign Key to Parent Table in Child Table
-    my $sql = "ALTER TABLE ${ct} ADD ${pt}_fk INT UNSIGNED,\n\tADD " .
-        $class->sql_foreign_key();
+	my $key_name = $pt.'_'.$attrib.'_fk';
+    my $sql = "ALTER TABLE $ct ADD $key_name INT UNSIGNED,\n"."\tADD ".$class->sql_foreign_key($key_name);
     my $sql_cols = "";
 
     eval {
@@ -1102,9 +1320,8 @@ sub _create_array_fk {
         $dbhandle->do($sql);
 
         # Check to see if a (Multi-field) UNIQUE key exists for Child Table
-        $sql =
-"SELECT COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE K WHERE TABLE_NAME="
-          . "'${ct}' AND CONSTRAINT_NAME='${ct}_unique' ORDER BY ORDINAL_POSITION";
+        $sql = "SELECT COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE K WHERE TABLE_NAME="
+          . "'$ct' AND CONSTRAINT_NAME='${ct}_unique' ORDER BY ORDINAL_POSITION";
 
         #DEBUG Output
         $LOG->debug($sql);
@@ -1121,9 +1338,9 @@ sub _create_array_fk {
 
         # Modify Child (Multi-field) UNIQUE key if it previously existed
         if ($sql_cols) {
-            $sql = "ALTER TABLE ${ct} ";
+            $sql = "ALTER TABLE $ct ";
             $sql .= "DROP INDEX ${ct}_unique,\n\t";
-            $sql .= "Add UNIQUE ${ct}_unique (" . $sql_cols . "${pt}_fk)";
+            $sql .= "Add UNIQUE ${ct}_unique (" . $sql_cols . "$key_name)";
 
             #DEBUG Output
             $LOG->debug($sql);
@@ -1140,8 +1357,9 @@ sub _create_array_fk {
 
 sub sql_foreign_key {
     my $class = shift;
+    my $key_name = shift;
     my $table = $class->_get_table();
-    return "FOREIGN KEY (" . $table . "_fk) REFERENCES " . $table . "(id) ON DELETE CASCADE";
+    return "FOREIGN KEY (" . $key_name . ") REFERENCES " . $table . "(id) ON DELETE CASCADE";
 }
 
 sub db_exists {
@@ -1152,9 +1370,8 @@ sub db_exists {
     };
     if ($@) {
         if ( $DBI::err == 1049 ) {
-            $LOG->warn( "DB Error: No database exists with the name "
-                  . $config{dbname}
-                  . " does not exist. Try running '/bin/install_honeyclient_db.pl'."
+            $LOG->warn( "DB Error: No database exists with the name ".$config{dbname}
+            	." does not exist. Try running '/bin/install_honeyclient_db.pl'."
             );
         }
         else {
@@ -1209,8 +1426,7 @@ sub check_int {
 sub check_text {
     my $text = shift;
     if ( length $text > 65536 ) {
-        $LOG->warn("Text has exceeded limit ( of 65535 characters): "
-          . substr( $text, 0, 64 ));
+        $LOG->warn("Text has exceeded limit ( of 65535 characters): ". substr( $text, 0, 64 ));
         $text = substr( $text, 0, 65535 );
     }
     return $text;

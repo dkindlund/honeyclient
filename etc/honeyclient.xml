@@ -50,7 +50,7 @@ Keep in mind, though, that some variables should remain module-specific
     <timeout description="Default timeout used for all communications between each module (in seconds)." default="900">
         3600
     </timeout>
-    <log_config description="The global Log4perl configuration file, used throughout all modules." default="etc/honeyclient_log.conf">
+    <log_config description="The global Log4perl configuration file, used throughout all modules.  This setting should not need to be changed." default="etc/honeyclient_log.conf">
         etc/honeyclient_log.conf
     </log_config>
     <syslog_address description="The IP address of the syslog server that all logging messages will be sent to by both Agent and Manager processes over UDP port 514." default="10.0.0.1">
@@ -153,6 +153,9 @@ Keep in mind, though, that some variables should remain module-specific
             <changes_found_file description="When an integrity check fails, all changes will be written to this file within the compromized honeyclient VM's filesystem." default="/tmp/changes.txt">
                 /tmp/changes.txt
             </changes_found_file>
+            <realtime_changes_file description="When an integrity check fails, all changes will be written to this file within the compromized honeyclient VM's filesystem." default="/tmp/realtime-changes.txt">
+            /tmp/realtime-changes.txt
+            </realtime_changes_file>
             <!-- HoneyClient::Agent::Integrity::Filesystem Options -->
             <Filesystem>
                 <directories_to_check description="List of base directories on the filesystem to recursively analyze.  Use a regular slash (/) instead of a backslash (\) as a directory separator character.">
@@ -331,13 +334,13 @@ Keep in mind, though, that some variables should remain module-specific
             172.16.164.1
         </host>
         <dbname description="The name of the HoneyClient database." default="HoneyClient">
-            HoneyClient
+            HcNewSchema
         </dbname>
         <user description="The username to use, when connecting to the HoneyClient database.">
-            honeyclient_user
+            hc_user
         </user>
         <pass description="The password to use, when connecting to the HoneyClient database.">
-            honeyclient_password 
+            hc_pass
         </pass>
         <port description="The default TCP port number used to communicate with the database." default="3306">
             3306
@@ -458,7 +461,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/master-vms/Agent.Master-23/winXPPro.cfg
+                /vm/master-vms/Agent.Master-25/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="8089">
                 8089

@@ -18,10 +18,11 @@ while [ $IP = "0.0.0.0" ] ; do
     sleep 1 
 done
 
-ping www.honeyclient.org
+ping pingu.honeyclient.org
 cd ~/honeyclient && svn update
 
+~/honeyclient/Capture2/capture-client-xeno-mod/install/CaptureBAT.exe -c -l "C:\cygwin\tmp\realtime-changes.txt"&
+
 while [ true ] ; do
-    sleep 5 && \
-    perl -Ilib bin/StartAgent.pl
+    perl -Ilib bin/StartAgent.pl && sleep 1
 done

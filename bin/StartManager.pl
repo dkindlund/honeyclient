@@ -27,7 +27,7 @@ use HoneyClient::Manager;
 #           'HoneyClient::Agent::Driver::Browser::FF'
 my $driver = "HoneyClient::Agent::Driver::Browser::IE";
 my $config = undef;
-my $maxrel = -1;
+my $maxrel = 4;
 my $nexturl = "";
 my $urllist= "";
 

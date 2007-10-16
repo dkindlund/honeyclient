@@ -1,0 +1,85 @@
+#[+,-]	[Registry Event]	[Process Name]	[Registry Path]
+###################################################
+### Microsoft Windows XP SP2			###
+###################################################
++	OpenKey	.*	.*
+#+	CreateKey	.*	.*
++	CloseKey	.*	.*
++	EnumerateKey	.*	.*
++	EnumerateValueKey	.*	.*
++	QueryValueKey	.*	.*
++	QueryKey	.*	.*
++	SetValueKey	.*	HKU\\.+\\SessionInformation\\ProgramCount
++	SetValueKey	.*	HKCU\\Software\\Microsoft\\Windows\\ShellNoRoam.*
++	SetValueKey	.*	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\.+
++	SetValueKey	.*	HKLM\\SOFTWARE\\Microsoft\\Cryptography\\RNG\\Seed.*
++	SetValueKey	C:\\WINDOWS\\explorer.exe	HKCU\\SessionInformation\\.+
++	SetValueKey	C:\\WINDOWS\\explorer.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	SetValueKey	C:\\WINDOWS\\explorer.exe	HKU\\.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	\\REGISTRY\\USER\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKU\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKCU\\Software\\Microsoft\\SystemCertificates\\Root\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\services.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\wuauclt.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\lsass.exe	HKLM\\SECURITY\\.+
++	DeleteValueKey	.*	HKU\\.+\\SessionInformation\\ProgramCount
++	DeleteValueKey	.*	HKCU\\Software\\Microsoft\\Windows\\ShellNoRoam.*
++	DeleteValueKey	.*	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\.+
++	DeleteValueKey	.*	HKLM\\SOFTWARE\\Microsoft\\Cryptography\\RNG\\Seed.*
++	DeleteValueKey	C:\\WINDOWS\\explorer.exe	HKCU\\SessionInformation\\.+
++	DeleteValueKey	C:\\WINDOWS\\explorer.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	DeleteValueKey	C:\\WINDOWS\\explorer.exe	HKU\\.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	\\REGISTRY\\USER\\.+	
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKU\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKCU\\Software\\Microsoft\\SystemCertificates\\Root\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKCU\\Software\\Microsoft\\SystemCertificates\\Root\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\services.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\wuauclt.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\lsass.exe	HKLM\\SECURITY\\.+
+#defrag
++	SetValueKey	C:\\WINDOWS\\system32\\dfrgntfs.exe	HKLM\\SOFTWARE\\Microsoft\\Dfrg.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\dfrgntfs.exe	HKLM\\SOFTWARE\\Microsoft\\Dfrg.*
+#XENO
+#IE
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache\\Paths\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main\\Window_Placement.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Toolbar\\Locked.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main\\.*
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ProxyOverride.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	HKLM\\SYSTEM\\ControlSet001\\Hardware Profiles\\0001\\Software\\Microsoft\\windows\\CurrentVersion\\Internet Settings.*
+
+
+#PERL
++	CreateKey	C:\\cygwin\\bin\\perl.exe	HKCU\\.*
++	SetValueKey	C:\\cygwin\\bin\\perl.exe	HKCU\\.*
++	DeleteValueKey	C:\\cygwin\\bin\\perl.exe	HKCU\\.*
++	CreateKey	C:\\cygwin\\bin\\perl.exe	HKLM\\.*
++	SetValueKey	C:\\cygwin\\bin\\perl.exe	HKLM\\.*
++	DeleteValueKey	C:\\cygwin\\bin\\perl.exe	HKLM\\.*
+
+#MISC
++	CreateKey	C:\\WINDOWS\\system32\\svchost.exe	.*
++	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	.*
++	SetValueKey	.*	HKLM\\SOFTWARE\\Microsoft\\Cryptography\\RNG.*
++	CreateKey	.*	\\Registry\\Machine\\SOFTWARE\\Microsoft\\Cryptography\\RNG
++	CreateKey	C:\\cygwin\\bin\\perl.exe	HKCU\\Software\\.*
++	CreateKey	C:\\cygwin\\bin\\perl.exe	HKCU\\Software\\.+
++	CreateKey	C:\\cygwin\\bin\\perl.exe	.*
++	CreateKey	C:\\WINDOWS\\system32\\services.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\DeviceClasses.*
++	SetValueKey	C:\\WINDOWS\\explorer.exe	HKCU\\SessionInformation.*
+#+	SetValueKey	F:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE\\VCExpress.exe	HKCU\\Software\\Microsoft\\VSCommon\\8.0.*\SQM\PIDs\856.*
++	CreateKey	C:\\WINDOWS\\explorer.exe	HKCU\\SessionInformation.*
++	CreateKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore.exe	.*

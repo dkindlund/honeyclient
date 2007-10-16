@@ -170,6 +170,9 @@ if ($DB_ENABLE) {
     # Include DB Utility Library
     # TODO: Include unit tests.
     require HoneyClient::DB::Fingerprint;
+    require HoneyClient::DB::Client;
+	require HoneyClient::DB::Url::History;
+	require HoneyClient::DB::Time;
 }
 
 # XXX: Remove this, eventually.
@@ -202,6 +205,9 @@ use VMware::VmPerl qw(VM_EXECUTION_STATE_ON
 
 # TODO: Include unit tests.
 use IO::File;
+
+# TODO: Include unit tests.
+use DateTime::HiRes;
 
 # TODO: Include unit tests.
 # Include Logging Library
@@ -504,6 +510,7 @@ sub runSession {
     my $URL       = undef;
     my $vmState   = undef;
     my $vmCompromised = 0;
+	my $clientDbId = 0;
 
     # Get a stub connection to the firewall.
     $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
@@ -635,6 +642,17 @@ sub runSession {
         }
     }
 
+	#Register Client with the Honeyclient Database
+	if ($DB_ENABLE) {
+		eval {
+			$clientDbId = dbRegisterClient($vmName);
+		};
+		if ($@) {
+			$clientDbId = 0; #$DB_FAILURE
+			$LOG->warn("Failure Inserting Client Object:\n$@");
+		}
+	}
+
     # Build our VM's connection table.
     # Note: We assume our VM has a single MAC address
     # and a single IP address.
@@ -715,14 +733,43 @@ sub runSession {
                     # Insert Compromised Fingerprint into DB.
                     my $fingerprint = $ret->{$args{'driver'}}->{status}->{fingerprint};
                     $LOG->warn("VM Compromised.  Last Resource (" . $fingerprint->{'last_resource'} . ")");
-                    $fingerprint->{'lasturl'} = delete($fingerprint->{'last_resource'});
-                    $fingerprint->{vmid} = $vmName;
-                    print "Fingerprint:\n";
-                    print Dumper($fingerprint) . "\n";
-                    if ($DB_ENABLE) {
+                    if ($DB_ENABLE && ($clientDbId > 0)) {
+						# Remove the last_url from the fingerprint and insert it as Url History
+						# XXX: Will be removed when all of clients Url History is stored.
+						my $dt = DateTime::HiRes->now();
+						my $last_url = HoneyClient::DB::Url::History->new({
+							url=>delete($fingerprint->{'last_resource'}),
+							visited => $dt->ymd('-').'T'.$dt->hms(':').".".$dt->nanosecond(),
+							status => $HoneyClient::DB::Url::History::STATUS_VISITED,
+						});
+						my $urlId = $last_url->insert();
+						$LOG->info("Database Insert last url successful");
+						# Update the History item to reflect the Client it belongs to.
+						HoneyClient::DB::Url::History->update(
+							-set => {
+								Client_url_history_fk => $clientDbId,
+							},
+							-where => {
+								id => $urlId,
+							},
+						);
+						$LOG->info("Database Update Client fk in last url");
+						# Remove the compromise time from the fingerprint. This is to be added to the Client Object
+						my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
                         $LOG->info("Inserting Fingerprint Into Database.");
                         my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
-                        $fp->insert(); 
+                        my $fpId = $fp->insert();
+						my $ctId = $compromise_time->insert();
+						HoneyClient::DB::Client->update(
+							'-set' => {
+								status => $HoneyClient::DB::Client::STATUS_COMPROMISED,
+								fingerprint => $fpId,
+								compromise_time => $ctId,
+							},
+							'-where' => {
+								id => $clientDbId,
+							}
+						);
                         $LOG->info("Database Insert Successful.");
                     }
                     return; # Return out of eval block.
@@ -795,11 +842,45 @@ sub runSession {
             $vmStateTable = { };
             return $args{'agent_state'};
         }
-        print "Sleeping for 10s...\n";
-        sleep (10);
+        print "Sleeping for 2s...\n";
+        sleep (2);
     }
 }
 
+sub dbRegisterClient {
+	my $vmName = shift;
+	my $dt = DateTime::HiRes->now();
+
+	$LOG->info("Attempting to Register Client $vmName.");
+
+	# Register the VM with the DB
+	my $clientObj = HoneyClient::DB::Client->new({
+		system_id => $vmName,
+		status => $HoneyClient::DB::Client::STATUS_RUNNING,
+		# TODO: Collect host,application, and config through automation/config files
+		host => {
+			organization => 'Mitre',
+			host_name => 'honeyclient3',
+			ip_address => '172.16.164.103',
+		},
+		client_app => {
+			manufacturer => 'Microsoft',
+			name => 'Internet Explorer',
+			major_version => '6',
+		},
+		config => {
+			name => 'Default Windows XP SP2',
+			os_name => 'Microsoft Windows',
+			os_version => 'XP Professional',
+			os_patches => [{
+				name => 'Service Pack 2',
+			}],
+		},
+		start_time => $dt->ymd('-').'T'.$dt->hms(':'),
+	});
+	print Dumper($clientObj)."\n";
+	return $clientObj->insert();
+}
 #######################################################################
 
 1;

@@ -1,0 +1,15 @@
+#[+,-]	[Process Created (no dots)]	[Parent Process]	[Process Path]
+###################################################
+### Clean Windows XP SP 2 System		###
+###################################################
+#Windows update (it runs even if disabled)
++	wuauclt.exe	.*	C:\\WINDOWS\\system32\\wuauclt\.exe
+#Standard screensaver
++	logon.scr	.*	C:\\WINDOWS\\system32\\logon\.scr
+#defragmenter
++	dfrgntfs.exe	.*	C:\\WINDOWS\\system32\\dfrgntfs\.exe
++	defrag.exe	.*	C:\\WINDOWS\\system32\\defrag\.exe
+#XENO
++	bash.exe	.*	C:\\cygwin\\bin\\bash.exe
++	perl.exe	.*	C:\\cygwin\\bin\\perl.exe
++	iexplore.exe	.*	C:\\Program Files\\Internet Explorer\\iexplore.exe

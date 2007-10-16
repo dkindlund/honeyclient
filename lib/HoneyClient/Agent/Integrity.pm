@@ -60,103 +60,18 @@ This documentation refers to HoneyClient::Agent::Integrity version 0.99.
       print Dumper($changes);
   }
 
-  # $changes refers to an array of hashtable references, where
-  # each hashtable has the following format:
-  #
-  # $changes = {
-  #     registry => [ {
-  #         # The registry directory name.
-  #         'key' => 'HKEY_LOCAL_MACHINE\Software...',
-  #
-  #         # Indicates if the registry directory was deleted,
-  #         # added, or changed.
-  #         'status' => 'deleted' | 'added' | 'changed',
-  # 
-  #         # An array containing the list of entries within the
-  #         # registry directory that have been deleted, added, or
-  #         # changed.  If this array is empty, then the corresponding
-  #         # registry directory in the original and new hives contained
-  #         # no entries.
-  #         'entries'  => [ {
-  #             'name' => "\"string\"",  # A (potentially) quoted string; 
-  #                                      # "@" for default
-  #             'new_value' => "string", # New string; maybe undef, if deleted
-  #             'old_value' => "string", # Old string; maybe undef, if added
-  #         }, ],
-  #    }, ],
-  #
-  #    filesystem => [ {
-  #         # Indicates if the filesystem entry was deleted,
-  #         # added, or changed.
-  #         'status' => 'deleted' | 'added' | 'changed',
-  #
-  #         # If the entry has been added/changed, then this 
-  #         # hashtable contains the file/directory's new information.
-  #         'new' => {
-  #             'name'  => 'C:\WINDOWS\SYSTEM32...',
-  #             'size'  => 1263, # in bytes
-  #             'mtime' => 1178135092, # modification time, seconds since epoch
-  #         },
-  #
-  #         # If the entry has been deleted/changed, then this
-  #         # hashtable contains the file/directory's old information.
-  #         'old' => {
-  #             'name'  => 'C:\WINDOWS\SYSTEM32...',
-  #             'size'  => 802, # in bytes
-  #             'mtime' => 1178135028, # modification time, seconds since epoch
-  #         },
-  #   }, ],
-  # }
-
-=head1 DESCRIPTION
-
-# TODO: This text needs to change.
+$changes refers to an array of hashtable references, where
+each hashtable has the format given in the METHODS IMPLEMENTED section related to
+check().
 
 =head2 INITIALIZATION
 
-# TODO: This text needs to change.
-
-In order to properly check the system, a snapshot must be taken of a known-good
-state.
-
-For the filesystem this means a listing is created which contains 
-cryptographic hashes of files in their start state. The only files what are 
-checked are those which are explicitly specified in the checklist file (or are 
-found in a specified directory) and are not in the exclusion list will be checked.
-Initialization of the filesystem is done with the initFileSystem() function, 
-described later.
-
-For the registry a similar logic applies in that the only the specified keys are
-checked and only if they are not in the exclusion list. The desired registry keys
-are exported to a text file via the command line functionality of regedit. This
-is done via initRegistry().
-
-
-=head2 CHECKING
-
-# TODO: This text needs to change.
-
-Checking the filesystem entails running mostly the same code as the initialization
-piece in order to obtain a snapshot of the current state of the filesystem. At that 
-point additional checks are performed to look for additions, deletions, and 
-modifications to the filesystem. These checks are done with checkFileSystem().
-
-A speed-optimized check of the registry is performed by first dumping the current
-state, again with the command line version of regedit. Then the unix "diff"
-utility is used to compare the clean registry dump to the current one. The output
-from a diff is in a format which shows the minimum possible changes which can be
-done to the first file in order to yield the same content as the second file. 
-Therefore this format must be parsed in order to determine what specific additions,
-deletions, and modifications were made to the clean registry. Further, because 
-the output of diff need not exactly reflect changes (for instance when the same
-content would be the first line of the previous value and the last line of the new 
-value) this requires some cases to re-consult the original and current state in order 
-to disambiguate the changes which were made. These tests are done in checkRegistry().
-
-NOTE: Because these are simple, static, user-space checks, they can fail in the 
-presense of even user-space rootkits. Therefore these checks should not be taken as 
-definitive proof of the absense of malicious software until they are integrated more
-tightly with the system.
+No initialization is currently necessary, as realtime changes are read in from
+a list exported by the Capture C code. However, in the future it may become 
+deisrable to perform an initial baseline of the system in order to automatically
+determine the original value for things which were changed. This is because the
+mechanisms that Capture code uses to record events, may in some cases be unable
+to record the initial value for a registry key for instance.
 
 =cut
 
@@ -171,10 +86,10 @@ use Carp ();
 use HoneyClient::Util::Config qw(getVar);
 
 # Include the Registry Checking Library
-use HoneyClient::Agent::Integrity::Registry;
+#use HoneyClient::Agent::Integrity::Registry;
 
 # Include the Filesystem Checking Library
-use HoneyClient::Agent::Integrity::Filesystem;
+#use HoneyClient::Agent::Integrity::Filesystem;
 
 # Use Storable Library
 use Storable qw(nfreeze thaw dclone);
@@ -186,6 +101,18 @@ use Data::Dumper;
 
 # Include Logging Library
 use Log::Log4perl qw(:easy);
+
+# Use MD5
+use Digest::MD5;
+
+# Use SHA
+use Digest::SHA;
+
+# Use IO::File Library
+use IO::File;
+
+# Use File::Type Library
+use File::Type;
 
 #######################################################################
 # Module Initialization                                               #
@@ -277,16 +204,16 @@ can_ok('Storable', 'dclone');
 use Storable qw(nfreeze thaw dclone);
 
 # Make sure HoneyClient::Agent::Integrity::Registry loads
-BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
-        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Integrity::Registry');
-use HoneyClient::Agent::Integrity::Registry;
+#BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
+#        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
+#require_ok('HoneyClient::Agent::Integrity::Registry');
+#use HoneyClient::Agent::Integrity::Registry;
 
 # Make sure HoneyClient::Agent::Integrity::Filesystem loads
-BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
-        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Integrity::Filesystem');
-use HoneyClient::Agent::Integrity::Filesystem;
+#BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
+#        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
+#require_ok('HoneyClient::Agent::Integrity::Filesystem');
+#use HoneyClient::Agent::Integrity::Filesystem;
 
 # Make sure HoneyClient::Agent::Integrity loads.
 BEGIN { use_ok('HoneyClient::Agent::Integrity') or diag("Can't load HoneyClient::Agent::Integrity package.  Check to make sure the package library is correctly listed within the path."); }
@@ -317,10 +244,9 @@ B<new()> function, as arguments.
 
 =over 4
 
-When set to 1, the object will forgo any type of initial baselining
-process, upon initialization.  Otherwise, baselining will occur
-as normal, upon initialization.
-
+Currently defaults to 1, whereby the object will forgo any type of initial baselining
+process, upon initialization.  If set to 0, baselining will occur upon initialization.
+Baselining is currently deprecated.
 =back
 
 =cut
@@ -329,7 +255,9 @@ my %PARAMS = (
     # When set to 1, the object will forgo any type of initial baselining
     # process, upon initialization.  Otherwise, baselining will occur
     # as normal, upon initialization.
-    bypass_baseline => 0,
+    # XXX: Bypass static baselining, for now.
+    # XXX: Baselining will not be used with the current version which includes Capture
+    bypass_baseline => 1,
 
     # Contains the Registry object, once initialized.
     # (For internal use only.)
@@ -341,6 +269,10 @@ my %PARAMS = (
 
     # XXX: comment this
     _changes_found_file => getVar(name => 'changes_found_file'),
+
+    # XXX: comment this
+    _realtime_changes_file => getVar(name => 'realtime_changes_file'),
+
 );
 
 #######################################################################
@@ -470,51 +402,75 @@ was invoked.
 I<Output>:
  B<$changes>, which is an array of hashtable references, where each
 hashtable has the following format:
- 
-  $changes = {
-      registry => [ {
-          # The registry directory name.
-          'key' => 'HKEY_LOCAL_MACHINE\Software...',
 
-          # Indicates if the registry directory was deleted,
-          # added, or changed.
-          'status' => 'deleted' | 'added' | 'changed',
- 
-          # An array containing the list of entries within the
-          # registry directory that have been deleted, added, or
-          # changed.  If this array is empty, then the corresponding
-          # registry directory in the original and new hives contained
-          # no entries.
-          'entries'  => [ {
-              'name' => "\"string\"",  # A (potentially) quoted string; 
-                                       # "@" for default
-              'new_value' => "string", # New string; maybe undef, if deleted
-              'old_value' => "string", # Old string; maybe undef, if added
-          }, ],
-      }, ],
+$changes = {
+    #A reference to an anonymous array of process objects
+    processes => [ {
+        'name' => "C:\WINDOWS\system32\Notepad.exe", # The process name as a full path
+        'pid' => 1000,              # The Windows system process ID
+        'parent_name' => "C:\WINDOWS\system32\explorer.exe",  # The process name as
+                                    # a full path for the process which created this process
+        'parent_pid' => 999,        # The Windows system process ID for the
+                                    # process which created this process
+        
+        #The absence of both a created and terminated time implies that the enclosed 
+        #filesystem and/or registry events are related to a process which was running
+        #when the realtime checks were started, and was still running when they ended
+        
+        #OPTIONAL, its existence signifies that we saw this process be created
+        'created_time' => ISO 8601 Timestamp (yyyy-mm-dd hh24:mi:ss.uuuuuu)
+        
+        #OPTIONAL, its existence signifies that we saw this process be terminated
+        'terminated_time' => ISO 8601 Timestamp
 
-      filesystem => [ {
-          # Indicates if the filesystem entry was deleted,
-          # added, or changed.
-          'status' => 'deleted' | 'added' | 'changed',
+        #A reference to an anonymous array of registry objects
+        registry => [ {
+            # The registry directory name in regedit
+            'key_name' => 'HKEY_LOCAL_MACHINE\Software...',
 
-          # If the entry has been added/changed, then this 
-          # hashtable contains the file/directory's new information.
-          'new' => {
-              'name'  => 'C:\WINDOWS\SYSTEM32...',
-              'size'  => 1263, # in bytes
-              'mtime' => 1178135092, # modification time, seconds since epoch
-          },
+            'time' => ISO 8601 Timestamp, 
 
-          # If the entry has been deleted/changed, then this
-          # hashtable contains the file/directory's old information.
-          'old' => {
-              'name'  => 'C:\WINDOWS\SYSTEM32...',
-              'size'  => 802, # in bytes
-              'mtime' => 1178135028, # modification time, seconds since epoch
-          },
-      }, ],
-  }
+            #The specific registry event type which took place, as given by it's Windows name
+            'event_type' => { CreateKey | OpenKey | CloseKey | Query Key |
+                                QueryValueKey, EnumerateKey | EnumerateValueKey | 
+                                SetValueKey | DeleteValueKey | DeleteKey },
+
+            #The "name" which shows up in regedit
+            'value_name' => "my key", 
+
+            #The "type" which shows up in regedit. It is only possible to create the first 
+            # 6 types by manually using regedit (and REG_NONE is only indirect, for instance
+            # on a DeleteValueKey event_type).
+            'value_type' => { REG_NONE | REG_SZ | REG_BINARY | REG_DWORD | 
+                                REG_EXPAND_SZ | REG_MULTI_SZ | REG_LINK | 
+                                REG_DWORD_BIG_ENDIAN | REG_RESOURCE_LIST |
+                                REG_FULL_RESOURCE_DESCRIPTOR |
+                                REG_RESOURCE_REQUIREMENTS_LIST |
+                                REG_QWORD_LITTLE_ENDIAN},
+            #The "value" which shows up in regedit
+            'value' => many possible data types, but converted into a string,
+    
+        }, ],
+        
+        #A reference to an anonymous array of file system objects
+        file_system => [ {
+            #The full path and name of the file which was effected
+		    'name'  => 'C:\WINDOWS\SYSTEM32...',
+
+            'event_type' => { Deleted | Read | Write }, #TODO: add created & renamed/moved
+
+            'time' => ISO 8601 Timestamp, 
+		    
+            #OPTIONAL, this will not exist for deleted files
+		    'content' => {
+		        'size' => 1234,                                       # size of new content
+		        'type' => 'application/octect-stream',                # type of new content
+		        'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
+		        'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
+		    },
+        },]
+    },]
+}
 
 I<Notes>:
 
@@ -549,27 +505,254 @@ sub check {
         Dumper(\%args);
     });
 
-	my $changes = {
-        'registry' => $self->{'_registry'}->check(),
-        'filesystem' => $self->{'_filesystem'}->check(),
-    };
+#	my $changes = {
+#        'registry' => $self->{'_registry'}->check(),
+#        'filesystem' => $self->{'_filesystem'}->check(),
+#    };
+#XENO - BEGIN REPLACEMENT WITH CAPTURE-READING CODE
+    my $change_file_name = $self->{_realtime_changes_file};
+    my %changes;
+    my @capdump;
+    if(-s $change_file_name > 0 ){
+        open(CAP, $change_file_name) or die "Can't open $change_file_name";
+        @capdump = <CAP>;
+        close(CAP);
+    }
+    else{
+        %changes = (
+            'processes' => [],
+        );
 
+        return \%changes;
+    }
+
+    my @reg_list = ();
+    my @reg_lines = ();
+    my @file_list = ();
+    my @file_lines = ();
+    my @proc_list = ();
+    my @proc_lines = ();
+    my @bad_line_list = ();
+    my $key;
+    my $status;
+    my @proc_and_file_list;
+    my @proc_objs = ();
+    my %names = ();
+    #Indices in the string for different types of information
+    my $ENTRY_TYPE = 1;
+    my $R_TIME = 0;
+    my $R_EVENT_TYPE = 2;
+    my $R_PROC_PID = 3;
+    my $R_PROC_NAME = 4;
+    my $R_KEY_NAME = 5;
+    my $R_VALUE_NAME = 6;
+    my $R_VALUE_TYPE = 7;
+    my $R_VALUE = 8;
+    my $F_TIME = 0;
+    my $F_EVENT_TYPE = 2;
+    my $F_PROC_PID = 3;
+    my $F_PROC_NAME = 4;
+    my $F_NAME = 5;
+    my $P_TIME = 0;
+    my $P_EVENT_TYPE = 2;
+    my $P_PARENT_PID = 3;
+    my $P_PARENT_NAME = 4;
+    my $P_PID = 5;
+    my $P_NAME = 6;
+    my $TOTAL_PROC_TOKENS = 7;
+    my $TOTAL_FILE_TOKENS = 6;
+    my $TOTAL_REG_TOKENS = 9;
+    my $STATUS_DELETED = 0;
+    my $STATUS_ADDED = 1;
+    my $STATUS_MODIFIED = 2;
+
+
+    #Get the time of the first event from the first entry and used it for compromise_time
+    my @tmp_toks = split("\",\"",$capdump[0]);
+    $tmp_toks[0] =~ s/^"(.*)/$1/;
+    %changes = ('compromise_time' => $tmp_toks[0]);
+
+    foreach my $line (@capdump){
+        my $ret = undef;
+        #Get rid of the windows carriage return and newline (sometimes looks like ^M)
+        $line =~ s/\r\n$//;       
+        #Get rid of first and last quotes
+        $line =~ s/^\"(.*)/$1/;
+        chop($line);
+        
+        my @toks = split("\",\"", $line, $TOTAL_REG_TOKENS+1);
+        my $index = undef;
+        my $proc_obj = undef;
+        my $proc_push;
+        if($toks[$ENTRY_TYPE] eq "process"){
+            $proc_push = 1;
+            if($toks[$P_EVENT_TYPE] eq "terminated"){
+                ($ret, $index) = checkForExistingProcObj($toks[$P_PID], $toks[$P_NAME], @proc_objs);
+                #If the object already exists as something which didn't have anything filled in, then fill it in
+                if($ret == 1){
+                    $proc_objs[$index]->{"$toks[$P_EVENT_TYPE]_time"} = $toks[$P_TIME];
+                    $proc_push = 0; 
+                }
+            }
+            #create this object
+            $proc_obj = {
+                'pid' => $toks[$P_PID],
+                'name' => $toks[$P_NAME],
+                'parent_pid' => $toks[$P_PARENT_PID],
+                'parent_name' => $toks[$P_PARENT_NAME],
+                "$toks[$P_EVENT_TYPE]_time" => $toks[$P_TIME],
+                'file_system' => [],
+                'registry' => [],
+            };
+        }
+        else{
+            $proc_push = 0;
+
+            ($ret, $index) = checkForExistingProcObj($toks[$R_PROC_PID], $toks[$R_PROC_NAME], @proc_objs);
+            if($ret == 1){
+                $proc_obj = $proc_objs[$index];
+            }
+            else{
+                #First build an empty proc object
+                $proc_obj = {
+                    'pid' => $toks[$R_PROC_PID],
+                    'name' => $toks[$R_PROC_NAME],
+                    'registry' => [],
+                    'file_system' => [], 
+                }; 
+                $proc_push = 1;
+            }
+
+            if($toks[$ENTRY_TYPE] eq "registry"){
+               #Build the registry object and put it in to the proc object
+                my $reg_obj = {
+                    'time' => $toks[$R_TIME],
+                    'event_type' => $toks[$R_EVENT_TYPE],
+                    'key_name' => $toks[$R_KEY_NAME],
+                    'value_name' => $toks[$R_VALUE_NAME],
+                    'value_type' => $toks[$R_VALUE_TYPE],
+                    'value' => $toks[$R_VALUE],
+                };
+                push @{$proc_obj->{'registry'}}, $reg_obj;
+            }
+            elsif($toks[$ENTRY_TYPE] eq "file"){
+
+                #Build the filesystem object and put it in to the proc object
+                my $fs_ref = $proc_obj->{'file_system'};
+                if(scalar(@{$fs_ref}) == 0 || $fs_ref->[-1]->{'name'} ne $toks[$F_NAME] ||
+                        $fs_ref->[-1]->{'event_type'} ne $toks[$F_EVENT_TYPE]){
+                      
+                    my $file_obj = {
+                        'name' => $toks[$F_NAME],
+                        'event_type' => $toks[$F_EVENT_TYPE],
+                        'time' => $toks[$F_TIME],
+                    };
+                    if($toks[$F_EVENT_TYPE] ne "Delete"){
+                        #Fill in the default values, incase the file can't be found due to a rename rather than delete
+                        $file_obj->{'contents'} = {
+                            'size' => 0,
+                            'type' => "UNKNOWN",
+                            'md5' => "$toks[$F_NAME]$toks[$F_TIME]",
+                            'sha1' => "$toks[$F_NAME]$toks[$F_TIME]",
+                        };
+                        my $tmp_name = $toks[$F_NAME];
+	                    if(-f $tmp_name){
+                            my $md5_ctx  = Digest::MD5->new();
+                            my $sha1_ctx = Digest::SHA->new("1");
+                            my $type_ctx = File::Type->new();
+                            my $md5 = 'UNKNOWN';
+                            my $sha1 = 'UNKNOWN';
+                            my $type = 'UNKNOWN';
+                            my $size = 0;
+	                        my $fh = IO::File->new($tmp_name, "r");
+	                        #print "md5ing $tmp_name\n";
+	                        # Compute MD5 Checksum.
+	                        $md5_ctx->addfile($fh);
+	                        $md5 = $md5_ctx->hexdigest();
+	
+	                        # Rewind file handle.
+	                        seek($fh, 0, 0);
+	
+	                        #print "sha1ing $tmp_name\n";
+	                        # Compute SHA1 Checksum.
+	                        $sha1_ctx->addfile($fh);
+	                        $sha1 = $sha1_ctx->hexdigest();
+	
+	                        #Compute file size
+	                        $size = -s $tmp_name;
+	
+	                        # Compute File Type.
+	                        $type = $type_ctx->mime_type($tmp_name);
+	
+	                        # Close the file handle.
+	                        undef $fh;
+                            $file_obj->{'contents'}->{'size'} = $size;
+                            $file_obj->{'contents'}->{'md5'} = $md5;
+                            $file_obj->{'contents'}->{'sha1'} = $sha1;
+                            $file_obj->{'contents'}->{'type'} = $type;
+                        }
+                        push @{$proc_obj->{'file_system'}},$file_obj;
+                    }
+
+                }
+            }
+        }
+        if($proc_push){
+            push @proc_objs, $proc_obj;
+        }
+    }#end foreach
+
+    $changes{'processes'} = \@proc_objs;
+#    $Data::Dumper::Terse = 1;
+#    $Data::Dumper::Indent = 1;
+#    print Dumper(\%changes);
+
+
+#XENO - END REPLACEMENT WITH CAPTURE-READING CODE
+ 
     # If any changes were found, write them out to the
     # filesystem.
-    if (scalar(@{$changes->{registry}}) ||
-        scalar(@{$changes->{filesystem}})) {
+    if (scalar($changes{'processes'})){
         if (!open(CHANGE_FILE, ">>" . $self->{_changes_found_file})) {
             $LOG->error("Unable to write changes to file '" . $self->{_changes_found_file} . "'.");
         } else {
             $Data::Dumper::Terse = 1;
             $Data::Dumper::Indent = 1;
-            print CHANGE_FILE Dumper($changes);
+            print CHANGE_FILE Dumper(\%changes);
+            print Dumper(\%changes);
             close CHANGE_FILE;
         }
     }
 
-	return $changes;
+	return \%changes;
 }
+
+# This function looks for if there is already a process object with the given pid and name
+# and if it exists, returns its index in the processes array
+# This function is used to find process objects for merging
+# NOTE: In the future, we may want to make it be a hash, keyed by name:pid rather than an
+# array, so that lookups are not O(n)
+# Also, this function is predicated on the assumption that we will not see the same name:pid
+# pair during our run
+sub checkForExistingProcObj {
+    my $pid = shift;
+    my $name = shift;
+    my $index = 0;
+    my @proc_objs = @_;
+
+    foreach my $obj (@proc_objs){
+       #Check if the object already exists
+            #&& !defined $obj->{'terminated_time'}
+        if($obj->{'pid'} eq $pid && $obj->{'name'} eq $name){
+            #object already exists
+            return (1, $index);
+        }
+        $index++;
+    }
+    return (0, $index);
+}
+
+
 
 # TODO: Comment this.
 sub closeFiles {
@@ -611,23 +794,9 @@ sub destroy {
 
 =head1 BUGS & ASSUMPTIONS
 
-# XXX: Fill this in.
-
-=head1 TODO
-
-Need to add sub-modules that support the following capabilities:
-
-=over 4
-
-=item *
-
-Static or real-time rogue process detection.
-
-=item *
-
-Static or real-time memory alteration detection.
-
-=back
+We assume that because of the short time in which malware is allowed to run
+we can never see the same name:pid pair twice, because there will not have been
+enough processes created in order to wrap the pid numbers back around.
 
 =head1 SEE ALSO
 
@@ -639,7 +808,8 @@ L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 
-XXX: Fill this in.
+The Capture client-side honeypot team is responsible for creating the code which outputs
+the system events that this reads in in the event of a compromise.
 
 =head1 AUTHORS
 
@@ -647,11 +817,11 @@ Kathy Wang, E<lt>knwang@mitre.orgE<gt>
 
 Xeno Kovah, E<lt>xkovah@mitre.orgE<gt>
 
-Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
-
 Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 Brad Stephenson, E<lt>stephenson@mitre.orgE<gt>
+
+Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 

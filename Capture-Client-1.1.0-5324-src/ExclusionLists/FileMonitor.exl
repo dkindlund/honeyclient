@@ -1,0 +1,39 @@
+#[+,-]	[File Access]	[Process Name]	[File Path]
+###################################################
+### Clean Windows XP SP 2 System		###
+###################################################
++	Read	.*	.+
++	Write	.*	C:\\capture\\tmp\\.+
++	Write	C:\\capture\\capture\.exe	C:\\capture\\log\\.+
+#Prefetch
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch\\.+
++	Write	System	C:\\WINDOWS\\Prefetch\\.+
+#System Log Files
++	Write	System	C:\\Documents and Settings\\.+\\.+\.LOG
++	Write	System	C:\\WINDOWS\\system32\\config\\.+\.LOG
++	Write	System	C:\\WINDOWS\\Debug\\UserMode\\userenv\.log
++	Write	System	C:\\WINDOWS\\SoftwareDistribution\\ReportingEvents\.log
++	Write	C:\\WINDOWS\\system32\\winlogon\.exe	C:\\WINDOWS\\Debug\\UserMode\\userenv\.log
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\.+\.log
++	Write	C:\\WINDOWS\\system32\\lsass\.exe	C:\\WINDOWS\\system32\\config\\.+\.LOG
+#System Events
++	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\AppEvent\.Evt
++	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SysEvent\.Evt
++	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SecEvent\.Evt
+#Mapping
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem\\.+
+#Cataloging
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot2\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot\\.+
+#Windows Update
++	Write	C:\\WINDOWS\\system32\\wuauclt\.exe	c:\\WINDOWS\\WindowsUpdate\.log
++	Write	C:\\WINDOWS\\system32\\wuauclt\.exe	c:\\WINDOWS\\SoftwareDistribution\\DataStore\\.+
+#System restore
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\System Volume Information\\_restore\\.+
+#user data
++	Write	System	C:\\Documents and Settings\\.+\\Local Settings\\Application Data\\Microsoft\\Windows\\UsrClass\.dat
+#XENO
++	Write	F:\\xeno-realtime_integrity\\Capture-Client-1.1.0-5324-src\\bin\\Capture.exe	F:\\tmp\\CaptureOut.txt
++	Write	C:\\Program Files\\Internet Explorer\\iexplore.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\.+
++	Write	C:\\cygwin\\bin\\bash.exe	.+
++	Write	C:\\cygwin\\bin\\perl.exe	.+
