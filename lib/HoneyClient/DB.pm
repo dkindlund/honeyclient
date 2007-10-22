@@ -722,6 +722,7 @@ sub _insert_obj {
                     $filter->{$col} = $obj->{$col};
                 }
             }
+
             my @rows = $class->_select(
             	'-columns'=>['id'],
             	'-where'=>$filter,
@@ -878,7 +879,7 @@ sub _build_query {
 # Prepare SQL statement
     my $sql = "SELECT "; $sql .= join( ',', @fields); $sql .= " FROM " . $class->_get_table();
 # Set condition statements
-    $sql .= _where_condition($args{'-where'});
+    $sql .= $class->_where_condition($args{'-where'});
     return $sql;
 }
 
@@ -1321,7 +1322,7 @@ sub _create_array_fk {
 
         # Check to see if a (Multi-field) UNIQUE key exists for Child Table
         $sql = "SELECT COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE K WHERE TABLE_NAME="
-          . "'$ct' AND CONSTRAINT_NAME='${ct}_unique' ORDER BY ORDINAL_POSITION";
+          . "'$ct' AND CONSTRAINT_NAME='${ct}_unique' AND CONSTRAINT_SCHEMA='".$config{dbname}."' ORDER BY ORDINAL_POSITION";
 
         #DEBUG Output
         $LOG->debug($sql);
