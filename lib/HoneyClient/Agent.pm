@@ -933,6 +933,7 @@ sub worker {
 
             # Release lock on stored driver state.
             _unlock($data);
+        }
                 
         # Perform Integrity Check
         # XXX: We may want this logic moved out of the child thread,
@@ -957,7 +958,6 @@ sub worker {
         # Release our copy of the integrity object, but do not destroy 
         # any internal references.
         $integrity = undef;
-        }
 
         # Update driver state one last time, before exiting.
         # Acquire lock on stored driver state.
