@@ -519,6 +519,7 @@ sub check {
         close(CAP);
     }
     else{
+		print "Nothing in the realtime changes file yet\n";
         %changes = (
             'processes' => [],
         );
