@@ -950,7 +950,6 @@ sub worker {
             if (scalar(@{$changes->{processes}})) { 
                 $LOG->warn($driverName . " - Integrity Check: FAILED");
                 $isCompromised = 1;
-                $changes->{'last_resource'} = $lastResource;
             } else {
                 $LOG->info($driverName . " - Integrity Check: PASSED");
             }
