@@ -243,6 +243,12 @@
 +	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
 +	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\WmiApRpl\\Performance.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\WmiApRpl\\Performance.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib.*
 
 #During debugging only
 
