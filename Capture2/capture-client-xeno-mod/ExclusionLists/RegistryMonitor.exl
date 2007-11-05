@@ -239,6 +239,9 @@
 +	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
 +	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*
 +	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKLM\\SOFTWARE\\FullCircle\\TalkBack\\MozillaOrgFirefox2.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM\\WDM.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM\\WDM.*
+
 #During debugging only
 
 +	SetValueKey	F:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE\\VCExpress\.exe	HKCU\\Software\\Microsoft\\VSCommon\\8.0.+
