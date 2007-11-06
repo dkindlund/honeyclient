@@ -575,7 +575,7 @@ sub check {
     my $line_num = 0;
 
     foreach my $line (@capdump){
-        line_num++;
+        $line_num++;
         my $ret = undef;
         #Get rid of the windows carriage return and newline (sometimes looks like ^M)
         $line =~ s/\r\n$//;       
