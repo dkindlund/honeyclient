@@ -572,8 +572,10 @@ sub check {
     my @tmp_toks = split("\",\"",$capdump[0]);
     $tmp_toks[0] =~ s/^"(.*)/$1/;
     %changes = ('compromise_time' => $tmp_toks[0]);
+    my $line_num = 0;
 
     foreach my $line (@capdump){
+        line_num++;
         my $ret = undef;
         #Get rid of the windows carriage return and newline (sometimes looks like ^M)
         $line =~ s/\r\n$//;       
@@ -624,12 +626,23 @@ sub check {
                 $proc_push = 1;
             }
 
-            if($toks[$ENTRY_TYPE] eq "registry"){
-               #Build the registry object and put it in to the proc object
+           if($toks[$ENTRY_TYPE] eq "registry"){
+                #Build the registry object and put it in to the proc object
+                #Sanity check incase Capture gets messed up, because the database can't accept
+                # an empty string for key_name, but also we want to make it clear that something
+                # bad happened.
+                my $sanit_key_name;
+                if($toks[$R_KEY_NAME] eq "" || $toks[$R_KEY_NAME] !~ /^[HKLM,HKCU,HKU,HKCR]/){
+                    $sanit_key_name = "KEY NAME ERROR \"$toks[$R_KEY_NAME]\"";
+                    print "KEY NAME ERROR at line $line_num \"$toks[$R_KEY_NAME]\"\n";
+                }
+                else{
+                    $sanit_key_name = $toks[$R_KEY_NAME];
+                }
                 my $reg_obj = {
                     'time' => $toks[$R_TIME],
                     'event_type' => $toks[$R_EVENT_TYPE],
-                    'key_name' => $toks[$R_KEY_NAME],
+                    'key_name' => $sanit_key_name,
                     'value_name' => $toks[$R_VALUE_NAME],
                     'value_type' => $toks[$R_VALUE_TYPE],
                     'value' => $toks[$R_VALUE],
