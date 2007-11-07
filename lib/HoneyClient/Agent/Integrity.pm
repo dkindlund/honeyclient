@@ -519,7 +519,6 @@ sub check {
         close(CAP);
     }
     else{
-		print "Nothing in the realtime changes file yet\n";
         %changes = (
             'processes' => [],
         );
@@ -626,7 +625,7 @@ sub check {
                 $proc_push = 1;
             }
 
-           if($toks[$ENTRY_TYPE] eq "registry"){
+            if($toks[$ENTRY_TYPE] eq "registry"){
                 #Build the registry object and put it in to the proc object
                 #Sanity check incase Capture gets messed up, because the database can't accept
                 # an empty string for key_name, but also we want to make it clear that something
@@ -635,7 +634,7 @@ sub check {
                 if($toks[$R_KEY_NAME] eq "" || $toks[$R_KEY_NAME] !~ /^[HKLM,HKCU,HKU,HKCR]/){
                     $sanit_key_name = "KEY NAME ERROR \"$toks[$R_KEY_NAME]\"";
                     print "KEY NAME ERROR at line $line_num \"$toks[$R_KEY_NAME]\"\n";
-                }
+                } 
                 else{
                     $sanit_key_name = $toks[$R_KEY_NAME];
                 }
@@ -670,40 +669,51 @@ sub check {
                             'sha1' => "$toks[$F_NAME]$toks[$F_TIME]",
                         };
                         my $tmp_name = $toks[$F_NAME];
-	                    if(-f $tmp_name){
-                            my $md5_ctx  = Digest::MD5->new();
-                            my $sha1_ctx = Digest::SHA->new("1");
-                            my $type_ctx = File::Type->new();
-                            my $md5 = 'UNKNOWN';
-                            my $sha1 = 'UNKNOWN';
-                            my $type = 'UNKNOWN';
-                            my $size = 0;
-	                        my $fh = IO::File->new($tmp_name, "r");
-	                        #print "md5ing $tmp_name\n";
-	                        # Compute MD5 Checksum.
-	                        $md5_ctx->addfile($fh);
-	                        $md5 = $md5_ctx->hexdigest();
+	                    eval{
+                            if(-f $tmp_name){
+                                my $md5_ctx  = Digest::MD5->new();
+                                my $sha1_ctx = Digest::SHA->new("1");
+                                my $type_ctx = File::Type->new();
+                                my $md5 = 'UNKNOWN';
+                                my $sha1 = 'UNKNOWN';
+                                my $type = 'UNKNOWN';
+                                my $size = 0;
+                                my $fh = IO::File->new($tmp_name, "r");
+	                            #print "md5ing $tmp_name\n";
+	                            # Compute MD5 Checksum.
+	                            $md5_ctx->addfile($fh);
+	                            $md5 = $md5_ctx->hexdigest();
 	
-	                        # Rewind file handle.
-	                        seek($fh, 0, 0);
+	                            # Rewind file handle.
+	                            seek($fh, 0, 0);
 	
-	                        #print "sha1ing $tmp_name\n";
-	                        # Compute SHA1 Checksum.
-	                        $sha1_ctx->addfile($fh);
-	                        $sha1 = $sha1_ctx->hexdigest();
-	
-	                        #Compute file size
-	                        $size = -s $tmp_name;
-	
-	                        # Compute File Type.
-	                        $type = $type_ctx->mime_type($tmp_name);
-	
-	                        # Close the file handle.
-	                        undef $fh;
-                            $file_obj->{'contents'}->{'size'} = $size;
-                            $file_obj->{'contents'}->{'md5'} = $md5;
-                            $file_obj->{'contents'}->{'sha1'} = $sha1;
-                            $file_obj->{'contents'}->{'type'} = $type;
+    	                        #print "sha1ing $tmp_name\n";
+    	                        # Compute SHA1 Checksum.
+    	                        $sha1_ctx->addfile($fh);
+    	                        $sha1 = $sha1_ctx->hexdigest();
+    	
+    	                        #Compute file size
+    	                        $size = -s $tmp_name;
+    	
+    	                        # Compute File Type.
+    	                        $type = $type_ctx->mime_type($tmp_name);
+    	
+    	                        # Close the file handle.
+    	                        undef $fh;
+                                $file_obj->{'contents'}->{'size'} = $size;
+                                $file_obj->{'contents'}->{'md5'} = $md5;
+                                $file_obj->{'contents'}->{'sha1'} = $sha1;
+                                $file_obj->{'contents'}->{'type'} = $type;
+                            }
+                        };
+                        if($@){
+                            print "Filesystem error occurred, setting safe values for $tmp_name\n";
+                            $file_obj->{'contents'} = {
+                                'size' => 0,
+                                'type' => "FSERROR",
+                                'md5' => "FSERROR",
+                                'sha1' => "FSERROR",
+                            };
                         }
                         push @{$proc_obj->{'file_system'}},$file_obj;
                     }
