@@ -210,6 +210,12 @@ use IO::File;
 use DateTime::HiRes;
 
 # TODO: Include unit tests.
+use Sys::Hostname::Long;
+
+# TODO: Include unit tests.
+use Sys::HostIP;
+
+# TODO: Include unit tests.
 # Include Logging Library
 use Log::Log4perl qw(:easy);
 
@@ -859,9 +865,9 @@ sub dbRegisterClient {
 		status => $HoneyClient::DB::Client::STATUS_RUNNING,
 		# TODO: Collect host,application, and config through automation/config files
 		host => {
-			organization => 'Mitre',
-			host_name => 'honeyclient3',
-			ip_address => '172.16.164.103',
+			organization => 'MITRE',
+			host_name => Sys::Hostname::Long::hostname_long,
+			ip_address => Sys::HostIP->ip,
 		},
 		client_app => {
 			manufacturer => 'Microsoft',
