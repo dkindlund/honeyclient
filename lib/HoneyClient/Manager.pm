@@ -738,7 +738,7 @@ sub runSession {
 
                     # Insert Compromised Fingerprint into DB.
                     my $fingerprint = $ret->{$args{'driver'}}->{status}->{fingerprint};
-                    $LOG->warn("VM Compromised.  Last Resource (" . delete($fingerprint->{'last_resource'}) . ")");
+                    $LOG->warn("VM Compromised.  Last Resource (" . $fingerprint->{'last_resource'} . ")");
                     if ($DB_ENABLE && ($clientDbId > 0)) {
 						# Remove the last_url from the fingerprint and insert it as Url History
 						# XXX: Will be removed when all of clients Url History is stored.
