@@ -385,10 +385,10 @@ our ( $FIELDS_ALL, $FIELDS_SEARCH, $FIELDS_DISPLAY ) = ( 0 , 1, 2);
 our ($ERROR_NONE,$ERROR_INSERT_FAILED,$ERROR_DUPLICATE_FOUND,$ERROR_DUPLICATE_UNRESOLVED)
     = (0,1,2,3);
 our @ERROR_MESSAGES = (
-	"Success!",
+	"Success",
 	"Failed with a fatal error",
-	"Duplicate object found. Non-fatal warning.",
-	"Duplicate object found. Unable to retrieve ID of duplicate record.",
+	"Duplicate object found. Non-fatal warning",
+	"Duplicate object found. Unable to retrieve ID of duplicate record",
 );
 our $LAST_ERROR = $ERROR_NONE;
 
@@ -1028,6 +1028,8 @@ sub _update {
 	my ($class,$update,$conditions) = @_;
 	my $rc = -1;
 	my $sql = "UPDATE ". $class->_get_table()." SET " . $update . $class->_where_condition($conditions);
+	# Debug Output
+	$LOG->debug($sql);
     eval {
 # Execute UPDATE and Parse mysql_info (e.g. Rows matched: 1  Changed: 1  Warnings: 0)
         $dbhandle->do($sql);
