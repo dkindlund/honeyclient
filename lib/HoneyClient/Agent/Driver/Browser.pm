@@ -384,14 +384,15 @@ time out.
 
 =back
 
-=head2 process_name
-
-=over 4
-
-A string containing the process name of the  browser application,
-as it appears in the Task Manager.
-
-=back
+# XXX: Delete this, eventually.
+#=head2 process_name
+#
+#=over 4
+#
+#A string containing the process name of the  browser application,
+#as it appears in the Task Manager.
+#
+#=back
 
 =head2 max_relative_links_to_visit
 
@@ -728,25 +729,25 @@ sub _validateLink {
 #
 # Inputs: None
 # Outputs: None
-sub _killProcess {
-
-    # Get the object state.
-    my $self = shift;
-
-    # TODO: Make this more robust.
-
-    # This function will croak, if it ever tries to return an undefined
-    # object.
-    my $stub = getClientHandle(address   => 'localhost',
-                               namespace => 'HoneyClient::Agent');
-
-    my $som = $stub->killProcess($self->process_name);
-
-    if (!$som->result) {
-        $LOG->warn("Failed to kill process: '" . $self->process_name . "'!");
-        Carp::carp "Failed to kill process: '" . $self->process_name . "'!\n";
-    }
-}
+#sub _killProcess {
+#
+#    # Get the object state.
+#    my $self = shift;
+#
+#    # TODO: Make this more robust.
+#
+#    # This function will croak, if it ever tries to return an undefined
+#    # object.
+#    my $stub = getClientHandle(address   => 'localhost',
+#                               namespace => 'HoneyClient::Agent');
+#
+#    my $som = $stub->killProcess($self->process_name);
+#
+#    if (!$som->result) {
+#        $LOG->warn("Failed to kill process: '" . $self->process_name . "'!");
+#        Carp::carp "Failed to kill process: '" . $self->process_name . "'!\n";
+#    }
+#}
 
 #######################################################################
 # Public Methods Implemented                                          #
@@ -889,9 +890,10 @@ sub new {
         # the browser to time out.
         ignore_links_timed_out  => getVar(name => "ignore_links_timed_out"),
 
+        # XXX: Delete this, eventually.
         # A string containing the process name of the browser application,
         # as it appears in the Task Manager.
-        process_name            => getVar(name => "process_name"),
+        #process_name            => getVar(name => "process_name"),
 
         # An integer, representing how many relative links the browser
         # should continue to drive to, before moving onto another
