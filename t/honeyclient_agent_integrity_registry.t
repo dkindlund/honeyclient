@@ -131,6 +131,7 @@ diag("Performing baseline check of 'HKEY_CURRENT_USER' hive; this may take some 
 # Perform Registry baseline on HKEY_CURRENT_USER.
 $registry = HoneyClient::Agent::Integrity::Registry->new(hives_to_check => [ 'HKEY_CURRENT_USER' ]);
 isa_ok($registry, 'HoneyClient::Agent::Integrity::Registry', "new(hives_to_check => [ 'HKEY_CURRENT_USER' ])") or diag("The new() call failed.");
+$registry->destroy();
 }
 
 
@@ -266,6 +267,7 @@ $expectedChanges = [
 ];
 
 is_deeply($foundChanges, $expectedChanges, "check(before_file => '" . $before_registry_file . "', after_file => '" . $after_registry_file . "')") or diag("The check() call failed.");
+$registry->destroy();
 }
 
 
@@ -283,6 +285,7 @@ my $tmpdir = dirname($tmpfile);
 foreach my $file (@files_created) {
     like($file, qr/$tmpdir/, "getFilesCreated()") or diag("The getFilesCreated() call failed.");
 }
+$registry->destroy();
 }
 
 
@@ -300,6 +303,22 @@ unlink($tmpfile);
 my $tmpdir = dirname($tmpfile);
 foreach my $file (@files_created) {
     like($file, qr/$tmpdir/, "closeFiles()") or diag("The closeFiles() call failed.");
+}
+$registry->destroy();
+}
+
+
+
+# =begin testing
+{
+# Perform Registry baseline on HKEY_CURRENT_CONFIG.
+diag("Performing baseline check of 'HKEY_CURRENT_CONFIG' hive; this may take some time...");
+my $registry = HoneyClient::Agent::Integrity::Registry->new(hives_to_check => [ 'HKEY_CURRENT_CONFIG' ]);
+my @files_created = $registry->getFilesCreated();
+$registry->destroy();
+use Data::Dumper;
+foreach my $file (@files_created) {
+    is(-e $file, undef, "destroy()") or diag("The destroy() call failed.");
 }
 }
 

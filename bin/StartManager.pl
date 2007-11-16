@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Carp ();
 
+# Include Dumper Library
 use Data::Dumper;
 
 # Include Hash Serialization Utility Libraries
@@ -17,17 +18,26 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 # Include Getopt Parser
 use Getopt::Long;
 
+# Include utility access to global configuration.
+use HoneyClient::Util::Config qw(getVar);
+
+# Include Manager Library
 use HoneyClient::Manager;
 
+# Include Logging Library
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
+
 # We expect that the user will supply a single argument to this script.
-# Namely, the initial URL that they want the Agent to use.
-# They can however supply multiple urls which will be processed in order
+# Namely, the initial set of URLs that they want the Agent to use.
 
 # Change to 'HoneyClient::Agent::Driver::Browser::IE' or
 #           'HoneyClient::Agent::Driver::Browser::FF'
-my $driver = "HoneyClient::Agent::Driver::Browser::IE";
+my $driver = undef;
 my $config = undef;
-my $maxrel = 5;
+my $maxrel = undef;
 my $nexturl = "";
 my $urllist= "";
 
@@ -37,6 +47,18 @@ GetOptions('driver=s'             => \$driver,
            'master_vm_config=s'   => \$config,
            'url_list=s'           => \$urllist,
            'max_relative_links:i' => \$maxrel);
+
+# Sanity Check.  Make sure $driver is set.
+unless (defined($driver)) {
+    $driver = getVar(name      => "default_driver",
+                     namespace => "HoneyClient::Agent");
+}
+
+# Sanity Check.  Make sure $max_relative_links is set.
+unless (defined($maxrel)) {
+    $maxrel = getVar(name      => "max_relative_links_to_visit",
+                     namespace => "HoneyClient::Agent::Driver::Browser");
+}
 
 # Go through the list of urls to create the array
 # Anything not associated with an option is a URL

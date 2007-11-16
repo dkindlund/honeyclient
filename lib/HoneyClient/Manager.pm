@@ -6,7 +6,7 @@
 #
 # CVS: $Id$
 #
-# @author knwang, ttruong, jdurick, kindlund
+# @author knwang, kindlund
 #
 # Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
 #
@@ -31,7 +31,8 @@
 
 =head1 NAME
 
-# XXX: Fill this in.
+HoneyClient::Manager - Perl extension to manage Agent VMs on the
+host system.
 
 =head1 VERSION
 
@@ -39,24 +40,82 @@ This documentation refers to HoneyClient::Manager version 1.00.
 
 =head1 SYNOPSIS
 
-=head2 CREATING THE SOAP SERVER
+  use HoneyClient::Manager;
+  use Data::Dumper;
 
-# XXX: Fill this in.
+  # Utility functions to encode configuration data.
+  use Storable qw(nfreeze thaw);
+  use MIME::Base64 qw(encode_base64 decode_base64);
 
-=head2 INTERACTING WITH THE SOAP SERVER
+  # Note: Make sure only one of these "my driver =" lines
+  # is uncommented.
 
-# XXX: Fill this in.
+  # Use Internet Explorer as the instrumenting application.
+  my $driver = "HoneyClient::Agent::Driver::Browser::IE";
+
+  # Use Mozilla Firefox as the instrumenting application.
+  #my $driver = "HoneyClient::Agent::Driver::Browser::FF";
+
+  # Start the Manager.
+  HoneyClient::Manager->run(
+
+      driver => $driver,
+
+      agent_state => encode_base64(nfreeze({
+
+          $driver => {
+
+              # Specify the next link for the Agent VM to visit.
+              next_link_to_visit => "http://www.mitre.org",
+
+              # If you have more than one link, you can also
+              # set this type of hashtable:
+              links_to_visit => {
+                  'http://www.google.com' => 1,
+              },
+          },
+
+      })),
+  );
 
 =head1 DESCRIPTION
 
-# XXX: Fill this in.
+This module provides centralized control over provisioning, initializing,
+running, and suspending all Agent VMs.  Upon calling the run() function,
+the Manager will proceed to create a new clone of the master Honeyclient VM
+(aka. an Agent VM) and feed this Agent VM a new list of URLs to crawl.
+
+While the Agent VM is crawling, the Manager will check to make sure the
+Agent VM has not been compromised.  If no compromise was found, then the
+Manager will signal the Firewall to allow the Agent VM to contact the
+next set of network resources (i.e., a webserver).
+
+If the Manager discovers the Agent VM has been compromised, then the
+Manager will suspend the clone VM, log the incident, and create a new Agent
+VM clone -- where this new clone picks up with the next set of URLs to
+crawl.
+
+If there are no URLs left for the Agent VM to visit OR if the user
+presses CTRL+C while the Manager is running, then the Manager will
+suspend the currently running Agent VM and write its state information
+out to the filesystem on the host system.  This file is usually
+called 'Manager.dump'; however, the name can be changed by editing
+the <HoneyClient/><Manager/><manager_state/> section of the
+etc/honeyclient.xml file.
+
+This 'Manager.dump' file contains the set of URLs that the Honeyclients
+have visited, ignored, or tried to visit.  In order to determine
+which URLs were identified as malicious, you will need to check
+the syslog on the host system and search for the keyword of "FAILED".
+
+By default, all cloned VMs that the Manager suspends will have been
+flagged as compromised -- unless the set of URLs has been exhausted
+or the user prematurely terminates the process (by pressing CTRL+C).
 
 =cut
 
 package HoneyClient::Manager;
 
-# XXX: Disabled version check, Honeywall does not have Perl v5.8 installed.
-#use 5.008006;
 use strict;
 use warnings FATAL => 'all';
 use Config;
@@ -105,6 +164,54 @@ our (@EXPORT_OK, $VERSION);
 
 =begin testing
 
+# Make sure ExtUtils::MakeMaker loads.
+BEGIN { use_ok('ExtUtils::MakeMaker', qw(prompt)) or diag("Can't load ExtUtils::MakeMaker package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('ExtUtils::MakeMaker');
+can_ok('ExtUtils::MakeMaker', 'prompt');
+use ExtUtils::MakeMaker qw(prompt);
+
+# Make sure Log::Log4perl loads
+BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
+       
+        # Suppress all logging messages, since we need clean output for unit testing.
+        Log::Log4perl->init({
+            "log4perl.rootLogger"                               => "DEBUG, Buffer",
+            "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+            "log4perl.appender.Buffer.min_level"                => "fatal",
+            "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+            "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+        });
+}
+require_ok('Log::Log4perl');
+use Log::Log4perl qw(:easy);
+
+# Make sure HoneyClient::Util::Config loads.
+BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar))
+        or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path.");
+
+        # Suppress all logging messages, since we need clean output for unit testing.
+        Log::Log4perl->init({
+            "log4perl.rootLogger"                               => "DEBUG, Buffer",
+            "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+            "log4perl.appender.Buffer.min_level"                => "fatal",
+            "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+            "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+        });
+}
+require_ok('HoneyClient::Util::Config');
+can_ok('HoneyClient::Util::Config', 'getVar');
+use HoneyClient::Util::Config qw(getVar);
+
+# Suppress all logging messages, since we need clean output for unit testing.
+Log::Log4perl->init({
+    "log4perl.rootLogger"                               => "DEBUG, Buffer",
+    "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+    "log4perl.appender.Buffer.min_level"                => "fatal",
+    "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+    "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+});
+
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Manager', qw(init destroy)) or diag("Can't load HoneyClient::Manager package.  Check to make sure the package library is correctly listed within the path."); }
@@ -112,6 +219,11 @@ require_ok('HoneyClient::Manager');
 can_ok('HoneyClient::Manager', 'init');
 can_ok('HoneyClient::Manager', 'destroy');
 use HoneyClient::Manager qw(init destroy);
+
+# Make sure HonyClient::Manager::VM::Clone loads.
+BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::VM::Clone');
+use HoneyClient::Manager::VM::Clone;
 
 # Make sure HoneyClient::Util::SOAP loads.
 BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
@@ -125,6 +237,16 @@ BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar)) or diag("Can't load Hone
 require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
+
+# Check if HoneyClient::DB support is enabled. 
+my $DB_ENABLE = getVar(name      => "enable",
+                       namespace => "HoneyClient::DB");
+
+if ($DB_ENABLE) {
+    # Make sure HoneyClient::DB::Fingerprint loads. 
+    require_ok('HoneyClient::DB::Fingerprint');
+    require HoneyClient::DB::Fingerprint;
+}
 
 # Make sure Storable loads.
 BEGIN { use_ok('Storable', qw(nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
@@ -158,21 +280,24 @@ use Thread::Queue;
 # Include utility access to global configuration.
 use HoneyClient::Util::Config qw(getVar);
 
-# Include the VM Utility Library
+# Include the VM Utility Libraries
+use HoneyClient::Manager::VM::Clone;
+
+# XXX: Remove this, eventually.
 # TODO: Include unit tests.
 use HoneyClient::Manager::VM qw();
 
-# Check if DB support is enabled. 
+# Check if HoneyClient::DB support is enabled. 
 our $DB_ENABLE = getVar(name      => "enable",
                         namespace => "HoneyClient::DB");
 
 if ($DB_ENABLE) {
-    # Include DB Utility Library
+    # Include HoneyClient::DB Utility Libraries
     # TODO: Include unit tests.
     require HoneyClient::DB::Fingerprint;
     require HoneyClient::DB::Client;
-	require HoneyClient::DB::Url::History;
-	require HoneyClient::DB::Time;
+    require HoneyClient::DB::Url::History;
+    require HoneyClient::DB::Time;
 }
 
 # XXX: Remove this, eventually.
@@ -188,12 +313,7 @@ use Storable qw(nfreeze thaw);
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
 
-# Include FW Utility Library
-# TODO: Include unit tests.
-#use HoneyClient::Manager::FW;
-
 # Include Hash Serialization Utility Libraries
-# TODO: Include unit tests.
 use Storable qw(nfreeze thaw);
 
 # Include VmPerl Constants.
@@ -215,7 +335,6 @@ use Sys::Hostname::Long;
 # TODO: Include unit tests.
 use Sys::HostIP;
 
-# TODO: Include unit tests.
 # Include Logging Library
 use Log::Log4perl qw(:easy);
 
@@ -230,22 +349,13 @@ our $URL            : shared = undef;
 our $DAEMON_PID     : shared = undef;
 
 # XXX: These will be migrated somewhere else, eventually.
-our $vmStateTable = { };
 our $vmCloneConfig      = undef;
-our $stubVM             = undef;
-our $stubAgent          = undef;
-our $stubFW             = undef;
 
 # This is a temporary, shared variable, used to print out the
 # state of the agent, when _cleanup() occurs.
 # XXX: This variable and all reference to it will be deleted,
 # eventually.
 our $globalAgentState   = undef;
-
-# This static variable may contain a filename that the Manager
-# would use to dump its entire state information, upon termination.
-# XXX: May want to change this format/usage, eventually.
-our $STATE_FILE = getVar(name => "manager_state");
 
 # Temporary variable, used to indicate to the fault handler whether
 # or not errors/warnings should be suppressed.
@@ -283,11 +393,11 @@ I<Output>:
 
 =back
 
-=begin testing
-
+#=begin testing
+#
 # XXX: Test init() method.
-
-=end testing
+#
+#=end testing
 
 =cut
 
@@ -313,14 +423,11 @@ I<Output>: True if successful, false otherwise.
 
 =back
 
-=begin testing
-
+#=begin testing
+#
 # XXX: Test destroy() method.
-
-# TODO: delete this.
-#exit;
-
-=end testing
+#
+#=end testing
 
 =cut
 
@@ -380,7 +487,8 @@ sub _cleanup {
     $SIG{PIPE}    = sub { };
     $SIG{TERM}    = sub { };
 
-    HoneyClient::Manager::VM->destroy();
+# XXX: Remove this, eventually.
+#    HoneyClient::Manager::VM->destroy();
 
     # XXX: Need to clean this up.
     my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW");
@@ -389,28 +497,33 @@ sub _cleanup {
     # Reset the firewall, to allow everything open.
     $stubFW->testConnect();
 
-    # Check to see if a clone was created...
-    if (defined($vmCloneConfig)) {
-        # We sleep for a bit, to make sure that the previous VM daemon was
-        # properly destroyed and released the previous port that was in use.
-        sleep (10);
+# XXX: Remove this, eventually.
+#    # Check to see if a clone was created...
+#    if (defined($vmCloneConfig)) {
+#        # We sleep for a bit, to make sure that the previous VM daemon was
+#        # properly destroyed and released the previous port that was in use.
+#        sleep (10);
+#
+#        # We reinstantiate a new VM daemon, because if the user had hit CTRL-C
+#        # or called any other signal, then that signal would propagate to all
+#        # processes, causing the VM daemon's signal handler to self terminate.
+#        #
+#        # Hence, rather than fight the VM daemon's natural self termination,
+#        # we let the daemon die, but the create a new one, for the sole purpose
+#        # of cleaning up the clones.
+#        HoneyClient::Manager::VM->init();
+#        $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
+#        my $stubVM = getClientHandle(namespace => "HoneyClient::Manager::VM");
+#        $stubVM->suspendVM(config => $vmCloneConfig);
+#        print "Done!\n";
+#        HoneyClient::Manager::VM->destroy();
+#    }
 
-        # We reinstantiate a new VM daemon, because if the user had hit CTRL-C
-        # or called any other signal, then that signal would propagate to all
-        # processes, causing the VM daemon's signal handler to self terminate.
-        #
-        # Hence, rather than fight the VM daemon's natural self termination,
-        # we let the daemon die, but the create a new one, for the sole purpose
-        # of cleanup up the clones.
-        HoneyClient::Manager::VM->init();
-        $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
-        my $stubVM = getClientHandle(namespace => "HoneyClient::Manager::VM");
-        $stubVM->suspendVM(config => $vmCloneConfig);
-        print "Done!\n";
-        HoneyClient::Manager::VM->destroy();
-    }
-
+    # This variable may contain a filename that the Manager
+    # would use to dump its entire state information, upon termination.
     # XXX: May want to change this format/usage, eventually.
+    my $STATE_FILE = getVar(name => "manager_state");
+
     if (length($STATE_FILE) > 0 &&
         defined($globalAgentState)) {
         $LOG->info("Saving state to '" . $STATE_FILE . "'.");
@@ -420,19 +533,24 @@ sub _cleanup {
         $Data::Dumper::Terse = 0;
         $Data::Dumper::Indent = 2;
         print $dump_file Dumper(thaw(decode_base64($globalAgentState)));
+        $dump_file->close();
     }
+
+    # XXX: There is an issue where if we try to quit but are in the
+    # process of asynchronously archiving a VM, then the async archive
+    # process will fail.
 
     exit;
 }
 
 # XXX: Install the cleanup handler, in case the parent process dies
 # unexpectedly.
-$SIG{HUP}  = sub { _cleanup(); };
-$SIG{INT}  = sub { _cleanup(); };
-$SIG{QUIT} = sub { _cleanup(); };
-$SIG{ABRT} = sub { _cleanup(); };
-$SIG{PIPE} = sub { _cleanup(); };
-$SIG{TERM} = sub { _cleanup(); };
+$SIG{HUP}  = \&_cleanup;
+$SIG{INT}  = \&_cleanup;
+$SIG{QUIT} = \&_cleanup;
+$SIG{ABRT} = \&_cleanup;
+$SIG{PIPE} = \&_cleanup;
+$SIG{TERM} = \&_cleanup;
 
 #######################################################################
 # Public Methods Implemented                                          #
@@ -459,11 +577,11 @@ I<Output>: XXX: Fill this in.
 
 =back
 
-=begin testing
-
+#=begin testing
+#
 # XXX: Fill this in.
-
-=end testing
+#
+#=end testing
 
 =cut
 
@@ -475,8 +593,8 @@ sub run {
     my ($class, %args) = @_;
     my $agentState = undef;
 
-    # Sanity check, make sure the master_vm_config has
-    # been specified.
+    # Sanity check, make sure the master_vm_config is
+    # set.
     my $argsExist = scalar(%args);
     if (!$argsExist ||
         !exists($args{'master_vm_config'}) ||
@@ -508,6 +626,10 @@ sub runSession {
     # for consistency.
     my ($class, %args) = @_;
 
+# XXX: Remove some of these, eventually.
+    my $stubVM    = undef;
+    my $stubFW    = undef;
+    my $stubAgent = undef;
     my $som       = undef;
     my $ret       = undef;
     my $vmIP      = undef;
@@ -516,7 +638,11 @@ sub runSession {
     my $URL       = undef;
     my $vmState   = undef;
     my $vmCompromised = 0;
-	my $clientDbId = 0;
+    my $vmStateTable = { };
+    my $clientDbId = 0;
+
+    # Temporary variable to hold each cloned VM.
+    my $vm        = undef;
 
     # Get a stub connection to the firewall.
     $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
@@ -525,144 +651,149 @@ sub runSession {
     # Open up the firewall initially, to allow the Agent to do an SVN update.
     $stubFW->testConnect();
 
-    $URL = HoneyClient::Manager::VM->init();
-    print "VM Daemon Listening On: " . $URL . "\n";
-   
-    $stubVM = getClientHandle(namespace     => "HoneyClient::Manager::VM",
-                              fault_handler => \&_handleFaultAndCleanup);
+# XXX: Remove these, eventually.
+#    $URL = HoneyClient::Manager::VM->init();
+#    print "VM Daemon Listening On: " . $URL . "\n";
+#   
+#    $stubVM = getClientHandle(namespace     => "HoneyClient::Manager::VM",
+#                              fault_handler => \&_handleFaultAndCleanup);
     
-    print "Calling setMasterVM()...\n";
-    $som = $stubVM->setMasterVM(config => $args{'master_vm_config'});
-    print "Result: " . $som->result() . "\n";
+#    print "Calling setMasterVM()...\n";
+#    $som = $stubVM->setMasterVM(config => $args{'master_vm_config'});
+#    print "Result: " . $som->result() . "\n";
 
-    print "Calling quickCloneVM()...\n";
-    $som = $stubVM->quickCloneVM();
-    print "Result: " . $som->result() . "\n";
-    $vmCloneConfig = $som->result();
+#    print "Calling quickCloneVM()...\n";
+#    $som = $stubVM->quickCloneVM();
+#    print "Result: " . $som->result() . "\n";
+#    $vmCloneConfig = $som->result();
 
-    # Make sure the VM is fully cloned, before trying to make any subsequent calls.
-    print "Calling isRegisteredVM()...\n";
-    $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
-    $ret = $som->result();
+#    # Make sure the VM is fully cloned, before trying to make any subsequent calls.
+#    print "Calling isRegisteredVM()...\n";
+#    $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
+#    $ret = $som->result();
 
-    if (defined($ret)) {
-        print "Result: " . $ret . "\n";
-    }
+#    if (defined($ret)) {
+#        print "Result: " . $ret . "\n";
+#    }
 
-    while (!defined($ret)) {
-        sleep (3);
-        print "Calling isRegisteredVM()...\n";
-        $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
-        $ret = $som->result();
-        if (defined($ret)) {
-            print "Result: " . $ret . "\n";
+#    while (!defined($ret)) {
+#        sleep (3);
+#        print "Calling isRegisteredVM()...\n";
+#        $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
+#        $ret = $som->result();
+#        if (defined($ret)) {
+#            print "Result: " . $ret . "\n";
+#        }
+#    }
+
+#    print "Calling getStateVM()...\n";
+#    $som = $stubVM->getStateVM(config => $vmCloneConfig);
+#    $vmState = $som->result();
+#
+#    if ($vmState == VM_EXECUTION_STATE_ON) {
+#        print "ON\n";
+#    } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
+#        print "OFF\n";
+#    } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
+#        print "SUSPENDED\n";
+#    } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
+#        print "STUCK\n";
+#    } else {
+#        print "UNKNOWN\n";
+#    }
+
+#    while ($vmState != VM_EXECUTION_STATE_ON) {
+#        sleep (3);
+#
+#        print "Calling getStateVM()...\n";
+#        $som = $stubVM->getStateVM(config => $vmCloneConfig);
+#        $vmState = $som->result();
+#
+#        if ($vmState == VM_EXECUTION_STATE_ON) {
+#            print "ON\n";
+#        } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
+#            print "OFF\n";
+#        } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
+#            print "SUSPENDED\n";
+#        } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
+#            print "STUCK\n";
+#        } else {
+#            print "UNKNOWN\n";
+#        }
+#    }
+
+#    print "Calling getMACaddrVM()...\n";
+#    $som = $stubVM->getMACaddrVM(config => $vmCloneConfig);
+#    print "Result: " . $som->result() . "\n";
+#    $vmMAC = $som->result();
+
+#    # Figure out when the Agent on the VM is alive and well.
+#    $ret = undef;
+#    my $logMsgPrinted = 0;
+#    while (!$ret) {
+#        sleep (3);
+#        print "Calling getIPaddrVM()...\n";
+#        $som = $stubVM->getIPaddrVM(config => $vmCloneConfig);
+#        if (defined($som->result())) {
+#            print "Result: " . $som->result() . "\n";
+#        }
+#        $vmIP = $som->result();
+#
+#        print "Calling getNameVM()...\n";
+#        $som = $stubVM->getNameVM(config => $vmCloneConfig);
+#        print "Result: " . $som->result() . "\n";
+#        $vmName = $som->result();
+#
+#        if (defined($vmIP) && defined($vmName)) {
+#            if (!$logMsgPrinted) {
+#                $LOG->info("Created clone VM (" . $vmName . ") using IP (" . $vmIP . ") and MAC (" . $vmMAC . ").");
+#                $logMsgPrinted = 1;
+#            }
+#
+#            # Try contacting the Agent; ignore any faults.
+#            $SUPPRESS_ERRORS = 1;
+#            $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
+#                                         address       => $vmIP,
+#                                         fault_handler => \&_handleFault);
+#
+#            eval {
+#                print "Calling getStatus()...\n";
+#                $som = $stubAgent->getStatus();
+#                $ret = thaw(decode_base64($som->result()));
+#                print "Result:\n";
+#                # Make Dumper format more verbose.
+#                $Data::Dumper::Terse = 0;
+#                $Data::Dumper::Indent = 2;
+#                print Dumper($ret);
+#
+#            };
+#            # Clear returned state, if any fault occurs.
+#            if ($@) {
+#                $ret = undef;
+#            }
+#            $SUPPRESS_ERRORS = 0;
+#        }
+#    }
+
+    # Create a new cloned VM.
+    $vm = HoneyClient::Manager::VM::Clone->new();
+
+    #Register Client with the Honeyclient Database
+    if ($DB_ENABLE) {
+        eval {
+            $clientDbId = dbRegisterClient($vmName);
+        };
+        if ($@) {
+            $clientDbId = 0; #$DB_FAILURE
+            $LOG->warn("Failure Inserting Client Object:\n$@");
         }
     }
-
-    print "Calling getStateVM()...\n";
-    $som = $stubVM->getStateVM(config => $vmCloneConfig);
-    $vmState = $som->result();
-
-    if ($vmState == VM_EXECUTION_STATE_ON) {
-        print "ON\n";
-    } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
-        print "OFF\n";
-    } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
-        print "SUSPENDED\n";
-    } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
-        print "STUCK\n";
-    } else {
-        print "UNKNOWN\n";
-    }
-
-    while ($vmState != VM_EXECUTION_STATE_ON) {
-        sleep (3);
-
-        print "Calling getStateVM()...\n";
-        $som = $stubVM->getStateVM(config => $vmCloneConfig);
-        $vmState = $som->result();
-
-        if ($vmState == VM_EXECUTION_STATE_ON) {
-            print "ON\n";
-        } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
-            print "OFF\n";
-        } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
-            print "SUSPENDED\n";
-        } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
-            print "STUCK\n";
-        } else {
-            print "UNKNOWN\n";
-        }
-    }
-
-    print "Calling getMACaddrVM()...\n";
-    $som = $stubVM->getMACaddrVM(config => $vmCloneConfig);
-    print "Result: " . $som->result() . "\n";
-    $vmMAC = $som->result();
-
-    # Figure out when the Agent on the VM is alive and well.
-    $ret = undef;
-    my $logMsgPrinted = 0;
-    while (!$ret) {
-        sleep (3);
-        print "Calling getIPaddrVM()...\n";
-        $som = $stubVM->getIPaddrVM(config => $vmCloneConfig);
-        if (defined($som->result())) {
-            print "Result: " . $som->result() . "\n";
-        }
-        $vmIP = $som->result();
-
-        print "Calling getNameVM()...\n";
-        $som = $stubVM->getNameVM(config => $vmCloneConfig);
-        print "Result: " . $som->result() . "\n";
-        $vmName = $som->result();
-
-        if (defined($vmIP) && defined($vmName)) {
-            if (!$logMsgPrinted) {
-                $LOG->info("Created clone VM (" . $vmName . ") using IP (" . $vmIP . ") and MAC (" . $vmMAC . ").");
-                $logMsgPrinted = 1;
-            }
-
-            # Try contacting the Agent; ignore any faults.
-            $SUPPRESS_ERRORS = 1;
-            $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-                                         address       => $vmIP,
-                                         fault_handler => \&_handleFault);
-
-            eval {
-                print "Calling getStatus()...\n";
-                $som = $stubAgent->getStatus();
-                $ret = thaw(decode_base64($som->result()));
-                print "Result:\n";
-                # Make Dumper format more verbose.
-                $Data::Dumper::Terse = 0;
-                $Data::Dumper::Indent = 2;
-                print Dumper($ret);
-
-            };
-            # Clear returned state, if any fault occurs.
-            if ($@) {
-                $ret = undef;
-            }
-            $SUPPRESS_ERRORS = 0;
-        }
-    }
-
-	#Register Client with the Honeyclient Database
-	if ($DB_ENABLE) {
-		eval {
-			$clientDbId = dbRegisterClient($vmName);
-		};
-		if ($@) {
-			$clientDbId = 0; #$DB_FAILURE
-			$LOG->warn("Failure Inserting Client Object:\n$@");
-		}
-	}
 
     # Build our VM's connection table.
     # Note: We assume our VM has a single MAC address
     # and a single IP address.
-    $vmStateTable->{$vmName}->{sources}->{$vmMAC}->{$vmIP} = {
+#    $vmStateTable->{$vmName}->{sources}->{$vmMAC}->{$vmIP} = {
+    $vmStateTable->{$vm->name}->{sources}->{$vm->mac_address}->{$vm->ip_address} = {
         # XXX: We assume we can't pinpoint what source TCP ports the
         # corresponding driver will need.  (We may want to get this
         # information eventually from the Agent, as part of Driver::next().)
@@ -685,7 +816,8 @@ sub runSession {
 
     # Recreate the client stub; handle faults.
     $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-                                 address       => $vmIP,
+#                                 address       => $vmIP,
+                                 address       => $vm->ip_address,
                                  fault_handler => \&_handleFaultAndCleanup);
 
     # Call updateState() first, to seed initial data.
@@ -696,7 +828,8 @@ sub runSession {
 
     # Recreate the client stub; ignore faults.
     $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-                                 address       => $vmIP,
+#                                 address       => $vmIP,
+                                 address       => $vm->ip_address,
                                  fault_handler => \&_handleFault);
 
     # Recreate the firewall stub; ignore faults.
@@ -705,6 +838,7 @@ sub runSession {
 
     for (my $counter = 1;; $counter++) {
 
+        # XXX: This isn't a valid assumption!
         # From this point on, catch all errors generated and
         # assume that the Agent's watchdog process will recover.
         eval {
@@ -731,51 +865,73 @@ sub runSession {
                 if ($ret->{$args{'driver'}}->{status}->{is_compromised}) {
                     # Check to see if the VM has been compromised.
                     print "WARNING: VM HAS BEEN COMPROMISED!\n";
-                    $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
-                    $som = $stubVM->suspendVM(config => $vmCloneConfig);
-                    HoneyClient::Manager::VM->destroy();
+#                    $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
+#                    $som = $stubVM->suspendVM(config => $vmCloneConfig);
+#                    HoneyClient::Manager::VM->destroy();
+                    my $vmName = $vm->name;
                     $vmCompromised = 1;
 
-                    # Insert Compromised Fingerprint into DB.
                     my $fingerprint = $ret->{$args{'driver'}}->{status}->{fingerprint};
                     $LOG->warn("VM Compromised.  Last Resource (" . $fingerprint->{'last_resource'} . ")");
+
+                    # Dump the fingerprint to the compromise file, if needed.
+                    # XXX: May want to change this format/usage, eventually.
+                    my $COMPROMISE_FILE = getVar(name => "compromise_dump");
+                    if (length($COMPROMISE_FILE) > 0 &&
+                        defined($fingerprint)) {
+                        $LOG->info("Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
+                        my $dump_file = new IO::File($COMPROMISE_FILE, "a");
+
+                        # XXX: Delete this block, eventually.
+                        $Data::Dumper::Terse = 0;
+                        $Data::Dumper::Indent = 2;
+                        print $dump_file "\$vmName = " . $vmName . ";\n";
+                        print $dump_file Dumper($fingerprint);
+                        $dump_file->close();
+                    }
+
+                    # Archive the VM.
+                    $vm->archive();
+                    $vm = undef;
+
+                    # Insert Compromised Fingerprint into DB.
                     if ($DB_ENABLE && ($clientDbId > 0)) {
-						# Remove the last_url from the fingerprint and insert it as Url History
-						# XXX: Will be removed when all of clients Url History is stored.
-						my $dt = DateTime::HiRes->now();
-						my $last_url = HoneyClient::DB::Url::History->new({
-							url=>delete($fingerprint->{'last_resource'}),
-							visited => $dt->ymd('-').'T'.$dt->hms(':').".".$dt->nanosecond(),
-							status => $HoneyClient::DB::Url::History::STATUS_VISITED,
-						});
-						my $urlId = $last_url->insert();
-						$LOG->info("Database Insert last url successful");
-						# Update the History item to reflect the Client it belongs to.
-						HoneyClient::DB::Url::History->update(
-							-set => {
-								Client_url_history_fk => $clientDbId,
-							},
-							-where => {
-								id => $urlId,
-							},
-						);
-						$LOG->info("Database Update Client fk in last url");
-						# Remove the compromise time from the fingerprint. This is to be added to the Client Object
-						my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
+                        # Remove the last_url from the fingerprint and insert it as Url History
+                        # XXX: Will be removed when all of clients Url History is stored.
+                        my $dt = DateTime::HiRes->now();
+                        my $last_url = HoneyClient::DB::Url::History->new({
+                            url=>delete($fingerprint->{'last_resource'}),
+                            visited => $dt->ymd('-').'T'.$dt->hms(':').".".$dt->nanosecond(),
+                            status => $HoneyClient::DB::Url::History::STATUS_VISITED,
+                        });
+                        my $urlId = $last_url->insert();
+                        $LOG->info("Database Insert last url successful");
+                        # Update the History item to reflect the Client it belongs to.
+                        HoneyClient::DB::Url::History->update(
+                            -set => {
+                                Client_url_history_fk => $clientDbId,
+                            },
+                            -where => {
+                                id => $urlId,
+                            },
+                        );
+                        $LOG->info("Database Update Client fk in last url");
+                        # Remove the compromise time from the fingerprint. This is to be added to the Client Object
+                        my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
                         $LOG->info("Inserting Fingerprint Into Database.");
                         my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
                         my $fpId = $fp->insert();
-						my $ctId = $compromise_time->insert();
-						HoneyClient::DB::Client->update(
-							'-set' => {
-								status => $HoneyClient::DB::Client::STATUS_COMPROMISED,
-								fingerprint => $fpId,
-								compromise_time => $ctId,
-							},
-							'-where' => {
-								id => $clientDbId,
-							}
-						);
+                        my $ctId = $compromise_time->insert();
+                        HoneyClient::DB::Client->update(
+                            '-set' => {
+                                status => $HoneyClient::DB::Client::STATUS_COMPROMISED,
+                                fingerprint => $fpId,
+                                compromise_time => $ctId,
+                            },
+                            '-where' => {
+                                id => $clientDbId,
+                            }
+                        );
                         $LOG->info("Database Insert Successful.");
                     }
                     return; # Return out of eval block.
@@ -787,11 +943,12 @@ sub runSession {
                     if (!$ret->{$args{'driver'}}->{status}->{links_remaining}) {
 
                         $LOG->info("All URLs exhausted.  Shutting down Manager.");
+                        $vm = undef;
                         # Get a local copy of the configuration and kill the global copy.
-                        my $vmCfg = $vmCloneConfig;
-                        $vmCloneConfig = undef;
-                        $LOG->info("Calling suspendVM(config => " . $vmCfg . ").");
-                        $stubVM->suspendVM(config => $vmCfg);
+#                        my $vmCfg = $vmCloneConfig;
+#                        $vmCloneConfig = undef;
+#                        $LOG->info("Calling suspendVM(config => " . $vmCfg . ").");
+#                        $stubVM->suspendVM(config => $vmCfg);
                         print "Done!\n";
                         _cleanup();
 
@@ -805,7 +962,7 @@ sub runSession {
                         $stubFW->deleteRules($vmStateTable);
 
                         # Get the new targets from the Agent.
-                        $vmStateTable->{$vmName}->{targets} = $ret->{$args{'driver'}}->{next}->{targets};
+                        $vmStateTable->{$vm->name}->{targets} = $ret->{$args{'driver'}}->{next}->{targets};
 
                         print "VM State Table:\n";
                         # Make Dumper format more verbose.
@@ -854,39 +1011,40 @@ sub runSession {
 }
 
 sub dbRegisterClient {
-	my $vmName = shift;
-	my $dt = DateTime::HiRes->now();
+    my $vmName = shift;
+    my $dt = DateTime::HiRes->now();
 
-	$LOG->info("Attempting to Register Client $vmName.");
+    $LOG->info("Attempting to Register Client $vmName.");
 
-	# Register the VM with the DB
-	my $clientObj = HoneyClient::DB::Client->new({
-		system_id => $vmName,
-		status => $HoneyClient::DB::Client::STATUS_RUNNING,
-		# TODO: Collect host,application, and config through automation/config files
-		host => {
-			organization => 'MITRE',
-			host_name => Sys::Hostname::Long::hostname_long,
-			ip_address => Sys::HostIP->ip,
-		},
-		client_app => {
-			manufacturer => 'Microsoft',
-			name => 'Internet Explorer',
-			major_version => '6',
-		},
-		config => {
-			name => 'Default Windows XP SP2',
-			os_name => 'Microsoft Windows',
-			os_version => 'XP Professional',
-			os_patches => [{
-				name => 'Service Pack 2',
-			}],
-		},
-		start_time => $dt->ymd('-').'T'.$dt->hms(':'),
-	});
-	print Dumper($clientObj)."\n";
-	return $clientObj->insert();
+    # Register the VM with the DB
+    my $clientObj = HoneyClient::DB::Client->new({
+        system_id => $vmName,
+        status => $HoneyClient::DB::Client::STATUS_RUNNING,
+        # TODO: Collect host,application, and config through automation/config files
+        host => {
+            organization => 'MITRE',
+            host_name => Sys::Hostname::Long::hostname_long,
+            ip_address => Sys::HostIP->ip,
+        },
+        client_app => {
+            manufacturer => 'Microsoft',
+            name => 'Internet Explorer',
+            major_version => '6',
+        },
+        config => {
+            name => 'Default Windows XP SP2',
+            os_name => 'Microsoft Windows',
+            os_version => 'XP Professional',
+            os_patches => [{
+                name => 'Service Pack 2',
+            }],
+        },
+        start_time => $dt->ymd('-').'T'.$dt->hms(':'),
+    });
+    print Dumper($clientObj)."\n";
+    return $clientObj->insert();
 }
+
 #######################################################################
 
 1;
@@ -899,7 +1057,20 @@ __END__
 
 =head1 BUGS & ASSUMPTIONS
 
-# XXX: Fill this in.
+Currently the documentation in the "EXPORTED FUNCTIONS" and
+"EXPORTS" sections are both incomplete; these sections are still
+a work-in-progress.
+
+This module relies on various libraries, which may have their own
+set of issues.  As such, see the following sections:
+
+=over 4
+
+=item *
+
+L<HoneyClient::Manager::VM::Clone/"BUGS & ASSUMPTIONS">
+
+=back
 
 =head1 SEE ALSO
 
@@ -915,11 +1086,9 @@ Paul Kulchenko for developing the SOAP::Lite module.
 
 =head1 AUTHORS
 
-Kathy Wang, E<lt>knwang@mitre.orgE<gt>
-
-Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
-
 Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
+
+Kathy Wang, E<lt>knwang@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 

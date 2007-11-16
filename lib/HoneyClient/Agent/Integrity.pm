@@ -60,18 +60,41 @@ This documentation refers to HoneyClient::Agent::Integrity version 1.00.
       print Dumper($changes);
   }
 
-$changes refers to an array of hashtable references, where
-each hashtable has the format given in the METHODS IMPLEMENTED section related to
-check().
+  # $changes refers to an array of hashtable references, where
+  # each hashtable has the format given in the METHODS IMPLEMENTED section related to
+  # check().
 
-=head2 INITIALIZATION
+  # Once you're finished with the $integrity object, be sure to destroy it.
+  $integrity->destroy();
 
-No initialization is currently necessary, as realtime changes are read in from
+=head1 DESCRIPTION
+
+This library allows the Agent module to easily baseline and perform subsequent
+checks of different aspects of the Windows OS for any changes that may occur,
+while Agent instruments a target application.
+
+Currently, the Integrity module performs the following checks, using the
+listed sub-modules.  Please refer to the sub-module documentation for
+further details about how each check is implemented.
+
+No initialization is currently necessary, as real-time changes are read in from
 a list exported by the Capture C code. However, in the future it may become 
-deisrable to perform an initial baseline of the system in order to automatically
-determine the original value for things which were changed. This is because the
+desirable to perform an initial baseline of the system, in order to automatically
+determine the original value for things which were changed.  This is because the
 mechanisms that Capture code uses to record events, may in some cases be unable
-to record the initial value for a registry key for instance.
+to record the initial value (e.g., a registry key).
+
+=over 4
+
+=item *
+
+Checks Windows OS Registry.  See L<HoneyClient::Agent::Integrity::Registry>.
+
+=item *
+
+Checks Windows OS Filesystem.  See L<HoneyClient::Agent::Integrity::Filesystem>.
+
+=back
 
 =cut
 
@@ -249,31 +272,15 @@ process, upon initialization.  If set to 0, baselining will occur upon initializ
 Baselining is currently deprecated.
 =back
 
+=head2 changes_found_file
+
+A string to the absolute path of a file on the VM's filesystem.
+When an integrity check fails, all changes will be written to this
+file within the compromized honeyclient VM's filesystem.
+
+=back
+
 =cut
-
-my %PARAMS = (
-    # When set to 1, the object will forgo any type of initial baselining
-    # process, upon initialization.  Otherwise, baselining will occur
-    # as normal, upon initialization.
-    # XXX: Bypass static baselining, for now.
-    # XXX: Baselining will not be used with the current version which includes Capture
-    bypass_baseline => 1,
-
-    # Contains the Registry object, once initialized.
-    # (For internal use only.)
-    _registry => undef,
-
-    # Contains the Filesystem object, once initialized.
-    # (For internal use only.)
-    _filesystem => undef,
-
-    # XXX: comment this
-    _changes_found_file => getVar(name => 'changes_found_file'),
-
-    # XXX: comment this
-    _realtime_changes_file => getVar(name => 'realtime_changes_file'),
-
-);
 
 #######################################################################
 # Private Methods Implemented                                         #
@@ -288,7 +295,7 @@ sub _baseline {
     # XXX: The Registry object MUST be created before the Filesystem object, since
     # the Registry object creates new files that must exist to be added to the
     # Filesystem's baseline list of files that exist on the system.
-	$self->{'_registry'} = HoneyClient::Agent::Integrity::Registry->new();
+    $self->{'_registry'} = HoneyClient::Agent::Integrity::Registry->new();
     $self->{'_filesystem'} = HoneyClient::Agent::Integrity::Filesystem->new();
 }
 
@@ -333,10 +340,10 @@ isa_ok($integrity, 'HoneyClient::Agent::Integrity', "new(test => 1, bypass_basel
 
 diag("Performing baseline check of the system; this may take some time...");
 
-# XXX: Uncomment this next check, eventually.  (It's commented out right now, in order to save some time).
 # Perform baseline.
 $integrity = HoneyClient::Agent::Integrity->new();
 isa_ok($integrity, 'HoneyClient::Agent::Integrity', "new()") or diag("The new() call failed.");
+$integrity->destroy();
 
 =end testing
 
@@ -348,7 +355,7 @@ sub new {
     #   parameters.
     #
     # - For each parameter given, it overwrites any corresponding
-    #   parameters specified within the default hashtable, %PARAMS, 
+    #   parameters specified within the default hashtable, %params, 
     #   with custom entries that were given as parameters.
     #
     # - Finally, it returns a blessed instance of the
@@ -368,7 +375,31 @@ sub new {
 
     # Initialize default parameters.
     $self = { };
-    my %params = %{dclone(\%PARAMS)};
+    my %params = (
+        # When set to 1, the object will forgo any type of initial baselining
+        # process, upon initialization.  Otherwise, baselining will occur
+        # as normal, upon initialization.
+        # XXX: Bypass static baselining, for now.
+        # XXX: Baselining will not be used with the current version which includes Capture
+        bypass_baseline => 1,
+
+        # Contains the Registry object, once initialized.
+        # (For internal use only.)
+        _registry => undef,
+
+        # Contains the Filesystem object, once initialized.
+        # (For internal use only.)
+        _filesystem => undef,
+
+        # A string to the absolute path of a file on the VM's filesystem.
+        # When an integrity check fails, all changes will be written to this
+        # file within the compromized honeyclient VM's filesystem.
+        changes_found_file => getVar(name => 'changes_found_file'),
+    
+        # XXX: comment this
+        realtime_changes_file => getVar(name => 'realtime_changes_file'),
+    );
+
     @{$self}{keys %params} = values %params;
 
     # Now, overwrite any default parameters that were redefined
@@ -403,7 +434,7 @@ I<Output>:
  B<$changes>, which is an array of hashtable references, where each
 hashtable has the following format:
 
-$changes = {
+  $changes = {
     #A reference to an anonymous array of process objects
     processes => [ {
         'name' => "C:\WINDOWS\system32\Notepad.exe", # The process name as a full path
@@ -455,32 +486,26 @@ $changes = {
         #A reference to an anonymous array of file system objects
         file_system => [ {
             #The full path and name of the file which was effected
-		    'name'  => 'C:\WINDOWS\SYSTEM32...',
+            'name'  => 'C:\WINDOWS\SYSTEM32...',
 
             'event_type' => { Deleted | Read | Write }, #TODO: add created & renamed/moved
 
             'time' => ISO 8601 Timestamp, 
-		    
+            
             #OPTIONAL, this will not exist for deleted files
-		    'content' => {
-		        'size' => 1234,                                       # size of new content
-		        'type' => 'application/octect-stream',                # type of new content
-		        'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
-		        'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
-		    },
+            'content' => {
+                'size' => 1234,                                       # size of new content
+                'type' => 'application/octect-stream',                # type of new content
+                'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
+                'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
+            },
         },]
     },]
-}
+  }
 
 I<Notes>:
 
 =back
-
-#=begin testing
-#
-# TODO:
-#
-#=end testing
 
 =cut
 
@@ -505,12 +530,12 @@ sub check {
         Dumper(\%args);
     });
 
-#	my $changes = {
+#    my $changes = {
 #        'registry' => $self->{'_registry'}->check(),
 #        'filesystem' => $self->{'_filesystem'}->check(),
 #    };
 #XENO - BEGIN REPLACEMENT WITH CAPTURE-READING CODE
-    my $change_file_name = $self->{_realtime_changes_file};
+    my $change_file_name = $self->{realtime_changes_file};
     my %changes;
     my @capdump;
     if(-s $change_file_name > 0 ){
@@ -669,7 +694,7 @@ sub check {
                             'sha1' => "$toks[$F_NAME]$toks[$F_TIME]",
                         };
                         my $tmp_name = $toks[$F_NAME];
-	                    eval{
+                        eval{
                             if(-f $tmp_name){
                                 my $md5_ctx  = Digest::MD5->new();
                                 my $sha1_ctx = Digest::SHA->new("1");
@@ -679,27 +704,27 @@ sub check {
                                 my $type = 'UNKNOWN';
                                 my $size = 0;
                                 my $fh = IO::File->new($tmp_name, "r");
-	                            #print "md5ing $tmp_name\n";
-	                            # Compute MD5 Checksum.
-	                            $md5_ctx->addfile($fh);
-	                            $md5 = $md5_ctx->hexdigest();
-	
-	                            # Rewind file handle.
-	                            seek($fh, 0, 0);
-	
-    	                        #print "sha1ing $tmp_name\n";
-    	                        # Compute SHA1 Checksum.
-    	                        $sha1_ctx->addfile($fh);
-    	                        $sha1 = $sha1_ctx->hexdigest();
-    	
-    	                        #Compute file size
-    	                        $size = -s $tmp_name;
-    	
-    	                        # Compute File Type.
-    	                        $type = $type_ctx->mime_type($tmp_name);
-    	
-    	                        # Close the file handle.
-    	                        undef $fh;
+                                #print "md5ing $tmp_name\n";
+                                # Compute MD5 Checksum.
+                                $md5_ctx->addfile($fh);
+                                $md5 = $md5_ctx->hexdigest();
+    
+                                # Rewind file handle.
+                                seek($fh, 0, 0);
+    
+                                #print "sha1ing $tmp_name\n";
+                                # Compute SHA1 Checksum.
+                                $sha1_ctx->addfile($fh);
+                                $sha1 = $sha1_ctx->hexdigest();
+        
+                                #Compute file size
+                                $size = -s $tmp_name;
+        
+                                # Compute File Type.
+                                $type = $type_ctx->mime_type($tmp_name);
+        
+                                # Close the file handle.
+                                undef $fh;
                                 $file_obj->{'contents'}->{'size'} = $size;
                                 $file_obj->{'contents'}->{'md5'} = $md5;
                                 $file_obj->{'contents'}->{'sha1'} = $sha1;
@@ -737,8 +762,8 @@ sub check {
     # If any changes were found, write them out to the
     # filesystem.
     if (scalar($changes{'processes'})){
-        if (!open(CHANGE_FILE, ">>" . $self->{_changes_found_file})) {
-            $LOG->error("Unable to write changes to file '" . $self->{_changes_found_file} . "'.");
+        if (!open(CHANGE_FILE, ">>" . $self->{changes_found_file})) {
+            $LOG->error("Unable to write changes to file '" . $self->{changes_found_file} . "'.");
         } else {
             $Data::Dumper::Terse = 1;
             $Data::Dumper::Indent = 1;
@@ -748,9 +773,10 @@ sub check {
         }
     }
 
-	return \%changes;
+    return \%changes;
 }
 
+# TODO: Comment this.
 # This function looks for if there is already a process object with the given pid and name
 # and if it exists, returns its index in the processes array
 # This function is used to find process objects for merging
@@ -776,9 +802,20 @@ sub checkForExistingProcObj {
     return (0, $index);
 }
 
+=pod
 
+=head2 $object->closeFiles()
 
-# TODO: Comment this.
+=over 4
+
+Closes any temporary files that may have been created by any
+of the Integrity::* sub-modules.  By performing this operation,
+the Integrity B<$object> can become serializable.
+
+=back
+
+=cut
+
 sub closeFiles {
     my $self = shift;
 
@@ -795,7 +832,21 @@ sub closeFiles {
     }
 }
 
-# TODO: Comment this.
+=pod
+
+=head2 $object->destroy()
+
+=over 4
+
+Destroys any temporary files that have been created by any
+of the Integrity::* sub-modules.  By performing this operation,
+the Integrity B<$object> can be released from memory without
+leaving any residual temporary files on the filesystem.
+
+=back
+
+=cut
+
 sub destroy {
     my $self = shift;
 
@@ -818,9 +869,48 @@ sub destroy {
 
 =head1 BUGS & ASSUMPTIONS
 
-We assume that because of the short time in which malware is allowed to run
-we can never see the same name:pid pair twice, because there will not have been
-enough processes created in order to wrap the pid numbers back around.
+When performing an integrity check, this library assumes that it will never
+see the same process name and process ID (PID) pair twice, because the malware
+will not have had enough time to create processes that cause the OS to reissue
+the same PIDs again.
+
+For a complete list of when these checks may fail, see the following sections:
+
+=over 4
+
+=item *
+
+L<HoneyClient::Agent::Integrity::Registry/"BUGS & ASSUMPTIONS">
+
+=item *
+
+L<HoneyClient::Agent::Integrity::Filesystem/"BUGS & ASSUMPTIONS">
+
+=back
+
+=head1 TODO
+
+The following sub-modules are still a work-in-progress:
+
+=over 4
+
+=item *
+
+Real-time filesystem detection.
+
+=item *
+
+Real-time registry detection.
+
+=item *
+
+Static and/or real-time rogue process detection.
+
+=item *
+
+Static and/or real-time memory alteration detection.
+
+=back
 
 =head1 SEE ALSO
 
@@ -832,8 +922,12 @@ L<http://www.honeyclient.org/trac/newticket>
 
 =head1 ACKNOWLEDGEMENTS
 
-The Capture client-side honeypot team is responsible for creating the code which outputs
-the system events that this reads in in the event of a compromise.
+Christian Seifert E<lt>cseifert@mcs.vuw.ac.nzE<gt> and Ramon Steenson
+E<lt>rsteenson@gmail.comE<gt> from the Victoria University of Wellington,
+for their work on the Capture Client-Side Honeypot, which is used to
+obtain kernel-level system events from Windows in the event of a compromise.
+
+L<http://www.client-honeynet.org/capture.html>
 
 =head1 AUTHORS
 
@@ -844,8 +938,6 @@ Xeno Kovah, E<lt>xkovah@mitre.orgE<gt>
 Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 Brad Stephenson, E<lt>stephenson@mitre.orgE<gt>
-
-Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 

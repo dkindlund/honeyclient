@@ -240,7 +240,7 @@ $Data::Dumper::Indent = 0;
 sub _parseConfig {
 
     # Extract arguments.
-    my ($class, $config) = @_;
+    my ($config) = @_;
 
     # Sanity check.  Make sure the file exists.
     if (!-f $config) {
@@ -248,8 +248,8 @@ sub _parseConfig {
         # path.
         $config = "/" . $config;
         if (!-f $config) {
-            $LOG->fatal("Unable to parse global configuration file ($CONF_FILE)!");
-            Carp::croak("Error: Unable to parse global configuration file ($CONF_FILE)!");
+            $LOG->fatal("Unable to parse global configuration file ($config)!");
+            Carp::croak("Error: Unable to parse global configuration file ($config)!");
         }
         # The absolute path worked, update the global variable to reflect this.
         $CONF_FILE = $config;
@@ -639,13 +639,13 @@ sub setVar {
     $tidy_obj->write($CONF_FILE);
 
     # Parse the conf_file again just for good measure
-    _parseConfig(undef, $CONF_FILE);
+    _parseConfig($CONF_FILE);
 }
 
 #######################################################################
 
 # Parse the global configuration file, upon using the package.
-_parseConfig(undef, $CONF_FILE);
+_parseConfig($CONF_FILE);
 
 # Reinitialize Logging Subsystem
 # TODO: Need to account for absolute "/etc" directories!

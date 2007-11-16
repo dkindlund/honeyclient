@@ -68,7 +68,7 @@ Log::Log4perl->init({
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager::VM package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::VM');
 can_ok('HoneyClient::Manager::VM', 'init');
 can_ok('HoneyClient::Manager::VM', 'destroy');
@@ -249,7 +249,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -293,7 +294,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -336,7 +338,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -391,7 +394,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -437,7 +441,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -493,7 +498,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -541,7 +547,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -610,7 +617,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -653,7 +661,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -705,7 +714,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -750,7 +760,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -801,7 +812,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -847,7 +859,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -890,7 +903,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -960,7 +974,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1031,7 +1046,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1115,7 +1131,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1210,7 +1227,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1322,7 +1340,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1433,7 +1452,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {

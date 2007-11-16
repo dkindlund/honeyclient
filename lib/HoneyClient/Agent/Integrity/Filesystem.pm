@@ -174,6 +174,12 @@ our (@EXPORT_OK, $VERSION);
 
 =begin testing
 
+# Make sure ExtUtils::MakeMaker loads.
+BEGIN { use_ok('ExtUtils::MakeMaker', qw(prompt)) or diag("Can't load ExtUtils::MakeMaker package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('ExtUtils::MakeMaker');
+can_ok('ExtUtils::MakeMaker', 'prompt');
+use ExtUtils::MakeMaker qw(prompt);
+
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
         or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
@@ -357,23 +363,6 @@ and/or files to exclude from analysis.
 =back
 
 =cut
-
-my %PARAMS = (
-    # When set to 1, the object will forgo any type of initial baselining
-    # process, upon initialization.  Otherwise, baselining will occur
-    # as normal, upon initialization.
-    bypass_baseline => 0,
-
-    # An array of hashtables used to hold the file analysis information,
-    # for the baseline filesystem operation.
-    baseline_analysis => [ ],
-
-    # The base list of drives/directories/files to monitor.
-    monitored_directories => getVar(name => 'directories_to_check')->{name},
-
-    # The list of drives/directories/files to ignore.
-    ignored_entries => getVar(name => 'exclude_list')->{regex},
-);
 
 #######################################################################
 # Private Methods Implemented                                         #
@@ -1055,11 +1044,15 @@ my $filesystem = HoneyClient::Agent::Integrity::Filesystem->new(test => 1, bypas
 is($filesystem->{test}, 1, "new(test => 1, bypass_baseline => 1)") or diag("The new() call failed.");
 isa_ok($filesystem, 'HoneyClient::Agent::Integrity::Filesystem', "new(test => 1, bypass_baseline => 1)") or diag("The new() call failed.");
 
-diag("Performing baseline check of the filesystem; this may take some time...");
-
-# Perform baseline.
-$filesystem = HoneyClient::Agent::Integrity::Filesystem->new();
-isa_ok($filesystem, 'HoneyClient::Agent::Integrity::Filesystem', "new()") or diag("The new() call failed.");
+my $question;
+$question = prompt("# Note: Complete baselining of large (>10G) filesystems is not recommended.\n" .
+                   "# Do you want to baseline your entire filesystem?", "no");
+if ($question =~ /^y.*/i) {
+    diag("Performing complete baseline of filesystem; this may take time.");
+    # Perform baseline.
+    $filesystem = HoneyClient::Agent::Integrity::Filesystem->new();
+    isa_ok($filesystem, 'HoneyClient::Agent::Integrity::Filesystem', "new()") or diag("The new() call failed.");
+}
 
 =end testing
 
@@ -1071,7 +1064,7 @@ sub new {
     #   parameters.
     #
     # - For each parameter given, it overwrites any corresponding
-    #   parameters specified within the default hashtable, %PARAMS,
+    #   parameters specified within the default hashtable, %params,
     #   with custom entries that were given as parameters.
     #
     # - Finally, it returns a blessed instance of the
@@ -1091,7 +1084,23 @@ sub new {
 
     # Initialize default parameters.
     $self = { };
-    my %params = %{dclone(\%PARAMS)};
+    my %params = (
+        # When set to 1, the object will forgo any type of initial baselining
+        # process, upon initialization.  Otherwise, baselining will occur
+        # as normal, upon initialization.
+        bypass_baseline => 0,
+
+        # An array of hashtables used to hold the file analysis information,
+        # for the baseline filesystem operation.
+        baseline_analysis => [ ],
+
+        # The base list of drives/directories/files to monitor.
+        monitored_directories => getVar(name => 'directories_to_check')->{name},
+
+        # The list of drives/directories/files to ignore.
+        ignored_entries => getVar(name => 'exclude_list')->{regex},
+    );
+
     @{$self}{keys %params} = values %params;
 
     # Now, overwrite any default parameters that were redefined

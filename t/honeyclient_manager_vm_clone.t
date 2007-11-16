@@ -8,6 +8,12 @@ $| = 1;
 
 # =begin testing
 {
+# Make sure ExtUtils::MakeMaker loads.
+BEGIN { use_ok('ExtUtils::MakeMaker', qw(prompt)) or diag("Can't load ExtUtils::MakeMaker package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('ExtUtils::MakeMaker');
+can_ok('ExtUtils::MakeMaker', 'prompt');
+use ExtUtils::MakeMaker qw(prompt);
+
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
         or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
@@ -49,7 +55,7 @@ can_ok('HoneyClient::Util::SOAP', 'getClientHandle');
 use HoneyClient::Util::SOAP qw(getClientHandle);
 
 # Make sure HoneyClient::Manager::VM loads.
-BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager::VM package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::VM');
 use HoneyClient::Manager::VM;
 
@@ -79,6 +85,12 @@ require_ok('Storable');
 can_ok('Storable', 'dclone');
 use Storable qw(dclone);
 
+# Make sure Data::Dumper loads
+BEGIN { use_ok('Data::Dumper')
+        or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Data::Dumper');
+use Data::Dumper;
+
 # Make sure threads loads.
 BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('threads');
@@ -106,6 +118,10 @@ my ($stub, $som, $URL);
 my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
                                       namespace => "HoneyClient::Manager::VM::Test");
 
+# Include notice, to clarify our assumptions.
+diag("About to run basic unit tests; these may take some time.");
+diag("Note: These tests *expect* VMware Server or VMware GSX to be installed and running on this system beforehand.");
+
 # Catch all errors, in order to make sure child processes are
 # properly killed.
 eval {
@@ -129,11 +145,11 @@ eval {
 
     # Wait a small amount of time for the asynchronous clone
     # to complete.
-    sleep (60);
+    sleep (10);
 
     # The master VM should be on.
     $som = $stub->getStateVM(config => $masterVM);
-
+   
     # Since the master VM doesn't have an OS installed on it,
     # the VM may be considered stuck.  Go ahead and answer
     # this question, if need be.
@@ -141,21 +157,116 @@ eval {
         $som = $stub->answerVM(config => $masterVM);
     }
 
-    HoneyClient::Manager::VM->destroy();
-    sleep (1);
+    # Turn off the master VM.
+    $som = $stub->stopVM(config => $masterVM);
 
-    # Create a generic clone, with test state data.
-    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM);
-    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
-    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
+    # Now, kill the VM daemon.
+    HoneyClient::Manager::VM->destroy();
+    # XXX: See if this is still needed.
+    #sleep (10);
+
+    # Create a generic empty clone, with test state data.
+    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM, _dont_init => 1);
+    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1)") or diag("The new() call failed.");
+    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1)") or diag("The new() call failed.");
+    $clone = undef;
 
     # Destroy the master VM.
     $som = $stub->destroyVM(config => $masterVM);
+
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real clone operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning this master VM?", "no");
+    if ($question =~ /^y.*/i) {
+        $clone = HoneyClient::Manager::VM::Clone->new(test => 1);
+        is($clone->{test}, 1, "new(test => 1)") or diag("The new() call failed.");
+        isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1)") or diag("The new() call failed.");
+        my $cloneConfig = $clone->{config};
+        $clone = undef;
+    
+        # Destroy the clone VM.
+        $som = $stub->destroyVM(config => $cloneConfig);
+    }
 };
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
+
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    my $testVMDir = dirname($testVM);
+
+    # Specify where the snapshot should be created.
+    my $snapshot = dirname($testVMDir) . "/test_vm_clone.tar.gz";
+
+    # Pretend as though no other Clone objects have been created prior
+    # to this point.
+    $HoneyClient::Manager::VM::Clone::OBJECT_COUNT = -1;
+    
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real archive operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning this master VM?", "no");
+    if ($question =~ /^y.*/i) {
+
+        # Create a generic empty clone, with test state data.
+        my $clone = HoneyClient::Manager::VM::Clone->new();
+        my $cloneConfig = $clone->{config};
+
+        # Archive the clone.
+        $clone->archive(snapshot_file => $snapshot);
+
+        # Wait for the archive to complete.
+        sleep (45);
+    
+        # Test if the archive worked.
+        is(-f $snapshot, 1, "archive(snapshot_file => '$snapshot')") or diag("The archive() call failed.");
+   
+        unlink $snapshot;
+        $clone = undef;
+    
+        # Connect to daemon as a client.
+        $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+    
+        # Destroy the clone VM.
+        $som = $stub->destroyVM(config => $cloneConfig);
+    }
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {

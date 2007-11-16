@@ -346,6 +346,9 @@ sub init {
         Carp::croak "Error: " . __PACKAGE__ . " daemon is already running (PID = $DAEMON_PID)!\n";
     }
 
+    # Reinitialize global constants (for dynamic updates).
+    $PERFORM_INTEGRITY_CHECKS = getVar(name => "perform_integrity_checks");
+
     # Figure out what our list of allowed Drivers are. 
     $ALLOWED_DRIVERS = getVar(name => 'allowed_drivers')->{name};
 
@@ -895,6 +898,12 @@ sub worker {
         # to a new set of targets upon the next drive() operation.
         my $driverTargetsChanged = 0;
 
+        # Boolean to indicate that the driver has been compromised.
+        my $isCompromised = 0;
+
+        # Variable to hold any changes found in a compromise.
+        my $changes = undef;
+
         while (!$driver->isFinished() && !$driverTargetsChanged) {
             # XXX: Debug.  Remove this.
             # We assume $driver->next() returns defined data.
@@ -906,7 +915,30 @@ sub worker {
             # Drive the driver for one step.
             # If the operation fails, then an exception will be generated.
             $driver->drive();
-   
+  
+            # Perform an integrity check, if needed.
+            if (defined($integrity)) {
+                # For now, we update a scalar called 'is_compromised' within
+                # the $data->{$driverName}->{'status'} sub-hashtable.
+                $LOG->info($driverName . " - Performing Integrity Checks.");
+                $changes = $integrity->check();
+                if (scalar(@{$changes->{processes}})) { 
+                    $LOG->warn($driverName . " - Integrity Check: FAILED");
+                    $isCompromised = 1;
+                    $changes->{'last_resource'} = $lastResource;
+        
+                    # Release our copy of the integrity object, but do not destroy 
+                    # any internal references.
+                    $integrity = undef;
+
+                    # Exit the while block.
+                    last;
+
+                } else {
+                    $LOG->info($driverName . " - Integrity Check: PASSED");
+                }
+            }
+
             # Acquire lock on stored driver state.
             $data = _lock();
                     
@@ -927,34 +959,31 @@ sub worker {
             # Copy object data to shared memory.
             $data->{$driverName}->{'next'} = $driver->next();
             $data->{$driverName}->{'status'} = $driver->status();
-            $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
+            $data->{$driverName}->{'status'}->{'is_compromised'} = $isCompromised;
             $data->{$driverName}->{'status'}->{'is_running'} = 1;
             $data->{$driverName}->{'state'} = $driver;
 
             # Release lock on stored driver state.
             _unlock($data);
         }
-                
-        # Perform Integrity Check
-        # XXX: We may want this logic moved out of the child thread,
-        # in case we ever have more than one worker thread simultaneously going.
-        # (We wouldn't want to have 2 worker threads simultaneously performing
-        # this check, as VM performance would slow to a crawl.)
-        my $isCompromised = 0;
-        my $changes = undef;
-        if (defined($integrity)) {
-            # For now, we update a scalar called 'is_compromised' within
-            # the $data->{$driverName}->{'status'} sub-hashtable.
-            $LOG->info($driverName . " - Performing Integrity Checks.");
-            $changes = $integrity->check();
-            if (scalar(@{$changes->{processes}})) { 
-                $LOG->warn($driverName . " - Integrity Check: FAILED");
-                $isCompromised = 1;
-                $changes->{'last_resource'} = $lastResource;
-            } else {
-                $LOG->info($driverName . " - Integrity Check: PASSED");
-            }
-        }
+        
+        # XXX: This code may come in handy again, if we decide to keep the
+        # old-style integrity checks.
+        # Perform an integrity check, if needed.
+        # if (defined($integrity)) {
+        #     # For now, we update a scalar called 'is_compromised' within
+        #     # the $data->{$driverName}->{'status'} sub-hashtable.
+        #     $LOG->info($driverName . " - Performing Integrity Checks.");
+        #     $changes = $integrity->check();
+        #     if (scalar(@{$changes->{processes}})) { 
+        #         $LOG->warn($driverName . " - Integrity Check: FAILED");
+        #         $isCompromised = 1;
+        #         $changes->{'last_resource'} = $lastResource;
+        #     } else {
+        #         $LOG->info($driverName . " - Integrity Check: PASSED");
+        #     }
+        # }
+
         # Release our copy of the integrity object, but do not destroy 
         # any internal references.
         $integrity = undef;

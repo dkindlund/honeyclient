@@ -438,115 +438,6 @@ code will ignore all active content.
 
 =cut
 
-my %PARAMS = (
-
-    # This is a hashtable of fully qualified URLs
-    # to visit by the browser.  Specifically, the 'key' is
-    # the absolute URL and the 'value' is always 1.
-    links_to_visit          => { },
-
-    # This is a hashtable of fully qualified URLs that the
-    # browser has already visited.  Specifically, the
-    # 'key' is the absolute URL and the 'value' is a string
-    # representing the date and time of when the link was visited.
-    #
-    # Note: See _getTimestamp() for the corresponding date/time
-    # format.
-    links_visited           => { },
-
-    # This is a hashtable of URLs that the browser has found
-    # during its traversal process, but the browser could not
-    # access the link.
-    #
-    # Links could be added to this list if access requires any type of
-    # authentication, or if the link points to a non-HTTP or HTTPS
-    # resource (i.e., "javascript:doNetDetect()").
-    #
-    # The 'key' is the absolute URL and the 'value' is a string
-    # representing the date and time of when the link was visited.
-    #
-    # Note: See _getTimestamp() for the corresponding date/time
-    # format.
-    links_ignored           => { },
-
-    # This is a hashtable of fully qualified URLs
-    # that all share a common *hostname*.  This hashtable should be
-    # initially empty.  As the driver extracts and removes new URLs
-    # off the 'links_to_visit' hashtable, driving the browser to each URL,
-    # any *relative* links found are added into this hashtable; any
-    # *external* links found are added back into the 'links_to_visit'
-    # hashtable.
-    #
-    # When navigating to the next link, this hashtable is exhausted prior
-    # to the main 'links_to_visit' hashtable.  This allows a
-    # browser to navigate to all links hosted on the same server, prior
-    # to contacting a different server.
-    #
-    # Specifically, the 'key' is the absolute URL and the 'value'
-    # is always 1.
-    relative_links_to_visit => { },
-
-    # This is a scalar that contains the next URL to visit.
-    # It is updated dynamically, any time getNextLink() is called.
-    # When the browser is ready to drive to the next link,
-    # 'next_link_to_visit' is checked.  If that value is undef, then
-    # the 'relative_links_to_visit' hashtable is checked next.
-    # If that hashtable is empty, then finally the 'links_to_visit'
-    # hashtable is checked.
-    next_link_to_visit      => undef,
-
-    # This is a hashtable of URLs that the browser has found
-    # during its traversal process, but the browser could not
-    # access the resource due to the operation timing out.
-    #
-    # The 'key' is the absolute URL and the 'value' is a string
-    # representing the date and time of when the link was visited.
-    #
-    # Note: See _getTimestamp() for the corresponding date/time
-    # format.
-    links_timed_out         => { },
-
-    # If this parameter is a defined scalar, then the browser
-    # will also never attempt to revisit any links that caused
-    # the browser to time out.
-    ignore_links_timed_out  => getVar(name => "ignore_links_timed_out"),
-
-    # A string containing the process name of the browser application,
-    # as it appears in the Task Manager.
-    process_name            => getVar(name => "process_name"),
-
-    # An integer, representing how many relative links the browser
-    # should continue to drive to, before moving onto another
-    # website.  If negative, then the browser will exhaust all possible
-    # relative links, before moving on.  (This internal variable should
-    # never be modified externally.)
-    _remaining_number_of_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
-
-    # An integer, representing the maximum number of relative links that
-    # the browser should visit, before moving onto another website.  If
-    # negative, then the browser will exhaust all possible relative links
-    # found, before moving on.  This functionality is best effort; it's
-    # possible for the browser to visit new links on previously visited
-    # websites.
-    max_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
-
-    # An array of positive words, where a link's probability of being
-    # visited (its score) will increase, if the link contains any of these
-    # words.
-    positive_words => getVar(name => "positive_words")->{word},
-
-    # An array of negative words, where a link's probability of being
-    # visited (its score) will decrease, if the link contains any of these
-    # words.
-    negative_words => getVar(name => "negative_words")->{word},
-
-    # If set to 1, then the code will attempt to parse and extract links
-    # within active content (e.g., Flash animations).  Otherwise, the
-    # code will ignore all active content. 
-    parse_active_content => getVar(name      => "enable",
-                                   namespace => "HoneyClient::Agent::Driver::ActiveContent"),
-);
-
 #######################################################################
 # Private Methods Implemented                                         #
 #######################################################################
@@ -906,7 +797,7 @@ sub new {
     #   parameters.
     #
     # - For each parameter given, it overwrites any corresponding
-    #   parameters specified within the default hashtable, %PARAMS,
+    #   parameters specified within the default hashtable, %params,
     #   with custom entries that were given as parameters.
     #
     # - Finally, it returns a blessed instance of the
@@ -925,7 +816,115 @@ sub new {
     my $class = ref($self) || $self;
 
     # Initialize default parameters.
-    my %params = %{dclone(\%PARAMS)};
+    my %params = (
+
+        # This is a hashtable of fully qualified URLs
+        # to visit by the browser.  Specifically, the 'key' is
+        # the absolute URL and the 'value' is always 1.
+        links_to_visit          => { },
+
+        # This is a hashtable of fully qualified URLs that the
+        # browser has already visited.  Specifically, the
+        # 'key' is the absolute URL and the 'value' is a string
+        # representing the date and time of when the link was visited.
+        #
+        # Note: See _getTimestamp() for the corresponding date/time
+        # format.
+        links_visited           => { },
+
+        # This is a hashtable of URLs that the browser has found
+        # during its traversal process, but the browser could not
+        # access the link.
+        #
+        # Links could be added to this list if access requires any type of
+        # authentication, or if the link points to a non-HTTP or HTTPS
+        # resource (i.e., "javascript:doNetDetect()").
+        #
+        # The 'key' is the absolute URL and the 'value' is a string
+        # representing the date and time of when the link was visited.
+        #
+        # Note: See _getTimestamp() for the corresponding date/time
+        # format.
+        links_ignored           => { },
+
+        # This is a hashtable of fully qualified URLs
+        # that all share a common *hostname*.  This hashtable should be
+        # initially empty.  As the driver extracts and removes new URLs
+        # off the 'links_to_visit' hashtable, driving the browser to each URL,
+        # any *relative* links found are added into this hashtable; any
+        # *external* links found are added back into the 'links_to_visit'
+        # hashtable.
+        #
+        # When navigating to the next link, this hashtable is exhausted prior
+        # to the main 'links_to_visit' hashtable.  This allows a
+        # browser to navigate to all links hosted on the same server, prior
+        # to contacting a different server.
+        #
+        # Specifically, the 'key' is the absolute URL and the 'value'
+        # is always 1.
+        relative_links_to_visit => { },
+
+        # This is a scalar that contains the next URL to visit.
+        # It is updated dynamically, any time getNextLink() is called.
+        # When the browser is ready to drive to the next link,
+        # 'next_link_to_visit' is checked.  If that value is undef, then
+        # the 'relative_links_to_visit' hashtable is checked next.
+        # If that hashtable is empty, then finally the 'links_to_visit'
+        # hashtable is checked.
+        next_link_to_visit      => undef,
+
+        # This is a hashtable of URLs that the browser has found
+        # during its traversal process, but the browser could not
+        # access the resource due to the operation timing out.
+        #
+        # The 'key' is the absolute URL and the 'value' is a string
+        # representing the date and time of when the link was visited.
+        #
+        # Note: See _getTimestamp() for the corresponding date/time
+        # format.
+        links_timed_out         => { },
+
+        # If this parameter is a defined scalar, then the browser
+        # will also never attempt to revisit any links that caused
+        # the browser to time out.
+        ignore_links_timed_out  => getVar(name => "ignore_links_timed_out"),
+
+        # A string containing the process name of the browser application,
+        # as it appears in the Task Manager.
+        process_name            => getVar(name => "process_name"),
+
+        # An integer, representing how many relative links the browser
+        # should continue to drive to, before moving onto another
+        # website.  If negative, then the browser will exhaust all possible
+        # relative links, before moving on.  (This internal variable should
+        # never be modified externally.)
+        _remaining_number_of_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
+
+        # An integer, representing the maximum number of relative links that
+        # the browser should visit, before moving onto another website.  If
+        # negative, then the browser will exhaust all possible relative links
+        # found, before moving on.  This functionality is best effort; it's
+        # possible for the browser to visit new links on previously visited
+        # websites.
+        max_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
+
+        # An array of positive words, where a link's probability of being
+        # visited (its score) will increase, if the link contains any of these
+        # words.
+        positive_words => getVar(name => "positive_words")->{word},
+
+        # An array of negative words, where a link's probability of being
+        # visited (its score) will decrease, if the link contains any of these
+        # words.
+        negative_words => getVar(name => "negative_words")->{word},
+
+        # If set to 1, then the code will attempt to parse and extract links
+        # within active content (e.g., Flash animations).  Otherwise, the
+        # code will ignore all active content. 
+        parse_active_content => getVar(name      => "enable",
+                                       namespace => "HoneyClient::Agent::Driver::ActiveContent"),
+    );
+
     $self = $class->SUPER::new();
     @{$self}{keys %params} = values %params;
 

@@ -71,6 +71,9 @@ Keep in mind, though, that some variables should remain module-specific
             <name>HoneyClient::Agent::Driver::Browser::IE</name>
             <name>HoneyClient::Agent::Driver::Browser::FF</name>
         </allowed_drivers>
+        <default_driver description="If no driver is manually specified, then this Driver will be used as the default by the Agent." default="HoneyClient::Agent::Driver::Browser::IE">
+            HoneyClient::Agent::Driver::Browser::IE
+        </default_driver>
         <!-- HoneyClient::Agent::Driver Options -->
         <Driver>
             <!-- TODO: Update this. -->
@@ -93,12 +96,8 @@ Keep in mind, though, that some variables should remain module-specific
                 <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
                     1
                 </ignore_links_timed_out>
-                <!-- TODO: Update this. -->
-                <process_name description="The name of the Internet Explorer application process, as it appears in the Task Manager." default="iexplore.exe">
-                    iexplore.exe
-                </process_name>
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-                    -1
+                    5
                 </max_relative_links_to_visit>
                 <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
                     <word>news</word>
@@ -122,6 +121,7 @@ Keep in mind, though, that some variables should remain module-specific
                     <word>copyright</word>
                     <word>jobs</word>
                     <word>careers</word>
+                    <word>term</word>
                 </negative_words>
                 <IE>
                     <!-- HoneyClient::Agent::Driver::Browser::IE Options -->
@@ -154,7 +154,7 @@ Keep in mind, though, that some variables should remain module-specific
                 /tmp/changes.txt
             </changes_found_file>
             <realtime_changes_file description="When an integrity check fails, all changes will be written to this file within the compromized honeyclient VM's filesystem." default="/tmp/realtime-changes.txt">
-            /tmp/realtime-changes.txt
+                /tmp/realtime-changes.txt
             </realtime_changes_file>
             <!-- HoneyClient::Agent::Integrity::Filesystem Options -->
             <Filesystem>
@@ -328,7 +328,7 @@ Keep in mind, though, that some variables should remain module-specific
     <!-- HoneyClient::DB Options -->
     <DB>
         <enable description="Enables database operations. 1 enables, 0 disables." default="0">
-            1
+            0
         </enable>
         <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
             172.16.164.1
@@ -348,9 +348,12 @@ Keep in mind, though, that some variables should remain module-specific
     </DB>
     <Manager>
         <!-- TODO: Update this. -->
-        <manager_state description="Upon termination, the Manager will attempt to save a complete copy of its state into this file, if specified." default="">
+        <manager_state description="Upon termination, the Manager will attempt to append a complete copy of its state into this file, if specified." default="">
             Manager.dump
         </manager_state>
+        <compromise_dump description="When the Manager encounters a compromised VM, it will attempt to append a complete copy of the compromised information to this file, if specified.">
+            Compromise.dump
+        </compromise_dump>
         <!-- TODO: Update this. -->
         <address description="The IP or hostname that all Manager modules should use, when accepting SOAP requests." default="localhost">
             localhost

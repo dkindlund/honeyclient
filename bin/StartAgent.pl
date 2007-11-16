@@ -59,8 +59,16 @@ sub _watchdogFaultHandler {
 
     $URL = HoneyClient::Agent->init();
 
+    # Recreate a new stub handle, in case the global configuration has
+    # changed.
+    $stub = getClientHandle(address   => 'localhost',
+                            namespace => 'HoneyClient::Agent',
+                            fault_handler => \&_watchdogFaultHandler);
+
     # Restore state information.
-    $som = $stub->updateState(encode_base64(nfreeze($agentState)));
+    if (defined($agentState)) {
+        $som = $stub->updateState(encode_base64(nfreeze($agentState)));
+    }
 }
 
 $stub = getClientHandle(address   => 'localhost',

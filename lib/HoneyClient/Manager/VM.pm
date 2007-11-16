@@ -38,7 +38,7 @@ running VMware Server / GSX server.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Manager:VM version 1.00.
+This documentation refers to HoneyClient::Manager::VM version 1.00.
 
 =head1 SYNOPSIS
 
@@ -306,9 +306,6 @@ use warnings;
 use Config;
 use Carp ();
 
-# Traps signals, allowing END: blocks to perform cleanup.
-use sigtrap qw(die untrapped normal-signals error-signals);
-
 #######################################################################
 # Module Initialization                                               #
 #######################################################################
@@ -414,7 +411,7 @@ Log::Log4perl->init({
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager::VM package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::VM');
 can_ok('HoneyClient::Manager::VM', 'init');
 can_ok('HoneyClient::Manager::VM', 'destroy');
@@ -718,6 +715,14 @@ sub init {
     # Extract arguments.
     my ($class, %args) = @_;
 
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
     # Sanity check.  Make sure the daemon isn't already running.
     if (defined($DAEMON_PID)) {
         $LOG->fatal( __PACKAGE__ . " daemon is already running (PID = $DAEMON_PID)!");
@@ -758,17 +763,19 @@ sub init {
             Carp::croak "Error: Unable to fork child process.\n$!";
         }
 
-        # Do not attempt to rejoin parent process tree,
-        # if any type of termination signal is received.
-        local $SIG{HUP} = sub { exit; };
-        local $SIG{INT} = sub { exit; };
-        local $SIG{QUIT} = sub { exit; };
-        local $SIG{ABRT} = sub { exit; };
-        local $SIG{PIPE} = sub { exit; };
-        local $SIG{TERM} = sub { exit; };
+        our $daemon = getServerHandle(address => $args{'address'},
+                                      port    => $args{'port'});
 
-        my $daemon = getServerHandle(address => $args{'address'},
-                                     port    => $args{'port'});
+        # Unbind port, if we're shutting down.
+        sub shutdown {
+            $daemon->shutdown(2);
+            exit;
+        };
+        $SIG{HUP}  = \&shutdown;
+        $SIG{INT}  = \&shutdown;
+        $SIG{QUIT} = \&shutdown;
+        $SIG{ABRT} = \&shutdown;
+        $SIG{TERM} = \&shutdown;
 
         for (;;) {
             $daemon->handle();
@@ -805,11 +812,25 @@ is(HoneyClient::Manager::VM->destroy(), 1, "destroy()") or diag("Unable to termi
 =cut
 
 sub destroy {
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper();
+    });
+
     my $ret = undef;
     # Make sure the PID is defined and not
     # the parent process...
     if (defined($DAEMON_PID) && $DAEMON_PID) {
         $ret = kill("QUIT", $DAEMON_PID);
+
+        # If the process doesn't respond to 'QUIT', then
+        # try 'KILL'.
+        if (kill("QUIT", $DAEMON_PID)) {
+            kill("KILL", $DAEMON_PID);
+        }
     }
     if ($ret) {
         $DAEMON_PID = undef;
@@ -1204,7 +1225,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1295,7 +1317,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1390,7 +1413,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1520,7 +1544,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1610,6 +1635,16 @@ sub startVM {
         # Wait 5 seconds, so that the start completely finishes...
         sleep (5);
 
+        # Update VM permissions after the VM has started...
+        my $dir = dirname($args{'config'});
+        umask(oct(002));
+        chmod(oct(770), $args{'config'});
+        chmod(oct(770), glob($dir . "/*.nvram"));
+        chmod(oct(660), glob($dir . "/*.vmss"));
+        chmod(oct(660), glob($dir . "/*REDO*"));
+        chmod(oct(660), glob($dir . "/*.vme*"));
+        chmod(oct(660), glob($dir . "/*.vmsd"));
+
     } else {
         # The VM is in a state that cannot be powered on.
         _disconnectVM();
@@ -1673,7 +1708,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1830,7 +1866,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1973,7 +2010,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2050,6 +2088,16 @@ sub suspendVM {
 
         # Wait 5 seconds, so that the suspend completely finishes...
         sleep (5);
+
+        # Update VM permissions after the VM has suspended...
+        my $dir = dirname($args{'config'});
+        umask(oct(002));
+        chmod(oct(770), $args{'config'});
+        chmod(oct(770), glob($dir . "/*.nvram"));
+        chmod(oct(660), glob($dir . "/*.vmss"));
+        chmod(oct(660), glob($dir . "/*REDO*"));
+        chmod(oct(660), glob($dir . "/*.vme*"));
+        chmod(oct(660), glob($dir . "/*.vmsd"));
 
     } else {
         # The VM is in a state that cannot be suspended.
@@ -2166,7 +2214,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2290,10 +2339,12 @@ sub fullCloneVM {
             }
             
             # Update clone VM data permissions...
-            chmod(oct(700), glob($args{'dest_dir'} . "/" . $configFile));
-            chmod(oct(700), glob($args{'dest_dir'} . "/*.nvram"));
-            chmod(oct(600), glob($args{'dest_dir'} . "/*.vms*"));
-            chmod(oct(600), glob($args{'dest_dir'} . "/*REDO*"));
+            umask(oct(002));
+            chmod(oct(770), $args{'dest_dir'});
+            chmod(oct(770), glob($args{'dest_dir'} . "/" . $configFile));
+            chmod(oct(770), glob($args{'dest_dir'} . "/*.nvram"));
+            chmod(oct(660), glob($args{'dest_dir'} . "/*.vms*"));
+            chmod(oct(660), glob($args{'dest_dir'} . "/*REDO*"));
 
             # None of the VmPerl objects are thread-safe, so in order to perform the following
             # commands, we must do callbacks to the main thread over SOAP.
@@ -2380,7 +2431,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2508,7 +2560,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2690,7 +2743,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2826,7 +2880,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2967,7 +3022,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3094,7 +3150,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3255,7 +3312,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3450,7 +3508,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3648,7 +3707,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3747,6 +3807,7 @@ sub setMasterVM {
     # Modify the permissions of all Master *.vmdk*, *.vms*, and *.vme* files
     # to 0440, in order to prevent any accidental overwrites by a quick
     # clone VM...
+    umask(oct(002));
     chmod(oct(440), glob($srcDir . "/*.vmdk*"));
     chmod(oct(440), glob($srcDir . "/*.vms*"));
     chmod(oct(440), glob($srcDir . "/*.vme*"));
@@ -3940,7 +4001,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4035,7 +4097,8 @@ sub quickCloneVM {
     }
 
     # Make the destDir.
-    if (!mkdir($args{'dest_dir'}, oct(700))) {
+    umask(oct(002));
+    if (!mkdir($args{'dest_dir'}, oct(770))) {
         $errorString = "Could not make Clone VM directory ($args{'dest_dir'}).";
         $LOG->warn($errorString);
         die SOAP::Fault->faultcode(__PACKAGE__ . "->quickCloneVM()")
@@ -4047,36 +4110,38 @@ sub quickCloneVM {
     my $destConfig = $args{'dest_dir'} . "/" . $configFile;
         
     # Perform the copy operation...
-    # Since this may take awhile, we perform the remaining operations in a child thread.
-    my $thread = async {
-
-        # Register a kill signal handler.
-        # This handler is designed to kill this thread upon overall module
-        # destruction.  This handler should never be used for normal program
-        # operations, since it will NOT release any locks/semaphores properly.
-        local $SIG{USR1} = sub { threads->exit(); };
-
-        $maxThreadSemaphore->down();
-        threads->yield();
-            
+    # XXX: Do this synchronously instead of asynchronously, since it is usually a quick
+    # process.
+#    # Since this may take awhile, we perform the remaining operations in a child thread.
+#    my $thread = async {
+#
+#        # Register a kill signal handler.
+#        # This handler is designed to kill this thread upon overall module
+#        # destruction.  This handler should never be used for normal program
+#        # operations, since it will NOT release any locks/semaphores properly.
+#        local $SIG{USR1} = sub { threads->exit(); };
+#
+#        $maxThreadSemaphore->down();
+#        threads->yield();
+#            
         # Obtain the source VM's lock.
         my $vmSemaphore = _getVMlock($class, $args{'src_config'});
-        
-        local $SIG{INT} = sub { 
-            my $LOG = get_logger();
-            $LOG->warn("Asynchronous clone of ($srcDir) interrupted!");
-            # Release any acquired locks.
-            $vmSemaphore->up();
-            $maxThreadSemaphore->up();
-            return;
-        };
-
-        # Trap all faults that may occur from these asynchronous operations.
-        # None of the VmPerl objects are thread-safe, so in order to perform the following
-        # commands, we must do callbacks to the main thread over SOAP.
-        # Yes, this is annoying and ugly.
-        eval {
-
+#        
+#        local $SIG{INT} = sub { 
+#            my $LOG = get_logger();
+#            $LOG->warn("Asynchronous clone of ($srcDir) interrupted!");
+#            # Release any acquired locks.
+#            $vmSemaphore->up();
+#            $maxThreadSemaphore->up();
+#            return;
+#        };
+#
+#        # Trap all faults that may occur from these asynchronous operations.
+#        # None of the VmPerl objects are thread-safe, so in order to perform the following
+#        # commands, we must do callbacks to the main thread over SOAP.
+#        # Yes, this is annoying and ugly.
+#        eval {
+#
             # Lock the source VM.
             $vmSemaphore->down();
     
@@ -4101,39 +4166,44 @@ sub quickCloneVM {
             $vmSemaphore->up();
 
             # Update clone VM data permissions...
-            chmod(oct(700), glob($args{'dest_dir'} . "/" . $configFile));
-            chmod(oct(700), glob($args{'dest_dir'} . "/*.nvram"));
-            chmod(oct(600), glob($args{'dest_dir'} . "/*.vmss"));
-            chmod(oct(600), glob($args{'dest_dir'} . "/*REDO*"));
-            chmod(oct(600), glob($args{'dest_dir'} . "/*.vme*"));
+            umask(oct(002));
+            chmod(oct(770), glob($args{'dest_dir'} . "/" . $configFile));
+            chmod(oct(770), glob($args{'dest_dir'} . "/*.nvram"));
+            chmod(oct(660), glob($args{'dest_dir'} . "/*.vmss"));
+            chmod(oct(660), glob($args{'dest_dir'} . "/*REDO*"));
+            chmod(oct(660), glob($args{'dest_dir'} . "/*.vme*"));
             
             # Register the clone...
-            _callback($class, "registerVM", (config => $destConfig));
+#            _callback($class, "registerVM", (config => $destConfig));
+            registerVM($class, (config => $destConfig));
 
             # Update the cloned VM's displayName...
-            _callback($class, "setNameVM", (config => $destConfig, name => $dirName));
+#            _callback($class, "setNameVM", (config => $destConfig, name => $dirName));
+            setNameVM($class, (config => $destConfig, name => $dirName));
 
             # Now start the VM to update the identifier...    
-            _callback($class, "startVM", (config => $destConfig));
+#            _callback($class, "startVM", (config => $destConfig));
+            startVM($class, (config => $destConfig));
 
             # If the Master VM was suspended, then this clone
             # will awake from a suspended state.  We'll still
             # need to issue a full reboot, in order for the
             # clone to get assigned a new network MAC address.
             if ($powerState == VM_EXECUTION_STATE_SUSPENDED) {
-                _callback($class, "rebootVM", (config => $destConfig));
+#                _callback($class, "rebootVM", (config => $destConfig));
+                rebootVM($class, (config => $destConfig));
             }
-        };
-
-        # For any faults that did occur from the previous operations, be sure
-        # to report them back via the fault queue.
-        if ($@) {
-            _queueFault($@);
-        }
-
-        $maxThreadSemaphore->up();
-        return;
-    };
+#        };
+#
+#        # For any faults that did occur from the previous operations, be sure
+#        # to report them back via the fault queue.
+#        if ($@) {
+#            _queueFault($@);
+#        }
+#
+#        $maxThreadSemaphore->up();
+#        return;
+#    };
 
     return ($destConfig);
 }
@@ -4161,7 +4231,7 @@ If B<$snapshotFile> is not specified, all snapshots
 will be stored within the directory specified by the 
 global variable B<$SNAPSHOT_PATH>, by default.
 
-The format of this destination directory is:
+The format of this destination file is:
 S<"$SNAPSHOT_PATH/$VMDIRNAME-YYYYMMDDThhmmss.tar.gz">, 
 using ISO8601 date format variables.
 
@@ -4275,7 +4345,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4338,6 +4409,8 @@ sub snapshotVM {
         $args{'snapshot_file'} = "$SNAPSHOT_PATH/$dirName-$date.tar.bz2";
     }
 
+    $LOG->info("Snapshotting VM (" . $args{'config'} . ") to (" . $args{'snapshot_file'} . ").");
+
     # Perform the snapshot operations...
     # Since this usually takes awhile, we perform the remaining operations in a child thread.
     my $thread = async {
@@ -4396,7 +4469,7 @@ sub snapshotVM {
             # Unlock chdirSemaphore.
             $chdirSemaphore->up();
 
-            if (system(getVar(name => "bin_tar"), '-C', $parentDir, '-jcpf', $args{'snapshot_file'}, @fileList) != 0) {
+            if (system(getVar(name => "bin_tar"), '-C', $parentDir, '-zcpf', $args{'snapshot_file'}, @fileList) != 0) {
                 # Unlock VM, if fail.
                 $vmSemaphore->up();
                 $LOG->warn("Could not snapshot VM to ($args{'snapshot_file'}). " .
@@ -4565,7 +4638,8 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4695,7 +4769,7 @@ sub revertVM {
                 # Lock the VM.
                 $vmSemaphore->down();
 
-                if (system(getVar(name => "bin_tar"), '-C', $parentDir, '-jxpf', $args{'snapshot_file'}) != 0) {
+                if (system(getVar(name => "bin_tar"), '-C', $parentDir, '-zxpf', $args{'snapshot_file'}) != 0) {
                     # Unlock VM, if fail.
                     $vmSemaphore->up();
 
@@ -4759,6 +4833,7 @@ END {
 
     # Disconnect from the VMware Server / GSX host.
     _disconnect();
+
 }
 
 1;

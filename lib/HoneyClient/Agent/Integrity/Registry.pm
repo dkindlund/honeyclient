@@ -286,6 +286,7 @@ use File::Basename qw(dirname basename fileparse);
 #######################################################################
 
 # Registry Status Identifiers
+# TODO: Need to tie these numbers to DB constants.
 our $STATUS_DELETED  = 0;
 our $STATUS_ADDED    = 1;
 our $STATUS_MODIFIED = 2;
@@ -347,84 +348,9 @@ as normal, upon initialization.
 
 =cut
 
-my %PARAMS = (
-
-    # An array, specifying which registry hives to
-    # analyze.
-    hives_to_check => getVar(name => 'hives_to_check')->{name}, 
-
-    # An array of regular expressions that each registry directory
-    # will be checked against.  Any matching key directory names will
-    # be ignored and any subsequent additions, deletions, or changes
-    # to all content in these matches will also be ignored.
-    #
-    # Each $entry will be used via the syntax /$entry/.  Thus,
-    # it is recommended to specify the ^ prefix and $ suffix, when
-    # possible.
-    #
-    # A single backslash (\) must be represented using triple
-    # backslashes (\\\) and each $entry must not end with any
-    # backslash character.
-    key_dirnames_to_ignore => getVar(name => 'exclude_list')->{regex},
-
-    # When set to 1, the object will forgo any type of initial baselining
-    # process, upon initialization.  Otherwise, baselining will occur
-    # as normal, upon initialization.
-    bypass_baseline => 0,
-
-    # Baseline File Collection
-    # A hashtable of file parsers, one parser per hive name.
-    # (For internal use only.)
-    _baseline_parsers => { },
-
-    # Checkpoint File Collection
-    # A hashtable of file parsers, one parser per hive name.
-    # (For internal use only.)
-    _checkpoint_parsers => { }, 
-
-    # A hashtable of current key info objects, where the hash key is the
-    # file parser and the hash value is the info object.
-    # (For internal use only.)
-    _currentKeys => { },
-
-    # A hashtable of counters, where each counter keeps track of
-    # which entry was last read in from the current key.  The hash key
-    # is the file parser, and the hash value is the entry counter.
-    _currentEntryIndex => { },
-
-    # A helper variable, used to keep track of the last search index,
-    # used by the _search() function. 
-    _last_search_index => undef,
-
-    # A helper variable, used to set the array of known line numbers,
-    # where each array entry is a line number, which separates a different
-    # group block.    
-    _group_index_linenums => [ ],
-);
-
 #######################################################################
 # Private Methods Implemented                                         #
 #######################################################################
-
-# TODO: Move down to public area, document, and update unit tests.
-# Base destructor function.
-sub destroy {
-    # Extract arguments.
-    my $self = shift;
-
-    # Sanity check: Make sure we've been fed an object.
-    unless (ref($self)) {
-        $LOG->error("Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!");
-        Carp::croak "Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!\n";
-    }
-
-    # Delete any temporary files created by the baseline
-    # and checkpoint parsers.
-    $self->_cleanupParsers($self->{_baseline_parsers});
-    $self->_cleanupParsers($self->{_checkpoint_parsers});
-}
 
 # Helper function, designed to cleanup temporary files created
 # by specified parsers.
@@ -1233,6 +1159,7 @@ diag("Performing baseline check of 'HKEY_CURRENT_USER' hive; this may take some 
 # Perform Registry baseline on HKEY_CURRENT_USER.
 $registry = HoneyClient::Agent::Integrity::Registry->new(hives_to_check => [ 'HKEY_CURRENT_USER' ]);
 isa_ok($registry, 'HoneyClient::Agent::Integrity::Registry', "new(hives_to_check => [ 'HKEY_CURRENT_USER' ])") or diag("The new() call failed.");
+$registry->destroy();
 
 =end testing
 
@@ -1244,7 +1171,7 @@ sub new {
     #   parameters.
     #
     # - For each parameter given, it overwrites any corresponding
-    #   parameters specified within the default hashtable, %PARAMS, 
+    #   parameters specified within the default hashtable, %params, 
     #   with custom entries that were given as parameters.
     #
     # - Finally, it returns a blessed instance of the
@@ -1272,7 +1199,61 @@ sub new {
 
     # Initialize default parameters.
     $self = { };
-    my %params = %{dclone(\%PARAMS)};
+    my %params = (
+
+        # An array, specifying which registry hives to
+        # analyze.
+        hives_to_check => getVar(name => 'hives_to_check')->{name}, 
+
+        # An array of regular expressions that each registry directory
+        # will be checked against.  Any matching key directory names will
+        # be ignored and any subsequent additions, deletions, or changes
+        # to all content in these matches will also be ignored.
+        #
+        # Each $entry will be used via the syntax /$entry/.  Thus,
+        # it is recommended to specify the ^ prefix and $ suffix, when
+        # possible.
+        #
+        # A single backslash (\) must be represented using triple
+        # backslashes (\\\) and each $entry must not end with any
+        # backslash character.
+        key_dirnames_to_ignore => getVar(name => 'exclude_list')->{regex},
+
+        # When set to 1, the object will forgo any type of initial baselining
+        # process, upon initialization.  Otherwise, baselining will occur
+        # as normal, upon initialization.
+        bypass_baseline => 0,
+
+        # Baseline File Collection
+        # A hashtable of file parsers, one parser per hive name.
+        # (For internal use only.)
+        _baseline_parsers => { },
+
+        # Checkpoint File Collection
+        # A hashtable of file parsers, one parser per hive name.
+        # (For internal use only.)
+        _checkpoint_parsers => { }, 
+
+        # A hashtable of current key info objects, where the hash key is the
+        # file parser and the hash value is the info object.
+        # (For internal use only.)
+        _currentKeys => { },
+
+        # A hashtable of counters, where each counter keeps track of
+        # which entry was last read in from the current key.  The hash key
+        # is the file parser, and the hash value is the entry counter.
+        _currentEntryIndex => { },
+
+        # A helper variable, used to keep track of the last search index,
+        # used by the _search() function. 
+        _last_search_index => undef,
+
+        # A helper variable, used to set the array of known line numbers,
+        # where each array entry is a line number, which separates a different
+        # group block.    
+        _group_index_linenums => [ ],
+    );
+
     @{$self}{keys %params} = values %params;
 
     # Now, overwrite any default parameters that were redefined
@@ -1469,6 +1450,7 @@ $expectedChanges = [
 ];
 
 is_deeply($foundChanges, $expectedChanges, "check(before_file => '" . $before_registry_file . "', after_file => '" . $after_registry_file . "')") or diag("The check() call failed.");
+$registry->destroy();
 
 =end testing
 
@@ -1592,6 +1574,7 @@ my $tmpdir = dirname($tmpfile);
 foreach my $file (@files_created) {
     like($file, qr/$tmpdir/, "getFilesCreated()") or diag("The getFilesCreated() call failed.");
 }
+$registry->destroy();
 
 =end testing
 
@@ -1654,6 +1637,7 @@ my $tmpdir = dirname($tmpfile);
 foreach my $file (@files_created) {
     like($file, qr/$tmpdir/, "closeFiles()") or diag("The closeFiles() call failed.");
 }
+$registry->destroy();
 
 =end testing
 
@@ -1691,6 +1675,53 @@ sub closeFiles {
             $parser->closeFileHandle();
         }
     }
+}
+
+=pod
+
+=head2 $object->destroy()
+
+=over 4
+
+Destroys any temporary files that have been created by the
+Registry B<$object>.  By performing this operation, the 
+Registry B<$object> can be released from memory without
+leaving any residual temporary files on the filesystem.
+
+=back
+
+=begin testing
+
+# Perform Registry baseline on HKEY_CURRENT_CONFIG.
+diag("Performing baseline check of 'HKEY_CURRENT_CONFIG' hive; this may take some time...");
+my $registry = HoneyClient::Agent::Integrity::Registry->new(hives_to_check => [ 'HKEY_CURRENT_CONFIG' ]);
+my @files_created = $registry->getFilesCreated();
+$registry->destroy();
+use Data::Dumper;
+foreach my $file (@files_created) {
+    is(-e $file, undef, "destroy()") or diag("The destroy() call failed.");
+}
+
+=end testing
+
+=cut
+
+sub destroy {
+    # Extract arguments.
+    my $self = shift;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
+    # Delete any temporary files created by the baseline
+    # and checkpoint parsers.
+    $self->_cleanupParsers($self->{_baseline_parsers});
+    $self->_cleanupParsers($self->{_checkpoint_parsers});
 }
 
 1;

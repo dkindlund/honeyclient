@@ -58,16 +58,16 @@ can_ok('Storable', 'dclone');
 use Storable qw(nfreeze thaw dclone);
 
 # Make sure HoneyClient::Agent::Integrity::Registry loads
-BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
-        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Integrity::Registry');
-use HoneyClient::Agent::Integrity::Registry;
+#BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
+#        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
+#require_ok('HoneyClient::Agent::Integrity::Registry');
+#use HoneyClient::Agent::Integrity::Registry;
 
 # Make sure HoneyClient::Agent::Integrity::Filesystem loads
-BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
-        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Integrity::Filesystem');
-use HoneyClient::Agent::Integrity::Filesystem;
+#BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
+#        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
+#require_ok('HoneyClient::Agent::Integrity::Filesystem');
+#use HoneyClient::Agent::Integrity::Filesystem;
 
 # Make sure HoneyClient::Agent::Integrity loads.
 BEGIN { use_ok('HoneyClient::Agent::Integrity') or diag("Can't load HoneyClient::Agent::Integrity package.  Check to make sure the package library is correctly listed within the path."); }
@@ -88,10 +88,10 @@ isa_ok($integrity, 'HoneyClient::Agent::Integrity', "new(test => 1, bypass_basel
 
 diag("Performing baseline check of the system; this may take some time...");
 
-# XXX: Uncomment this next check, eventually.  (It's commented out right now, in order to save some time).
 # Perform baseline.
 $integrity = HoneyClient::Agent::Integrity->new();
 isa_ok($integrity, 'HoneyClient::Agent::Integrity', "new()") or diag("The new() call failed.");
+$integrity->destroy();
 }
 
 

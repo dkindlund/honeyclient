@@ -41,69 +41,85 @@ This documentation refers to HoneyClient::Manager::VM::Clone version 1.00.
 
 =head1 SYNOPSIS
 
-# XXX: FIX THIS
-
-  # NOTE: This package is an INTERFACE specification only!  It is
-  # NOT intended to be used directly.  Rather, it is expected that
-  # other Driver specific sub-packages will INHERIT and IMPLEMENT
-  # these methods.
-
-  # Eventually, change each reference of 'HoneyClient::Agent::Driver'
-  # to an implementation-specific 'HoneyClient::Agent::Driver::*' 
-  # package name.
-  use HoneyClient::Agent::Driver;
+  use HoneyClient::Manager::VM::Clone;
 
   # Library used exclusively for debugging complex objects.
   use Data::Dumper;
 
-  # Eventually, call the new() function on an implementation-specific
-  # Driver package name.
-  my $driver = HoneyClient::Agent::Driver->new();
+  # Create a new cloned VM, using the default
+  # 'master_vm_config' listed in the global configuration
+  # file (etc/honeyclient.xml).
+  my $clone = HoneyClient::Manager::VM::Clone->new();
+
+  # When the new() operation completes, you are guaranteed that the
+  # cloned VM is powered on, has an IP address, and has a HoneyClient::Agent daemon
+  # ready for use.
+  
+  # Let's get the path to the newly created clone's configuration file.
+  my $config = $clone->{'config'};
+
+  # Figure out which master VM this clone is based on.
+  my $master_vm_config = $clone->{'master_vm_config'};
+
+  # Get the MAC address of the cloned VM's primary network interface.
+  my $mac_address = $clone->{'mac_address'};
+
+  # Get the IP address of the cloned VM's primary network interface.
+  my $ip_address = $clone->{'ip_address'};
+
+  # Get the name of the cloned VM (as it appears in the VMware Console).
+  my $name = $clone->{'name'};
+
+  # Archive the cloned VM to the snapshot_path directory.
+  $clone->archive();
+
+  # If you want the cloned VM to be suspended and no longer used,
+  # simply set the variable to 'undef'.
+  $clone = undef;
+
+  # For existing cloned VMs that have been powered off or suspended,
+  # you can create a Clone object to interact with those as well.
+  $clone = HoneyClient::Manager::VM::Clone->new(config => '/vm/clones/other/winXPPro.cfg');
 
   # If you want to see what type of "state information" is physically
-  # inside $driver, try this command at any time.
-  print Dumper($driver);
-
-  # Continue to "drive" the driver, until it is finished.
-  while (!$driver->isFinished()) {
-
-      # Before we drive the application to a new set of resources,
-      # find out where we will be going within the application, first.
-      print "About to contact the following resources:\n";
-      print Dumper($driver->next());
-
-      # Now, drive the application.
-      $driver->drive();
-
-      # Get status of current iteration of work.
-      print "Status:\n";
-      print Dumper($driver->status());
-      
-  }
+  # inside $clone, try this command at any time.
+  print Dumper($clone);
 
 =head1 DESCRIPTION
 
-# XXX: FIX THIS
+This library provides the Manager module with an object-oriented interface
+towards interacting with cloned virtual machines.  It allows the Manager
+to quickly create new cloned VMs in a consistent manner, without requiring 
+the Manager to deal with all the nuances in cloning VMs.
 
-This library allows the Agent module to access any drivers running on the
-HoneyClient VM in a consistent fashion.  This module is object-oriented in
-design, allowing specific types of drivers to inherit these abstractly
-defined interface methods.
+When a new "Clone" object is created, the following normally occurs:
 
-Fundamentally, a "Driver" is a programmatic construct, designed to
-automate a back-end application that is intended to be exploited by
-different types of malware.  As such, the "Agent" interacts with each
-B<application-specific> Driver running inside the HoneyClient VM, in
-order to programmatically automate the corresponding applications.
+=over 4
 
-When a "Driver" is "driven", this implies that the back-end application
-is accessing a B<new> Internet resource, in order to intentionally be exposed
-to new malware and thus become exploited.
+=item 1)
 
-Example implementation Drivers involve automating certain types and
-B<versions> of web browsers (e.g., Microsoft Internet Explorer, Mozilla 
-Firefox) or even email applications (e.g., Microsoft Outlook, Mozilla
-Thunderbird).
+A new VM is created, based upon cloning a given master VM.
+
+=item 2) 
+
+The cloned VM is powered on and the name of the VM is recorded.
+
+=item 3) 
+
+The MAC and IP address of the cloned VM's primary network interface
+are recorded.
+
+=item 4)
+
+The HoneyClient::Agent daemon running inside the cloned VM is verified
+and ready for use.
+
+=back
+
+Note: If an existing cloned VM's configuration file is specified in
+the new() call, then the "Clone" object will reuse this VM (by not
+creating any duplicate VMs) and proceed to power up this VM, along
+with going through the same verification procedures.
 
 =cut
 
@@ -113,6 +129,9 @@ use strict;
 use warnings;
 use Config;
 use Carp ();
+
+# Traps signals, allowing END: blocks to perform cleanup.
+use sigtrap qw(die untrapped normal-signals);
 
 #######################################################################
 # Module Initialization                                               #
@@ -167,6 +186,12 @@ our (@EXPORT_OK, $VERSION);
 
 =begin testing
 
+# Make sure ExtUtils::MakeMaker loads.
+BEGIN { use_ok('ExtUtils::MakeMaker', qw(prompt)) or diag("Can't load ExtUtils::MakeMaker package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('ExtUtils::MakeMaker');
+can_ok('ExtUtils::MakeMaker', 'prompt');
+use ExtUtils::MakeMaker qw(prompt);
+
 # Make sure Log::Log4perl loads
 BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
         or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
@@ -208,7 +233,7 @@ can_ok('HoneyClient::Util::SOAP', 'getClientHandle');
 use HoneyClient::Util::SOAP qw(getClientHandle);
 
 # Make sure HoneyClient::Manager::VM loads.
-BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Manager::VM package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::VM');
 use HoneyClient::Manager::VM;
 
@@ -237,6 +262,12 @@ BEGIN { use_ok('Storable', qw(dclone)) or diag("Can't load Storable package.  Ch
 require_ok('Storable');
 can_ok('Storable', 'dclone');
 use Storable qw(dclone);
+
+# Make sure Data::Dumper loads
+BEGIN { use_ok('Data::Dumper')
+        or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Data::Dumper');
+use Data::Dumper;
 
 # Make sure threads loads.
 BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
@@ -281,6 +312,9 @@ use HoneyClient::Manager::VM;
 # Use Storable Library
 use Storable qw(dclone);
 
+# Use Dumper Library
+use Data::Dumper;
+
 # Package Global Variable
 our $AUTOLOAD;
 
@@ -292,7 +326,7 @@ our $LOG = get_logger();
 
 # The global variable, used to count the number of
 # Clone objects that have been created.
-our $OBJECT_COUNT : shared = 0;
+our $OBJECT_COUNT : shared = -1;
 
 =pod
 
@@ -318,42 +352,39 @@ contents will be the basis for each subsequently cloned VM.
 
 =back
 
+=head2 config
+
+=over 4
+
+The full absolute path to the cloned VM's configuration file.
+
+=back
+
+=head2 mac_address
+
+=over 4
+
+The MAC address of the cloned VM's primary network interface.
+
+=back
+
+=head2 ip_address
+
+=over 4
+
+The IP address of the cloned VM's primary network interface.
+
+=back
+
+=head2 name
+
+=over 4
+
+The name of the cloned VM.
+
+=back
+
 =cut
-
-my %PARAMS = (
-    # The full absolute path to the master VM's configuration file, whose
-    # contents will be the basis for each subsequently cloned VM.
-    master_vm_config => getVar(name => "master_vm_config"),
-
-    # A SOAP handle to the VM manager daemon.  (This internal variable
-    # should never be modified externally.)
-    _vm_handle => undef,
-
-    # A variable containing the absolute path to the cloned VM.  (This
-    # internal variable should never be modified externally.)
-    _clone_vm_config => undef,
-
-    # A variable containing the MAC address of the cloned VM's primary
-    # interface.  (This internal variable should never be modified
-    # externally.)
-    _clone_vm_mac => undef,
-    
-    # A variable containing the IP address of the cloned VM's primary
-    # interface.  (This internal variable should never be modified
-    # externally.)
-    _clone_vm_ip => undef,
-    
-    # A variable containing the name the cloned VM.
-    # (This internal variable should never be modified
-    # externally.)
-    _clone_vm_name => undef,
-
-    # A variable indicated how long the object should wait for
-    # between subsequent retries to the HoneyClient::Manager::VM
-    # daemon (in seconds).  (This internal variable should never
-    # be modified externally.)
-    _retry_period => 2,
-);
 
 #######################################################################
 # Private Methods Implemented                                         #
@@ -420,20 +451,217 @@ sub DESTROY {
     # Get the object.
     my $self = shift;
 
-    if (defined($self->{'_clone_vm_config'})) {
-        my $som = $self->{'_vm_handle'}->getMACaddrVM(config => $self->{'_clone_vm_config'});
-        if (!$som->result()) {
-            $LOG->error("Unable to suspend VM (" . $self->{'_clone_vm_config'} . ").");
+    if (($OBJECT_COUNT >= 0) && defined($self->{'config'})) {
+       
+        # Initialize a new handler, but suppress any initial connection errors.
+        $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM",
+                                                fault_handler => sub { die "ERROR"; });
+
+        $LOG->info("Suspending clone VM (" . $self->{'config'} . ").");
+        my $som = undef;
+        eval {
+            $som = $self->{'_vm_handle'}->suspendVM(config => $self->{'config'});
+        };
+
+        # Reinitialize the VM daemon, in case it died from
+        # a CTRL-C or other forced termination.
+        unless(defined($som)) {
+            # Make sure the VM daemon was properly destroyed.
+            HoneyClient::Manager::VM->destroy();
+            
+            # Sleep a bit, in order for the terminated VM daemon to release
+            # its network bindings.
+            # XXX: See if this is still needed.
+            #sleep(20);
+
+            # Reinitialize VM daemon.
+            HoneyClient::Manager::VM->init();
+
+            # Reinitialize handler, with errors not suppressed.
+            $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
+
+            # Call suspendVM one more time...
+            $som = $self->{'_vm_handle'}->suspendVM(config => $self->{'config'});
         }
+
+        if (!defined($som)) {
+            $LOG->error("Unable to suspend VM (" . $self->{'config'} . ").");
+        }
+
     }
 
     # Decrement our global object count.
     $OBJECT_COUNT--;
+}
 
-    # Upon last use, destroy the global instance of the VM manager.
-    if ($OBJECT_COUNT <= 0) {
+END {
+    # Upon termination, destroy the global instance of the VM manager.
+    if ($OBJECT_COUNT == 0) {
         HoneyClient::Manager::VM->destroy();
     }
+}
+
+# Handle SOAP faults.
+#
+# When initially contacting the HoneyClient::Agent daemon running
+# inside the cloned VM, we suppress any "Connection refused" messages
+# we initially receive.  If a new cloned VM is slow to respond, we
+# assume it's because the initial integrity check is still running
+# and the daemon isn't ready to accept commands from the
+# HoneyClient::Manager yet.
+sub _handleFault {
+
+    # Extract arguments.
+    my ($class, $res) = @_;
+
+    # Construct error message.
+    # Figure out if the error occurred in transport or over
+    # on the other side.
+    my $errMsg = $class->transport->status; # Assume transport error.
+
+    if (ref $res) {
+        $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
+    }
+    
+    if (($errMsg !~ /Connection refused/) &&
+        ($errMsg !~ /No route to host/)) {
+        $LOG->warn("Error occurred during processing. " . $errMsg);
+        Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
+    }
+}
+
+# Initialized cloned VMs.
+#
+# If no existing configuration is supplied, then this method creates
+# a new clone VM from the supplied master VM.  Furthermore, this method
+# will power on the clone, and wait until the clone VM has fully booted and
+# has an operational HoneyClient::Agent daemon running on it.
+# 
+# During this power on process, the name, MAC address, and 
+# IP address of the running clone are recorded in the object.
+#
+# Output: The updated Clone $object, containing state information
+# from starting the clone VM.  Will croak if this operation fails.
+#
+# TODO: Need to configure a timeout failure operation -- in case
+# there's a problem and the VM operations hang.
+sub _init {
+
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!";
+    }
+    
+    # Temporary variable to hold SOAP Object Message.
+    my $som = undef;
+
+    # Temporary variable to hold return message data.
+    my $ret = undef;
+
+    # If the clone's configuration wasn't supplied initially, then
+    # perform the quick clone operation.
+    if (!defined($self->{'config'})) {
+        $LOG->info("Quick cloning master VM (" . $self->{'master_vm_config'} . ").");
+        $som = $self->{'_vm_handle'}->quickCloneVM(src_config => $self->{'master_vm_config'});
+        $ret = $som->result();
+        if (!$ret) {
+            $LOG->fatal("Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").");
+            Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").";
+        }
+        # Set the cloned VM configuration.
+        $self->{'config'} = $ret;
+    } else {
+        $LOG->debug("Starting clone VM (" . $self->{'config'} . ").");
+        $som = $self->{'_vm_handle'}->startVM(config => $self->{'config'});
+        $ret = $som->result();
+        if (!$ret) {
+            $LOG->fatal("Unable to start clone VM (" . $self->{'config'} . ").");
+            Carp::croak "Unable to start clone VM (" . $self->{'config'} . ").";
+        }
+    }
+
+    # Wait until the VM gets registered, before proceeding.
+    $LOG->debug("Checking if clone VM (" . $self->{'config'} . ") is registered.");
+    $ret = undef;
+    while (!defined($ret) or !$ret) {
+        $som = $self->{'_vm_handle'}->isRegisteredVM(config => $self->{'config'});
+        $ret = $som->result();
+
+        # If the VM isn't registered yet, wait before trying again.
+        if (!defined($ret) or !$ret) {
+            sleep ($self->{'_retry_period'});
+        }
+    }
+
+    # Once registered, check if the VM is ON yet.
+    $LOG->debug("Checking if clone VM (" . $self->{'config'} . ") is powered on.");
+    $ret = undef;
+    while (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
+        $som = $self->{'_vm_handle'}->getStateVM(config => $self->{'config'});
+        $ret = $som->result();
+
+        # If the VM isn't ON yet, wait before trying again.
+        if (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
+            sleep ($self->{'_retry_period'});
+        }
+    }
+
+    # Now, get the VM's MAC address.
+    $LOG->debug("Retrieving MAC address of clone VM (" . $self->{'config'} . ").");
+    $som = $self->{'_vm_handle'}->getMACaddrVM(config => $self->{'config'});
+    $self->{'mac_address'} = $som->result();
+
+    # Now, get the VM's name.
+    $LOG->debug("Retrieving name of clone VM (" . $self->{'config'} . ").");
+    $som = $self->{'_vm_handle'}->getNameVM(config => $self->{'config'});
+    $self->{'name'} = $som->result();
+
+    # Now, get the VM's IP address.
+    $LOG->debug("Retrieving IP address of clone VM (" . $self->{'config'} . ").");
+    $ret = undef;
+    my $stubAgent = undef;
+    my $logMsgPrinted = 0;
+    while (!defined($self->{'ip_address'}) or !defined($ret)) {
+        $som = $self->{'_vm_handle'}->getIPaddrVM(config => $self->{'config'});
+        $self->{'ip_address'} = $som->result();
+
+        # If the VM isn't booted yet, wait before trying again.
+        if (!defined($self->{'ip_address'})) {
+            sleep ($self->{'_retry_period'});
+            next; # skip further processing
+        } elsif (!$logMsgPrinted) {
+            $LOG->info("Initialized clone VM (" . $self->{'name'} . ") using IP (" .
+                       $self->{'ip_address'} . ") and MAC (" . $self->{'mac_address'} . ").");
+            $logMsgPrinted = 1;
+        }
+        
+        # Now, try contacting the Agent.
+        $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
+                                     address       => $self->{'ip_address'},
+                                     fault_handler => \&_handleFault);
+
+        eval {
+            $som = $stubAgent->getStatus();
+            $ret = $som->result();
+        };
+        # Clear returned state, if any fault occurs.
+        if ($@) {
+            $ret = undef;
+        }
+
+        # If the Agent daemon isn't responding yet, wait before trying again.
+        if (!defined($ret)) {
+            sleep ($self->{'_retry_period'});
+        }
+    }
+
+    return $self;
 }
 
 #######################################################################
@@ -460,7 +688,8 @@ I<Inputs>:
 Note: If any $param(s) are supplied, then an equal number of
 corresponding $value(s) B<must> also be specified.
 
-I<Output>: The instantiated Clone B<$object>, fully initialized.
+I<Output>: The instantiated Clone B<$object>, fully initialized
+with a ready-to-use cloned honeyclient VM.
 
 =back
 
@@ -470,6 +699,10 @@ I<Output>: The instantiated Clone B<$object>, fully initialized.
 my ($stub, $som, $URL);
 my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
                                       namespace => "HoneyClient::Manager::VM::Test");
+
+# Include notice, to clarify our assumptions.
+diag("About to run basic unit tests; these may take some time.");
+diag("Note: These tests *expect* VMware Server or VMware GSX to be installed and running on this system beforehand.");
 
 # Catch all errors, in order to make sure child processes are
 # properly killed.
@@ -494,11 +727,11 @@ eval {
 
     # Wait a small amount of time for the asynchronous clone
     # to complete.
-    sleep (60);
+    sleep (10);
 
     # The master VM should be on.
     $som = $stub->getStateVM(config => $masterVM);
-
+   
     # Since the master VM doesn't have an OS installed on it,
     # the VM may be considered stuck.  Go ahead and answer
     # this question, if need be.
@@ -506,21 +739,48 @@ eval {
         $som = $stub->answerVM(config => $masterVM);
     }
 
-    HoneyClient::Manager::VM->destroy();
-    sleep (1);
+    # Turn off the master VM.
+    $som = $stub->stopVM(config => $masterVM);
 
-    # Create a generic clone, with test state data.
-    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM);
-    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
-    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM')") or diag("The new() call failed.");
+    # Now, kill the VM daemon.
+    HoneyClient::Manager::VM->destroy();
+    # XXX: See if this is still needed.
+    #sleep (10);
+
+    # Create a generic empty clone, with test state data.
+    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM, _dont_init => 1);
+    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1)") or diag("The new() call failed.");
+    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1)") or diag("The new() call failed.");
+    $clone = undef;
 
     # Destroy the master VM.
     $som = $stub->destroyVM(config => $masterVM);
+
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real clone operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning this master VM?", "no");
+    if ($question =~ /^y.*/i) {
+        $clone = HoneyClient::Manager::VM::Clone->new(test => 1);
+        is($clone->{test}, 1, "new(test => 1)") or diag("The new() call failed.");
+        isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1)") or diag("The new() call failed.");
+        my $cloneConfig = $clone->{config};
+        $clone = undef;
+    
+        # Destroy the clone VM.
+        $som = $stub->destroyVM(config => $cloneConfig);
+    }
 };
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-sleep (1);
+# XXX: See if this is still needed.
+#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -537,7 +797,7 @@ sub new {
     #   parameters.
     #
     # - For each parameter given, it overwrites any corresponding
-    #   parameters specified within the default hashtable, %PARAMS, 
+    #   parameters specified within the default hashtable, %params, 
     #   with custom entries that were given as parameters.
     #
     # - Finally, it returns a blessed instance of the
@@ -557,7 +817,37 @@ sub new {
 
     # Initialize default parameters.
     $self = { };
-    my %params = %{dclone(\%PARAMS)};
+    my %params = (
+        # The full absolute path to the master VM's configuration file, whose
+        # contents will be the basis for each subsequently cloned VM.
+        master_vm_config => getVar(name => "master_vm_config"),
+
+        # A variable containing the absolute path to the cloned VM's
+        # configuration file.
+        config => undef,
+
+        # A variable containing the MAC address of the cloned VM's primary
+        # interface.
+        mac_address => undef,
+    
+        # A variable containing the IP address of the cloned VM's primary
+        # interface.
+        ip_address => undef,
+    
+        # A variable containing the name the cloned VM.
+        name => undef,
+    
+        # A SOAP handle to the VM manager daemon.  (This internal variable
+        # should never be modified externally.)
+        _vm_handle => undef,
+
+        # A variable indicated how long the object should wait for
+        # between subsequent retries to the HoneyClient::Manager::VM
+        # daemon (in seconds).  (This internal variable should never
+        # be modified externally.)
+        _retry_period => 2,
+    );
+
     @{$self}{keys %params} = values %params;
 
     # Now, overwrite any default parameters that were redefined
@@ -568,59 +858,140 @@ sub new {
     bless $self, $class;
 
     # Upon first use, start up a global instance of the VM manager.
-    if ($OBJECT_COUNT <= 0) {
+    if ($OBJECT_COUNT < 0) {
         HoneyClient::Manager::VM->init();
+        $OBJECT_COUNT = 0;
     }
 
     # Set a valid handle for the VM daemon.
     $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
 
-    # Set the master VM.
-    $LOG->info("Setting VM (" . $self->{'master_vm_config'} . ") as master.");
-    my $som = $self->{'_vm_handle'}->setMasterVM(config => $self->{'master_vm_config'});
-    if (!$som->result()) {
-        $LOG->fatal("Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.");
-        Carp::croak "Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.";
+    # If the clone's configuration wasn't supplied initially, then
+    # set the master VM to prepare for cloning.
+    unless (defined($self->{'config'})) {
+        $LOG->info("Setting VM (" . $self->{'master_vm_config'} . ") as master.");
+        my $som = $self->{'_vm_handle'}->setMasterVM(config => $self->{'master_vm_config'});
+        if (!$som->result()) {
+            $LOG->fatal("Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.");
+            Carp::croak "Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.";
+        }
     }
 
     # Update our global object count.
     $OBJECT_COUNT++;
 
-    # Finally, return the blessed object.
-    return $self;
+    # Finally, return the blessed object, with a fully initialized
+    # cloned VM unless otherwise specified.
+    if ($self->{'_dont_init'}) {
+        return $self;
+    } else {
+        return $self->_init();
+    }
 }
 
 =pod
 
-=head2 $object->start()
+=head2 $object->archive(snapshot_file => $snapshotFile) 
 
 =over 4
 
-If not previously called, this method creates a new clone VM
-from the supplied master VM.  Furthermore, this method will power
-on the clone, and wait until the clone VM has fully booted and
-has an operational Agent daemon running on it.
+Archives an existing Clone object, by suspending the VM and saving
+a tar.gz archive file containing the VM to the B<$SNAPSHOT_PATH>
+directory, as specified in the <HoneyClient/><Manager/><VM/>
+section of the etc/honeyclient.xml file.
 
-During this power on process, the name, MAC address, and 
-IP address of the running clone are recorded in the object.
+I<Inputs>:
+ B<$snapshotFile> is an optional argument, indicating the
+full, absolute path and filename of where the snapshot
+file should be stored.
+ 
+I<Output>: The archived Clone B<$object>.
 
-I<Output>: The updated Clone B<$object>, containing state information
-from starting the clone VM.  Will croak if this operation fails.
+I<Notes>:
+If B<$snapshotFile> is not specified, all snapshots
+will be stored within the directory specified by the 
+global variable B<$SNAPSHOT_PATH>, by default.
+
+The format of this destination directory is:
+S<"$SNAPSHOT_PATH/$VMDIRNAME-YYYYMMDDThhmmss.tar.gz">, 
+using ISO8601 date format variables.
+
+This operation destroys the Clone B<$object>.  Do not
+expect to perform any additional operations with 
+this object once this call is finished.
 
 =back
 
-# XXX: FINISH THIS
-#=begin testing
-#
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->drive()} 'drive()' or diag("The drive() call failed.  Expected drive() to throw an exception.");
-#
-#=end testing
+=begin testing
+
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
+
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    my $testVMDir = dirname($testVM);
+
+    # Specify where the snapshot should be created.
+    my $snapshot = dirname($testVMDir) . "/test_vm_clone.tar.gz";
+
+    # Pretend as though no other Clone objects have been created prior
+    # to this point.
+    $HoneyClient::Manager::VM::Clone::OBJECT_COUNT = -1;
+    
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real archive operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning this master VM?", "no");
+    if ($question =~ /^y.*/i) {
+
+        # Create a generic empty clone, with test state data.
+        my $clone = HoneyClient::Manager::VM::Clone->new();
+        my $cloneConfig = $clone->{config};
+
+        # Archive the clone.
+        $clone->archive(snapshot_file => $snapshot);
+
+        # Wait for the archive to complete.
+        sleep (45);
+    
+        # Test if the archive worked.
+        is(-f $snapshot, 1, "archive(snapshot_file => '$snapshot')") or diag("The archive() call failed.");
+   
+        unlink $snapshot;
+        $clone = undef;
+    
+        # Connect to daemon as a client.
+        $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+    
+        # Destroy the clone VM.
+        $som = $stub->destroyVM(config => $cloneConfig);
+    }
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+# XXX: See if this is still needed.
+#sleep (1);
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
 
 =cut
 
-sub start {
+sub archive {
 
     # Extract arguments.
     my ($self, %args) = @_;
@@ -630,328 +1001,43 @@ sub start {
         $LOG->error("Error: Function must be called in reference to a " .
                     __PACKAGE__ . "->new() object!");
         Carp::croak "Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!";
+                    __PACKAGE__ . "->new() object!\n";
     }
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Sanity checks; check if any args were specified.
+    my $argsExist = scalar(%args);
+
+    # Extract the VM configuration file.
+    my $vmConfig = $self->{'config'};
+
+    # Set the internal VM configuration to undef, in order to
+    # avoid potential object DESTROY() calls.
+    $self->{'config'} = undef;
     
-    # Temporary variable to hold SOAP Object Message.
-    my $som = undef;
-
-    # Temporary variable to hold return message data.
-    my $ret = undef;
-
-    # Perform the quick clone operation.
-    $LOG->info("Quick cloning master VM (" . $self->{'master_vm_config'} . ").");
-    $som = $self->{'_vm_handle'}->quickCloneVM(src_config => $self->{'master_vm_config'});
-    $ret = $som->result();
-    if (!$ret) {
-        $LOG->fatal("Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").");
-        Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").";
+    $LOG->debug("Archiving clone VM (" . $vmConfig . ").");
+    my $som = $self->{'_vm_handle'}->suspendVM(config => $vmConfig);
+    if ($argsExist &&
+        exists($args{'snapshot_file'}) &&
+        defined($args{'snapshot_file'})) {
+        $som = $self->{'_vm_handle'}->snapshotVM(config        => $vmConfig,
+                                                 snapshot_file => $args{'snapshot_file'});
+    } else {
+        $som = $self->{'_vm_handle'}->snapshotVM(config => $vmConfig);
     }
-    # Set the cloned VM configuration.
-    $self->{'_clone_vm_config'} = $ret;
-
-    # Wait until the VM gets registered, before proceeding.
-    $LOG->info("Checking if clone VM (" . $self->{'_clone_vm_config'} . ") is registered.");
-    $ret = undef;
-    while (!defined($ret) or !$ret) {
-        $som = $self->{'_vm_handle'}->isRegisteredVM(config => $self->{'_clone_vm_config'});
-        $ret = $som->result();
-
-        # If the VM isn't registered yet, wait before trying again.
-        if (!defined($ret) or !$ret) {
-            sleep ($self->{'_retry_period'});
-        }
-    }
-
-    # Once registered, check if the VM is ON yet.
-    $ret = undef;
-    while (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
-        $som = $self->{'_vm_handle'}->getStateVM(config => $self->{'_clone_vm_config'});
-        $ret = $som->result();
-
-        # If the VM isn't ON yet, wait before trying again.
-        if (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
-            sleep ($self->{'_retry_period'});
-        }
-    }
-
-    # Now, get the VM's MAC address.
-    $som = $self->{'_vm_handle'}->getMACaddrVM(config => $self->{'_clone_vm_config'});
-    $self->{'_clone_vm_mac'} = $som->result();
-
-    # Now, get the VM's name.
-    $som = $self->{'_vm_handle'}->getNameVM(config => $self->{'_clone_vm_config'});
-    $self->{'_clone_vm_name'} = $som->result();
-
-    # Now, get the VM's IP address.
-    $ret = undef;
-    my $stubAgent = undef;
-    my $logMsgPrinted = 0;
-    while (!defined($self->{'_clone_vm_ip'}) or !defined($ret)) {
-        $som = $self->{'_vm_handle'}->getIPaddrVM(config => $self->{'_clone_vm_config'});
-        $self->{'_clone_vm_ip'} = $som->result();
-
-        # If the VM isn't booted yet, wait before trying again.
-        if (!defined($self->{'_clone_vm_ip'})) {
-            sleep ($self->{'_retry_period'});
-            next; # skip further processing
-        } elsif (!$logMsgPrinted) {
-            $LOG->info("Created clone VM (" . $self->{'_clone_vm_name'} . ") using IP (" .
-                       $self->{'_clone_vm_ip'} . ") and MAC (" . $self->{'_clone_vm_mac'} . ".");
-            $logMsgPrinted = 1;
-        }
-        
-        # Now, try contacting the Agent.
-        $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-                                     address       => $self->{'_clone_vm_ip'},
-                                     fault_handler => undef);
-
-        eval {
-            $som = $stubAgent->getStatus();
-            $ret = $som->result();
-        };
-        # Clear returned state, if any fault occurs.
-        if ($@) {
-            $ret = undef;
-        }
-
-        # If the Agent daemon isn't responding yet, wait before trying again.
-        if (!defined($ret)) {
-            sleep ($self->{'_retry_period'});
-        }
+    if (!defined($som)) {
+        $LOG->error("Unable to archive VM (" . $vmConfig . ").");
     }
 
     return $self;
 }
-
-=pod
-
-=head2 $object->isFinished()
-
-=over 4
-
-Indicates if the Driver B<$object> has driven the back-end application
-through the Driver's entire state and is unable to drive the application
-further without additional input.
-
-I<Output>: True if the Driver B<$object> is finished, false otherwise.
-
-=back
-
-#=begin testing
-#
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->isFinished()} 'isFinished()' or diag("The isFinished() call failed.  Expected isFinished() to throw an exception.");
-#
-#=end testing
-
-=cut
-
-sub isFinished {
-    # Get the class name.
-    my $self = shift;
-    
-    # Check to see if the class name is inherited or defined.
-    my $class = ref($self) || $self;
-    
-    # Sanity check: Make sure we've been fed an object.
-    unless (ref($self)) {
-        $LOG->error("Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!");
-        Carp::croak "Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!";
-    }
-
-    # Emit generic "not implemented" error message.
-    $LOG->error($class . "->isFinished() is not implemented!");
-    Carp::croak "Error: " . $class . "->isFinished() is not implemented!\n";
-}
-
-=pod
-
-=head2 $object->next()
-
-=over 4
-
-Returns the next set of server hostnames and/or IP addresses that the
-back-end application will contact, upon the next subsequent call to
-the B<$object>'s drive() method.
-
-Specifically, the returned data is a reference to a hashtable, containing
-detailed information about which resources, hostnames, IPs, protocols, and 
-ports that the application will contact upon the next iteration.
-
-Here is an example of such returned data:
-
-  $hashref = {
-  
-      # The set of servers that the driver will contact upon
-      # the next drive() operation.
-      targets => {
-          # The application will contact 'site.com' using
-          # TCP ports 80 and 81.
-          'site.com' => {
-              'tcp' => [ 80, 81 ],
-          },
-
-          # The application will contact '192.168.1.1' using
-          # UDP ports 53 and 123.
-          '192.168.1.1' => {
-              'udp' => [ 53, 123 ],
-          },
- 
-          # Or, more generically:
-          'hostname_or_IP' => {
-              'protocol_type' => [ portnumbers_as_list ],
-          },
-      },
-
-      # The set of resources that the driver will operate upon
-      # the next drive() operation.
-      resources => {
-          'http://www.mitre.org/' => 1,
-      },
-  };
-
-B<Note>: For each hostname or IP address specified, if B<no>
-corresponding protocol/port sub-hastables are given, then it
-must be B<assumed> that the back-end application may contact
-the hostname or IP address using B<ANY> protocol/port.
-
-I<Output>: The aforementioned B<$hashref> containing the next set of
-resources that the back-end application will attempt to contact upon
-the next drive() iteration.
-
-# XXX: Resolve this.
-
-B<Note>: Eventually this B<$hashref> will become a structured object,
-created via a HoneyClient::Util::* package.  However, the underlying
-structure of this hashtable is not expected to change. 
-
-=back
-
-#=begin testing
-#
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->next()} 'next()' or diag("The next() call failed.  Expected next() to throw an exception.");
-#
-#=end testing
-
-=cut
-
-sub next {
-    # Get the class name.
-    my $self = shift;
-    
-    # Check to see if the class name is inherited or defined.
-    my $class = ref($self) || $self;
-    
-    # Sanity check: Make sure we've been fed an object.
-    unless (ref($self)) {
-        $LOG->error("Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!");
-        Carp::croak "Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!";
-    }
-
-    # Emit generic "not implemented" error message.
-    $LOG->error($class . "->next() is not implemented!");
-    Carp::croak "Error: " . $class . "->next() is not implemented!\n";
-}
-
-=pod
-
-=head2 $object->status()
-
-=over 4
-
-Returns the current status of the Driver B<$object>, as it's state
-exists, between subsequent calls to $object->driver().
-
-Specifically, the data returned is a reference to a hashtable,
-containing specific statistical information about the status
-of the Driver's progress during back-end application automation.
-
-As such, the exact structure of this returned hashtable is not strictly
-defined.  Instead, it is left up to each specific Driver implementation
-to return useful, statistical information back to the Agent that
-makes sense for the driven application.
-
-For example, if an Internet Explorer specific Driver were implemented,
-then the corresponding status hashtable reference returned may look
-something like:
-
-  $hashref = {
-      'links_remaining'  =>       56, # Number of URLs left to process.
-      'links_processed'  =>       44, # Number of URLs processed.
-      'links_total'      =>      100, # Total number of URLs given.
-      'percent_complete' => '44.00%', # Percent complete.
-  };
-
-For another example, if an Outlook specific Driver were implemented,
-then the corresponding status hashtable reference returned may look
-something like:
-
-  $hashref = {
-      'mail_remaining'   =>       56, # Number of messages left to process.
-      'mail_processed'   =>       44, # Number of messages processed.
-      'mail_total'       =>      100, # Total number of messages given.
-      'percent_complete' => '44.00%', # Percent complete.
-  };
-
-I<Output>: A corresponding B<$hashref>, containing statistical information
-about the Driver's progress, as previously mentioned.
-
-# XXX: Resolve this.
-
-B<Note>: The exact structure of this status hashtable may become more
-concrete, as we define a generic concept of a "unit of work" per every
-iteration of the $object->drive() method.  For example, it may be
-likely that each Driver will attempt to contact a series of resources
-per every "unit of work" iteration.  As such, we may generically
-record how many "work units" are remaining, processed, and total --
-rather than specifically state "links" or "mail" within the hashtable
-key names, accordingly.
-
-At the least, it can be assumed that even if a generic structure were
-defined, we would leave room available in the status hashtable to
-capture additional, implementation-specific statistics that are not
-generic among every Driver implementation.
-
-=back
-
-#=begin testing
-#
-# Create a generic driver, with test state data.
-#my $driver = HoneyClient::Agent::Driver->new(test => 1);
-#dies_ok {$driver->status()} 'status()' or diag("The status() call failed.  Expected status() to throw an exception.");
-#
-#=end testing
-
-=cut
-
-sub status {
-    # Get the class name.
-    my $self = shift;
-    
-    # Check to see if the class name is inherited or defined.
-    my $class = ref($self) || $self;
-    
-    # Sanity check: Make sure we've been fed an object.
-    unless (ref($self)) {
-        $LOG->error("Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!");
-        Carp::croak "Error: Function must be called in reference to a " .
-                    __PACKAGE__ . "->new() object!";
-    }
-
-    # Emit generic "not implemented" error message.
-    $LOG->error($class . "->next() is not implemented!");
-    Carp::croak "Error: " . $class . "->next() is not implemented!\n";
-}
-
 
 #######################################################################
 
@@ -965,18 +1051,17 @@ __END__
 
 =head1 BUGS & ASSUMPTIONS
 
-This package has been designed in an object-oriented fashion, as a
-simple B<INTERFACE> for other, more robust fully-implemented 
-HoneyClient::Agent::Driver::* sub-packages to inherit.
+Currently, the new() function assumes that the master VM supplied
+has been setup and configured according to the specification listed
+here:
 
-Specifically, B<ONLY> the new() function is implemented in this package.
-While this allows any user to create Driver B<$object>s by explicitly
-calling the HoneyClient::Agent::Driver->new() function, any subsequent
-calls to any other method (i.e., $object->drive()) will B<FAIL>, as it is
-expected that fully defined Driver sub-packages would implement these
-capabilities.
+L<http://www.honeyclient.org/trac/wiki/UserGuide#HoneyclientVM>
 
-In a nutshell, this object is nothing more than a blessed anonymous
+Thus, upon cloning, if a cloned VM is unable to properly boot into
+Windows and load the HoneyClient::Agent daemon properly, then the
+new() call will B<hang indefinately>.
+
+In a nutshell, this object is basically a blessed anonymous
 reference to a hashtable, where (key => value) pairs are defined in
 the L<DEFAULT PARAMETER LIST>, as well as fed via the new() function
 during object initialization.  As such, this package does B<not>
@@ -994,10 +1079,6 @@ L<http://www.honeyclient.org/trac>
 L<http://www.honeyclient.org/trac/newticket>
 
 =head1 AUTHORS
-
-Kathy Wang, E<lt>knwang@mitre.orgE<gt>
-
-Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
 
 Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 

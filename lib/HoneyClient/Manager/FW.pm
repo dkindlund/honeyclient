@@ -230,7 +230,7 @@ use HoneyClient::Util::Config qw(getVar);
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Manager::FW', qw(init_fw destroy_fw _getVMName)) or diag("Can't load HoneyClient::Manager:VM package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('HoneyClient::Manager::FW', qw(init_fw destroy_fw _getVMName)) or diag("Can't load HoneyClient::Manager::FW package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::FW');
 can_ok('HoneyClient::Manager::FW', 'init_fw');
 can_ok('HoneyClient::Manager::FW', 'destroy_fw');
