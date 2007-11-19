@@ -867,7 +867,7 @@ sub worker {
             # Then the driver state object is already defined,
             # so go ahead and reuse it.
             $driver = $driverClass->new(
-                        %{$data->{$driverName}->{'state'}}, 
+                %{$data->{$driverName}->{'state'}}, 
             );
         }
 
