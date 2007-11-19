@@ -78,7 +78,7 @@ Keep in mind, though, that some variables should remain module-specific
         <Driver>
             <!-- TODO: Update this. -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
-                20 
+                5
             </timeout>
             <ActiveContent>
                 <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
@@ -97,7 +97,7 @@ Keep in mind, though, that some variables should remain module-specific
                     1
                 </ignore_links_timed_out>
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-                    5
+                    1
                 </max_relative_links_to_visit>
                 <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
                     <word>news</word>
@@ -464,7 +464,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/master-vms/Agent.Master-27/winXPPro.cfg
+                /vm/master-vms/Agent.Master-27-dynamic_updates/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="8089">
                 8089
