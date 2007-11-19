@@ -781,7 +781,7 @@ sub runSession {
     #Register Client with the Honeyclient Database
     if ($DB_ENABLE) {
         eval {
-            $clientDbId = dbRegisterClient($vmName);
+            $clientDbId = dbRegisterClient($vm->name);
         };
         if ($@) {
             $clientDbId = 0; #$DB_FAILURE
