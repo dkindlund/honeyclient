@@ -78,7 +78,7 @@ Keep in mind, though, that some variables should remain module-specific
         <Driver>
             <!-- TODO: Update this. -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
-                5
+                10
             </timeout>
             <ActiveContent>
                 <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
