@@ -40,7 +40,7 @@ package HoneyClient::DB::Client;
 use base("HoneyClient::DB");
 
 our ($STATUS_RUNNING,$STATUS_CLEAN,$STATUS_COMPROMISED) = (0,1,2);
-our @statusStrings = ['Running','Compromised','Clean'];
+our @statusStrings = ['Running','Clean','Compromised'];
 
 our %fields = (
     string => {
