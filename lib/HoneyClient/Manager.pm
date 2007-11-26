@@ -918,6 +918,7 @@ sub runSession {
                     if ($DB_ENABLE && ($clientDbId > 0)) {
 						#XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
 						# Put Honeyclient Link History in database.
+						$LOG->info("Saving Url History to Database.");
 						insert_url_history();
 						# Remove the compromise time from the fingerprint. This is to be added to the Client Object
 						delete $fingerprint->{last_resource};
@@ -1015,25 +1016,29 @@ sub runSession {
 }
 
 sub insert_url_history {
-	my $state = thaw(decode_base64($globalAgentState));
-	foreach my $driver (keys %$state) {
-		if ($state->{$driver}) {
-			$state = $state->{$driver};
+	my $agent_state = thaw(decode_base64($globalAgentState));
+	my $state;
+	my $driver;
+	foreach $driver (keys %$state) {
+		if ($agent_state->{$driver}) {
+			$state = $agent_state->{$driver};
 			last;
 		}
 	}
 	foreach my $i (keys %link_categories) {
 		my @url_history;
 		while (my ($url,$url_time) = each(%{$state->{$link_categories{$i}}})) {
+			next if (!$url_time);
 			# Some ignored links are the result of invalid Urls. Preprocess to avoid errors.
-			$url = HoneyClient::DB::Url->new($url);
-			next if (!$url);
+			my $url_obj = HoneyClient::DB::Url->new($url);
+			next if (!$url_obj);
 			my $u = HoneyClient::DB::Url::History->new({
-				url => $url,
+				url => $url_obj,
 				visited => $url_time,
 				status => $i,
 			});
 			push @url_history,$u;
+			$agent_state->{$driver}->{$link_categories{$i}}->{$url} = 0;
 		}
 
 # Update the History item to reflect the Client it belongs to.
@@ -1044,6 +1049,7 @@ sub insert_url_history {
 		);
 		$LOG->info("Inserted Urls of type ".$link_categories{$i});
 	}
+	$globalAgentState = encode_base64(nfreeze($agent_state));
 }
 
 sub dbRegisterClient {
