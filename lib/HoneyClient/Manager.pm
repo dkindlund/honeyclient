@@ -892,7 +892,7 @@ sub runSession {
                     $vmCompromised = 1;
 
                     my $fingerprint = $ret->{$args{'driver'}}->{status}->{fingerprint};
-                    $LOG->warn("VM Compromised.");
+                    $LOG->warn("VM Compromised. Last Resource (" . $fingerprint->{'last_resource'} . ")");
 
                     # Dump the fingerprint to the compromise file, if needed.
                     # XXX: May want to change this format/usage, eventually.
@@ -1058,9 +1058,9 @@ sub dbRegisterClient {
 		status => $HoneyClient::DB::Client::STATUS_RUNNING,
 		# TODO: Collect host,application, and config through automation/config files
 		host => {
-			organization => 'Mitre',
-			host_name => 'honeyclient3',
-			ip_address => '172.16.164.103',
+			organization => 'MITRE',
+			host_name => Sys::Hostname::Long::hostname_long,
+			ip_address => Sys::HostIP->ip,
 		},
 		client_app => {
 			manufacturer => 'Microsoft',
