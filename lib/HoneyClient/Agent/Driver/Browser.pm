@@ -701,6 +701,10 @@ sub _validateLink {
         unless (scalar(%{$self->links_ignored}) and
                 exists($self->links_ignored->{$link})) {
 
+            # Emit a warning message, indicating that the link was not
+            # valid and will be ignored.
+            $LOG->warn("Ignoring invalid URL: '" . $link . "'");
+
             # The invalid link is brand new; add it to our list.
             $self->links_ignored->{$link} = _getTimestamp();
         }
