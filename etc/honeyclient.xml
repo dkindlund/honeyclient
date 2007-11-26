@@ -334,7 +334,7 @@ Keep in mind, though, that some variables should remain module-specific
             172.16.164.1
         </host>
         <dbname description="The name of the HoneyClient database." default="HoneyClient">
-            HcNewSchema
+            HoneyClient_v2
         </dbname>
         <user description="The username to use, when connecting to the HoneyClient database.">
             hc_user
