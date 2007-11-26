@@ -1025,7 +1025,7 @@ sub insert_url_history {
 	my $agent_state = thaw(decode_base64($args{'agent_state'}));
 	my $state;
 	my $driver;
-	foreach $driver (keys %$state) {
+	foreach $driver (keys %$agent_state) {
 		if ($agent_state->{$driver}) {
 			$state = $agent_state->{$driver};
 			last;
