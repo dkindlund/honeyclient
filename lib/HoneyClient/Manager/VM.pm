@@ -4406,7 +4406,7 @@ sub snapshotVM {
         !defined($args{'snapshot_file'})) {
         my $dt = DateTime::HiRes->now();
         my $date = $dt->ymd('') . 'T' . $dt->hms('');
-        $args{'snapshot_file'} = "$SNAPSHOT_PATH/$dirName-$date.tar.bz2";
+        $args{'snapshot_file'} = "$SNAPSHOT_PATH/$dirName-$date.tar.gz";
     }
 
     $LOG->info("Snapshotting VM (" . $args{'config'} . ") to (" . $args{'snapshot_file'} . ").");
