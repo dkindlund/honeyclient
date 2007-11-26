@@ -301,9 +301,10 @@ if ($DB_ENABLE) {
     require HoneyClient::DB::Url::History;
     require HoneyClient::DB::Time;
 	%link_categories = (
-		$HoneyClient::DB::Url::History::STATUS_IGNORED => 'links_ignored',
 		$HoneyClient::DB::Url::History::STATUS_VISITED => 'links_visited',
 		$HoneyClient::DB::Url::History::STATUS_TIMED_OUT => 'links_timed_out',
+# For the time being, ignored links will not be inserted.
+#		$HoneyClient::DB::Url::History::STATUS_IGNORED => 'links_ignored',
 	);
 }
 

@@ -37,8 +37,8 @@ use HoneyClient::DB::Client;
 package HoneyClient::DB::Url::History;
 use base("HoneyClient::DB");
 
-our ($STATUS_IGNORED,$STATUS_VISITED,$STATUS_TIMED_OUT) = (0,1,2);
-our (@URL_STATUS_STRINGS) = ("Ignored","Visited","Timed out");
+our ($STATUS_TIMED_OUT,$STATUS_VISITED) = (0,1);
+our (@URL_STATUS_STRINGS) = ("Timed out","Visited");
 
 our %fields = (
     ref => {
