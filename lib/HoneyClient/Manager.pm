@@ -546,7 +546,7 @@ sub _cleanup {
 	#XXX: Insert Urls. To be moved eventually.
 	if ($DB_ENABLE && ($clientDbId > 0)) {
 		$LOG->info("Saving Url History to Database.");
-		insert_url_history();
+		insert_url_history(agent_state => $globalAgentState);
 		HoneyClient::DB::Client->update(
 			'-set' => {
 				status => $HoneyClient::DB::Client::STATUS_CLEAN,
@@ -919,7 +919,9 @@ sub runSession {
 						#XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
 						# Put Honeyclient Link History in database.
 						$LOG->info("Saving Url History to Database.");
-						insert_url_history();
+						$args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'});
+                        $globalAgentState = $args{'agent_state'};
+
 						# Remove the compromise time from the fingerprint. This is to be added to the Client Object
 						delete $fingerprint->{last_resource};
 						my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
@@ -1016,7 +1018,11 @@ sub runSession {
 }
 
 sub insert_url_history {
-	my $agent_state = thaw(decode_base64($globalAgentState));
+
+    # Extract arguments.
+    my (%args) = @_;
+
+	my $agent_state = thaw(decode_base64($args{'agent_state'}));
 	my $state;
 	my $driver;
 	foreach $driver (keys %$state) {
@@ -1028,6 +1034,7 @@ sub insert_url_history {
 	foreach my $i (keys %link_categories) {
 		my @url_history;
 		while (my ($url,$url_time) = each(%{$state->{$link_categories{$i}}})) {
+            # Don't insert already inserted URLs into DB.
 			next if (!$url_time);
 			# Some ignored links are the result of invalid Urls. Preprocess to avoid errors.
 			my $url_obj = HoneyClient::DB::Url->new($url);
@@ -1038,6 +1045,7 @@ sub insert_url_history {
 				status => $i,
 			});
 			push @url_history,$u;
+            # For all sucessfully inserted URLs, set their timestamps to 0.
 			$agent_state->{$driver}->{$link_categories{$i}}->{$url} = 0;
 		}
 
@@ -1049,7 +1057,8 @@ sub insert_url_history {
 		);
 		$LOG->info("Inserted Urls of type ".$link_categories{$i});
 	}
-	$globalAgentState = encode_base64(nfreeze($agent_state));
+
+	return encode_base64(nfreeze($agent_state));
 }
 
 sub dbRegisterClient {
