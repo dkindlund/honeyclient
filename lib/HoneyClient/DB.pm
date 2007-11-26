@@ -390,7 +390,10 @@ our @ERROR_MESSAGES = (
 	"Duplicate object found. Non-fatal warning",
 	"Duplicate object found. Unable to retrieve ID of duplicate record",
 );
+
+# Global Status Variables
 our $LAST_ERROR = $ERROR_NONE;
+our $TRANSACTION_PENDING = 0;
 
 # Initialize Connection
 our %config;
@@ -561,7 +564,7 @@ sub import_schema {
                     $_keys{$class}{$a} = $opts->{key};
                 }
                 if ( $opts->{init_val} ) {
-                    $_init_val{$class}{$a} = $opts->{key};
+                    $_init_val{$class}{$a} = $opts->{init_val};
                 }
 				#DEBUG: Test new code
 				if( $opts->{searchable} ) {
@@ -621,58 +624,68 @@ Returns the 'id' of the (parent) object inserted.
 =cut
 
 sub insert {
-    my $obj = shift;
-    my $id  = undef;
-	my $objType  = ref $obj;
-
-    $dbhandle = HoneyClient::DB::_connect(%config);
+    my ($id,$error,$objType,$ref,$trans);
+	$error = $trans = 0;
+	$objType = $ref = ref $_[0];
+	if (!$ref) {
+		$objType = shift;
+		$ref = ref $_[0];
+	}
+	# Connect unless in the middle of a transaction
 
     # Attempt insert; commit if succeeds, else rollback
-    $LOG->debug("Attempting insert operation.");
-    eval { $id = _insert( $obj, undef ); };
-    if ($@) {
-        $LOG->warn("insert failed, Rolling Back: $@");
-        $dbhandle->rollback();
-    }
-    elsif ($LAST_ERROR != $ERROR_NONE) {
-    	$LOG->warn("Rolling Back $objType Insert. Code #$LAST_ERROR: ".$ERROR_MESSAGES[$LAST_ERROR]);
-    	$dbhandle->rollback();
-    }
-    else {
-        $dbhandle->commit();
-    }
-    $dbhandle->disconnect() if $dbhandle;
-    return $id;
+    eval {
+		if ( $ref eq 'ARRAY' ) {
+    		#$id = _insert_array(@_);
+    		return _insert_array(@_);
+		}
+		#elsif ( exists $_types{$ref} ) {
+		if ( exists $_types{$ref} ) {
+			eval {
+				$trans = begin_transaction();
+	    		$id = _insert_obj(@_);
+			};
+			if ($@) {
+        		$error = 1;
+				$LOG->error($objType."->insert failed with $@. Rolling Back.");
+				Carp::carp($objType."->insert failed with $@. Rolling Back.");
+    		}
+			# If object is found to be a duplicate, Roll Back changes without warning
+			elsif ($LAST_ERROR == $ERROR_DUPLICATE_FOUND) {
+				$error = 1 if ($trans);
+			}
+    		elsif ($LAST_ERROR != $ERROR_NONE) {
+    			$error = 1;
+				$LOG->error($objType."->insert failed with code #$LAST_ERROR: ".$ERROR_MESSAGES[$LAST_ERROR].". Rolling Back.");
+				if ($trans) {
+					Carp::carp($objType."->insert failed with code #$LAST_ERROR: ".$ERROR_MESSAGES[$LAST_ERROR].". Rolling Back.");
+				}
+				else {
+					Carp::croak($objType."->insert failed with code #$LAST_ERROR: ".$ERROR_MESSAGES[$LAST_ERROR].". Rolling Back.");
+				}
+    		}
+	# Terminates transaction, unless in the middle of one
+			end_transaction($trans,$error);
+    		return $id;
+		}
+    	else {
+			#$error = 1;
+        	$LOG->error("Can't insert invalid data type");
+        	Carp::carp("Can't insert invalid data type");
+			return undef;
+		}
+	};
 }
 
 ##################### Insert Helper Functions #####################
 
-sub _insert {
-    my ( $obj, $fk_col, $fk_id ) = @_;
-    my $ref = ref $obj;
-
-    if ( $ref eq 'ARRAY' ) {
-        return _insert_array( $obj, $fk_col, $fk_id );
-    }
-    elsif ( exists $_types{$ref} ) {
-        return _insert_obj( $obj, $fk_col, $fk_id );
-    }
-    elsif ($ref) {
-        $LOG->warn("Can't insert object of type $ref");
-    }
-    else {
-        $LOG->warn("Attempted to insert scalar value into the database");
-    }
-    return undef;
-}
-
 sub _insert_array {
-    my ( $obj, $fk_col, $fk_id ) = @_;
+	my $objects = shift;
     my @entries;
-    foreach (@$obj) {
-        my $id = _insert( $_, $fk_col, $fk_id );
+    foreach my $obj (@$objects) {
+        my $id = $obj->insert(@_);
         ref($id) eq 'ARRAY' ? push( @entries, @$id ) : push( @entries, $id );
-    }    #}
+    }
     return \@entries;
 }
 
@@ -695,7 +708,7 @@ sub _insert_obj {
 # Insert child w/ 1 to 1 relationships and create a foreign key to it
         elsif ( $_types{$class}{$col} =~ m/ref:(.*)/ ) {
             if ( my $ft = $1->_get_table() ) {
-                $insert{ $ft . '_' .$col . '_fk' } = _insert($data);
+               	$insert{$class->get_col_name($col)} = $data->insert();
             }
         }
 # Add scalar attribute insert hash to be used @ INSERT time
@@ -723,7 +736,7 @@ sub _insert_obj {
                 }
             }
 
-            my @rows = $class->_select(
+            my @rows = $class->select(
             	'-columns'=>['id'],
             	'-where'=>$filter,
             );
@@ -732,13 +745,13 @@ sub _insert_obj {
             	$error = $ERROR_DUPLICATE_FOUND;
             }
             else {
-                $LAST_ERROR = $ERROR_DUPLICATE_UNRESOLVED;
+                $error = $ERROR_DUPLICATE_UNRESOLVED;
                 $LOG->fatal("Error: Can't resolve duplicate records\t" . $dbhandle->err . ": $@");
                 Carp::croak("Error: Can't resolve duplicate records\n\t" . $dbhandle->err . ": $@");
             }
         }
         else {
-            $LAST_ERROR = $ERROR_INSERT_FAILED;
+            $error = $ERROR_INSERT_FAILED;
             $LOG->fatal("Error #".$dbhandle->err."while executing SQL:\n\t$sql\n$@");
             Carp::croak("Error #".$dbhandle->err."while executing SQL:\n\t$sql\n$@");
         }
@@ -748,10 +761,32 @@ sub _insert_obj {
     }
 # Insert Children
     foreach ( keys %children ) {
-        my $rv = _insert( $children{$_}, $table . '_' .$_ . '_fk', $id );
+        my $rv = insert($children{$_},$class->get_col_name($_), $id);
     }
     $LAST_ERROR = $error;
     return $id;
+}
+
+sub append_children {
+	my ($class,%args) = @_;
+	if (exists $args{'-parent_id'}) {
+		my $pid = delete $args{'-parent_id'};
+		if (my ($field,$children) = each %args) {
+			if (exists $_types{$class}{$field}) {
+				my ($child_class) = $_types{$class}{$field} =~ m/array:(.*)/;
+				if (exists $_types{$child_class}) {
+					my $result = $child_class->insert($children,$class->get_col_name($field),$pid);
+					if (ref $result eq 'ARRAY') {
+						return scalar(@$result);
+					}
+				}
+			}
+		}
+	}
+	else {
+		$LOG->error("Can't append children without '-parent_id' argument");
+	}
+	return 0;
 }
 
 =head3 QUERY CONDITIONS
@@ -787,7 +822,7 @@ Honeyclients in a given date range.
 
   @octoberClients = HoneyClient::DB::Client->select(
 	  -where => {
-	  	  start_time => ['2007-10-01 00::00::00','2007-10-31 23::59::59'
+	  	  start_time => ['2007-10-01 00::00::00','2007-10-31 23::59::59']
 	  },
   );
 
@@ -827,40 +862,67 @@ L<QUERY CONDITIONS> for more info.
 =cut
 
 sub select {
-# Connect, Create, and execute SQL query
-    $dbhandle = HoneyClient::DB::_connect(%config);
-    my @results = _select(@_);
-
-# Disconnect and return results
-    $dbhandle->disconnect() if $dbhandle;
-    wantarray ? return @results : return \@results;
-}
-
-sub _select {
-	my (@results,$sql);
+	my $trans = begin_transaction(); # Connect
+	my (@results,$sql,$error);
     eval {
 # Create SQL query
         $sql = _build_query(@_);
+		#XXX: Change back to debug
         $LOG->debug($sql);
 
 # Execute SQL query
-        my $sth = $dbhandle->prepare($sql);
-        $sth->execute();
+		if ($sql) {
+	        my $sth = $dbhandle->prepare($sql);
+    	    $sth->execute();
 
 # Retrieve results and exit
-        while ( my $row = $sth->fetchrow_hashref() ) {
-            push @results, $row;
-        }
+			while ( my $row = $sth->fetchrow_hashref() ) {
+    	        push @results, $row;
+        	}
+		}
+		else {
+			$error = 1;
+			$LOG->error("Error, invalid query parameters.");
+		}
     };
     if ($@) {
-        $LOG->warn("Error while executing SQL:\n\t$sql\n$@");
-        return ();
+        $error = 1;
+		$LOG->error ("Error while executing SQL:\n\t$sql\n$@");
+        @results = ();
     }
-	return @results;
+	end_transaction($trans,$error);
+    wantarray ? return @results : return \@results;
+}
+
+sub _select_expr {
+	my $class = shift;
+	my @fields;
+	foreach my $col_def (@_) {
+		if (ref $col_def eq 'HASH') {
+			while (my ($col,$as) = (each %$col_def)) {
+				if (my $col_name = $class->get_col_name($col)) {
+					push @fields, "$col_name AS '$as'";
+				}
+			}
+		}
+		else {
+			my $col_name = $class->get_col_name($col_def);
+			if ($col_name) {
+				if ($col_name ne $col_def) {
+					push @fields,"$col_name AS '$col_def'";
+				}
+				else {
+					push @fields,$col_name;
+				}
+			}
+		}
+	}
+	return @fields;
 }
 
 sub _build_query {
-    my ( $class, %args) = @_;
+    my ($class, %args) = @_;
+# Prepare select_expr with fields to retrieve
 	my @fields;
 	if (exists($args{'-columns'}) && scalar(@{$args{'-columns'}})) {
 		@fields = @{$args{'-columns'}};
@@ -868,16 +930,9 @@ sub _build_query {
 	else {
 		@fields = $class->get_fields();
 	}
-# Column Rename where columns are passed as a hash table e.g. {col_name => "Display Name"} becomes "col_name AS 'Display Name'"
-	foreach my $col_def (@fields) {
-		if (ref $col_def eq 'HASH') {
-             while (my ($col,$as) = (each %$col_def)) {
-                 push @fields, "$col AS '$as'";
-             }
-         }
-     }
+	return "" if (!scalar(@fields = $class->_select_expr(@fields)));
 # Prepare SQL statement
-    my $sql = "SELECT "; $sql .= join( ',', @fields); $sql .= " FROM " . $class->_get_table();
+    my $sql = "SELECT " . join( ',', @fields) . " FROM " . $class->_get_table();
 # Set condition statements
     $sql .= $class->_where_condition($args{'-where'});
     return $sql;
@@ -908,7 +963,7 @@ sub _where_condition {
 						if ($type eq 'ref') {
 							($left, $right) = ($right,$left);
 						}
-	                    my $sub_query = $sub_class->select(
+	                    my $sub_query = $sub_class->_build_query(
 	                       -columns => [$right],
 	                       -where => $data,
 	                    );
@@ -930,6 +985,7 @@ sub _where_condition {
                    push @conditions,($class->get_col_name($col).'='.$dbhandle->quote($data));
                }
         	}
+			#TODO: This is not right. Must fix Check functionality. Return a bool and pass by ref?
 			elsif ($cf->($data)) {
 				if ($partial) {
 					my $wc_data = "%".$data."%";
@@ -993,10 +1049,10 @@ updated. Refer to L<QUERY CONDITIONS> for more info.
 sub update {
     my ( $class, %args ) = @_;
 
-	my @set_expr;
+	my (@set_expr,$error);
     # Prepare SQL statements
     while (my ($col,$data) = each %{$args{'-set'}}) {
-		if (exists $_types{$class}{$col} || $col eq 'id' || $col =~ m/_fk$/) {
+		if (exists $_types{$class}{$col} || $col eq 'id') {
     		eval {
 				my $foo = -1;
 				$foo = $_check{$class}{$col}->($data) if(exists $_check{$class}{$col});
@@ -1004,24 +1060,29 @@ sub update {
     		if (!$@) {
                 push @set_expr, ( $class->get_col_name($col) . '=' . $dbhandle->quote($data) )
     		}
+			else {
+				$error = "Update Warning. Invalid or missing -set argument."
+			}
     	}
 		else {
-			#TODO: Warn or Fail, bad set argument
+			$error = "Update Failed. Invalid or missing -set argument."
 		}
     }
-    if (scalar(@set_expr)) {
-   		$dbhandle = HoneyClient::DB::_connect(%config);
-    	my $rc = $class->_update(join( ',', @set_expr ),$args{'-where'});
-		if($rc >= 0) {
-			$dbhandle->commit();
-			$dbhandle->disconnect() if $dbhandle;
-	        return $rc;
+	my $rc = -1;
+    if (scalar(@set_expr) && !$error) {
+		my $trans = begin_transaction();
+		eval {
+    		$rc = $class->_update(join( ',',@set_expr ),$args{'-where'});
+		};
+		if($@ or $rc >= 0) {
+			$error = "Update failed. Rolling Back"; 
 		}
-		$LOG->warn("Update failed, invalid or missing -set arguments");
-		$dbhandle->rollback();
-		$dbhandle->disconnect() if $dbhandle;
+		end_transaction($trans,$error);
     }
-    return -1;
+	else {
+		$LOG->warn($error);
+	}
+    return $rc;
 }
 
 sub _update {
@@ -1060,30 +1121,29 @@ sub decrementColumn {
 # Helper function, performs increment or decrement work.
 sub _incOrDecColumn {
 	my ($class,$op,%args) = @_;
-	my $col = (exists $args{'-column'} ? $args{'-column'} : undef);
-	my $cond = (exists $args{'-where'} ? $args{'-where'} : undef);
-# Get amount to be changed by. Default to 1.
+	my $rc = -1;
+	my $error;
+	my ($col,$cond) = ($args{'-column'},$args{'-where'});
 	my $amt = (exists $args{'-amount'} ? 0+$args{'-amount'} : 1);
-	return -1 if ($op ne '+' && $op ne '-' && !(check_int($amt)));
-	$dbhandle = HoneyClient::DB::_connect(%config);
+	return $rc if ($op ne '+' && $op ne '-' && !(check_int($amt)));
+	my $opName = ($op eq '+' ? 'increment' : 'decrement');
+	my $trans = begin_transaction();
 
-# Ensure column exists AND the column is of type 'int'
-    if ( $col && (exists $_types{$class}{$col}) && ($_types{$class}{$col} eq int)) {
-# Execute update and get number of columns changed.
-		my $rc = $class->_update("$col=$col".$op.$amt,$cond);
-		if($rc >= 0) {
-			$dbhandle->commit();
-			$dbhandle->disconnect() if $dbhandle;
-			return $rc;
+	# Ensure column exists AND the column is of type 'int'
+    if ( $col && (exists $_types{$class}) && ($_types{$class}{$col} eq 'int')) {
+		# Execute update and get number of columns changed.
+		eval {
+			$rc = $class->_update("$col=$col".$op.$amt,$cond);
+		};
+		if ($@) {
+			$error = $class."->".$opName."Column for $col failed. Rolling Back.";
 		}
     }
 	else {
-		$op = ($op eq '+' ? 'increment' : 'decrement');
-		$LOG->warn($op."Column failed. Invalid or missing '-column' argument: $col");
+		$error = $class."->".$opName."Column failed. Invalid or missing '-column' argument: $col";
 	}
-	$dbhandle->rollback();
-	$dbhandle->disconnect() if $dbhandle;
-    return -1;
+	end_transaction($trans,$error);
+    return $rc;
 }
 
 sub _get_table {
@@ -1097,7 +1157,7 @@ sub _get_table {
 
 sub get_col_name {
 	my ($class,$field) = @_;
-	if ($field eq 'id' || $field =~ m/\w*?_fk$/) {
+	if ($field eq 'id') {
 		return $field;
 	}
 	if(!exists $_types{$class}{$field}) {
@@ -1182,6 +1242,31 @@ sub _connect {
     }
 }
 
+sub begin_transaction {
+	if ($TRANSACTION_PENDING) {
+		return 0;
+	}
+    $dbhandle = HoneyClient::DB::_connect(%config);
+	return ($TRANSACTION_PENDING = 1);
+}
+
+sub end_transaction {
+	my ($owner,$error) = @_;
+	if ($error) {
+		if ($owner) {
+			$dbhandle->rollback();
+			$TRANSACTION_PENDING = 0;
+		}
+	}
+	else {
+		if ($owner) {
+			$dbhandle->commit();
+			$TRANSACTION_PENDING = 0;
+		}
+	}
+	$dbhandle->disconnect() if ($owner && $dbhandle);
+}
+
 # Creates the table for the referenced class unless it exists
 sub deploy_table {
     my $class = shift;
@@ -1226,7 +1311,9 @@ sub deploy_table {
 
         # Initial Values for columns
         if ( exists $_init_val{$class} && $_init_val{$class}{$col} ) {
-            $sql .= " DEFAULT " . $_init_val{$class}{$col};
+			if ($type !~ m/^(array|ref)/) {
+	            $sql .= " DEFAULT " . $dbhandle->quote($_init_val{$class}{$col});
+			}
         }
 
         # Add Index if necessary

@@ -54,6 +54,21 @@ BEGIN {
     );
 }
 
+sub _where_condition {
+	my $class = shift;
+	if (!ref($_[0])) {
+		return ' WHERE CONCAT_WS('.',Time.time,Time.ms)='.$HoneyClient::DB::dbhandle->quote($_[0]);
+	}
+	elsif(ref($_[0]) eq 'ARRAY') {
+		my @times = @{$_[0]};
+		return ' WHERE CONCAT_WS('.',Time.time,Time.ms) BETWEEN '.$HoneyClient::DB::dbhandle->quote($times[0])
+			.' AND '.$HoneyClient::DB::dbhandle->quote($times[1]);
+	}
+	else {
+		return $class->SUPER::_where_condition($_[0]);
+	}
+}
+
 sub parse_time {
 	my $time = shift;
 	if (!defined $time) {

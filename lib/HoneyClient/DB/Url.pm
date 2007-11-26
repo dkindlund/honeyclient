@@ -50,7 +50,6 @@ our %fields = (
             key => $HoneyClient::DB::KEY_UNIQUE_MULT,
         },
         rel_path => {
-            required => 1,
             key => $HoneyClient::DB::KEY_UNIQUE_MULT,
         },
     },
@@ -60,23 +59,36 @@ our %fields = (
         },
     },
 );
+# process_url accepts a url string and returns a 
+sub process_url {
+	my $url = shift;
+    if (is_uri($url)) {
+        my $url_obj = URI::URL->new($url);
+        $url = {
+            protocol => $url_obj->scheme(),
+            domain => $url_obj->netloc(),
+        };
+		# mailto: URLs don't have a query component
+		eval {
+			my $rel_path = $url_obj->path_query();
+			$url->{rel_path} = ($rel_path or '');
+		};
+		return $url;
+    }
+	else {
+		return undef;
+	}
+}
 
 sub new {
     my ($class,$self) = @_;
     if (!ref $self) {
         # Assume a Url string has been passed
-        if (is_uri($self)) {
-            my $url = URI::URL->new($self);
-            $self = {
-                protocol => $url->scheme(),
-                domain => $url->netloc(),
-                rel_path => $url->path_query(),
-            };
-        }
+		my $url = $self;
+		unless ($self = process_url($url)) {
 		# The URL is undefined or of an incorrect format. Force to {} to prevent crash.
-		else {
-			$LOG->warn("Url: $self is improper and thus won't be created/inserted correctly");
-			$self = {};
+			$LOG->warn("Url: $url is improper and thus won't be created/inserted correctly");
+			return undef;
 		}
     }
     $class->SUPER::new($self);
@@ -88,9 +100,9 @@ sub select_full_url {
     my @results = $class->SUPER::select(@_);
     foreach my $row (@results) {
         $row->{'url'} = delete $row->{'protocol'};
-        $row->{'url'} .= '://';
+        ($row->{'url'} eq 'mailto') ? $row->{'url'} .= ':' : $row->{'url'} .= '://';
         $row->{'url'} .= delete $row->{'domain'};
-        $row->{'url'} .= delete $row ->{'rel_path'};
+        $row->{'url'} .= delete $row->{'rel_path'};
     }
     return @results;
 }
@@ -98,7 +110,8 @@ sub select_full_url {
 sub insert {
 	my $self = shift;
     my $url_id = $self->SUPER::insert();
-    if ($HoneyClient::DB::LAST_ERROR == $HoneyClient::DB::DUPLICATE_FOUND) {
+	#TODO: Logic for array of Urls inserted
+    if ($HoneyClient::DB::LAST_ERROR == $HoneyClient::DB::ERROR_DUPLICATE_FOUND) {
         HoneyClient::DB::Url->incrementColumn(
             '-column'   => 'visits',
             '-where' => {'id'=>$url_id},
