@@ -911,6 +911,7 @@ sub runSession {
                     }
 
                     # Archive the VM.
+                    $LOG->info("Archiving VM...");
                     $vm->archive();
                     $vm = undef;
 
@@ -1020,22 +1021,27 @@ sub runSession {
 sub insert_url_history {
 
     # Extract arguments.
-    my (%args) = @_;
+    my %args = @_;
 
 	my $agent_state = thaw(decode_base64($args{'agent_state'}));
+
 	my $state;
-	my $driver;
-	foreach $driver (keys %$agent_state) {
+	my $agent_driver;
+	foreach my $driver (keys %$agent_state) {
 		if ($agent_state->{$driver}) {
 			$state = $agent_state->{$driver};
+            $agent_driver = $driver;
 			last;
 		}
 	}
+
 	foreach my $i (keys %link_categories) {
 		my @url_history;
 		while (my ($url,$url_time) = each(%{$state->{$link_categories{$i}}})) {
             # Don't insert already inserted URLs into DB.
-			next if (!$url_time);
+			if (!$url_time) {
+                next;
+            }
 			# Some ignored links are the result of invalid Urls. Preprocess to avoid errors.
 			my $url_obj = HoneyClient::DB::Url->new($url);
 			next if (!$url_obj);
@@ -1046,7 +1052,7 @@ sub insert_url_history {
 			});
 			push @url_history,$u;
             # For all sucessfully inserted URLs, set their timestamps to 0.
-			$agent_state->{$driver}->{$link_categories{$i}}->{$url} = 0;
+			$agent_state->{$agent_driver}->{$link_categories{$i}}->{$url} = 0;
 		}
 
 # Update the History item to reflect the Client it belongs to.
