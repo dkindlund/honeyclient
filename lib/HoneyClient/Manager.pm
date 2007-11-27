@@ -128,7 +128,7 @@ use Carp ();
 BEGIN {
     # Defines which functions can be called externally.
     require Exporter;
-    our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION, @DRIVERS);
+    our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
     $VERSION = 1.00;

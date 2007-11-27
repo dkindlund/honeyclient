@@ -333,8 +333,8 @@ Keep in mind, though, that some variables should remain module-specific
         <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
             172.16.164.1
         </host>
-        <dbname description="The name of the HoneyClient database." default="HoneyClient">
-            HoneyClient_v2
+        <dbname description="The name of the HoneyClient database." default="HoneyClient_v2">
+            HoneyClient_v2_dev
         </dbname>
         <user description="The username to use, when connecting to the HoneyClient database.">
             hc_user
@@ -464,7 +464,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/master-vms/Agent.Master-27/winXPPro.cfg
+                /vm/master-vms/Agent.Master-28/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="8089">
                 8089
