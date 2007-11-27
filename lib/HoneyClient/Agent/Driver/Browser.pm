@@ -688,9 +688,6 @@ sub _validateLink {
 
     # First, check to see if the link is either an
     # "http://" or "https://" URL.
-    # XXX: is_web_uri() doesn't work for IP address URLs,
-    #      so this check is disabled until this is fixed.
-    #unless (is_uri($link)) {
     unless (is_uri($link) && is_web_uri($link)) {
 
         # The link is invalid, so we check to see if it's already
