@@ -35,6 +35,7 @@ use HoneyClient::DB::Time;
 use HoneyClient::DB::Server;
 use HoneyClient::DB::Fingerprint;
 use HoneyClient::DB::SystemConfig;
+use HoneyClient::DB::Url::History;
 
 package HoneyClient::DB::Client;
 use base("HoneyClient::DB");

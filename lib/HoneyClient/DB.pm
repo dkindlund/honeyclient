@@ -951,7 +951,7 @@ sub _where_condition {
 			$col = $1;
 			$partial = 1;
 		}
-		if ( !exists $_types{$class}{$col} && $col ne 'id' && $col !~ m/_fk$/) {
+		if ( !exists $_types{$class}{$col} && $col ne 'id') {
             next; #TODO: Handle non-existent field
         }
         my $cf = ($_check{$class}{$col} || \&check_nothing);
@@ -1163,12 +1163,12 @@ sub get_col_name {
 	if(!exists $_types{$class}{$field}) {
 		return undef;
 	}
-	if ($_types{$class}{$field} =~ m/(array|ref):(.*)/) {
+	if (my ($type,$child_class) = $_types{$class}{$field} =~ m/(array|ref):(.*)/) {
 		my $col_name = "_".$field."_fk";
-		if ($1 eq 'array') {
+		if ($type eq 'array') {
 			return _get_table($class).$col_name;
 		}
-		return _get_table($2).$col_name;
+		return _get_table($child_class).$col_name;
 	}
 	return $field;
 }
@@ -1192,32 +1192,18 @@ query that retrieves all fields.
 sub get_fields {
     my $self = shift;
     my $class = ( ref($self) or $self );
-	my $type = shift;
-	$type = $FIELDS_ALL if ($type == undef);
-	# $FIELDS_ALL,$FIELDS_SEARCH,$FIELDS_DISPLAY
-
     my @fields;
-    # Begin Fields list w/ record id
-    #TODO: Chop?
-    push @fields,'id';
-    if ($type == $FIELDS_DISPLAY) {
-    	@fields = @{$display_rank{$class}};
-	    foreach ( keys %{ $_types{$class} } ) {
-	        if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
-	            push( @fields, $1->_get_table . '_' .$_ . '_fk' );
-	        }
-	    }
+	my $type = shift; # $FIELDS_ALL,$FIELDS_SEARCH,$FIELDS_DISPLAY
+	$type = $FIELDS_ALL if ($type == undef);
 
-    	return @fields;
+    # Begin Fields list w/ record id if all fields requested
+    push @fields,'id' if ($type = $FIELDS_ALL);
+    if ($type == $FIELDS_DISPLAY) {
+	    return map($class->get_col_name($_), @{$display_rank{$class}});
     }
     else {
 	    foreach ( keys %{ $_types{$class} } ) {
-	        if ( $_types{$class}{$_} !~ m/array:.*/ ) {
-	            if ( $_types{$class}{$_} =~ m/ref:(.*)/ ) {
-	                push( @fields, $1->_get_table . '_' .$_ . '_fk' );
-	            }
-	            else { push @fields, $_; }
-	        }
+	        push(@fields,$class->get_col_name($_)) unless($_types{$class}{$_} =~ m/array:.*/);
 	    }
 	}
     return @fields;
@@ -1288,7 +1274,7 @@ sub deploy_table {
     {
         # Create a foreign key for reference types in new table
         if ( $type =~ m/ref:(.*)/ ) {
-        	my $key_name = $1->_get_table() . '_' .$col . "_fk";
+        	my $key_name = $class->get_col_name($col);
             $sql .= ",\n\t" . $key_name . " INT UNSIGNED";
             push @foreign_keys, [$1,$key_name];
         }
@@ -1331,12 +1317,7 @@ sub deploy_table {
 
             # Prevent collisions between records across several fields
             elsif ( $_keys{$class}{$col} == $KEY_UNIQUE_MULT ) {
-                if ( $type =~ m/ref:(.*)/ ) {
-                    push @mult_unique_key, $1->_get_table() . '_' .$col . "_fk";
-                }
-                else {
-	                 push @mult_unique_key, $col.$size_limit;
-                }
+                push @mult_unique_key, $class->get_col_name($col).$size_limit;
             }
         }
     }
@@ -1397,7 +1378,7 @@ sub _create_array_fk {
     my $pt = $class->_get_table();
 
 # Initialize SQL ALTER TABLE statement to add Foreign Key to Parent Table in Child Table
-	my $key_name = $pt.'_'.$attrib.'_fk';
+	my $key_name = $class->get_col_name($attrib);
     my $sql = "ALTER TABLE $ct ADD $key_name INT UNSIGNED,\n"."\tADD ".$class->sql_foreign_key($key_name);
     my $sql_cols = "";
 
