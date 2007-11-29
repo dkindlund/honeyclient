@@ -683,11 +683,12 @@ sub _validateLink {
     # ... where we would want to strip the bookmark, but keep the
     # arg=value piece (which may not be a valid URL syntax, anyway).
     # We set the referrer eq "" for cases where we know it is an absolute link
+	my $url;
 	if($referrer eq ""){
-		my $url = URI::URL->new($link);
+		$url = URI::URL->new($link);
 	}
 	else{
-		my $url = URI::URL->new($link, $referrer);
+		$url = URI::URL->new($link, $referrer);
 	}
     $url->fragment(undef);
     # XXX: Do we need to clear the query() part, also?
