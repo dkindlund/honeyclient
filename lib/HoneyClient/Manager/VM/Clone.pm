@@ -497,6 +497,8 @@ sub DESTROY {
 END {
     # Upon termination, destroy the global instance of the VM manager.
     if ($OBJECT_COUNT == 0) {
+        # XXX: Delete this, eventually.
+        $LOG->info("Destroying VM daemon.");
         HoneyClient::Manager::VM->destroy();
     }
 }
