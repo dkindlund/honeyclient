@@ -496,7 +496,7 @@ sub _getNextLink {
         # it; if it's not valid, we simply move on to the next
         # one in our hashtables.  Invalid links will cause this
         # function to return an empty string.
-        $link = $self->_validateLink($link);
+        $link = $self->_validateLink($link, "");
     }
 
     # Return the next link found.
@@ -615,7 +615,8 @@ sub _processLinks {
         }
 
         # Validate each link.
-        $url = $self->_validateLink($url);
+        # These can be either relative or absolute, so we need a valid referrer
+        $url = $self->_validateLink($url, $referrer);
 
         if (!defined($url) or ($url eq "")) {
             # If we get here, then the link is either invalid or
@@ -632,7 +633,7 @@ sub _processLinks {
         my $hostname = _extractHostname($url);
 
         # If the referrer's hostname and the URL's hostname match...
-        if ($hostname eq $referrer) {
+        if ($hostname eq _extractHostname($referrer)) {
             # Then add the URL to the 'relative_links_to_visit' hashtable,
             # since we're visiting links that share the same hostname.
             $self->relative_links_to_visit->{$url} = $score;
@@ -672,7 +673,7 @@ sub _validateLink {
     my $self = shift;
 
     # Get the supplied link.
-    my ($link) = @_;
+	my ($link, $referrer) = @_;
 
     # Strip off all anchors/fragments/bookmarks from within URLs by default.
     # Note: RFC 3986 Section 3 guarantees that all fragments
@@ -681,7 +682,13 @@ sub _validateLink {
     # http://www.mitre.org/path/index.html#bookmark?arg=value
     # ... where we would want to strip the bookmark, but keep the
     # arg=value piece (which may not be a valid URL syntax, anyway).
-    my $url = URI::URL->new($link);
+    # We set the referrer eq "" for cases where we know it is an absolute link
+	if($referrer eq ""){
+		my $url = URI::URL->new($link);
+	}
+	else{
+		my $url = URI::URL->new($link, $referrer);
+	}
     $url->fragment(undef);
     # XXX: Do we need to clear the query() part, also?
     $link = $url->canonical()->as_string();
@@ -1105,7 +1112,7 @@ sub drive {
         # Add all links found on this page to our sorted queues.
         # This function modifies the $self object internally and its
         # returned content does not need to be checked.
-        $self->_processLinks(_extractHostname($args{'url'}), %scored_links);
+        $self->_processLinks($args{'url'}, %scored_links);
     }
     
     # Check our internal relative links counter.
