@@ -78,7 +78,7 @@ Keep in mind, though, that some variables should remain module-specific
         <Driver>
             <!-- TODO: Update this. -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
-                20
+                10
             </timeout>
             <ActiveContent>
                 <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
@@ -97,7 +97,7 @@ Keep in mind, though, that some variables should remain module-specific
                     1
                 </ignore_links_timed_out>
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
-                    5
+                    1
                 </max_relative_links_to_visit>
                 <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
                     <word>news</word>

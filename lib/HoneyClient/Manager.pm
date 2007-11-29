@@ -501,9 +501,9 @@ sub _cleanup {
     # XXX: Need to clean this up.
     my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW");
 
-    # XXX: Change this to fwInit(), eventually.
+    # XXX: Change this to installDefaultRules(), eventually.
     # Reset the firewall, to allow everything open.
-    $stubFW->testConnect();
+    $stubFW->allowAllTraffic();
 
 # XXX: Remove this, eventually.
 #    # Check to see if a clone was created...
@@ -669,7 +669,9 @@ sub runSession {
                               fault_handler => \&_handleFaultAndCleanup);
 
     # Open up the firewall initially, to allow the Agent to do an SVN update.
-    $stubFW->testConnect();
+    #FIXME: This needs to be more limited for the multi-vm case, and should probably 
+	# just be included by making the default rules require no action
+	$stubFW->allowAllTraffic();
 
 # XXX: Remove these, eventually.
 #    $URL = HoneyClient::Manager::VM->init();
@@ -817,7 +819,7 @@ sub runSession {
         # XXX: We assume we can't pinpoint what source TCP ports the
         # corresponding driver will need.  (We may want to get this
         # information eventually from the Agent, as part of Driver::next().)
-        'tcp' => undef,
+        'tcp' => [80,443],
     };
 
     print "VM State Table:\n";
@@ -827,7 +829,7 @@ sub runSession {
     print Dumper($vmStateTable) . "\n";
   
     # Initialize the firewall.
-    $stubFW->fwInit();
+    $stubFW->installDefaultRules();
 
     # Add new chain, per cloned VM.
     $stubFW->addChain($vmStateTable);
@@ -971,6 +973,7 @@ sub runSession {
 
                         # Get the new targets from the Agent.
                         $vmStateTable->{$vm->name}->{targets} = $ret->{$args{'driver'}}->{next}->{targets};
+                        #$vmStateTable->{$vm->name}->{targets} = '0.0.0.0';
 
                         print "VM State Table:\n";
                         # Make Dumper format more verbose.
@@ -997,7 +1000,7 @@ sub runSession {
                     # problem with the Agent.  Assume the Agent's watchdog will restart
                     # the daemon, in which case, we indefinately try to reset the
                     # firewall accordingly.
-                    $stubFW->fwInit();
+                    $stubFW->installDefaultRules();
                     $stubFW->addChain($vmStateTable);
                     $stubFW->addRules($vmStateTable);
                 };

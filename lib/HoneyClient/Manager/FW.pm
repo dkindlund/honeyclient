@@ -92,14 +92,14 @@ here we want to start interacting with our SOAP FW server.
  # @initlist will contain all the return values sent back from the server (PID of startFWListerner.pl on server and status message)
  #  Lets set our default honeyclient ruleset:
   my $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-  my $som = $stub->fwInit();
+  my $som = $stub->installDefaultRules();
   my @initlist = $som->paramsall;
   print "$_\n" foreach (@initlist);
 
  # To dynamically append new rules to the iptables ruleset, do the following
 $hashref = this data structure will be passed from the manager to the HoneyClient::Manager::FW
 
- $som = $stub->addRule( $hashref );
+ $som = $stub->addRules( $hashref );
  print $stub->result;
  print "\n";
 
@@ -159,6 +159,10 @@ use Config::General;
 use Data::Dumper;
 use POSIX qw( WIFEXITED );
 use English '-no_match_vars';
+
+# Make Dumper format more verbose.
+$Data::Dumper::Terse = 0;
+$Data::Dumper::Indent = 2;
 
 # set our configuration file location
 my $config_file = getVar(name => "config_file");
@@ -347,9 +351,9 @@ BEGIN {
 
 =item *
 
-fwInit()
+installDefaultRules()
 
-The fwInit function awaits a call from the Honeyclient manager, once a call is made the function performs numerous subfunctions but
+The installDefaultRules function awaits a call from the Honeyclient manager, once a call is made the function performs numerous subfunctions but
 mainly handles creation of the default iptables ruleset for the honeyclient network.
 IPTables ruleset:
 Since we are using our honeywall to do transparent packet forwarding, forwarded packets will be traversing the
@@ -367,15 +371,15 @@ I<Output>: Success if default ruleset was created, failure if not
 =begin testing
 
 eval{
-	diag("Testing fwInit()...");
+	diag("Testing installDefaultRules()...");
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep(1);
     # Connect to daemon as a client.
     $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-    $som = $stub->fwInit($hashref);
+    $som = $stub->installDefaultRules($hashref);
     $som = $stub->_validateInit();
-    is($som->result, 24, "fwInit current has set up 28 rules")   or diag("The fwInit() call failed.");
+    is($som->result, 24, "installDefaultRules current has set up 28 rules")   or diag("The installDefaultRules() call failed.");
     $som = $stub->_setAcceptPolicy();
     $som = $stub->_flushChains();
 
@@ -394,7 +398,7 @@ if ($@) {
 
 =cut
 
-sub fwInit {
+sub installDefaultRules {
 	my ($class) = shift();
 	my ($systempid, $f_success, $del_success, $acceptsuccess, $denysuccess,
 		$chain)
@@ -407,7 +411,7 @@ sub fwInit {
 
 	#$systempid = _getpid($processname);
 	my $log = get_logger("HoneyClient::Manager::FW");
-	$log->info("Entering fwInit(), starting Firewall initialization...");
+	$log->info("Entering installDefaultRules(), starting Firewall initialization...");
 
 	# Could not connect to iptables
 	if (!defined($table)) {
@@ -513,7 +517,7 @@ _parseHash() is another helper function that takes in a hash reference from the 
 manager and parses the data structure thus producing usable values to generate our firewall rules.
 
 I<Inputs>:  Requires hash reference (hohohohoh).
-I<Output>: returns hash of a hash to be used during  the addRule() function for rule generation.
+I<Output>: returns hash of a hash to be used during  the addRules() function for rule generation.
 
 =cut
 
@@ -526,22 +530,20 @@ sub _parseHash {
 
 	# Get the VM identifier.
 	foreach $vm_ID (keys %{$hashref}) {
+	my $vmObj = $hashref->{$vm_ID};
+	my $vmSources = $vmObj->{'sources'};
+	my $vmTargets = $vmObj->{'targets'};
 
 		# Get the VM's source MAC address.
-		foreach $src_MAC_addr (keys %{ $hashref->{$vm_ID}->{'sources'} }) {
+		foreach $src_MAC_addr (keys %{ $vmSources }) {
+            my $vmSrcMAC = $vmSources->{$src_MAC_addr};
 
 			# Get the VM's source IP address.
-			foreach $src_IP_addr (
-					 keys %{ $hashref->{$vm_ID}->{'sources'}->{$src_MAC_addr} })
+			foreach $src_IP_addr (keys %{ $vmSrcMAC })
 			{
 
 				# Get the VM's source protocol.
-				foreach $src_IP_proto (
-							keys %{
-								$hashref->{$vm_ID}->{'sources'}->{$src_MAC_addr}
-								  ->{$src_IP_addr}
-							}
-				  )
+				foreach $src_IP_proto (keys %{$vmSrcMAC->{$src_IP_addr}})
 				{
 
 		  # Get the VM's source ports.
@@ -549,16 +551,9 @@ sub _parseHash {
 		  # cases where the array of ports is 'undef'.
 		  # Get the list of ports.
 					my @src_ports = ();
-					if (
-						defined(
-								$hashref->{$vm_ID}->{'sources'}->{$src_MAC_addr}
-								  ->{$src_IP_addr}->{$src_IP_proto}
-						)
-					  )
+					if (defined($vmSrcMAC->{$src_IP_addr}->{$src_IP_proto}))
 					{
-						@src_ports =
-						  @{ $hashref->{$vm_ID}->{'sources'}->{$src_MAC_addr}
-							  ->{$src_IP_addr}->{$src_IP_proto} };
+						@src_ports = @{ $vmSrcMAC->{$src_IP_addr}->{$src_IP_proto} };
 					}
 
 					# Figure out how big the array is.
@@ -576,22 +571,18 @@ sub _parseHash {
 						}
 
 						# Get the target hosts.
-						foreach $dst_host (
-									  keys %{ $hashref->{$vm_ID}->{'targets'} })
+						foreach $dst_host (keys %{ $vmTargets })
 						{
-
+                            #print "working on dst_host $dst_host\n";
+                            my $vmDstHost = $vmTargets->{$dst_host};
 							# Get the target IPs.
-							foreach $dst_IP_addr (_resolveHost($dst_host)) {
+							foreach $dst_IP_addr (_resolveHost($dst_host)) 
+                            {
 
 								# Get the target protocol.
-								foreach $dst_IP_proto (
-											 keys %{
-												 $hashref->{$vm_ID}->{'targets'}
-												   ->{$dst_host}
-											 }
-								  )
+								foreach $dst_IP_proto (keys %{$vmDstHost})
 								{
-
+                                   #print "working on dst_IP_proto $dst_IP_proto\n";
 		 #print STDERR "Destination Protocol: " . $dst_IP_proto . "\n";
 		 # We skip over combinations, where the source and destination protocols
 		 # are different.
@@ -603,35 +594,32 @@ sub _parseHash {
 		  # cases where the array of ports is 'undef'.
 		  # Get the list of ports.
 									my @dst_ports = ();
-									if (
-										defined(
-												$hashref->{$vm_ID}->{'targets'}
-												  ->{$dst_host}->{$dst_IP_proto}
-										)
-									  )
+									if (defined($vmDstHost->{$dst_IP_proto}))
 									{
-										@dst_ports =
-										  @{ $hashref->{$vm_ID}->{'targets'}
-											  ->{$dst_host}->{$dst_IP_proto} };
+										@dst_ports = @{ $vmDstHost->{$dst_IP_proto} };
 									}
+                                    else{
+                                    }
 
+                                    print "dst_ports = @dst_ports\n";
 									# Figure out how big the array is.
 									my $num_of_dst_ports = scalar(@dst_ports);
 									my $dst_port_counter = 0;
 									my $dst_port         = undef;
+                                    my @holderArray = ();
 									do {
 
 								 # We check to see if our destination port array
 								 # is empty.
 										if ($num_of_dst_ports <= 0) {
-											$dst_port = "*";
+                                            print "setting $dst_port = *\n";
+                                            $dst_port = "*";
 										} else {
-											$dst_port =
-											  $dst_ports[$dst_port_counter];
+											$dst_port = $dst_ports[$dst_port_counter];
 										}
 
 		   # generate our rules here into a %HoH based on destination ip address
-										$HoH{$dst_IP_addr} = {
+										push @holderArray, {
 											"chain"       => "$vm_ID",
 											"source-mac"  => "$src_MAC_addr",
 											"source"      => "$src_IP_addr",
@@ -645,8 +633,8 @@ sub _parseHash {
 											"matches"          => ['mac']
 										};
 										$dst_port_counter++;
-									  } until (
-										$dst_port_counter >= $num_of_dst_ports);
+                                    } until ($dst_port_counter >= $num_of_dst_ports);
+                                    $HoH{$dst_IP_addr} = \@holderArray;
 								}
 							}
 						}
@@ -672,8 +660,7 @@ B<$class>is the package name
 B<$hashref> - hash reference that will be sent over from HoneyClient::Agent.  It will then be parsed by get_vm_from_hash()
 and give me an array of VM names that will be added from the iptables chain list.  The reason we have broken
 add_vm_chain() up and made it its separate subroutine is because when we add a rule to the iptables ruleset, we
-must first have a user-defined chain in place.  A commit must occur which writes it to the kernel-level netfilter subsystem, then
-the rule must be added after that has occurred.
+must first have a user-defined chain in place.  A commit must occur which writes it to the kernel-level netfilter subsystem, then the rule must be added after that has occurred.
 
 I<Output>: returns true if VM chain was deleted, returns false if not
 
@@ -862,11 +849,11 @@ sub deleteChain {
 # This deletes all the rules within that chain first, then deletes the actual chain last.
 $log->info("Flushing the entries and chains now...");
 	foreach my $chainname (@chainArray) {
-		$log->info("Flusing entries in $chainname");
+		$log->info("Flushing entries in $chainname");
 		$table->flush_entries($chainname) or
             die ("Error: Unable to flush entries in chain $chainname");
 		$log->info("Deleting $chainname");
-		$table->delete_chain($chainname);
+		$table->delete_chain($chainname) or
             die ("Error: Unable to delete chain $chainname");
 	}
 	$table->commit() or die ("Error: Unable to commit changes to filter table");
@@ -917,14 +904,14 @@ my $result 		 = 0;
 
 =item *
 
-addRule($hashref)
+addRules($hashref)
 
-addRule is a function that handles the addition of a new iptable rule into the existing IPTables ruleset which allow honeyclients functionality to crawl
-the internet in search of malicious web sites.  FWPunch first checks for the existance of the user-defined chain before it
+addRules is a function that handles the addition of a new iptable rule into the existing IPTables ruleset which allow honeyclients functionality to crawl
+the internet in search of malicious web sites.  addRules first checks for the existance of the user-defined chain before it
 creates a new VM rule.  If the chain already exists, the rule can not be added since their is no corresponding chain.
-If it does exist, the rule is added successfully.  All FWPunch calls are logged.
+If it does exist, the rule is added successfully.  All addRules calls are logged.
 
-The addRule() function will recieve a $hashref which will be a muli-level hash table whose structure
+The addRules() function will recieve a $hashref which will be a muli-level hash table whose structure
 will resemble the below data structure:
 
 my $hashref = {
@@ -1017,16 +1004,16 @@ I<Output>: Return true if success or false if failure
 =begin testing
 
 eval{
-     diag("Testing addRule()...");
+     diag("Testing addRules()...");
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep 1;
     # Connect to daemon as a client.
     $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-    my $som  = $stub->fwInit($hashref);
+    my $som  = $stub->installDefaultRules($hashref);
     $som = $stub->addChain($hashref);
-    $som = $stub->addRule($hashref);
-    ok($som->result, "addRule() successfully passed and added a new rule.")   or diag("The addRule() call failed.");
+    $som = $stub->addRules($hashref);
+    ok($som->result, "addRules() successfully passed and added a new rule.")   or diag("The addRules() call failed.");
     $som = $stub->_setAcceptPolicy();
     $som = $stub->_flushChains();
 };
@@ -1060,7 +1047,7 @@ sub addRules {
 
 	# debugging options, automatically logs to logfile for review later
 	$log = get_logger("HoneyClient::Manager::FW");
-	$log->info("Entering addRule() function()");
+	$log->info("Entering addRules() function()");
 
 	# getst the Chain name for which we will be inserting new rules on the fly
 	$log->info("Getting VM name from _getVMName()");
@@ -1083,7 +1070,7 @@ sub addRules {
 #_parseHash is a helper function that parses the $hashref sent over from the HoneyClient::Agent
 # to the Honeyclient manager.  The manager is the one actually sending the hashref from which we are
 # parsing.
-    	$log->info("[addRule]:  parsing hashref and returning %rules");
+    	$log->info("[addRules]:  parsing hashref and returning %rules");
 		my %rules = _parseHash($hashref);
 		print Dumper(\%rules);
 
@@ -1093,45 +1080,46 @@ sub addRules {
 #		_installDroplog($vout);
 #my $state = [ 'ESTABLISHED', 'RELATED' ];
 # start looping through our HoH
-		for $destip (keys %rules) {
+		foreach my $destip (keys %rules) {
 
+            foreach my $href (@{$rules{$destip}}){
 	   # inserting the firewall rules into the "out" chain here.
 	   # The insertion will be at the head of the chain due to the "0" location.
-			my $success =
-			  $table->insert_entry(
-					$vout,
-					{
-					  "protocol"         => $rules{$destip}{'protocol'},
-					  "source"           => $rules{$destip}{'source'},
-					  "destination"      => $rules{$destip}{'destination'},
-					  "jump"             => $rules{$destip}{'jump'},
-					  "mac-source"       => $rules{$destip}{'source-mac'},
-					  "matches"          => $rules{$destip}{'matches'},
-					  "destination-port" => $rules{$destip}{'destination-port'}
-					},
-					0
-			  );
-            if (!$success) {
-                die ("Error: Unable to insert entry in chain $vout");
+		my $success =
+                    $table->insert_entry(
+                            $vout,
+                            {
+                            "protocol"         => $href->{'protocol'},
+                            "source"           => $href->{'source'},
+#                            "destination"      => $href->{'destination'},
+                            "jump"             => $href->{'jump'},
+                            "mac-source"       => $href->{'source-mac'},
+                            "matches"          => $href->{'matches'},
+                            "destination-port" => $href->{'destination-port'}
+                            },
+                            0
+                            );
+                if (!$success) {
+                    die ("Error: Unable to insert entry in chain $vout");
+                }
+			    # inserting the firewall rules into the "in" chain here.
+                $success =
+                    $table->insert_entry(
+                            $vin,
+                            {
+                            "protocol" => $href->{'protocol'},
+#                            "source" => $href->{'destination'},
+                            "destination" => $href->{'source'},
+                            "jump"        => $href->{'jump'}
+                            },
+                            0
+                            );
+                if (!$success) {
+                    die ("Error: Unable to insert entry in chain $vin");
+                }
+                $counter++;
             }
-
-			# inserting the firewall rules into the "in" chain here.
-			$success =
-			  $table->insert_entry(
-								  $vin,
-								  {
-									"protocol" => $rules{$destip}{'protocol'},
-									"source" => $rules{$destip}{'destination'},
-									"destination" => $rules{$destip}{'source'},
-									"jump"        => $rules{$destip}{'jump'}
-								  },
-								  0
-			  );
-            if (!$success) {
-                die ("Error: Unable to insert entry in chain $vin");
-            }
-			$counter++;
-		}
+        }
 		$table->commit() or die ("Error: Unable to commit changes to filter table");
 		my $end         = gettimeofday();
 		my $addruletime = $end - $start;
@@ -1795,23 +1783,25 @@ sub _createPreroutingLogging {
 	my %rules   = _parseHash($hashref);
 
    # start looping through our HoH to insert our rules into the iptables ruleset
-	for my $destip (keys %rules) {
-		my $success =
-		  $table->insert_entry(
-						  "PREROUTING",
-						  {
-							"source"      => $rules{$destip}{'source'},
-							"destination" => "!$rules{$destip}{'destination'}",
-							"jump"        => "LOG",
-							"log-level"   => "debug",
-							"log-prefix"  => "VMID=$vmID  "
-						  },
-						  0
-		  );
-        if (!$success) {
-            die ("Error: Unable to insert entry into chain PREROUTING");
+	foreach my $destip (keys %rules) {
+        foreach my $href (@{$rules{$destip}}){
+            my $success =
+                $table->insert_entry(
+                        "PREROUTING",
+                        {
+                        "source"      => $href->{'source'},
+                        "destination" => "!$href->{'destination'}",
+                        "jump"        => "LOG",
+                        "log-level"   => "debug",
+                        "log-prefix"  => "VMID=$vmID  "
+                        },
+                        0
+                        );
+            if (!$success) {
+                die ("Error: Unable to insert entry into chain PREROUTING $!");
+            }
+            print "success = $success\n";
         }
-		print "success = $success\n";
 	}
 	$table->commit() or die ("Error: Unable to commit changes to nat table");
 	return $success;
@@ -1826,23 +1816,24 @@ sub _deletePreroutingLogging {
 	my $success = 0;
 
    # start looping through our HoH to insert our rules into the iptables ruleset
-	for my $destip (keys %rules) {
-		$success =
-		  $table->delete_entry(
-						  "PREROUTING",
-						  {
-							"source"      => $rules{$destip}{'source'},
-							"destination" => "!$rules{$destip}{'destination'}",
-							"jump"        => "LOG",
-							"log-level"   => "debug",
-							"log-prefix"  => "VMID=$vmID  "
-						  }
-		  );
-		  if(!$success){
-            die ("Error: Unable to delete entry from chain PREROUTING");
-		  	last;
-		  }
-		print "success = $success\n";
+	foreach my $destip (keys %rules){ 
+        foreach my $href (@{$rules{$destip}}){
+            $success =
+                $table->delete_entry(
+                        "PREROUTING",
+                        {
+                        "source"      => $href->{'source'},
+                        "destination" => "!$href->{'destination'}",
+                        "jump"        => "LOG",
+                        "log-level"   => "debug",
+                        "log-prefix"  => "VMID=$vmID  "
+                        }
+                        );
+            if (!$success) {
+                die ("Error: Unable to delete entry from chain PREROUTING $!");
+            }
+            print "success = $success\n";
+        }
 	}
 	$table->commit() or die ("Error: Unable to commit changes to nat table");
 	return $success;
@@ -2222,78 +2213,7 @@ sub _checkRoot {
 	}
 }
 
-=pod
 
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]:  _rule_exists() function checks for the existance of rules within our IPTables ruleset.  Within this function,
-we are checking the rules within the user-defined chains that we have created.  If there is a match within the "input" VM, we consider that a match since when the rule is initially appended, it is appended to both the VM#-in and VM#-out chains.  Here, I am only testing against the VM#-in chain since if the rule is in one, it has to be in both.
-
-I<Inputs>:
-B<$table>is the object type of IPTables::IPv4::Table.
-B<$vin> is the VM input chain name.
-B<$vout> is the VM output chain name.
-B<%rule> is a hash containing source, destination, and protocol values.
-
-I<Output>: Return true if success or false if failure
-
-=cut
-
-sub _rule_exists {
-	my ($table, $vin, $vout, %rule) = @_;
-	my ($code, @outrules, @inrules, $i);
-	my $log = get_logger("HoneyClient::Manager::FW");
-	$log->info("Entering _rule_exists() function");
-
-	# getting list of chain rules, hash is passed in from FWPunch()
-	@inrules = $table->list_rules($rule{'chain'});
-
-# Eventually, we will run tests against the outrules as well but for now we are just populating the @outrules array
-	@outrules = $table->list_rules($rule{'chain'});
-
-# loop through all the rules to find a match, using source, destination, target and protocol as matching fields
-	for ($i = 0 ; $i <= $#inrules ; $i++) {
-		if (   $inrules[$i]->{'source'} eq $rule{'source'}
-			&& $inrules[$i]->{'destination'} eq $rule{'destination'}
-			&& $inrules[$i]->{'jump'}        eq $rule{'jump'}
-			&& $inrules[$i]->{'protocol'}    eq $rule{'protocol'})
-		{
-
-			# We have a match
-			$code = 1;
-			last;
-		} else {
-
-			# No match
-			$code = 0;
-		}
-	}
-	$log->info("Returning return code $code");
-	return $code;
-}
-
-=pod
-
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]: _translate($url);
-
-The translate function converts a host name to dotted quad format.
-
-I<Inputs>:
-B<$url>is the domain name that will be converted to dotted quad format.
-
-I<Output>: Return the domain name as an IP address.
-
-=cut
-
-sub _translate {
-	(my $url) = @_;
-	chomp($url);
-	my $packed_address = gethostbyname($url);
-	my $dotted_quad    = inet_ntoa($packed_address);
-	return ($dotted_quad);
-}
 ##################################################################
 # Function name:  getStatus()
 # Description: Gathers basic IPTable statistics such as packet and byte count
@@ -2331,7 +2251,7 @@ I<Output>: nothing
 =begin testing
 
 eval{
-	diag("Testing fwStatus()...");
+	diag("Testing getStatus()...");
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep 1;
@@ -2488,62 +2408,6 @@ sub _iplookup {
 
 =item *
 
-[NOT IMPLEMENTED AT THIS TIME]:  insertMac();
-
-insertMac function add mac address filtering (Anti-spoofing) rules after the VM user-chains
-are created.  They must be remotely called after the vm_add_chain() function.
-
-I<Inputs>:
-B<$chain> is the name of the chain that you will be applying the Mac filtering to.
-B<$ip> is the VM ip address that will be filtered.
-B<$mac> is the mac address of the VM honeyclient.
-
-I<Output>: returns nothing
-
-=cut
-
-sub _insertMac {
-	my $table = IPTables::IPv4::init('filter');
-	my $class = shift;
-	my $chain = shift;
-	my $ip    = shift;
-	my $mac   = shift;
-	my ($vmchainout, $code, $status) = q{};
-	$vmchainout = "$chain-out";
-	my $iptables = "/sbin/iptables";
-
-# This tests to see if a value for $mac has been defined, if the image is not up and running (accepting
-# icmp request/replies, then mac will not be able to be found.  If it is found, $mac will be set, hence
-# defined.  Success will yield a 1 if rule insertion is successful, failure to insert the mac filter entry        # will return a 0
-	if (defined($mac)) {
-
-		# rules will be inserted at the HEAD of the user-defined chain
-		my $success =
-		  $table->insert_entry(
-							   $vmchainout,
-							   {
-								  "source"     => $ip,
-								  'matches'    => ['mac'],
-								  'mac-source' => "!$mac",
-								  "jump"       => "DROP"
-							   },
-							   0
-		  );
-        if (!$success) {
-            die ("Error: Unable to insert entry into chain $vmchainout");
-        }
-		$table->commit() or die ("Error: Unable to commit changes to filter table");
-		return $success;
-	} else {
-		$success = 0;
-		return $success;
-	}
-}
-
-=pod
-
-=item *
-
 _chain_exists();
 
 _chain_exists tests to see if the chain already exists within the IPTables ruleset.
@@ -2563,7 +2427,7 @@ eval{
     sleep 1;
     # Connect to daemon as a client.
     $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-    my $som  = $stub->fwInit($hashref);
+    my $som  = $stub->installDefaultRules($hashref);
     $som = $stub->addChain($hashref);
     is($som->result, 1, "_chainExists($hashref) successfully passed.")  or diag("The _chainExists() call failed.");
     $som = $stub->_setAcceptPolicy();
@@ -2610,33 +2474,6 @@ sub _chainExists {
 	}
 }
 
-=pod
-
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]:  isAlive();
-
-Tests for existance of a file to verify if firewall has been started (not currently active)
-
-I<Inputs>:
-B<$pidfile> is the name of the created PID file.
-
-I<Output>: creation of file with resolved IP addresses.
-
-=cut
-
-sub isAlive {
-	my ($pidfile) = "/var/run/firewall.pid";
-	my $alive = "";
-
-# we will be checking for the existance of a newly created firewall with the word ENABLED in it.
-	if (-f $pidfile) {
-		$alive = 1;
-	} else {
-		$alive = 0;
-	}
-	return ($alive);
-}
 
 =pod
 
@@ -2824,56 +2661,6 @@ sub _getpid {
 	}
 }
 
-=pod
-
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]:  _sendMail() is a helper function that sends email to other systems informing them of various actions with the firewall.
-
-_sendMail will send mail to the root account at localhost informing the root user of various firewall actions
-I<Inputs>:
-B<$from> is where the user is sending from
-B<$to> is where the user is sending to
-B<$subject> is the subject of the email
-B<$body> is content of the email
-I<Output>: returns nothing for now
-
-=cut
-
-sub _sendMail {
-	my $from    = shift;
-	my $to      = shift;
-	my $subject = shift;
-	my $body    = shift;
-	open(SM, "|-", "/bin/mail", "-s", $subject, $to, "-f", $from) or
-        die ("Error: Unable to send mail");
-	print SM $body, "\n";
-	close(SM) or die ("Error: Unable to send mail");
-}
-
-=pod
-
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]:  getcpuload is a  function that gives you the cpuload of the OS firewall.  This should help give a better understanding of how the
-firewall OS is running.
-
-I<Inputs>:
-nothing
-I<Output>: cpu load of the OS FW
-
-=cut
-
-sub getcpuload {
-	my ($class) = @_;
-    # TODO: Make sure system call returns properly.
-	my $uptime  = `$UPTIME`;
-	my $cpuLoad = 0;
-	if ($uptime =~ /load average:\s+([\d\.]+)/) {
-		$cpuLoad = $1;
-	}
-	return $cpuLoad;
-}
 
 =pod
 
@@ -3022,231 +2809,6 @@ sub _resolveHost {
 	return @ret;
 }
 
-=pod
-
-=item *
-
-fwOff() opens up our firewall.
-
-I<Inputs>: n/a
-I<Output>: nothing
-
-=cut
-
-sub fwOff {
-
-	# package name
-	my $class = shift;
-
-	# flush all entries in all chain and delete the chains
-	_flushChains();
-
-# turns off the firewall and sets the policy to the default chains (INPUT, OUTPUT, and FORWARD)
-# to ACCEPT
-	_setAcceptPolicy();
-}
-
-=pod
-
-=item *
-
-killProcess();
-
-This is a function kills all systems process based on the command line name give via the remote call.
-It looks through the process table and removes all processes with that key name.
-
-<Inputs>:
-no input
-
-I<Output>: destruction of all Process IDs.
-
-=cut
-
-sub killProcess {
-	use Proc::ProcessTable;
-	my $class   = shift;
-	my $process = shift;
-	my ($t, $p, $success) = "";
-	$t = new Proc::ProcessTable;
-	chomp($process);
-	foreach my $p (@{ $t->table }) {
-		if ($p->cmndline =~ /$process/) {
-			$success = 1;
-			print "Removing $process pid " . $p->pid . "\n";
-			$p->kill(9) or die ("Error: Unable to kill process $process");
-		}
-	}
-	return ($success);
-}
-
-=pod
-
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]:  checkDiskSize();
-
-checkDiskSize() checks the size of the honeywall partitions and makes sure the disk does not fill up.  If
-it reaches a certain level (90%), then it shoots off an email to root and logs it to hard disk.
-
-I<Inputs>:
-no inputs
-
-I<Output>: outputs the percentage of hard disk that is filled per partition.
-
-=cut
-
-sub checkDiskSize {
-	my $class  = shift;
-	my $target = "90";
-	my $disksize;
-	my $sendmail = 1;
-	my $MACHINE  = `uname`;
-	my $address  = "root";
-	my $linux    = 0;
-	my $mail     = "/usr/bin/mail";
-	my $df       = "/bin/df";
-	my $grep     = "/bin/grep";
-
-	if ($MACHINE =~ m/Linux/i) {
-		$linux = 1;
-	} else {
-		$linux = 0;
-	}
-	if ($linux) {
-		my @partitions =
-		  qw(/dev/sda1 /dev/sda2 /dev/sda5 /dev/sda6 /dev/sda7 /dev/sda8 /dev/sda9);
-		foreach my $part (@partitions) {
-            # TODO: Check to make sure this system call returns properly.
-			$disksize = `$df -k | $grep $part | cut -b53-54`;
-			if ($disksize > 50) {
-				print "$part\t$disksize%\n";
-			} else {
-				print "All filesystems are within their limits\n";
-			}
-		}
-	}
-}
-
-=pod
-
-=item *
-
-[NOT IMPLEMENTED AT THIS TIME]:  isCompromised();
-
-isCompromised() checks the iptables log files to see if there has been a compromise to one of the VM images.
-
-I<Inputs>:  hash reference($hashref)
-
-I<Output>:  none
-
-=cut
-
-sub isCompromised {
-
-	# check to see if /var/log/iptables file exists
-	# if exists, parse all logs with TAG (hwall)
-	# grab the VMID of all those entries
-	# report back VMID(s) that could possibly be compromised
-	# return VMID list
-
-}
-
-
-=pod
-
-=item *
-
-checkLog();
-
-checkLog() checks for network anomalies (MAC address spoofing) or any blocked outbound traffic that orginates from
-anywhere from the VM subnet.
-
-I<Inputs>:  hash reference($hashref)
-
-I<Output>:  none
-
-=cut
-
-sub checkLog {
-	my $class    = shift;
-	my $hashref  = shift;
-#	my $filename = getVar(name => "iptableslog")
-	my $vmname   = _getVMName($hashref);
-	my $filename = "/root/honeyclient/sandbox/alphaFW/test.log";
-#	macCheck($hashref, $vmname, $filename);
-}
-
-=pod
-
-=item *
-
-runTcpdump() - starts a tcpdump procces for a specified VM machine.
-
-I<Inputs>:  VM name and the source IP address of the image.
-
-I<Output>:  none
-
-=cut
-
-#sub runTcpdump {
-#	my $class   = shift;
-#	my $hashref = shift;
-#
-#	# gets the vm name
-#	my $vmname = _getVMName($hashref);
-#
-#	# get the source IP address of the VM
-#	my $vmaddress = _getSourceIP($hashref);
-#
-## calls startTcpdump to start tcpdump process for that VM   - logs all traffic outbound from $vmaddress
-#	createPcap($vmname, $vmaddress);
-#}
-
-=pod
-
-=item *
-
-clearTcpdump() - Deletes the corresponding tcpdump .pcap file, then creates a new file for logging.
-
-I<Inputs>:  none
-
-I<Output>:  none
-
-=cut
-
-#sub clearTcpdump {
-#	my $class   = shift;
-#
-## calls startTcpdump to start tcpdump process for that VM   - logs all traffic outbound from $vmaddress
-#	flushTcpdump($vmname, $vmaddress);
-#}
-
-=pod
-
-=item *
-
-removeTcpdump() - removes the corresponding  tcpdump .pcap file
-
-I<Inputs>:  VM name and the source IP address of the image.
-
-I<Output>:  none
-
-=cut
-
-#sub removeTcpdump {
-#	my $class   = shift;
-#	my $hashref = shift;
-#
-#	# gets the vm name
-#	my $vmname = _getVMName($hashref);
-#
-##	# get the source IP address of the VM
-##	my $vmaddress = _getSourceIP($hashref);
-#
-## calls startTcpdump to start tcpdump process for that VM   - logs all traffic outbound from $vmaddress
-#	destroyTcpdump($vmname);
-#}
-
 
 
 =pod
@@ -3286,8 +2848,9 @@ sub _getSourceIP {
 
 =item *
 
-testConnect() - will allow the user to test connectivity for all their
-VM's sitting on the backend network behind the honeywall.
+allowAllTraffic() - will clear all firewall rules, and allow all traffic to pass strait through
+Use with caution.
+
 
 I<Inputs>:  package name is passed by default
 
@@ -3295,7 +2858,7 @@ I<Output>:  $success; boolean value to determine if iptables inserted the rules 
 
 =cut
 
-sub testConnect {
+sub allowAllTraffic {
 	my $class = shift;
 	my $table = IPTables::IPv4::init('filter');
 	my $dnsport = getVar(name => "dnsport");
@@ -3313,7 +2876,6 @@ sub testConnect {
 	return 1;
 
 }
-
 
 __END__
 
