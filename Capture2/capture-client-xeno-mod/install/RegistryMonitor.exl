@@ -290,3 +290,8 @@
 +	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Macromedia\\FlashPlayer
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Macromedia\\FlashPlayer
 +	SetValueKey	System	HKLM\\SYSTEM\\ControlSet001\\Enum\\Root\\LEGACY_HTTP\\0000\\Control
+#### Honeyclient manual add (per ticket #49) Obv things could be combined into more compact regex, but don't want to for now
++	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints.+
++	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKLM\\SOFTWARE\\Microsoft\\MediaPlayer\\services
