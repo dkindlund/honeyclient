@@ -1382,10 +1382,10 @@ sub _scoreLinks {
     # TODO: Expose this list to the global configuration file.
     # TODO: Make sure all entries are lowercase.
     my $tags = {
-        'iframe' => 1,
+        #'iframe' => 1, # XXX: Ignore IFRAMEs.
         'a'      => 1,
         'link'   => 1,
-        'img'    => 1,
+        #'img'    => 1, # XXX: Ignore IMGs.
         'object' => 1,
         'embed'  => 1,
         'script' => 1,
