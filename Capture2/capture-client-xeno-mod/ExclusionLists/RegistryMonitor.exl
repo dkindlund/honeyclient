@@ -295,3 +295,6 @@
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints.+
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKLM\\SOFTWARE\\Microsoft\\MediaPlayer\\services
+#### Honeyclient manual add (per ticket #128)
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\\.css\\OpenWithList
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\\.css\\OpenWithProgids
