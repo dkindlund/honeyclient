@@ -1040,6 +1040,7 @@ sub drive {
         #max_redirect      => 0,                   # Ignore redirects.
         protocols_allowed => [ 'http', 'https' ], # Allow only web protocols.
         max_size          => 1*1024*1024,         # Don't get larger than 1MB for testing
+        env_proxy         => 1,
     );
 
     # TODO: Look at the content type "text/html" on the response, to make this
