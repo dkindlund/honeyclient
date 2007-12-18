@@ -1116,7 +1116,7 @@ sub drive {
 
     # Check to see if the request timed out.
     # TODO: Need better error detection.
-    if (!%scored_links) {
+    if (!defined($content)) {
         $self->links_timed_out->{$args{'url'}} = $timestamp;
 
         # If we ignore any timed out links, then add them to our ignore
@@ -1129,15 +1129,16 @@ sub drive {
         # Go ahead and add it to our 'links_visited' history.
         $self->links_visited->{$args{'url'}} = $timestamp;
 
-        # Add all links found on this page to our sorted queues.
-        # This function modifies the $self object internally and its
-        # returned content does not need to be checked.
-        $self->_processLinks($args{'url'}, %scored_links);
+        if(%scored_links){
+            # Add all links found on this page to our sorted queues.
+            # This function modifies the $self object internally and its
+            # returned content does not need to be checked.
+            $self->_processLinks($args{'url'}, %scored_links);
+        }
     }
     
     # Check our internal relative links counter.
-    if (($self->_remaining_number_of_relative_links_to_visit == 0) ||
-        ($self->_remaining_number_of_relative_links_to_visit == 1)) {
+    if (($self->_remaining_number_of_relative_links_to_visit == 0)){
 
         # XXX: Do we need this message in here?
         $LOG->info("Resetting relative links to visit counter.");
@@ -1149,7 +1150,7 @@ sub drive {
         # Reset the counter.
         $self->{_remaining_number_of_relative_links_to_visit} =
             $self->max_relative_links_to_visit;
-    } elsif ($self->_remaining_number_of_relative_links_to_visit > 1) {
+    } elsif ($self->_remaining_number_of_relative_links_to_visit >= 1) {
 
         # The counter is positive, so decrement it.
         $self->{_remaining_number_of_relative_links_to_visit}--;
