@@ -922,6 +922,14 @@ sub new {
         # websites.
         max_relative_links_to_visit => getVar(name => "max_relative_links_to_visit"),
 
+        #Sometimes you only want to check the URLs in your initial list, and 
+        #not add any of the relative or absolute links found on the sites you 
+        #visit. (For instance, when trying to determine whether a specific list 
+        #of URLs contains malicious sites.) In this case you should set 
+        #limit_spidering to 1. This option will override max_relative_links_to_visit 
+        #(essentially setting it to 0).
+        limit_spidering => getVar(name => "limit_spidering"),
+
         # An array of positive words, where a link's probability of being
         # visited (its score) will increase, if the link contains any of these
         # words.
@@ -1091,8 +1099,18 @@ sub drive {
 
         # Assume that all other content types are HTML-based.
         } else {
-            # Call the link scoring function
-            %scored_links = $self->_scoreLinks($base, $content);
+            #If limit_spidering is set, we don't want to add any new links
+            #Hence, by not calling _scoreLinks() the next logic will just drop all
+            #found links, because it won't call _processLinks in the next conditional
+            #(The only reason for putting this check here rather than there is to avoid
+            #the cost of useless link parsing for scoring)
+            #NOTE: This technically could go at the level that we don't even use LWP::UserAgent
+            #but it has just been put here to be conservative as we may want to use the
+            #data from LWP for the future hybrid approach.
+            if(!$self->{limit_spidering}){
+                # Call the link scoring function
+                %scored_links = $self->_scoreLinks($base, $content);
+            }
         }
     }
 

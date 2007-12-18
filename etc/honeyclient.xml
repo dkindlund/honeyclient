@@ -82,7 +82,7 @@ Keep in mind, though, that some variables should remain module-specific
             </timeout>
             <ActiveContent>
                 <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
-                    1
+                    0
                 </enable>
                 <Flash>
                     <flasm_exec description="Path to the flasm executable." default="thirdparty/flasm/flasm.exe">
@@ -96,8 +96,11 @@ Keep in mind, though, that some variables should remain module-specific
                 <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
                     1
                 </ignore_links_timed_out>
-                <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites." default="-1">
+                <limit_spidering description="Sometimes you only want to check the URLs in your initial list, and not add any of the relative or absolute links found on the sites you visit. (For instance, when trying to determine whether a specific list of URLs contains malicious sites.) In this case you should set limit_spidering to 1. This option will override max_relative_links_to_visit (essentially setting it to 0)." default="0">
                     1
+                </limit_spidering>
+                <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites. Note that this value can be overridden if limit_spidering is set to 1 above." default="-1">
+                    5
                 </max_relative_links_to_visit>
                 <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
                     <word>news</word>
@@ -146,7 +149,7 @@ Keep in mind, though, that some variables should remain module-specific
             </EmailClient>
         </Driver>
         <perform_integrity_checks description="An integer, representing whether the Agent should perform any integrity checks. 1 enables, 0 disables." default="1">
-            1
+            0
         </perform_integrity_checks>
         <!-- HoneyClient::Agent::Integrity Options -->
         <Integrity>
