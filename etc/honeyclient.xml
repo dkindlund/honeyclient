@@ -97,7 +97,7 @@ Keep in mind, though, that some variables should remain module-specific
                     1
                 </ignore_links_timed_out>
                 <limit_spidering description="Sometimes you only want to check the URLs in your initial list, and not add any of the relative or absolute links found on the sites you visit. (For instance, when trying to determine whether a specific list of URLs contains malicious sites.) In this case you should set limit_spidering to 1. This option will override max_relative_links_to_visit (essentially setting it to 0)." default="0">
-                    1
+                    0
                 </limit_spidering>
                 <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites. Note that this value can be overridden if limit_spidering is set to 1 above." default="-1">
                     5
