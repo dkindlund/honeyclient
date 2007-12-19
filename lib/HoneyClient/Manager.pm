@@ -365,7 +365,6 @@ our $vmCloneConfig      = undef;
 # eventually.
 our $globalAgentState   = undef;
 
-
 #This variable is used to count how many times stubAgent's fault
 #handler has been called, so that special actions can be taken if
 #it is called too many times (for instance when Manager loses 
@@ -374,7 +373,7 @@ our $globalAgentState   = undef;
 #NOTE: This will have to be changed to be agent/vm-specific in the
 #future when we have multiple Agents interacting with a single 
 #Manager.
-our $globalAgentErrorCount;
+our $globalAgentErrorCount = 0;
 
 # Temporary variable, used to indicate to the fault handler whether
 # or not errors/warnings should be suppressed.
@@ -473,7 +472,6 @@ sub _agentHandleFault {
     #message. But for now, we have no evidence that multiple errors will
     #occur in other circumstances.
     $globalAgentErrorCount++;
-
 
     # Construct error message.
     # Figure out if the error occurred in transport or over
@@ -891,7 +889,7 @@ sub runSession {
     $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
 #                                 address       => $vmIP,
                                  address       => $vm->ip_address,
-                                 fault_handler => \&_handleFault);
+                                 fault_handler => \&_agentHandleFault);
 
     # Recreate the firewall stub; ignore faults.
     $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
@@ -1056,6 +1054,7 @@ sub runSession {
             return $args{'agent_state'};
         }
         if ($globalAgentErrorCount >= getVar(name => "max_agent_error_count")) {
+            $globalAgentErrorCount = 0;
             # Reset the FW state table. 
             $vmStateTable = ( );
             return $args{'agent_state'};
