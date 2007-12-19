@@ -365,6 +365,17 @@ our $vmCloneConfig      = undef;
 # eventually.
 our $globalAgentState   = undef;
 
+
+#This variable is used to count how many times stubAgent's fault
+#handler has been called, so that special actions can be taken if
+#it is called too many times (for instance when Manager loses 
+#connectivity with the Agent it would otherwise loop and get errors
+#forever if some action isn't taken)
+#NOTE: This will have to be changed to be agent/vm-specific in the
+#future when we have multiple Agents interacting with a single 
+#Manager.
+our $globalAgentErrorCount;
+
 # Temporary variable, used to indicate to the fault handler whether
 # or not errors/warnings should be suppressed.
 our $SUPPRESS_ERRORS = 0;
@@ -450,6 +461,34 @@ sub destroy {
 #######################################################################
 # Private Methods Implemented                                         #
 #######################################################################
+
+sub _agentHandleFault {
+
+    # Extract arguments.
+    my ($class, $res) = @_;
+
+
+    #NOTE: In the future we may want to have this check first to see if
+    #the error is specific to a failed connection (by regexing the error
+    #message. But for now, we have no evidence that multiple errors will
+    #occur in other circumstances.
+    $globalAgentErrorCount++;
+
+
+    # Construct error message.
+    # Figure out if the error occurred in transport or over
+    # on the other side.
+    my $errMsg = $class->transport->status; # Assume transport error.
+
+    if (ref $res) {
+        $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
+    }
+
+    if (!$SUPPRESS_ERRORS) {
+        $LOG->warn("Error occurred during processing. " . $errMsg);
+        Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
+    }
+}
 
 sub _handleFault {
 
@@ -1013,7 +1052,12 @@ sub runSession {
         }
         if ($vmCompromised) {
             # Reset the FW state table. 
-            $vmStateTable = { };
+            $vmStateTable = ( );
+            return $args{'agent_state'};
+        }
+        if ($globalAgentErrorCount >= getVar(name => "max_agent_error_count")) {
+            # Reset the FW state table. 
+            $vmStateTable = ( );
             return $args{'agent_state'};
         }
         print "Sleeping for 2s...\n";
