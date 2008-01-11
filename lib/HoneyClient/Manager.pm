@@ -306,6 +306,8 @@ if ($DB_ENABLE) {
 # For the time being, ignored links will not be inserted.
 #        $HoneyClient::DB::Url::History::STATUS_IGNORED => 'links_ignored',
     );
+
+    require HoneyClient::Manager::Database;
 }
 
 # XXX: Remove this, eventually.
@@ -838,15 +840,15 @@ sub runSession {
     $vm = HoneyClient::Manager::VM::Clone->new();
 
     #Register Client with the Honeyclient Database
-    #if ($DB_ENABLE) {
-    #    eval {
-    #        $clientDbId = dbRegisterClient($vm->name);
-    #    };
-    #    if ($@) {
-    #        $clientDbId = 0; #$DB_FAILURE
-    #        $LOG->warn("Failure Inserting Client Object:\n$@");
-    #    }
-    #}
+    if ($DB_ENABLE) {
+        eval {
+            $clientDbId = dbRegisterClient($vm->name);
+        };
+        if ($@ || ($clientDbId == 0)) {
+            $clientDbId = 0; #$DB_FAILURE
+            $LOG->warn("Failure Inserting Client Object:\n$@");
+        }
+    }
 
     # Build our VM's connection table.
     # Note: We assume our VM has a single MAC address
@@ -1120,31 +1122,59 @@ sub dbRegisterClient {
     $LOG->info("Attempting to Register Client $vmName.");
 
     # Register the VM with the DB
-    my $clientObj = HoneyClient::DB::Client->new({
-        system_id => $vmName,
-        status => $HoneyClient::DB::Client::STATUS_RUNNING,
+
+    #my $clientObj = HoneyClient::DB::Client->new({
+    #    system_id => $vmName,
+    #    status => $HoneyClient::DB::Client::STATUS_RUNNING,
+    #    # TODO: Collect host,application, and config through automation/config files
+    #    host => {
+    #        organization => 'MITRE',
+    #        host_name => Sys::Hostname::Long::hostname_long,
+    #        ip_address => Sys::HostIP->ip,
+    #    },
+    #    client_app => {
+    #        manufacturer => 'Microsoft',
+    #        name => 'Internet Explorer',
+    #        major_version => '6',
+    #    },
+    #    config => {
+    #        name => 'Default Windows XP SP2',
+    #        os_name => 'Microsoft Windows',
+    #        os_version => 'XP Professional',
+    #        os_patches => [{
+    #            name => 'Service Pack 2',
+    #        }],
+    #    },
+    #    start_time => $dt->ymd('-').'T'.$dt->hms(':'),
+    #});
+    #return $clientObj->insert();
+
+    my $client = {
+        cid => $vmName,
+        status => 'running',
         # TODO: Collect host,application, and config through automation/config files
         host => {
-            organization => 'MITRE',
-            host_name => Sys::Hostname::Long::hostname_long,
-            ip_address => Sys::HostIP->ip,
+            org => 'MITRE',
+            hostname => Sys::Hostname::Long::hostname_long,
+            ip => Sys::HostIP->ip,
         },
-        client_app => {
-            manufacturer => 'Microsoft',
-            name => 'Internet Explorer',
-            major_version => '6',
-        },
-        config => {
+        os => {
             name => 'Default Windows XP SP2',
-            os_name => 'Microsoft Windows',
-            os_version => 'XP Professional',
-            os_patches => [{
-                name => 'Service Pack 2',
+            shortname => 'Microsoft Windows',
+            version => 'XP Professional',
+            #os_patches => [{
+            #    name => 'Service Pack 2',
+            #}],
+            os_applications => [{
+                manufacturer => 'Microsoft',
+                shortname => 'Internet Explorer',
+                version => '6',
             }],
         },
-        start_time => $dt->ymd('-').'T'.$dt->hms(':'),
-    });
-    return $clientObj->insert();
+        start => $dt->ymd('-').'T'.$dt->hms(':'),
+    };
+    return HoneyClient::Manager::Database::insert("Client", $client);
+
 }
 
 #######################################################################
