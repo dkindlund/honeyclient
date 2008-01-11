@@ -581,7 +581,7 @@ sub _cleanup {
         $dump_file->close();
     }
     #XXX: Insert Urls. To be moved eventually.
-    #if ($DB_ENABLE && ($clientDbId > 0)) {
+    if ($DB_ENABLE && ($clientDbId > 0)) {
         $LOG->info("Saving Url History to Database.");
         insert_url_history(agent_state => $globalAgentState);
         HoneyClient::DB::Client->update(
