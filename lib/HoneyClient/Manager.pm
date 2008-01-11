@@ -581,18 +581,18 @@ sub _cleanup {
         $dump_file->close();
     }
     #XXX: Insert Urls. To be moved eventually.
-    if ($DB_ENABLE && ($clientDbId > 0)) {
-        $LOG->info("Saving Url History to Database.");
-        insert_url_history(agent_state => $globalAgentState);
-        HoneyClient::DB::Client->update(
-            '-set' => {
-                status => $HoneyClient::DB::Client::STATUS_CLEAN,
-            },
-            '-where' => {
-                id => $clientDbId,
-            }
-        );
-    }
+    #if ($DB_ENABLE && ($clientDbId > 0)) {
+    #    $LOG->info("Saving Url History to Database.");
+    #    insert_url_history(agent_state => $globalAgentState);
+    #    HoneyClient::DB::Client->update(
+    #        '-set' => {
+    #            status => $HoneyClient::DB::Client::STATUS_CLEAN,
+    #        },
+    #        '-where' => {
+    #            id => $clientDbId,
+    #        }
+    #    );
+    #}
 
     # XXX: There is an issue where if we try to quit but are in the
     # process of asynchronously archiving a VM, then the async archive
@@ -838,15 +838,15 @@ sub runSession {
     $vm = HoneyClient::Manager::VM::Clone->new();
 
     #Register Client with the Honeyclient Database
-    if ($DB_ENABLE) {
-        eval {
-            $clientDbId = dbRegisterClient($vm->name);
-        };
-        if ($@) {
-            $clientDbId = 0; #$DB_FAILURE
-            $LOG->warn("Failure Inserting Client Object:\n$@");
-        }
-    }
+    #if ($DB_ENABLE) {
+    #    eval {
+    #        $clientDbId = dbRegisterClient($vm->name);
+    #    };
+    #    if ($@) {
+    #        $clientDbId = 0; #$DB_FAILURE
+    #        $LOG->warn("Failure Inserting Client Object:\n$@");
+    #    }
+    #}
 
     # Build our VM's connection table.
     # Note: We assume our VM has a single MAC address
@@ -955,32 +955,32 @@ sub runSession {
                     $vm = undef;
 
                     # Insert Compromised Fingerprint into DB.
-                    if ($DB_ENABLE && ($clientDbId > 0)) {
-                        #XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
-                        # Put Honeyclient Link History in database.
-                        $LOG->info("Saving Url History to Database.");
-                        $args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'});
-                        $globalAgentState = $args{'agent_state'};
-
-                        # Remove the compromise time from the fingerprint. This is to be added to the Client Object
-                        delete $fingerprint->{last_resource};
-                        my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
-                        $LOG->info("Inserting Fingerprint Into Database.");
-                        my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
-                        my $fpId = $fp->insert();
-                        my $ctId = $compromise_time->insert();
-                        HoneyClient::DB::Client->update(
-                            '-set' => {
-                                status => $HoneyClient::DB::Client::STATUS_COMPROMISED,
-                                fingerprint => $fpId,
-                                compromise_time => $ctId,
-                            },
-                            '-where' => {
-                                id => $clientDbId,
-                            }
-                        );
-                        $LOG->info("Database Insert Successful.");
-                    }
+                    #if ($DB_ENABLE && ($clientDbId > 0)) {
+                    #    #XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
+                    #    # Put Honeyclient Link History in database.
+                    #    $LOG->info("Saving Url History to Database.");
+                    #    $args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'});
+                    #    $globalAgentState = $args{'agent_state'};
+                    #
+                    #    # Remove the compromise time from the fingerprint. This is to be added to the Client Object
+                    #    delete $fingerprint->{last_resource};
+                    #    my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
+                    #    $LOG->info("Inserting Fingerprint Into Database.");
+                    #    my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
+                    #    my $fpId = $fp->insert();
+                    #    my $ctId = $compromise_time->insert();
+                    #    HoneyClient::DB::Client->update(
+                    #        '-set' => {
+                    #            status => $HoneyClient::DB::Client::STATUS_COMPROMISED,
+                    #            fingerprint => $fpId,
+                    #            compromise_time => $ctId,
+                    #        },
+                    #        '-where' => {
+                    #            id => $clientDbId,
+                    #        }
+                    #    );
+                    #    $LOG->info("Database Insert Successful.");
+                    #}
                     return; # Return out of eval block.
                 } else {
                     print "VM Integrity Check: OK!\n";
