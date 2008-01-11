@@ -436,7 +436,7 @@ hashtable has the following format:
 
   $changes = {
     #A reference to an anonymous array of process objects
-    processes => [ {
+    os_processes => [ {
         'name' => "C:\WINDOWS\system32\Notepad.exe", # The process name as a full path
         'pid' => 1000,              # The Windows system process ID
         'parent_name' => "C:\WINDOWS\system32\explorer.exe",  # The process name as
@@ -449,20 +449,20 @@ hashtable has the following format:
         #when the realtime checks were started, and was still running when they ended
         
         #OPTIONAL, its existence signifies that we saw this process be created
-        'created_time' => ISO 8601 Timestamp (yyyy-mm-dd hh24:mi:ss.uuuuuu)
+        'created' => ISO 8601 Timestamp (yyyy-mm-dd hh24:mi:ss.uuuuuu)
         
         #OPTIONAL, its existence signifies that we saw this process be terminated
-        'terminated_time' => ISO 8601 Timestamp
+        'stopped' => ISO 8601 Timestamp
 
         #A reference to an anonymous array of registry objects
-        registry => [ {
+        regkeys => [ {
             # The registry directory name in regedit
             'key_name' => 'HKEY_LOCAL_MACHINE\Software...',
 
-            'time' => ISO 8601 Timestamp, 
+            'time_at' => ISO 8601 Timestamp, 
 
             #The specific registry event type which took place, as given by it's Windows name
-            'event_type' => { CreateKey | OpenKey | CloseKey | Query Key |
+            'event' => { CreateKey | OpenKey | CloseKey | Query Key |
                                 QueryValueKey, EnumerateKey | EnumerateValueKey | 
                                 SetValueKey | DeleteValueKey | DeleteKey },
 
@@ -471,7 +471,7 @@ hashtable has the following format:
 
             #The "type" which shows up in regedit. It is only possible to create the first 
             # 6 types by manually using regedit (and REG_NONE is only indirect, for instance
-            # on a DeleteValueKey event_type).
+            # on a DeleteValueKey event).
             'value_type' => { REG_NONE | REG_SZ | REG_BINARY | REG_DWORD | 
                                 REG_EXPAND_SZ | REG_MULTI_SZ | REG_LINK | 
                                 REG_DWORD_BIG_ENDIAN | REG_RESOURCE_LIST |
@@ -484,13 +484,13 @@ hashtable has the following format:
         }, ],
         
         #A reference to an anonymous array of file system objects
-        file_system => [ {
+        process_files => [ {
             #The full path and name of the file which was effected
             'name'  => 'C:\WINDOWS\SYSTEM32...',
 
-            'event_type' => { Deleted | Read | Write }, #TODO: add created & renamed/moved
+            'event' => { Deleted | Read | Write }, #TODO: add created & renamed/moved
 
-            'time' => ISO 8601 Timestamp, 
+            'time_at' => ISO 8601 Timestamp, 
             
             #OPTIONAL, this will not exist for deleted files
             'content' => {
@@ -545,7 +545,7 @@ sub check {
     }
     else{
         %changes = (
-            'processes' => [],
+            'os_processes' => [],
         );
 
         return \%changes;
@@ -595,7 +595,7 @@ sub check {
     #Get the time of the first event from the first entry and used it for compromise_time
     my @tmp_toks = split("\",\"",$capdump[0]);
     $tmp_toks[0] =~ s/^"(.*)/$1/;
-    %changes = ('compromise_time' => $tmp_toks[0]);
+    %changes = ('time_at' => $tmp_toks[0]);
     my $line_num = 0;
 
     foreach my $line (@capdump){
@@ -617,7 +617,8 @@ sub check {
                 ($ret, $index) = checkForExistingProcObj($toks[$P_PID], $toks[$P_NAME], @proc_objs);
                 #If the object already exists as something which didn't have anything filled in, then fill it in
                 if($ret == 1){
-                    $proc_objs[$index]->{"$toks[$P_EVENT_TYPE]_time"} = $toks[$P_TIME];
+                    #$proc_objs[$index]->{"$toks[$P_EVENT_TYPE]_time"} = $toks[$P_TIME];
+                    $proc_objs[$index]->{"stopped"} = $toks[$P_TIME];
                     $proc_push = 0; 
                 }
             }
@@ -627,9 +628,10 @@ sub check {
                 'name' => $toks[$P_NAME],
                 'parent_pid' => $toks[$P_PARENT_PID],
                 'parent_name' => $toks[$P_PARENT_NAME],
-                "$toks[$P_EVENT_TYPE]_time" => $toks[$P_TIME],
-                'file_system' => [],
-                'registry' => [],
+                #"$toks[$P_EVENT_TYPE]_time" => $toks[$P_TIME],
+                'created' => $toks[$P_TIME],
+                'process_files' => [],
+                'regkeys' => [],
             };
         }
         else{
@@ -644,8 +646,8 @@ sub check {
                 $proc_obj = {
                     'pid' => $toks[$R_PROC_PID],
                     'name' => $toks[$R_PROC_NAME],
-                    'registry' => [],
-                    'file_system' => [], 
+                    'regkeys' => [],
+                    'process_files' => [], 
                 }; 
                 $proc_push = 1;
             }
@@ -664,26 +666,26 @@ sub check {
                     $sanit_key_name = $toks[$R_KEY_NAME];
                 }
                 my $reg_obj = {
-                    'time' => $toks[$R_TIME],
-                    'event_type' => $toks[$R_EVENT_TYPE],
+                    'time_at' => $toks[$R_TIME],
+                    'event' => $toks[$R_EVENT_TYPE],
                     'key_name' => $sanit_key_name,
                     'value_name' => $toks[$R_VALUE_NAME],
                     'value_type' => $toks[$R_VALUE_TYPE],
                     'value' => $toks[$R_VALUE],
                 };
-                push @{$proc_obj->{'registry'}}, $reg_obj;
+                push @{$proc_obj->{'regkeys'}}, $reg_obj;
             }
             elsif($toks[$ENTRY_TYPE] eq "file"){
 
                 #Build the filesystem object and put it in to the proc object
-                my $fs_ref = $proc_obj->{'file_system'};
+                my $fs_ref = $proc_obj->{'process_files'};
                 if(scalar(@{$fs_ref}) == 0 || $fs_ref->[-1]->{'name'} ne $toks[$F_NAME] ||
-                        $fs_ref->[-1]->{'event_type'} ne $toks[$F_EVENT_TYPE]){
+                        $fs_ref->[-1]->{'event'} ne $toks[$F_EVENT_TYPE]){
                       
                     my $file_obj = {
                         'name' => $toks[$F_NAME],
-                        'event_type' => $toks[$F_EVENT_TYPE],
-                        'time' => $toks[$F_TIME],
+                        'event' => $toks[$F_EVENT_TYPE],
+                        'time_at' => $toks[$F_TIME],
                     };
                     if($toks[$F_EVENT_TYPE] ne "Delete"){
                         #Fill in the default values, incase the file can't be found due to a rename rather than delete
@@ -740,7 +742,7 @@ sub check {
                                 'sha1' => "FSERROR",
                             };
                         }
-                        push @{$proc_obj->{'file_system'}},$file_obj;
+                        push @{$proc_obj->{'process_files'}},$file_obj;
                     }
 
                 }
@@ -751,7 +753,7 @@ sub check {
         }
     }#end foreach
 
-    $changes{'processes'} = \@proc_objs;
+    $changes{'os_processes'} = \@proc_objs;
 #    $Data::Dumper::Terse = 1;
 #    $Data::Dumper::Indent = 1;
 #    print Dumper(\%changes);
@@ -761,7 +763,7 @@ sub check {
  
     # If any changes were found, write them out to the
     # filesystem.
-    if (scalar($changes{'processes'})){
+    if (scalar($changes{'os_processes'})){
         if (!open(CHANGE_FILE, ">>" . $self->{changes_found_file})) {
             $LOG->error("Unable to write changes to file '" . $self->{changes_found_file} . "'.");
         } else {
