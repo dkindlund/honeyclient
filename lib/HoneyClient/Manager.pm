@@ -300,12 +300,12 @@ if ($DB_ENABLE) {
     require HoneyClient::DB::Client;
     require HoneyClient::DB::Url::History;
     require HoneyClient::DB::Time;
-	%link_categories = (
-		$HoneyClient::DB::Url::History::STATUS_VISITED => 'links_visited',
-		$HoneyClient::DB::Url::History::STATUS_TIMED_OUT => 'links_timed_out',
+    %link_categories = (
+        $HoneyClient::DB::Url::History::STATUS_VISITED => 'links_visited',
+        $HoneyClient::DB::Url::History::STATUS_TIMED_OUT => 'links_timed_out',
 # For the time being, ignored links will not be inserted.
-#		$HoneyClient::DB::Url::History::STATUS_IGNORED => 'links_ignored',
-	);
+#        $HoneyClient::DB::Url::History::STATUS_IGNORED => 'links_ignored',
+    );
 }
 
 # XXX: Remove this, eventually.
@@ -580,19 +580,19 @@ sub _cleanup {
         print $dump_file Dumper(thaw(decode_base64($globalAgentState)));
         $dump_file->close();
     }
-	#XXX: Insert Urls. To be moved eventually.
-	if ($DB_ENABLE && ($clientDbId > 0)) {
-		$LOG->info("Saving Url History to Database.");
-		insert_url_history(agent_state => $globalAgentState);
-		HoneyClient::DB::Client->update(
-			'-set' => {
-				status => $HoneyClient::DB::Client::STATUS_CLEAN,
-			},
-			'-where' => {
-				id => $clientDbId,
-			}
-		);
-	}
+    #XXX: Insert Urls. To be moved eventually.
+    #if ($DB_ENABLE && ($clientDbId > 0)) {
+        $LOG->info("Saving Url History to Database.");
+        insert_url_history(agent_state => $globalAgentState);
+        HoneyClient::DB::Client->update(
+            '-set' => {
+                status => $HoneyClient::DB::Client::STATUS_CLEAN,
+            },
+            '-where' => {
+                id => $clientDbId,
+            }
+        );
+    }
 
     # XXX: There is an issue where if we try to quit but are in the
     # process of asynchronously archiving a VM, then the async archive
@@ -707,8 +707,8 @@ sub runSession {
 
     # Open up the firewall initially, to allow the Agent to do an SVN update.
     #FIXME: This needs to be more limited for the multi-vm case, and should probably 
-	# just be included by making the default rules require no action
-	$stubFW->allowAllTraffic();
+    # just be included by making the default rules require no action
+    $stubFW->allowAllTraffic();
 
 # XXX: Remove these, eventually.
 #    $URL = HoneyClient::Manager::VM->init();
@@ -956,15 +956,15 @@ sub runSession {
 
                     # Insert Compromised Fingerprint into DB.
                     if ($DB_ENABLE && ($clientDbId > 0)) {
-						#XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
-						# Put Honeyclient Link History in database.
-						$LOG->info("Saving Url History to Database.");
-						$args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'});
+                        #XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
+                        # Put Honeyclient Link History in database.
+                        $LOG->info("Saving Url History to Database.");
+                        $args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'});
                         $globalAgentState = $args{'agent_state'};
 
-						# Remove the compromise time from the fingerprint. This is to be added to the Client Object
-						delete $fingerprint->{last_resource};
-						my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
+                        # Remove the compromise time from the fingerprint. This is to be added to the Client Object
+                        delete $fingerprint->{last_resource};
+                        my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
                         $LOG->info("Inserting Fingerprint Into Database.");
                         my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
                         my $fpId = $fp->insert();
@@ -1069,48 +1069,48 @@ sub insert_url_history {
     # Extract arguments.
     my %args = @_;
 
-	my $agent_state = thaw(decode_base64($args{'agent_state'}));
+    my $agent_state = thaw(decode_base64($args{'agent_state'}));
 
-	my $state;
-	my $agent_driver;
-	foreach my $driver (keys %$agent_state) {
-		if ($agent_state->{$driver}) {
-			$state = $agent_state->{$driver};
+    my $state;
+    my $agent_driver;
+    foreach my $driver (keys %$agent_state) {
+        if ($agent_state->{$driver}) {
+            $state = $agent_state->{$driver};
             $agent_driver = $driver;
-			last;
-		}
-	}
+            last;
+        }
+    }
 
-	foreach my $i (keys %link_categories) {
-		my @url_history;
-		while (my ($url,$url_time) = each(%{$state->{$link_categories{$i}}})) {
+    foreach my $i (keys %link_categories) {
+        my @url_history;
+        while (my ($url,$url_time) = each(%{$state->{$link_categories{$i}}})) {
             # Don't insert already inserted URLs into DB.
-			if (!$url_time) {
+            if (!$url_time) {
                 next;
             }
-			# Some ignored links are the result of invalid Urls. Preprocess to avoid errors.
-			my $url_obj = HoneyClient::DB::Url->new($url);
-			next if (!$url_obj);
-			my $u = HoneyClient::DB::Url::History->new({
-				url => $url_obj,
-				visited => $url_time,
-				status => $i,
-			});
-			push @url_history,$u;
+            # Some ignored links are the result of invalid Urls. Preprocess to avoid errors.
+            my $url_obj = HoneyClient::DB::Url->new($url);
+            next if (!$url_obj);
+            my $u = HoneyClient::DB::Url::History->new({
+                url => $url_obj,
+                visited => $url_time,
+                status => $i,
+            });
+            push @url_history,$u;
             # For all sucessfully inserted URLs, set their timestamps to 0.
-			$agent_state->{$agent_driver}->{$link_categories{$i}}->{$url} = 0;
-		}
+            $agent_state->{$agent_driver}->{$link_categories{$i}}->{$url} = 0;
+        }
 
 # Update the History item to reflect the Client it belongs to.
 # get_col_name is used to get the foreign key column associated w/ the url_history array
-		HoneyClient::DB::Client->append_children(
-			'-parent_id' => $clientDbId,
-			'url_history' => \@url_history,
-		);
-		$LOG->info("Inserted Urls of type ".$link_categories{$i});
-	}
+        HoneyClient::DB::Client->append_children(
+            '-parent_id' => $clientDbId,
+            'url_history' => \@url_history,
+        );
+        $LOG->info("Inserted Urls of type ".$link_categories{$i});
+    }
 
-	return encode_base64(nfreeze($agent_state));
+    return encode_base64(nfreeze($agent_state));
 }
 
 sub dbRegisterClient {
@@ -1119,32 +1119,32 @@ sub dbRegisterClient {
 
     $LOG->info("Attempting to Register Client $vmName.");
 
-	# Register the VM with the DB
-	my $clientObj = HoneyClient::DB::Client->new({
-		system_id => $vmName,
-		status => $HoneyClient::DB::Client::STATUS_RUNNING,
-		# TODO: Collect host,application, and config through automation/config files
-		host => {
-			organization => 'MITRE',
-			host_name => Sys::Hostname::Long::hostname_long,
-			ip_address => Sys::HostIP->ip,
-		},
-		client_app => {
-			manufacturer => 'Microsoft',
-			name => 'Internet Explorer',
-			major_version => '6',
-		},
-		config => {
-			name => 'Default Windows XP SP2',
-			os_name => 'Microsoft Windows',
-			os_version => 'XP Professional',
-			os_patches => [{
-				name => 'Service Pack 2',
-			}],
-		},
-		start_time => $dt->ymd('-').'T'.$dt->hms(':'),
-	});
-	return $clientObj->insert();
+    # Register the VM with the DB
+    my $clientObj = HoneyClient::DB::Client->new({
+        system_id => $vmName,
+        status => $HoneyClient::DB::Client::STATUS_RUNNING,
+        # TODO: Collect host,application, and config through automation/config files
+        host => {
+            organization => 'MITRE',
+            host_name => Sys::Hostname::Long::hostname_long,
+            ip_address => Sys::HostIP->ip,
+        },
+        client_app => {
+            manufacturer => 'Microsoft',
+            name => 'Internet Explorer',
+            major_version => '6',
+        },
+        config => {
+            name => 'Default Windows XP SP2',
+            os_name => 'Microsoft Windows',
+            os_version => 'XP Professional',
+            os_patches => [{
+                name => 'Service Pack 2',
+            }],
+        },
+        start_time => $dt->ymd('-').'T'.$dt->hms(':'),
+    });
+    return $clientObj->insert();
 }
 
 #######################################################################
