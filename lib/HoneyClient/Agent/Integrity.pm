@@ -457,7 +457,7 @@ hashtable has the following format:
         #A reference to an anonymous array of registry objects
         regkeys => [ {
             # The registry directory name in regedit
-            'key_name' => 'HKEY_LOCAL_MACHINE\Software...',
+            'name' => 'HKEY_LOCAL_MACHINE\Software...',
 
             'time_at' => ISO 8601 Timestamp, 
 
@@ -655,7 +655,7 @@ sub check {
             if($toks[$ENTRY_TYPE] eq "registry"){
                 #Build the registry object and put it in to the proc object
                 #Sanity check incase Capture gets messed up, because the database can't accept
-                # an empty string for key_name, but also we want to make it clear that something
+                # an empty string for name, but also we want to make it clear that something
                 # bad happened.
                 my $sanit_key_name;
                 if($toks[$R_KEY_NAME] eq "" || $toks[$R_KEY_NAME] !~ /^[HKLM,HKCU,HKU,HKCR]/){
@@ -668,7 +668,7 @@ sub check {
                 my $reg_obj = {
                     'time_at' => $toks[$R_TIME],
                     'event' => $toks[$R_EVENT_TYPE],
-                    'key_name' => $sanit_key_name,
+                    'name' => $sanit_key_name,
                     'value_name' => $toks[$R_VALUE_NAME],
                     'value_type' => $toks[$R_VALUE_TYPE],
                     'value' => $toks[$R_VALUE],
