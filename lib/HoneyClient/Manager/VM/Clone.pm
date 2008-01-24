@@ -384,6 +384,14 @@ The name of the cloned VM.
 
 =back
 
+=head2 database_id
+
+=over 4
+
+The ID of the VM data, if it is stored within a database.
+
+=back
+
 =cut
 
 #######################################################################
@@ -838,6 +846,9 @@ sub new {
     
         # A variable containing the name the cloned VM.
         name => undef,
+
+        # A variable containing the database identifier, if any is specified.
+        database_id => undef,
     
         # A SOAP handle to the VM manager daemon.  (This internal variable
         # should never be modified externally.)

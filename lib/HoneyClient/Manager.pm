@@ -583,18 +583,15 @@ sub _cleanup {
         $dump_file->close();
     }
     #XXX: Insert Urls. To be moved eventually.
-    #if ($DB_ENABLE && ($clientDbId > 0)) {
-    #    $LOG->info("Saving Url History to Database.");
-    #    insert_url_history(agent_state => $globalAgentState);
-    #    HoneyClient::DB::Client->update(
-    #        '-set' => {
-    #            status => $HoneyClient::DB::Client::STATUS_CLEAN,
-    #        },
-    #        '-where' => {
-    #            id => $clientDbId,
-    #        }
-    #    );
-    #}
+    if ($DB_ENABLE && ($clientDbId > 0)) {
+        $LOG->info("Saving URL History to Database.");
+        insert_url_history(agent_state => $globalAgentState,
+                           client_id   => $clientDbId);
+
+        # Mark the VM as suspended within the database.
+        #my $num_urls_inserted = HoneyClient::Manager::Database::set_client_suspended($clientDbId);
+    }
+
 
     # XXX: There is an issue where if we try to quit but are in the
     # process of asynchronously archiving a VM, then the async archive
@@ -712,140 +709,17 @@ sub runSession {
     # just be included by making the default rules require no action
     $stubFW->allowAllTraffic();
 
-# XXX: Remove these, eventually.
-#    $URL = HoneyClient::Manager::VM->init();
-#    print "VM Daemon Listening On: " . $URL . "\n";
-#   
-#    $stubVM = getClientHandle(namespace     => "HoneyClient::Manager::VM",
-#                              fault_handler => \&_handleFaultAndCleanup);
-    
-#    print "Calling setMasterVM()...\n";
-#    $som = $stubVM->setMasterVM(config => $args{'master_vm_config'});
-#    print "Result: " . $som->result() . "\n";
-
-#    print "Calling quickCloneVM()...\n";
-#    $som = $stubVM->quickCloneVM();
-#    print "Result: " . $som->result() . "\n";
-#    $vmCloneConfig = $som->result();
-
-#    # Make sure the VM is fully cloned, before trying to make any subsequent calls.
-#    print "Calling isRegisteredVM()...\n";
-#    $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
-#    $ret = $som->result();
-
-#    if (defined($ret)) {
-#        print "Result: " . $ret . "\n";
-#    }
-
-#    while (!defined($ret)) {
-#        sleep (3);
-#        print "Calling isRegisteredVM()...\n";
-#        $som = $stubVM->isRegisteredVM(config => $vmCloneConfig);
-#        $ret = $som->result();
-#        if (defined($ret)) {
-#            print "Result: " . $ret . "\n";
-#        }
-#    }
-
-#    print "Calling getStateVM()...\n";
-#    $som = $stubVM->getStateVM(config => $vmCloneConfig);
-#    $vmState = $som->result();
-#
-#    if ($vmState == VM_EXECUTION_STATE_ON) {
-#        print "ON\n";
-#    } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
-#        print "OFF\n";
-#    } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
-#        print "SUSPENDED\n";
-#    } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
-#        print "STUCK\n";
-#    } else {
-#        print "UNKNOWN\n";
-#    }
-
-#    while ($vmState != VM_EXECUTION_STATE_ON) {
-#        sleep (3);
-#
-#        print "Calling getStateVM()...\n";
-#        $som = $stubVM->getStateVM(config => $vmCloneConfig);
-#        $vmState = $som->result();
-#
-#        if ($vmState == VM_EXECUTION_STATE_ON) {
-#            print "ON\n";
-#        } elsif ($vmState == VM_EXECUTION_STATE_OFF) {
-#            print "OFF\n";
-#        } elsif ($vmState == VM_EXECUTION_STATE_SUSPENDED) {
-#            print "SUSPENDED\n";
-#        } elsif ($vmState == VM_EXECUTION_STATE_STUCK) {
-#            print "STUCK\n";
-#        } else {
-#            print "UNKNOWN\n";
-#        }
-#    }
-
-#    print "Calling getMACaddrVM()...\n";
-#    $som = $stubVM->getMACaddrVM(config => $vmCloneConfig);
-#    print "Result: " . $som->result() . "\n";
-#    $vmMAC = $som->result();
-
-#    # Figure out when the Agent on the VM is alive and well.
-#    $ret = undef;
-#    my $logMsgPrinted = 0;
-#    while (!$ret) {
-#        sleep (3);
-#        print "Calling getIPaddrVM()...\n";
-#        $som = $stubVM->getIPaddrVM(config => $vmCloneConfig);
-#        if (defined($som->result())) {
-#            print "Result: " . $som->result() . "\n";
-#        }
-#        $vmIP = $som->result();
-#
-#        print "Calling getNameVM()...\n";
-#        $som = $stubVM->getNameVM(config => $vmCloneConfig);
-#        print "Result: " . $som->result() . "\n";
-#        $vmName = $som->result();
-#
-#        if (defined($vmIP) && defined($vmName)) {
-#            if (!$logMsgPrinted) {
-#                $LOG->info("Created clone VM (" . $vmName . ") using IP (" . $vmIP . ") and MAC (" . $vmMAC . ").");
-#                $logMsgPrinted = 1;
-#            }
-#
-#            # Try contacting the Agent; ignore any faults.
-#            $SUPPRESS_ERRORS = 1;
-#            $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-#                                         address       => $vmIP,
-#                                         fault_handler => \&_handleFault);
-#
-#            eval {
-#                print "Calling getStatus()...\n";
-#                $som = $stubAgent->getStatus();
-#                $ret = thaw(decode_base64($som->result()));
-#                print "Result:\n";
-#                # Make Dumper format more verbose.
-#                $Data::Dumper::Terse = 0;
-#                $Data::Dumper::Indent = 2;
-#                print Dumper($ret);
-#
-#            };
-#            # Clear returned state, if any fault occurs.
-#            if ($@) {
-#                $ret = undef;
-#            }
-#            $SUPPRESS_ERRORS = 0;
-#        }
-#    }
-
     # Create a new cloned VM.
     $vm = HoneyClient::Manager::VM::Clone->new();
 
     #Register Client with the Honeyclient Database
     if ($DB_ENABLE) {
         eval {
-            $clientDbId = dbRegisterClient($vm->name);
+            dbRegisterClient($vm);
+            $clientDbId = $vm->database_id;
         };
-        if ($@ || ($clientDbId == 0)) {
-            $clientDbId = 0; #$DB_FAILURE
+        if ($@ || ($vm->database_id == 0) || !defined($vm->database_id)) {
+            $vm->database_id(0); #$DB_FAILURE
             $LOG->warn("Failure Inserting Client Object:\n$@");
         }
     }
@@ -926,9 +800,6 @@ sub runSession {
                 if ($ret->{$args{'driver'}}->{status}->{is_compromised}) {
                     # Check to see if the VM has been compromised.
                     print "WARNING: VM HAS BEEN COMPROMISED!\n";
-#                    $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
-#                    $som = $stubVM->suspendVM(config => $vmCloneConfig);
-#                    HoneyClient::Manager::VM->destroy();
                     my $vmName = $vm->name;
                     $vmCompromised = 1;
 
@@ -954,35 +825,34 @@ sub runSession {
                     # Archive the VM.
                     $LOG->info("Archiving VM...");
                     $vm->archive();
-                    $vm = undef;
 
                     # Insert Compromised Fingerprint into DB.
-                    #if ($DB_ENABLE && ($clientDbId > 0)) {
-                    #    #XXX: This should occurr as a resource is accessed and will be moved. Also should be in Browser code.
-                    #    # Put Honeyclient Link History in database.
-                    #    $LOG->info("Saving Url History to Database.");
-                    #    $args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'});
-                    #    $globalAgentState = $args{'agent_state'};
-                    #
-                    #    # Remove the compromise time from the fingerprint. This is to be added to the Client Object
-                    #    delete $fingerprint->{last_resource};
-                    #    my $compromise_time = HoneyClient::DB::Time->new(delete($fingerprint->{'compromise_time'}));
-                    #    $LOG->info("Inserting Fingerprint Into Database.");
-                    #    my $fp = HoneyClient::DB::Fingerprint->new($fingerprint);
-                    #    my $fpId = $fp->insert();
-                    #    my $ctId = $compromise_time->insert();
-                    #    HoneyClient::DB::Client->update(
-                    #        '-set' => {
-                    #            status => $HoneyClient::DB::Client::STATUS_COMPROMISED,
-                    #            fingerprint => $fpId,
-                    #            compromise_time => $ctId,
-                    #        },
-                    #        '-where' => {
-                    #            id => $clientDbId,
-                    #        }
-                    #    );
-                    #    $LOG->info("Database Insert Successful.");
-                    #}
+                    if ($DB_ENABLE && ($vm->database_id > 0)) {
+                        # Put URL History in database.
+                        $LOG->info("Saving URL History to Database.");
+                        insert_url_history(agent_state => $args{'agent_state'},
+                                           client_id   => $vm->database_id);
+                   
+                        # Delete the 'last_resource' attribute.
+                        delete $fingerprint->{last_resource};
+
+                        # Associate the client who has this fingerprint.
+                        $fingerprint->{client_id} = $vm->database_id;
+
+                        $LOG->info("Inserting Fingerprint Into Database.");
+                        my $fingerprint_id = undef;
+                        eval {
+                            $fingerprint_id = HoneyClient::Manager::Database::insert_fingerprint($fingerprint);
+                        };
+                        if ($@ || ($fingerprint_id == 0) || !defined($fingerprint_id)) {
+                            $LOG->warn("Failure Inserting Fingerprint Object:\n$@");
+                        }
+
+                        $LOG->info("Database Insert Successful.");
+                    }
+                    # Make sure VM is suspended.
+                    $vm = undef;
+
                     return; # Return out of eval block.
                 } else {
                     print "VM Integrity Check: OK!\n";
@@ -993,11 +863,6 @@ sub runSession {
 
                         $LOG->info("All URLs exhausted.  Shutting down Manager.");
                         $vm = undef;
-                        # Get a local copy of the configuration and kill the global copy.
-#                        my $vmCfg = $vmCloneConfig;
-#                        $vmCloneConfig = undef;
-#                        $LOG->info("Calling suspendVM(config => " . $vmCfg . ").");
-#                        $stubVM->suspendVM(config => $vmCfg);
                         print "Done!\n";
                         _cleanup();
 
@@ -1070,87 +935,34 @@ sub insert_url_history {
 
     # Extract arguments.
     my %args = @_;
-
+    
     my $agent_state = thaw(decode_base64($args{'agent_state'}));
-
-    my $state;
-    my $agent_driver;
+    my $agent_driver = undef;
     foreach my $driver (keys %$agent_state) {
         if ($agent_state->{$driver}) {
-            $state = $agent_state->{$driver};
-            $agent_driver = $driver;
+            $agent_driver = $driver; 
             last;
         }
     }
 
-    foreach my $i (keys %link_categories) {
-        my @url_history;
-        while (my ($url,$url_time) = each(%{$state->{$link_categories{$i}}})) {
-            # Don't insert already inserted URLs into DB.
-            if (!$url_time) {
-                next;
-            }
-            # Some ignored links are the result of invalid Urls. Preprocess to avoid errors.
-            my $url_obj = HoneyClient::DB::Url->new($url);
-            next if (!$url_obj);
-            my $u = HoneyClient::DB::Url::History->new({
-                url => $url_obj,
-                visited => $url_time,
-                status => $i,
-            });
-            push @url_history,$u;
-            # For all sucessfully inserted URLs, set their timestamps to 0.
-            $agent_state->{$agent_driver}->{$link_categories{$i}}->{$url} = 0;
-        }
+    # Set the client ID.
+    $agent_state->{$agent_driver}->{'client_id'} = $args{'client_id'};
+   
+    # XXX: Delete this, eventually.
+    use Data::Dumper;
+    $LOG->info("agent_state = " . Data::Dumper::Dumper($agent_state));
 
-# Update the History item to reflect the Client it belongs to.
-# get_col_name is used to get the foreign key column associated w/ the url_history array
-        HoneyClient::DB::Client->append_children(
-            '-parent_id' => $clientDbId,
-            'url_history' => \@url_history,
-        );
-        $LOG->info("Inserted Urls of type ".$link_categories{$i});
-    }
-
-    return encode_base64(nfreeze($agent_state));
+    my $num_urls_inserted = HoneyClient::Manager::Database::insert_history_urls($agent_state->{$agent_driver});
+    $LOG->info($num_urls_inserted . " URL(s) Inserted.");
 }
 
 sub dbRegisterClient {
-    my $vmName = shift;
+    my $vm = shift;
     my $dt = DateTime::HiRes->now();
 
-    $LOG->info("Attempting to Register Client $vmName.");
-
     # Register the VM with the DB
-
-    #my $clientObj = HoneyClient::DB::Client->new({
-    #    system_id => $vmName,
-    #    status => $HoneyClient::DB::Client::STATUS_RUNNING,
-    #    # TODO: Collect host,application, and config through automation/config files
-    #    host => {
-    #        organization => 'MITRE',
-    #        host_name => Sys::Hostname::Long::hostname_long,
-    #        ip_address => Sys::HostIP->ip,
-    #    },
-    #    client_app => {
-    #        manufacturer => 'Microsoft',
-    #        name => 'Internet Explorer',
-    #        major_version => '6',
-    #    },
-    #    config => {
-    #        name => 'Default Windows XP SP2',
-    #        os_name => 'Microsoft Windows',
-    #        os_version => 'XP Professional',
-    #        os_patches => [{
-    #            name => 'Service Pack 2',
-    #        }],
-    #    },
-    #    start_time => $dt->ymd('-').'T'.$dt->hms(':'),
-    #});
-    #return $clientObj->insert();
-
     my $client = {
-        cid => $vmName,
+        cid => $vm->name,
         status => 'running',
         # TODO: Collect host,application, and config through automation/config files
         host => {
@@ -1173,8 +985,7 @@ sub dbRegisterClient {
         },
         start => $dt->ymd('-').'T'.$dt->hms(':'),
     };
-    return HoneyClient::Manager::Database::insert("Client", $client);
-
+    $vm->database_id(HoneyClient::Manager::Database::insert_client($client));
 }
 
 #######################################################################
