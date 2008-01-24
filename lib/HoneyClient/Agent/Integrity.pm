@@ -493,9 +493,9 @@ hashtable has the following format:
             'time_at' => ISO 8601 Timestamp, 
             
             #OPTIONAL, this will not exist for deleted files
-            'content' => {
+            'file_content' => {
                 'size' => 1234,                                       # size of new content
-                'type' => 'application/octect-stream',                # type of new content
+                'mime_type' => 'application/octect-stream',           # type of new content
                 'md5'  => 'b1946ac92492d2347c6235b4d2611184',         # md5  of new content
                 'sha1' => 'f572d396fae9206628714fb2ce00f72e94f2258f', # sha1 of new content
             },
@@ -689,9 +689,9 @@ sub check {
                     };
                     if($toks[$F_EVENT_TYPE] ne "Delete"){
                         #Fill in the default values, incase the file can't be found due to a rename rather than delete
-                        $file_obj->{'contents'} = {
+                        $file_obj->{'file_content'} = {
                             'size' => 0,
-                            'type' => "UNKNOWN",
+                            'mime_type' => "UNKNOWN",
                             'md5' => "$toks[$F_NAME]$toks[$F_TIME]",
                             'sha1' => "$toks[$F_NAME]$toks[$F_TIME]",
                         };
@@ -727,17 +727,17 @@ sub check {
         
                                 # Close the file handle.
                                 undef $fh;
-                                $file_obj->{'contents'}->{'size'} = $size;
-                                $file_obj->{'contents'}->{'md5'} = $md5;
-                                $file_obj->{'contents'}->{'sha1'} = $sha1;
-                                $file_obj->{'contents'}->{'type'} = $type;
+                                $file_obj->{'file_content'}->{'size'} = $size;
+                                $file_obj->{'file_content'}->{'md5'} = $md5;
+                                $file_obj->{'file_content'}->{'sha1'} = $sha1;
+                                $file_obj->{'file_content'}->{'mime_type'} = $type;
                             }
                         };
                         if($@){
                             print "Filesystem error occurred, setting safe values for $tmp_name\n";
-                            $file_obj->{'contents'} = {
+                            $file_obj->{'file_content'} = {
                                 'size' => 0,
-                                'type' => "FSERROR",
+                                'mime_type' => "FSERROR",
                                 'md5' => "FSERROR",
                                 'sha1' => "FSERROR",
                             };
