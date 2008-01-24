@@ -922,7 +922,7 @@ sub worker {
                 # the $data->{$driverName}->{'status'} sub-hashtable.
                 $LOG->info($driverName . " - Performing Integrity Checks.");
                 $changes = $integrity->check();
-                if (scalar(@{$changes->{processes}})) { 
+                if (scalar(@{$changes->{os_processes}})) { 
                     $LOG->warn($driverName . " - Integrity Check: FAILED");
                     $isCompromised = 1;
                     $changes->{'last_resource'} = $lastResource;
@@ -975,7 +975,7 @@ sub worker {
         #     # the $data->{$driverName}->{'status'} sub-hashtable.
         #     $LOG->info($driverName . " - Performing Integrity Checks.");
         #     $changes = $integrity->check();
-        #     if (scalar(@{$changes->{processes}})) { 
+        #     if (scalar(@{$changes->{os_processes}})) { 
         #         $LOG->warn($driverName . " - Integrity Check: FAILED");
         #         $isCompromised = 1;
         #         $changes->{'last_resource'} = $lastResource;
