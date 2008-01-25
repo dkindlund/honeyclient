@@ -589,7 +589,7 @@ sub _cleanup {
                            client_id   => $clientDbId);
 
         # Mark the VM as suspended within the database.
-        #my $num_urls_inserted = HoneyClient::Manager::Database::set_client_suspended($clientDbId);
+        HoneyClient::Manager::Database::set_client_suspended($clientDbId);
     }
 
 
@@ -727,7 +727,6 @@ sub runSession {
     # Build our VM's connection table.
     # Note: We assume our VM has a single MAC address
     # and a single IP address.
-#    $vmStateTable->{$vmName}->{sources}->{$vmMAC}->{$vmIP} = {
     $vmStateTable->{$vm->name}->{sources}->{$vm->mac_address}->{$vm->ip_address} = {
         # XXX: We assume we can't pinpoint what source TCP ports the
         # corresponding driver will need.  (We may want to get this
@@ -751,7 +750,6 @@ sub runSession {
 
     # Recreate the client stub; handle faults.
     $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-#                                 address       => $vmIP,
                                  address       => $vm->ip_address,
                                  fault_handler => \&_handleFaultAndCleanup);
 
@@ -763,7 +761,6 @@ sub runSession {
 
     # Recreate the client stub; ignore faults.
     $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-#                                 address       => $vmIP,
                                  address       => $vm->ip_address,
                                  fault_handler => \&_agentHandleFault);
 
@@ -951,6 +948,8 @@ sub insert_url_history {
     # XXX: Delete this, eventually.
     use Data::Dumper;
     $LOG->info("agent_state = " . Data::Dumper::Dumper($agent_state));
+
+    # XXX: We should delete the URLs from agent_state after successfully committing them into the database.
 
     my $num_urls_inserted = HoneyClient::Manager::Database::insert_history_urls($agent_state->{$agent_driver});
     $LOG->info($num_urls_inserted . " URL(s) Inserted.");
