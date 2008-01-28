@@ -376,6 +376,13 @@ Keep in mind, though, that some variables should remain module-specific
         <max_agent_error_count description="When the Agent is running, this value is the maximum number of SOAP communication errors the Manager will ignore (e.g., timeouts) before the Manager suspends the corresponding VM and clones a new Agent.  These errors mainly occur when the Manager loses connectivity to the Agent for some reason (i.e., software/OS crashing inside the VM).  Otherwise, the Manager would loop forever trying to reconnect with the faulty VM.  This value should never be set to 0 and should always be positive." default="3">
             3
         </max_agent_error_count>
+        <!-- HoneyClient::Manager::Database Options -->
+        <Database>
+            <!-- TODO: Update this. -->
+            <web_service_url>
+                http://172.16.164.103:3000/hc_database/api
+            </web_service_url>
+        </Database>
         <!-- HoneyClient::Manager::FW Options -->
         <FW>
             <!-- TODO: Update this. -->

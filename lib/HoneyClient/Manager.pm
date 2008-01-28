@@ -753,6 +753,8 @@ sub runSession {
                                  address       => $vm->ip_address,
                                  fault_handler => \&_handleFaultAndCleanup);
 
+    # TODO XXX: Get URL list from database.
+
     # Call updateState() first, to seed initial data.
     # TODO: Need to support asynchronous updates (url adding)
     # from user input.
@@ -857,6 +859,8 @@ sub runSession {
                     # Check to see if any links remain to be processed by the
                     # Agent.
                     if (!$ret->{$args{'driver'}}->{status}->{links_remaining}) {
+    
+                        # TODO XXX: Get URL list from database.
 
                         $LOG->info("All URLs exhausted.  Shutting down Manager.");
                         $vm = undef;

@@ -217,17 +217,14 @@ our $LOG = get_logger();
 
 # XXX: Comment this.
 sub _AUTOLOAD {
-  #XXX: Moved to AUTOLOAD. This allows varying parameters
-	#my $obj = shift;
-	#my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
-	my $name = $AUTOLOAD;
-	$name =~  s/.*://;
+    my $name = $AUTOLOAD;
+    $name =~  s/.*://;
 
     # Perform the RPC call.
     # XXX: Externalize this URL.
-	my $xmlrpc = XML::RPC->new('http://172.16.164.103:3000/hc_database/api');
-	#my $ret = $xmlrpc->call($name,$obj_yaml);
-	my $ret = $xmlrpc->call($name,@_);
+    my $xmlrpc = XML::RPC->new('http://172.16.164.103:3000/hc_database/api');
+    #my $ret = $xmlrpc->call($name,$obj_yaml);
+    my $ret = $xmlrpc->call($name,@_);
 
     # Error checking.
     if ((ref($ret) eq "HASH") && (exists($ret->{faultCode}))) {
@@ -235,7 +232,7 @@ sub _AUTOLOAD {
         Carp::croak("Error: " . $ret->{faultString});
     }
 
-	return $ret;
+    return $ret;
 }
 
 
@@ -259,10 +256,9 @@ sub _AUTOLOAD {
 # Inputs: the hashtable or object to send 
 # Outputs: the returned data from the web service
 sub AUTOLOAD {
-	my $obj = shift;
-	my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
-
-  return _AUTOLOAD($obj_yaml);
+    my $obj = shift;
+    my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
+    return _AUTOLOAD($obj_yaml);
 }
 
 # XXX: Need to comment this further.
