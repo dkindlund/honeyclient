@@ -217,15 +217,17 @@ our $LOG = get_logger();
 
 # XXX: Comment this.
 sub _AUTOLOAD {
-	my $obj = shift;
-	my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
+  #XXX: Moved to AUTOLOAD. This allows varying parameters
+	#my $obj = shift;
+	#my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
 	my $name = $AUTOLOAD;
 	$name =~  s/.*://;
 
     # Perform the RPC call.
     # XXX: Externalize this URL.
 	my $xmlrpc = XML::RPC->new('http://172.16.164.103:3000/hc_database/api');
-	my $ret = $xmlrpc->call($name,$obj_yaml);
+	#my $ret = $xmlrpc->call($name,$obj_yaml);
+	my $ret = $xmlrpc->call($name,@_);
 
     # Error checking.
     if ((ref($ret) eq "HASH") && (exists($ret->{faultCode}))) {
@@ -257,14 +259,17 @@ sub _AUTOLOAD {
 # Inputs: the hashtable or object to send 
 # Outputs: the returned data from the web service
 sub AUTOLOAD {
-    return _AUTOLOAD(shift);
+	my $obj = shift;
+	my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
+
+  return _AUTOLOAD($obj_yaml);
 }
 
 # XXX: Need to comment this further.
 sub get_queue_urls {
     $AUTOLOAD = "Database::get_queue_urls";
     # Results from this call are YAML-encoded; need to deserialize them.
-    return YAML::thaw(_AUTOLOAD(shift));
+    return YAML::thaw(_AUTOLOAD(@_));
 }
 
 #######################################################################
