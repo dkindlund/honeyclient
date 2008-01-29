@@ -20,6 +20,7 @@
 +	SetValueKey	C:\\WINDOWS\\system32\\winlogon.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\.+
 +	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	\\REGISTRY\\USER\\.+
 +	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKU\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKCU\\SOFTWARE\\Microsoft\\SystemCertificates\\.+
 +	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKCU\\Software\\Microsoft\\SystemCertificates\\Root\\.+
 +	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\SystemCertificates\\AuthRoot\\.+
 +	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\.+
@@ -45,6 +46,7 @@
 +	DeleteValueKey	C:\\WINDOWS\\system32\\winlogon.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	\\REGISTRY\\USER\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKU\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKCU\\SOFTWARE\\Microsoft\\SystemCertificates\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKCU\\Software\\Microsoft\\SystemCertificates\\Root\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\SystemCertificates\\AuthRoot\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\.+
