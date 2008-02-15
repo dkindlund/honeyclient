@@ -753,6 +753,8 @@ sub init {
         # Wait at least a second, in order to initialize the daemon.
         sleep (1);
         $DAEMON_PID = $pid;
+        # XXX: Delete this, eventually.
+        $LOG->info("Initializing VM daemon at PID: " . $DAEMON_PID);
         return ($URL);
 
     } else {
