@@ -754,6 +754,9 @@ sub runSession {
                                  fault_handler => \&_handleFaultAndCleanup);
 
     # TODO XXX: Get URL list from database.
+    if ($DB_ENABLE && ($vm->database_id > 0)) {
+        $args{'agent_state'} = get_urls($vm, $args{'agent_state'}, $args{'driver'});
+    }
 
     # Call updateState() first, to seed initial data.
     # TODO: Need to support asynchronous updates (url adding)
@@ -776,12 +779,14 @@ sub runSession {
         # From this point on, catch all errors generated and
         # assume that the Agent's watchdog process will recover.
         eval {
-            print "Calling getState()...\n";
-            $som = $stubAgent->getState();
-            $args{'agent_state'} = $som->result();
+            #print "Calling getState()...\n";
+            #$som = $stubAgent->getState();
+            #$args{'agent_state'} = $som->result();
 
             # XXX: Delete this, eventually.
-            $globalAgentState = $args{'agent_state'};
+            #$globalAgentState = $args{'agent_state'};
+            #print "Result:\n";
+            #print Dumper(thaw(decode_base64($globalAgentState)));
 
             print "Calling getStatus()...\n";
             $som = $stubAgent->getStatus();
@@ -792,6 +797,17 @@ sub runSession {
             $Data::Dumper::Indent = 2;
             print Dumper($ret->{$args{'driver'}}->{status});
             #print Dumper($ret);
+
+            # Extract current agent state.
+            my @driverNames = keys(%{$ret});
+            my $state = {};
+            foreach my $driverName (@driverNames) {
+                $state->{$driverName} = $ret->{$driverName}->{'state'};
+            }
+            $args{'agent_state'} = encode_base64(nfreeze($state));
+            $globalAgentState = $args{'agent_state'};
+            print "GlobalAgentState:\n";
+            print Dumper(thaw(decode_base64($globalAgentState)));
 
             # Check to see if Agent::run() thread has stopped
             # and that a compromise was detected.
@@ -849,6 +865,10 @@ sub runSession {
 
                         $LOG->info("Database Insert Successful.");
                     }
+                    # The VM should be suspended, at this point.  Clear out the global DB ID, so
+                    # that our cleanup code doesn't re-mark the VM as suspended.
+                    $clientDbId = 0;
+
                     # Make sure VM is suspended.
                     $vm = undef;
 
@@ -989,6 +1009,42 @@ sub dbRegisterClient {
         start => $dt->ymd('-').'T'.$dt->hms(':'),
     };
     $vm->database_id(HoneyClient::Manager::Database::insert_client($client));
+}
+
+sub get_urls {
+    my $vm = shift;
+    my $agent_state = shift;
+    my $driver = shift;
+
+    # Decode and thaw the initial agent state.
+    my $state = thaw(decode_base64($agent_state));
+
+    # XXX: We hardcode the value of 10 URLs to request; this will change, eventually.
+    my $queue_url_list = {};
+    $LOG->info("Retrieving new URLs from database.");
+    $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
+    my $remoteLinksExist = scalar(%{$queue_url_list});
+
+    # While we have no local URLs and no URLs from the database, re-query the database.
+    while (!defined($state->{$driver}->{next_link_to_visit}) &&
+           !$remoteLinksExist) {
+
+        # XXX: Hardcoded timeout.
+        sleep (2);
+        $LOG->info("Retrieving new URLs from database.");
+        $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
+        $remoteLinksExist = scalar(%{$queue_url_list});
+    }
+
+    # If we do have URLs from the database, then merge them into the agent state.
+    # Note: Priorities specified in the database take precedent over any URLs specified locally.
+    if ($remoteLinksExist) {
+        $state->{$driver}->{links_to_visit} = { %{$state->{$driver}->{links_to_visit}}, 
+                                                %{$queue_url_list} };
+        $agent_state = encode_base64(nfreeze($state));
+    }
+
+    return $agent_state;
 }
 
 #######################################################################
