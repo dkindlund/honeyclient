@@ -824,6 +824,8 @@ sub destroy {
     # Make sure the PID is defined and not
     # the parent process...
     if (defined($DAEMON_PID) && $DAEMON_PID) {
+        # XXX: Delete this, eventually.
+        $LOG->info("Destroying VM daemon at PID: " . $DAEMON_PID);
         $ret = kill("QUIT", $DAEMON_PID);
 
         # If the process doesn't respond to 'QUIT', then

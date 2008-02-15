@@ -753,7 +753,7 @@ sub runSession {
                                  address       => $vm->ip_address,
                                  fault_handler => \&_handleFaultAndCleanup);
 
-    # TODO XXX: Get URL list from database.
+    # If supported, get a URL list from the database.
     if ($DB_ENABLE && ($vm->database_id > 0)) {
         $args{'agent_state'} = get_urls($vm, $args{'agent_state'}, $args{'driver'});
     }
@@ -779,15 +779,6 @@ sub runSession {
         # From this point on, catch all errors generated and
         # assume that the Agent's watchdog process will recover.
         eval {
-            #print "Calling getState()...\n";
-            #$som = $stubAgent->getState();
-            #$args{'agent_state'} = $som->result();
-
-            # XXX: Delete this, eventually.
-            #$globalAgentState = $args{'agent_state'};
-            #print "Result:\n";
-            #print Dumper(thaw(decode_base64($globalAgentState)));
-
             print "Calling getStatus()...\n";
             $som = $stubAgent->getStatus();
             print "Result:\n";
@@ -798,7 +789,7 @@ sub runSession {
             print Dumper($ret->{$args{'driver'}}->{status});
             #print Dumper($ret);
 
-            # Extract current agent state.
+            # Derive current agent state from full status.
             my @driverNames = keys(%{$ret});
             my $state = {};
             foreach my $driverName (@driverNames) {
@@ -806,8 +797,8 @@ sub runSession {
             }
             $args{'agent_state'} = encode_base64(nfreeze($state));
             $globalAgentState = $args{'agent_state'};
-            print "GlobalAgentState:\n";
-            print Dumper(thaw(decode_base64($globalAgentState)));
+            #print "GlobalAgentState:\n";
+            #print Dumper(thaw(decode_base64($globalAgentState)));
 
             # Check to see if Agent::run() thread has stopped
             # and that a compromise was detected.
@@ -880,13 +871,22 @@ sub runSession {
                     # Agent.
                     if (!$ret->{$args{'driver'}}->{status}->{links_remaining}) {
     
-                        # TODO XXX: Get URL list from database.
+                        # If supported, get more URLs from the database.
+                        if ($DB_ENABLE && ($vm->database_id > 0)) {
+                            # Put URL History in database.
+                            $LOG->info("Saving URL History to Database.");
+                            insert_url_history(agent_state => $args{'agent_state'},
+                                               client_id   => $vm->database_id);
 
-                        $LOG->info("All URLs exhausted.  Shutting down Manager.");
-                        $vm = undef;
-                        print "Done!\n";
-                        _cleanup();
-
+                            $args{'agent_state'} = get_urls($vm, $args{'agent_state'}, $args{'driver'});
+                            print "Calling updateState()...\n";
+                            $som = $stubAgent->updateState($args{'agent_state'});
+                        } else {
+                            $LOG->info("All URLs exhausted.  Shutting down Manager.");
+                            $vm = undef;
+                            print "Done!\n";
+                            _cleanup();
+                        }
                     } else {
                         # The Agent::run() thread has stopped; we assume
                         # it's because the Agent is waiting for the firewall
@@ -987,7 +987,7 @@ sub dbRegisterClient {
     my $client = {
         cid => $vm->name,
         status => 'running',
-        # TODO: Collect host,application, and config through automation/config files
+        # TODO: Collect host, application, and config through automation/config files
         host => {
             org => 'MITRE',
             hostname => Sys::Hostname::Long::hostname_long,
@@ -1031,7 +1031,7 @@ sub get_urls {
 
         # XXX: Hardcoded timeout.
         sleep (2);
-        $LOG->info("Retrieving new URLs from database.");
+        #$LOG->info("Retrieving new URLs from database.");
         $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
         $remoteLinksExist = scalar(%{$queue_url_list});
     }
