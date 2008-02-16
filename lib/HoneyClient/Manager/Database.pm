@@ -222,7 +222,8 @@ sub _AUTOLOAD {
 
     # Perform the RPC call.
     # XXX: Externalize this URL.
-    my $xmlrpc = XML::RPC->new('http://172.16.164.103:3000/hc_database/api');
+    my $xmlrpc = XML::RPC->new(getVar(name => "url"));
+    #my $xmlrpc = XML::RPC->new('http://172.16.164.103:3000/hc_database/api');
     #my $ret = $xmlrpc->call($name,$obj_yaml);
     my $ret = $xmlrpc->call($name,@_);
 

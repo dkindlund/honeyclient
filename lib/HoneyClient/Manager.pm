@@ -238,14 +238,13 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
-# Check if HoneyClient::DB support is enabled. 
+# Check if HoneyClient::Manager::Database support is enabled. 
 my $DB_ENABLE = getVar(name      => "enable",
-                       namespace => "HoneyClient::DB");
-
+                       namespace => "HoneyClient::Manager::Database");
 if ($DB_ENABLE) {
-    # Make sure HoneyClient::DB::Fingerprint loads. 
-    require_ok('HoneyClient::DB::Fingerprint');
-    require HoneyClient::DB::Fingerprint;
+    # Make sure HoneyClient::Manager::Database loads.
+    require_ok('HoneyClient::Manager::Database');
+    require HoneyClient::Manager::Database;
 }
 
 # Make sure Storable loads.
@@ -285,28 +284,14 @@ use HoneyClient::Manager::VM::Clone;
 
 # XXX: Remove this, eventually.
 # TODO: Include unit tests.
-use HoneyClient::Manager::VM qw();
+#use HoneyClient::Manager::VM qw();
 
-# Check if HoneyClient::DB support is enabled. 
+# Check if HoneyClient::Manager::Database support is enabled. 
 our $DB_ENABLE = getVar(name      => "enable",
-                        namespace => "HoneyClient::DB");
+                        namespace => "HoneyClient::Manager::Database");
 our $clientDbId = 0;
-our %link_categories;
 
 if ($DB_ENABLE) {
-    # Include HoneyClient::DB Utility Libraries
-    # TODO: Include unit tests.
-    require HoneyClient::DB::Fingerprint;
-    require HoneyClient::DB::Client;
-    require HoneyClient::DB::Url::History;
-    require HoneyClient::DB::Time;
-    %link_categories = (
-        $HoneyClient::DB::Url::History::STATUS_VISITED => 'links_visited',
-        $HoneyClient::DB::Url::History::STATUS_TIMED_OUT => 'links_timed_out',
-# For the time being, ignored links will not be inserted.
-#        $HoneyClient::DB::Url::History::STATUS_IGNORED => 'links_ignored',
-    );
-
     require HoneyClient::Manager::Database;
 }
 
@@ -326,13 +311,6 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 # Include Hash Serialization Utility Libraries
 use Storable qw(nfreeze thaw);
 
-# Include VmPerl Constants.
-# TODO: Include unit tests.
-use VMware::VmPerl qw(VM_EXECUTION_STATE_ON
-                      VM_EXECUTION_STATE_OFF
-                      VM_EXECUTION_STATE_STUCK
-                      VM_EXECUTION_STATE_SUSPENDED);
-
 # TODO: Include unit tests.
 use IO::File;
 
@@ -350,16 +328,6 @@ use Log::Log4perl qw(:easy);
 
 # The global logging object.
 our $LOG = get_logger();
-
-# Complete URL of SOAP server, when initialized.
-our $URL_BASE       : shared = undef;
-our $URL            : shared = undef;
-
-# The process ID of the SOAP server daemon, once created.
-our $DAEMON_PID     : shared = undef;
-
-# XXX: These will be migrated somewhere else, eventually.
-our $vmCloneConfig      = undef;
 
 # This is a temporary, shared variable, used to print out the
 # state of the agent, when _cleanup() occurs.
@@ -421,15 +389,15 @@ I<Output>:
 
 =cut
 
-sub init {
-    # Extract arguments.
-    # Hash-based arguments are used, since HoneyClient::Util::SOAP is unable to handle
-    # hash references directly.  Thus, flat hashtables are used throughout the code
-    # for consistency.
-    my ($class, %args) = @_;
-    
-    # XXX: Finish this.
-}
+#sub init {
+#    # Extract arguments.
+#    # Hash-based arguments are used, since HoneyClient::Util::SOAP is unable to handle
+#    # hash references directly.  Thus, flat hashtables are used throughout the code
+#    # for consistency.
+#    my ($class, %args) = @_;
+#    
+#    # XXX: Finish this.
+#}
 
 =pod
 
@@ -451,13 +419,13 @@ I<Output>: True if successful, false otherwise.
 
 =cut
 
-sub destroy {
-    my $ret = undef;
-   
-    # XXX: Finish this.
-    
-    return $ret;
-}
+#sub destroy {
+#    my $ret = undef;
+#   
+#    # XXX: Finish this.
+#    
+#    return $ret;
+#}
 
 #######################################################################
 # Private Methods Implemented                                         #
@@ -534,37 +502,12 @@ sub _cleanup {
     $SIG{PIPE}    = sub { };
     $SIG{TERM}    = sub { };
 
-# XXX: Remove this, eventually.
-#    HoneyClient::Manager::VM->destroy();
-
     # XXX: Need to clean this up.
     my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW");
 
     # XXX: Change this to installDefaultRules(), eventually.
     # Reset the firewall, to allow everything open.
     $stubFW->allowAllTraffic();
-
-# XXX: Remove this, eventually.
-#    # Check to see if a clone was created...
-#    if (defined($vmCloneConfig)) {
-#        # We sleep for a bit, to make sure that the previous VM daemon was
-#        # properly destroyed and released the previous port that was in use.
-#        sleep (10);
-#
-#        # We reinstantiate a new VM daemon, because if the user had hit CTRL-C
-#        # or called any other signal, then that signal would propagate to all
-#        # processes, causing the VM daemon's signal handler to self terminate.
-#        #
-#        # Hence, rather than fight the VM daemon's natural self termination,
-#        # we let the daemon die, but the create a new one, for the sole purpose
-#        # of cleaning up the clones.
-#        HoneyClient::Manager::VM->init();
-#        $LOG->info("Calling suspendVM(config => " . $vmCloneConfig . ").");
-#        my $stubVM = getClientHandle(namespace => "HoneyClient::Manager::VM");
-#        $stubVM->suspendVM(config => $vmCloneConfig);
-#        print "Done!\n";
-#        HoneyClient::Manager::VM->destroy();
-#    }
 
     # This variable may contain a filename that the Manager
     # would use to dump its entire state information, upon termination.
@@ -582,7 +525,7 @@ sub _cleanup {
         print $dump_file Dumper(thaw(decode_base64($globalAgentState)));
         $dump_file->close();
     }
-    #XXX: Insert Urls. To be moved eventually.
+
     if ($DB_ENABLE && ($clientDbId > 0)) {
         $LOG->info("Saving URL History to Database.");
         insert_url_history(agent_state => $globalAgentState,
@@ -666,12 +609,8 @@ sub run {
         $agentState = $class->runSession(%args);
         $args{'agent_state'} = $agentState;
 
-        # XXX: Delete this, eventually.
+        # XXX: Fix this, eventually.
         $globalAgentState = $agentState;
-
-        #$Data::Dumper::Terse = 0;
-        #$Data::Dumper::Indent = 2;
-        #print Dumper(thaw(decode_base64($agentState)));
     }
 }
 
@@ -683,17 +622,12 @@ sub runSession {
     # for consistency.
     my ($class, %args) = @_;
 
-# XXX: Remove some of these, eventually.
-    my $stubVM    = undef;
+    # XXX: Remove some of these, eventually.
     my $stubFW    = undef;
     my $stubAgent = undef;
     my $som       = undef;
     my $ret       = undef;
-    my $vmIP      = undef;
-    my $vmMAC     = undef;
-    my $vmName    = undef;
-    my $URL       = undef;
-    my $vmState   = undef;
+    # XXX: Need to figure out a way to move this data into the VM object.
     my $vmCompromised = 0;
     my $vmStateTable = { };
 
@@ -836,8 +770,9 @@ sub runSession {
                     if ($DB_ENABLE && ($vm->database_id > 0)) {
                         # Put URL History in database.
                         $LOG->info("Saving URL History to Database.");
-                        insert_url_history(agent_state => $args{'agent_state'},
-                                           client_id   => $vm->database_id);
+                        $args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'},
+                                                                  client_id   => $vm->database_id);
+                        $globalAgentState = $args{'agent_state'};
                    
                         # Delete the 'last_resource' attribute.
                         delete $fingerprint->{last_resource};
@@ -875,10 +810,11 @@ sub runSession {
                         if ($DB_ENABLE && ($vm->database_id > 0)) {
                             # Put URL History in database.
                             $LOG->info("Saving URL History to Database.");
-                            insert_url_history(agent_state => $args{'agent_state'},
-                                               client_id   => $vm->database_id);
+                            $args{'agent_state'} = insert_url_history(agent_state => $args{'agent_state'},
+                                                                      client_id   => $vm->database_id);
 
                             $args{'agent_state'} = get_urls($vm, $args{'agent_state'}, $args{'driver'});
+                            $globalAgentState = $args{'agent_state'};
                             print "Calling updateState()...\n";
                             $som = $stubAgent->updateState($args{'agent_state'});
                         } else {
@@ -957,26 +893,28 @@ sub insert_url_history {
     # Extract arguments.
     my %args = @_;
     
-    my $agent_state = thaw(decode_base64($args{'agent_state'}));
-    my $agent_driver = undef;
-    foreach my $driver (keys %$agent_state) {
-        if ($agent_state->{$driver}) {
-            $agent_driver = $driver; 
+    my $state = thaw(decode_base64($args{'agent_state'}));
+    my $driver = undef;
+    foreach my $key (keys %$state) {
+        if ($state->{$key}) {
+            $driver = $key; 
             last;
         }
     }
 
     # Set the client ID.
-    $agent_state->{$agent_driver}->{'client_id'} = $args{'client_id'};
+    $state->{$driver}->{'client_id'} = $args{'client_id'};
    
     # XXX: Delete this, eventually.
     use Data::Dumper;
-    $LOG->info("agent_state = " . Data::Dumper::Dumper($agent_state));
+    $LOG->info("agent_state = " . Data::Dumper::Dumper($state));
 
-    # XXX: We should delete the URLs from agent_state after successfully committing them into the database.
-
-    my $num_urls_inserted = HoneyClient::Manager::Database::insert_history_urls($agent_state->{$agent_driver});
+    my $num_urls_inserted = HoneyClient::Manager::Database::insert_history_urls($state->{$driver});
     $LOG->info($num_urls_inserted . " URL(s) Inserted.");
+
+    # Flush the URL history, after committing to the database.
+    $state->{$driver}->{'links_visited'} = {};
+    return encode_base64(nfreeze($state));
 }
 
 sub dbRegisterClient {
@@ -1019,9 +957,9 @@ sub get_urls {
     # Decode and thaw the initial agent state.
     my $state = thaw(decode_base64($agent_state));
 
-    # XXX: We hardcode the value of 10 URLs to request; this will change, eventually.
     my $queue_url_list = {};
-    $LOG->info("Retrieving new URLs from database.");
+    $LOG->info("Waiting for new URLs from database.");
+    # XXX: We hardcode the value of 10 URLs to request; this will change, eventually.
     $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
     my $remoteLinksExist = scalar(%{$queue_url_list});
 
@@ -1031,7 +969,6 @@ sub get_urls {
 
         # XXX: Hardcoded timeout.
         sleep (2);
-        #$LOG->info("Retrieving new URLs from database.");
         $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
         $remoteLinksExist = scalar(%{$queue_url_list});
     }

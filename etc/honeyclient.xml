@@ -328,27 +328,6 @@ Keep in mind, though, that some variables should remain module-specific
             </Registry>
         </Integrity>
     </Agent>
-    <!-- HoneyClient::DB Options -->
-    <DB>
-        <enable description="Enables database operations. 1 enables, 0 disables." default="0">
-            1
-        </enable>
-        <host description="The system providing the HoneyClient database.  If the database is installed on the same host system as the Manager, then localhost should be used." default="127.0.0.1">
-            172.16.164.1
-        </host>
-        <dbname description="The name of the HoneyClient database." default="HoneyClient_v2">
-            HoneyClient_v2_dev
-        </dbname>
-        <user description="The username to use, when connecting to the HoneyClient database.">
-            hc_user
-        </user>
-        <pass description="The password to use, when connecting to the HoneyClient database.">
-            hc_pass
-        </pass>
-        <port description="The default TCP port number used to communicate with the database." default="3306">
-            3306
-        </port>
-    </DB>
     <Manager>
         <!-- TODO: Update this. -->
         <manager_state description="Upon termination, the Manager will attempt to append a complete copy of its state into this file, if specified." default="">
@@ -366,25 +345,24 @@ Keep in mind, though, that some variables should remain module-specific
         <port description="The TCP port number that the SOAP server for all Manager modules will listen on for requests." default="8089">
             8089
         </port>
-        <vmnet_nat_router_address description="The IP address assigned to the VMware NAT interface (usually called vmnet8)." default="192.168.0.1">
-            192.168.0.1
-        </vmnet_nat_router_address>
-        <!-- TODO: Update this. -->
-        <conffile description="Logging options that can be applied to specify the layout of the logging messages.">
-            etc/honeyclient_log.conf
-        </conffile>
         <max_agent_error_count description="When the Agent is running, this value is the maximum number of SOAP communication errors the Manager will ignore (e.g., timeouts) before the Manager suspends the corresponding VM and clones a new Agent.  These errors mainly occur when the Manager loses connectivity to the Agent for some reason (i.e., software/OS crashing inside the VM).  Otherwise, the Manager would loop forever trying to reconnect with the faulty VM.  This value should never be set to 0 and should always be positive." default="3">
             3
         </max_agent_error_count>
         <!-- HoneyClient::Manager::Database Options -->
         <Database>
+            <enable description="Enables database operations. 1 enables, 0 disables." default="0">
+                1
+            </enable>
             <!-- TODO: Update this. -->
-            <web_service_url>
+            <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
                 http://172.16.164.103:3000/hc_database/api
-            </web_service_url>
+            </url>
         </Database>
         <!-- HoneyClient::Manager::FW Options -->
         <FW>
+            <vmnet_nat_router_address description="The IP address assigned to the VMware NAT interface (usually called vmnet8)." default="192.168.0.1">
+                192.168.0.1
+            </vmnet_nat_router_address>
             <!-- TODO: Update this. -->
             <address description="eth0 interface static IP">
                 192.168.0.128
