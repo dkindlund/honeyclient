@@ -906,8 +906,8 @@ sub insert_url_history {
     $state->{$driver}->{'client_id'} = $args{'client_id'};
    
     # XXX: Delete this, eventually.
-    use Data::Dumper;
-    $LOG->info("agent_state = " . Data::Dumper::Dumper($state));
+    #use Data::Dumper;
+    #$LOG->info("agent_state = " . Data::Dumper::Dumper($state));
 
     my $num_urls_inserted = HoneyClient::Manager::Database::insert_history_urls($state->{$driver});
     $LOG->info($num_urls_inserted . " URL(s) Inserted.");
