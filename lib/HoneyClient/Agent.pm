@@ -209,13 +209,13 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 # Include Data Differential Analysis Libraries
 # TODO: Include corresponding unit tests.
 # XXX: Do we need this?
-use Data::Diff;
+#use Data::Diff;
 # TODO: Include corresponding unit tests.
 # XXX: Do we need this?
-use Data::Structure::Util qw(unbless);
+#use Data::Structure::Util qw(unbless);
 # TODO: Include corresponding unit tests.
 # XXX: Do we need this?
-use Data::Compare;
+#use Data::Compare;
 
 # Include Logging Library
 use Log::Log4perl qw(:easy);
