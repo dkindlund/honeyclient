@@ -608,6 +608,7 @@ sub check {
         chop($line);
         
         my @toks = split("\",\"", $line, $TOTAL_REG_TOKENS+1);
+        print "toks = @toks\n";
         my $index = undef;
         my $proc_obj = undef;
         my $proc_push;
@@ -690,7 +691,7 @@ sub check {
                     if($toks[$F_EVENT_TYPE] ne "Delete"){
                         #Fill in the default values, incase the file can't be found due to a rename rather than delete
                         $file_obj->{'file_content'} = {
-                            'size' => 0,
+                            'size' => -1,
                             'mime_type' => "UNKNOWN",
                             'md5' => "$toks[$F_NAME]$toks[$F_TIME]",
                             'sha1' => "$toks[$F_NAME]$toks[$F_TIME]",
@@ -742,9 +743,8 @@ sub check {
                                 'sha1' => "FSERROR",
                             };
                         }
-                        push @{$proc_obj->{'process_files'}},$file_obj;
                     }
-
+                    push @{$proc_obj->{'process_files'}},$file_obj;
                 }
             }
         }
