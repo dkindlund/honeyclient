@@ -160,3 +160,8 @@
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Mft
 #### HONEYCLIENT manual
 +	Write	C:\\WINDOWS\\system32\\dwwin\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp\\.*
+
+#### Honeyclient manual add - Windows managment interface
++	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.ini
++	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.h
++	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\PerfStringBackup\.TMP

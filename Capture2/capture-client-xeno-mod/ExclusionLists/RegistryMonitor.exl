@@ -300,7 +300,14 @@
 #### Honeyclient manual add (per ticket #128)
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\\.css\\OpenWithList
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\\.css\\OpenWithProgids
-#### Honeyclient manual add
-+	Delete  C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.ini
-+	Delete  C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.h
-+	Delete  C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\PerfStringBackup\.TMP
+#### Honeyclient manual add from different SP2 image
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\System\\Print
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\System\\TCPMon
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Print\\Printers
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\Print
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\Print\\Printers
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\Print\\Providers
