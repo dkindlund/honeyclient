@@ -1,0 +1,94 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Sat Aug 18 01:30:06 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'SOAP' => {
+    'isdir' => 1
+  },
+  'SOAP-Lite-0.65_3.tar.gz' => {
+    'md5' => '48576dd0a2c12673a5d908e4015337b6',
+    'md5-ungz' => '2752343629eebc09797cf52223f66451',
+    'mtime' => '2005-02-22',
+    'sha256' => '2d5ce5677a366f6e1916fad13af933e98ca1395ea1d42df7a8bbe3235859dad4',
+    'sha256-ungz' => 'c060eca7a0b8e2d41745aedbf303767a25fb659efc2bd081faf5a1595377c902',
+    'size' => 233986
+  },
+  'SOAP-Lite-0.65_4.tar.gz' => {
+    'md5' => '66e8da96a27029328ed841fd5aacdcc8',
+    'md5-ungz' => '85170dd14ea1e4f385343cc79a77b947',
+    'mtime' => '2005-04-03',
+    'sha256' => '59e301bcb3a15e1eec6d0e13a0b7e220a6e3e2a37ed56e323d66732ead955cfe',
+    'sha256-ungz' => '95bcc0b87d9e7621cc2867c469bbd1b6ab74ce9e09dba17dfb5059227515eeeb',
+    'size' => 235277
+  },
+  'SOAP-Lite-0.65_5.tar.gz' => {
+    'md5' => 'c88b57ab3c729fd8ffaee93f92035c05',
+    'md5-ungz' => '001f449245f2dd5318c6ea4a51d1d606',
+    'mtime' => '2005-05-06',
+    'sha256' => '42ce0e0e9379eec181fc9798e5df85b7dca0341c1941398c17c56bbd429efe9f',
+    'sha256-ungz' => '9e4460ea9493a17eb83f07fb2334395130f23a38eade034dd198c5b1a0277c1d',
+    'size' => 235379
+  },
+  'SOAP-Lite-0.65_6.tar.gz' => {
+    'md5' => '156948e1d904efe44289a6535356f0a1',
+    'md5-ungz' => '84c4e9f88c55803081108b66d59ee709',
+    'mtime' => '2005-06-03',
+    'sha256' => 'cb4520eff828be579f7a049b76cdc7b3f05cc222421af690d367f430066b4943',
+    'sha256-ungz' => '7f25d619bfa85e6c6258a72781479226eb2ce554a6cc30784b62f25aed7ed0cb',
+    'size' => 235444
+  },
+  'SOAP-Lite-0.68.meta' => {
+    'md5' => '4e2c2a5dca821e88304b4cdeec312200',
+    'mtime' => '2006-07-06',
+    'sha256' => '214279b570ca31b8f6d0f01de3134e7d7a4c48b89edff37aefe671dd665d6c1c',
+    'size' => 753
+  },
+  'SOAP-Lite-0.68.tar.gz' => {
+    'md5' => '1ce5b461de969b12c5ce9892ffcdb810',
+    'md5-ungz' => '1dd910a272abe16dc61b1fc4d60d871b',
+    'mtime' => '2006-07-06',
+    'sha256' => 'eaff16673de1f736b7436df160f9a4ca89705776c00c1eea9637fd800580f578',
+    'sha256-ungz' => '03ad32a2191e2e27d94eff5d1a6e283b88f6bd79331f57b98311a1352f306bf6',
+    'size' => 237943
+  },
+  'SOAP-Lite-0.69.meta' => {
+    'md5' => 'e22afe6ec931afb14ee34c23dcd4888e',
+    'mtime' => '2006-08-16',
+    'sha256' => '9e13f87409469f4945cdabc7ea307b09a2f41da876a2fc7d6d112623e081857b',
+    'size' => 753
+  },
+  'SOAP-Lite-0.69.tar.gz' => {
+    'md5' => '24e0c656a6a7047c91f7f3f3b5c36513',
+    'md5-ungz' => '949f70ae3bf0fcc0585f87572bec591b',
+    'mtime' => '2006-08-16',
+    'sha256' => '90b69cd2482027fecd371a3fd1341d2276fc189b2af66b5dd76f63b44529fb82',
+    'sha256-ungz' => 'a6802e1bef7e136b6ecfc3df98dc07f5d2c33b2e3ff37a81da26b256aaf0e17d',
+    'size' => 238150
+  },
+  'SOAP-MIME-0.55-2.tar.gz' => {
+    'md5' => '156de2060107ad9267310941726c3027',
+    'md5-ungz' => '7b8ab6ab87a3267ca386ed51f7a6e32c',
+    'mtime' => '2002-07-16',
+    'sha256' => 'daa43a3c70e09523718e7981df138ae2cbcb8a68e870e7c8c1f7c3e058540f9b',
+    'sha256-ungz' => '69181598da007626eb8006ff0d20faba9d6dd45f26ba5bafdef9f0927928223b',
+    'size' => 6847
+  },
+  'SOAP-MIME-0.55.tar.gz' => {
+    'md5' => 'f4aed7ccb27ebe69c61f21e559a215e9',
+    'md5-ungz' => '11eacebf31f1d448b11eddd72f3bfcbc',
+    'mtime' => '2002-06-13',
+    'sha256' => 'bf5c960d21f893e6a84fac9e05262b308536b587a9c6e66986128c199fab014c',
+    'sha256-ungz' => '3484f9425717a86baf96d2e94ce1ea254d4d48a382862b9a4356382b938f19f8',
+    'size' => 2576
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD4DBQFGxkueMo2oZ0UPiewRAtkyAJwJgBuffJ3a6FV84Rr7T+l3XyAudgCWNn3c
+COrNoe/zReKmsmNxacHs4g==
+=wzi3
+-----END PGP SIGNATURE-----

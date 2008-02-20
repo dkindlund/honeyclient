@@ -1,0 +1,93 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Fri May 25 01:40:29 2007 GMT by CPAN::Checksums (v1.050)
+$cksum = {
+  'Net-IP-1.20.tar.gz' => {
+    'md5' => '73c5941562833d5ca7ca7c3bff7983fe',
+    'md5-ungz' => 'ef44d518053b8c6f255079c92e41f621',
+    'mtime' => '2003-04-09',
+    'sha256' => 'b7b241e81b890c8fcfcdedc22ede5e1771454dcf3b0496dd20f10471dbea85bf',
+    'sha256-ungz' => 'c55e84acc573f57427d2f8f14982df6372974ef60a04259cca1d4c8a69288310',
+    'size' => 24630
+  },
+  'Net-IP-1.21.meta' => {
+    'md5' => 'b86384a898a5e7758a49d84dff35dd9b',
+    'mtime' => '2004-12-01',
+    'sha256' => '5723203257a6d65d61a81de316fc5db8d132a0648ac6802c343d0a5797806deb',
+    'size' => 288
+  },
+  'Net-IP-1.21.tar.gz' => {
+    'md5' => '1a4163b626a743ca5a76e04cc00fa73d',
+    'md5-ungz' => '242aaea436c35bc2bfae5ee9de5dfcde',
+    'mtime' => '2004-12-01',
+    'sha256' => '62255e096c66dd4b7a06c9b9380a591471f01ba7ba6fff0140efef8ae4dd4fdb',
+    'sha256-ungz' => '158606ff685df9bc7be171ff35619bf3c8f3c31525ef9127733510b208cda503',
+    'size' => 25304
+  },
+  'Net-IP-1.22.meta' => {
+    'md5' => '77021629b4d8253ab3e2e1da4837081d',
+    'mtime' => '2005-05-27',
+    'sha256' => '11e316f98c66267464e9fe71c618333e3f4648e233e968b11ef9fbf41039a0ad',
+    'size' => 288
+  },
+  'Net-IP-1.22.tar.gz' => {
+    'md5' => 'b3caf36826060b89769d5aa32d716996',
+    'md5-ungz' => '6e8ed8cf73b72285beddbb2762b5801e',
+    'mtime' => '2005-05-27',
+    'sha256' => '5b443d8e03b28e1675cb578f6ce7f6cb61128bce362c8339b65b4db0f46c3e92',
+    'sha256-ungz' => 'aa2be92f824737ed7c0881c21492dffe910576933732f4689674b95c9f24227b',
+    'size' => 25523
+  },
+  'Net-IP-1.23.meta' => {
+    'md5' => '310b7b700c89cce7fc427858c790c075',
+    'mtime' => '2005-06-06',
+    'sha256' => 'c32981c18a5e994bde9c89074835485205629db19d65124d8a09e49f91bd7f9f',
+    'size' => 288
+  },
+  'Net-IP-1.23.tar.gz' => {
+    'md5' => '8a879191792eaeb9b6f7816a271bde2a',
+    'md5-ungz' => 'c3f78634ac34f546110ec19defa415f0',
+    'mtime' => '2005-06-06',
+    'sha256' => 'dc9aaa30c49a0e3fbc7145083bd23e002f81c0db89cffb2bbff238e9b4efda7a',
+    'sha256-ungz' => '768fcc122b345ac46085e71151af12ef96072f74a6badb9f208e2c0072bb1944',
+    'size' => 25715
+  },
+  'Net-IP-1.24.meta' => {
+    'md5' => '0367dff36af29da3a443dc64b289d450',
+    'mtime' => '2005-10-18',
+    'sha256' => 'a545ab3ed855cc193b399ff323cf81a91961be8cbc3e40e6007e642722ae8f0a',
+    'size' => 288
+  },
+  'Net-IP-1.24.tar.gz' => {
+    'md5' => 'edc91d262460130f583f3f1c42e041b9',
+    'md5-ungz' => '01c06e7a645f0e4aa2586e4ca13a853f',
+    'mtime' => '2005-10-18',
+    'sha256' => '71bf3dcd8cf07874e4c3bdfea69577b05074bfc16bf1584196b3e37affe31aaa',
+    'sha256-ungz' => 'e024b66ae9122ed28cd0a210a29843df10ed93af85c7e9ef3447d353b9fb53d7',
+    'size' => 25736
+  },
+  'Net-IP-1.25.meta' => {
+    'md5' => '805833a261380ccf54c6745a572af986',
+    'mtime' => '2006-05-24',
+    'sha256' => '481b3f9685fcb4665426ef9b32373accd8687d1cac45c82ff48191a248f55dc2',
+    'size' => 288
+  },
+  'Net-IP-1.25.tar.gz' => {
+    'md5' => 'a49c0b02a9b793ff60191cdafc0c202e',
+    'md5-ungz' => 'b052f2a3ffd6843ed8badcac7024cbfe',
+    'mtime' => '2006-05-24',
+    'sha256' => '4cd6e2202fd88c46d5458d19bbea80e257b6ba0ec57ea3ac8ae94ed48c9a60c7',
+    'sha256-ungz' => 'de9ea6222f82e81ec371703c690b4e4050992d202a93e21c31d311c481777b34',
+    'size' => 25749
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFGVj6NMo2oZ0UPiewRAkQNAJ0blpOIhO/1LNcjNe+/v8EYHdnniACfeqYS
+3kMBXqQjDf50nVuCWP8ayTk=
+=y75G
+-----END PGP SIGNATURE-----

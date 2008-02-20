@@ -1,0 +1,83 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Mon Nov 12 20:29:21 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'IPChains-0.6.tar.gz' => {
+    'md5' => '15042f19f925090ca2555efab5c44aa0',
+    'md5-ungz' => 'fdeafd14c45551517111645f0f07fc33',
+    'mtime' => '2002-04-08',
+    'sha256' => '589d36f990aad5bd36f1d3e5204ca5672d97949f04e5b5c379ca3ffdce27c846',
+    'sha256-ungz' => 'ecea760724744f62670c3b5cd6881d5bc2572994f0cf4d96eae94baee11a3e45',
+    'size' => 51437
+  },
+  'README.IPChains-0.6' => {
+    'md5' => '0e3527e7bbdfe9bd9d02ed04a060ae01',
+    'mtime' => '2002-04-08',
+    'sha256' => '775d2e5865362b7e9ed376df5a556d147cb72e9dbd34f4cb24525c1d7cee1afc',
+    'size' => 235
+  },
+  'Sys-HostIP-1.1.tar.gz' => {
+    'md5' => 'd969bf0a1ac16a9b5a86fc02d8fdde7b',
+    'md5-ungz' => 'f5ff3d7c1261d5c6be1beb34772eeb4c',
+    'mtime' => '2002-04-08',
+    'sha256' => 'cb21390d4c0fac549bf670991c2c8080b3b29f9fde3563d19a1421226006baba',
+    'sha256-ungz' => '9f0d19b21d881e0398fb69388bbbcdd65a92b5368871d555025097d617980bac',
+    'size' => 4953
+  },
+  'Sys-HostIP-1.2.1.tar.gz' => {
+    'md5' => '4e633d24d63fd89aeb109478100c075f',
+    'md5-ungz' => 'db9ae728a247df3831d619a796f3cdc8',
+    'mtime' => '2002-07-09',
+    'sha256' => '9f7e443d18b220ecade6df65e5c78b1576076e1740a6c85f87c31f75798449e3',
+    'sha256-ungz' => 'fad37e35ed54c26eb8915cc5040fb206ece5d55806c9827979ad53d47b485498',
+    'size' => 5254
+  },
+  'Sys-HostIP-1.2.2.tar.gz' => {
+    'md5' => 'b714dc895ea6e4e530d9db01977cd8ae',
+    'md5-ungz' => '1c243ae8855650d8593ee9c986a68060',
+    'mtime' => '2003-01-09',
+    'sha256' => 'fd6e2bb2ab87003ee38de598990045a76f1676e39c58fd3b575aa8912bf45455',
+    'sha256-ungz' => 'f3f54c77f97c6e67096cbde41e000dab89f23da93857de350d174fc58239797c',
+    'size' => 11300
+  },
+  'Sys-HostIP-1.2.tar.gz' => {
+    'md5' => '6ab73eb09ff3b9d00cba5af4c262a113',
+    'md5-ungz' => 'f08c9a4663c3986d26f43c69008e3110',
+    'mtime' => '2002-04-08',
+    'sha256' => '8c03cf4f2ad104b515972926a1fd70bf309651f4d0c83da71d0b0488b9f0c519',
+    'sha256-ungz' => '7af25d74e6d4451698ba5f831103ea58041e5f7ed49aeb20def64167aef08a73',
+    'size' => 5241
+  },
+  'Sys-HostIP-1.3.1.meta' => {
+    'md5' => '798da77a1f5ba0fb3ad7f2c7d6598b90',
+    'mtime' => '2003-09-30',
+    'sha256' => '0315df83d8892baf25d3ef8f6ab16c5471d199905bcfd01749407a3dc0155ef2',
+    'size' => 297
+  },
+  'Sys-HostIP-1.3.1.tar.gz' => {
+    'md5' => '71793ea0f880b126be92fdaa0ccfef83',
+    'md5-ungz' => '8d0f62995d04af1a7536b34011a460f3',
+    'mtime' => '2003-09-30',
+    'sha256' => '9836562145258a8a4851d7e72396f02508f05e2dd799f7bd489d02ace496ef3b',
+    'sha256-ungz' => 'a8fe7498ad6e3f3e47e2b4cf2a5356b5b7e8acde80e99b38896052311ac58a54',
+    'size' => 5282
+  },
+  'Sys-HostIP-1.3.tar.gz' => {
+    'md5' => '498d971090413f6a6fc61f8b82d29f82',
+    'md5-ungz' => '86402655d99ea7731c822886004ea3e9',
+    'mtime' => '2003-09-29',
+    'sha256' => 'a1cb72ffc72824d04cbde80286356d88c564c0d623b52fe89c6ff5521acad3fd',
+    'sha256-ungz' => '634d3cc0e215d8f6a998d1a77c96fa2c9f81c4676ffb545c5b278a8b11db6ff2',
+    'size' => 5100
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHOLehMo2oZ0UPiewRAowvAJ4vfu6TQaWDQE1n3o3HbyEK0KHw+QCghDZR
+Nn4APWCnny2OpaiTbtEakao=
+=lEHX
+-----END PGP SIGNATURE-----

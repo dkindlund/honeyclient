@@ -1,0 +1,339 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Fri Dec 28 19:37:36 2007 GMT by CPAN::Checksums (v1.064)
+$cksum = {
+  'Net-DNS-0.49.meta' => {
+    'md5' => 'ab9b365c7aeaf847105b9b7f3d4e0e0b',
+    'mtime' => '2005-03-29',
+    'sha256' => '6e7264e67f1e48911ea20a65bed50649dfa54637ff57dbbccd2033ef0521784f',
+    'size' => '506'
+  },
+  'Net-DNS-0.49.tar.gz' => {
+    'md5' => '715867bb21dda8995e8978a1b96a424d',
+    'md5-ungz' => 'e26c243d477c3fdb28307c6994b870e6',
+    'mtime' => '2005-03-29',
+    'sha256' => '55a8cb96eb7f765d77761f3cf887069322d797c13ee8919b38214a24664e82d9',
+    'sha256-ungz' => '8cf1acf24838c17fa0350129b5f5306682d2f910cc0c8053f8301685556ebede',
+    'size' => '100281'
+  },
+  'Net-DNS-0.50.meta' => {
+    'md5' => '9255ed79d7b0f893ce6c67730f61c358',
+    'mtime' => '2005-06-08',
+    'sha256' => '4a1175fe54e5c6f2e9371b267c28e95005482725446ca70380aebd782d392520',
+    'size' => '531'
+  },
+  'Net-DNS-0.50.tar.gz' => {
+    'md5' => '0cd1f84dc0ba31a99167213c4964d9a2',
+    'md5-ungz' => 'da446390cb27d754d306f29f9448de8f',
+    'mtime' => '2005-06-08',
+    'sha256' => '925da45c1c8bd8903a0e7c84ac39563fa01faf488ed59b919771e7b1dede646c',
+    'sha256-ungz' => 'ff9c9ddebebf5cad7eb71e6cd209ac57d657b0bc45e0fbc94df5dbf7e4c2b02d',
+    'size' => '116601'
+  },
+  'Net-DNS-0.51.meta' => {
+    'md5' => 'd939b36404cad25657db948c8e99bad9',
+    'mtime' => '2005-06-10',
+    'sha256' => 'd4d5e3c6d808afb7a8f07cdd9a0cc92eeaf1f900b9ecc23358a8366d1ed854da',
+    'size' => '531'
+  },
+  'Net-DNS-0.51.tar.gz' => {
+    'md5' => 'fc358c06e65b1918b93e1a92e02065b8',
+    'md5-ungz' => '29f9eca321ca73ef7689c13c7c4f0f0c',
+    'mtime' => '2005-06-10',
+    'sha256' => '4e68d40709198056539fce373f87db0a963dcda6d38893e7cc81f666d75729c4',
+    'sha256-ungz' => '05e940be84d10b095f641d26f83d23ebd853b97122c5c25ef305aafecbeff81e',
+    'size' => '117037'
+  },
+  'Net-DNS-0.51_01.tar.gz' => {
+    'md5' => '8b9fce0ca7dd2830722b35aef65aaec1',
+    'md5-ungz' => '416e2d01d396b0b4b3afbfcbef06ac5b',
+    'mtime' => '2005-06-14',
+    'sha256' => 'b58a578cb825cec5fa3c63e0fb214f6714f58552f1aa2699a24e66dc1c347cd6',
+    'sha256-ungz' => '2cfee8d5cdd836ad2a27a590dbebd59c94fb10bddda518c7e7ab1c72e13e4fa4',
+    'size' => '117516'
+  },
+  'Net-DNS-0.51_02.tar.gz' => {
+    'md5' => 'd32b8c131a67a4edefe00ab5dd8356f0',
+    'md5-ungz' => 'c658265cab85429b1c2f9fe3084a458a',
+    'mtime' => '2005-06-22',
+    'sha256' => '3bb41efeeff3779342fc614754a31c7a3caf7c76834c1f0a649bed724929b484',
+    'sha256-ungz' => 'f89cd36346cef1330979a624d2cc42cc9b69dd564d4aad92c0ca9305c3736b41',
+    'size' => '118537'
+  },
+  'Net-DNS-0.52.meta' => {
+    'md5' => '42a24167ddd32bd0229c244c3448625b',
+    'mtime' => '2005-07-01',
+    'sha256' => '33cfdb21d034f99c5c87ebc7e71cd0dc37c92d86e7cf460458b3fc5fbb83f69d',
+    'size' => '545'
+  },
+  'Net-DNS-0.52.tar.gz' => {
+    'md5' => '035e3ec9156fd73ca8a52308ebc5307c',
+    'md5-ungz' => 'f6f5c7a4fa9ae7d55f44b5d5215e1247',
+    'mtime' => '2005-07-01',
+    'sha256' => 'b8974c14460e4a203b81f067f33a72cc579ca5c023777456009b6b7011d666df',
+    'sha256-ungz' => '7390ae5b48ed89a5d5d742f2da65ea3b64db7a44f83c6366aedba0358f04e2f9',
+    'size' => '119056'
+  },
+  'Net-DNS-0.53.meta' => {
+    'md5' => '53ce5f0cd773a4dbaddd1d8fbb2e4709',
+    'mtime' => '2005-07-22',
+    'sha256' => '3f600948f90121eb18992d557256fa1099d91567a9c36ab6875f9037b95ac237',
+    'size' => '545'
+  },
+  'Net-DNS-0.53.tar.gz' => {
+    'md5' => '404797359373d4df1a025458ab1415f7',
+    'md5-ungz' => 'f2141657a7c053fdce936d4af7fc3678',
+    'mtime' => '2005-07-22',
+    'sha256' => '181acfb0178070bd06907097b7f7256fb5b37279109550067123dd8b9f378f4a',
+    'sha256-ungz' => '38248d2201f845131d94d5955cd9ca5223b0134ab17295801af6fa19f364f623',
+    'size' => '119705'
+  },
+  'Net-DNS-0.54.meta' => {
+    'md5' => 'd12a547a182a513ad2310045d0073e52',
+    'mtime' => '2005-12-07',
+    'sha256' => '5d6c39197f5a7b9d8e2bc0dc607e6f95d66580f23c3dd3b30d987e96c8330148',
+    'size' => '545'
+  },
+  'Net-DNS-0.54.tar.gz' => {
+    'md5' => '70d7ef4940d8777af6f3659dd359c80b',
+    'md5-ungz' => 'a7aa7adaf2fffc956abf8340a0d123d6',
+    'mtime' => '2005-12-07',
+    'sha256' => '8c1b30fbf917f9efcb761f04f17d2dc8ac11b2971a318bc5e518b212f2a48fb8',
+    'sha256-ungz' => 'c8acbc0261b2014519ef61296e77454d6c252e9f5fbacbe228dba9d3f5fd180b',
+    'size' => '126285'
+  },
+  'Net-DNS-0.55.meta' => {
+    'md5' => '40d09db956c1b3afd57e04c023ab7f48',
+    'mtime' => '2005-12-14',
+    'sha256' => 'f3cf2a1738d51a9c4bd0d660d7810784df9734ce581d6765894faebf1313de62',
+    'size' => '545'
+  },
+  'Net-DNS-0.55.tar.gz' => {
+    'md5' => '11c09089eb36aede51704031713399eb',
+    'md5-ungz' => '648ad5e9a939dd8b9a6f347d0e6e8008',
+    'mtime' => '2005-12-14',
+    'sha256' => '082d6b8616dcd0ea0a1ea0bf449f4c40347990ba6fc3b9381e50f73d948f8fba',
+    'sha256-ungz' => '27c1e585d672b1ba1979b3c3b9d5d64130b6d35bb987be82dfdd16cadb26aaf3',
+    'size' => '126737'
+  },
+  'Net-DNS-0.56.meta' => {
+    'md5' => 'd77905251eb323b514d56e779498f4af',
+    'mtime' => '2006-02-20',
+    'sha256' => 'ba6ca7b1d915c6ef56eeacee74dc5fcc3d9f674b76725f88770a6c27d4d55ef0',
+    'size' => '545'
+  },
+  'Net-DNS-0.56.tar.gz' => {
+    'md5' => '4a029f80c4aeedb4691ad9f342d4b5b3',
+    'md5-ungz' => '1515063c9b5ba95a25941a195fca50d2',
+    'mtime' => '2006-02-20',
+    'sha256' => '7e98a00c43dab10933717799b953e822563b0ceaaa01e114ee6aaf7ebd6baafb',
+    'sha256-ungz' => '5d46f2e78abb76b55d45e1a358bb700dd18d039706c8dabb795c06996f2daf06',
+    'size' => '131463'
+  },
+  'Net-DNS-0.57.meta' => {
+    'md5' => 'f429938c5324288d8e62db999ec9f207',
+    'mtime' => '2006-02-24',
+    'sha256' => '800c112bfc37ee4f07d9fc69ce456132499dabc08593733e433c0aaf95f1d34a',
+    'size' => '531'
+  },
+  'Net-DNS-0.57.tar.gz' => {
+    'md5' => '9511a7052e553f2a29a5bae32c20bc44',
+    'md5-ungz' => '9805487571326547f3c32d8b8722b2ab',
+    'mtime' => '2006-02-24',
+    'sha256' => '5411ca2713c206315a3302b6e95bdb1096fc46d00a4e5697faede4d6202e23df',
+    'sha256-ungz' => '11c3b73520d8e8fd5d7fe5552c17abad89a4fbc23e052daf06ac69ecc6a42abd',
+    'size' => '131596'
+  },
+  'Net-DNS-0.58.meta' => {
+    'md5' => 'f6e68c9ecfa178226141c3d6538041ba',
+    'mtime' => '2006-07-04',
+    'sha256' => '5a9a20ba9dc63e3540e8fc33850a5386c4c63eb09c45dfe39005cbdd4962b07d',
+    'size' => '545'
+  },
+  'Net-DNS-0.58.tar.gz' => {
+    'md5' => 'eddc33ef5ab2fc17a1c2239177360c01',
+    'md5-ungz' => '7ed28fe37db6720a33eb0bdddd946288',
+    'mtime' => '2006-07-04',
+    'sha256' => '3475f20eb094ca5e5b7018a215f1a74863e014ca0d24a9f38b4968b62ea31241',
+    'sha256-ungz' => '94113b4297441ec736278671ec2d914692d243d155518a96df25310f06b2ea56',
+    'size' => '136609'
+  },
+  'Net-DNS-0.59.meta' => {
+    'md5' => '04fe265c6ba2658e0ce5b5cb1481cef2',
+    'mtime' => '2006-09-18',
+    'sha256' => 'c64b550cdb2ca51feded577415fbc910873e93485a883064e2e760aec0cfb122',
+    'size' => '531'
+  },
+  'Net-DNS-0.59.tar.gz' => {
+    'md5' => 'd3408875f34e5fa0a313a4a21c70e832',
+    'md5-ungz' => '1132e355cc16f796ff1aee64e85fa552',
+    'mtime' => '2006-09-18',
+    'sha256' => '4ec19c2390d42a83943ea99adf0d174c5e47992f47b2541a9021d2f714dd8633',
+    'sha256-ungz' => '065c577ddce1d47b7de39a2eec1d9810c2c101592d42e17e44b6dd54e1d05fc2',
+    'size' => '137998'
+  },
+  'Net-DNS-0.60.meta' => {
+    'md5' => '8e32d2036130c57e7af9e165e5c89141',
+    'mtime' => '2007-06-21',
+    'sha256' => 'c9d46b87bc5cb56a564072d9e55c920bc5d2faa0f32108535729b02d20526943',
+    'size' => '545'
+  },
+  'Net-DNS-0.60.tar.gz' => {
+    'md5' => '8ab75a7c4a1b782e5d88b08cc70be945',
+    'md5-ungz' => '528247c378e66336f1374dfbded679bb',
+    'mtime' => '2007-06-22',
+    'sha256' => '2bf3cba677774023d8b65cf8970c0dc3d335c933acb3007fc5e53ea9e4cf9f40',
+    'sha256-ungz' => 'ee3821d10815db4d6d49d09113bd7af3291cc180a069a08e21c1f94f65c1aee9',
+    'size' => '146434'
+  },
+  'Net-DNS-0.61.meta' => {
+    'md5' => 'cb7ed7d5e6a9f1296cc643bf1a54d7a1',
+    'mtime' => '2007-08-01',
+    'sha256' => 'acb2384b4b4306906e1747d17486ba30808b66fe97a04d722bb73a6fa90616bb',
+    'size' => '611'
+  },
+  'Net-DNS-0.61.tar.gz' => {
+    'md5' => 'a7d75eb3bdf7aca5d0696b95e3fabf65',
+    'md5-ungz' => '7bb057957c468e93a693aefa7af505bf',
+    'mtime' => '2007-08-01',
+    'sha256' => '1837a47bb0510e15d590500d94cdca605fcf89e0c88f061127b9b81982e5679b',
+    'sha256-ungz' => '1a49d15558b7ffe0cf65d1ac4b587188ce0a68c7e10b1f6831950a108a11c40d',
+    'size' => '145400'
+  },
+  'Net-DNS-0.62.meta' => {
+    'md5' => '2da79df29fd54302ced91e95ed7ee6bd',
+    'mtime' => '2007-12-28',
+    'sha256' => 'c19823aeb0a5b6f3cf82961d78caf7274f07e3e189e9497c116982bcf094f284',
+    'size' => '531'
+  },
+  'Net-DNS-0.62.tar.gz' => {
+    'md5' => '91366517392283a909ee37d3c1c64904',
+    'md5-ungz' => '041b3c18a9dbc19f1b9d8ab56d45ff43',
+    'mtime' => '2007-12-28',
+    'sha256' => '2ee22c790cacb7e31e799217577a495da8c48fc82701b37f3e23fa8e0b2fe5ae',
+    'sha256-ungz' => '5934dcc8631216218adfd92a6a7ce8e28d83093a66218936133b742e311598f2',
+    'size' => '148827'
+  },
+  'Net-DNS-SEC-0.11.meta' => {
+    'md5' => '89ddd83034422c5c5954290eafa9e1aa',
+    'mtime' => '2003-09-01',
+    'sha256' => '4918ffd92921d52e3e6f978deee0adaee5418e0b3d3dc41332a816f32b24a224',
+    'size' => '720'
+  },
+  'Net-DNS-SEC-0.11.tar.gz' => {
+    'md5' => '6ccc37b2f38b830a8fd0a69901f947bb',
+    'md5-ungz' => '188b04e6946277b6baf8cdcfeff95479',
+    'mtime' => '2003-09-01',
+    'sha256' => '435707075a13b8bc8831849be6a304beefc07a22cb777dbb18badaf5dadbe188',
+    'sha256-ungz' => 'bee490ac1d89d7772c55401c6cf6f7ac721dd6cc84f02d4c981eef5d94f251e4',
+    'size' => '49996'
+  },
+  'Net-DNS-SEC-0.12.meta' => {
+    'md5' => '3e6d0f4ef60f77e9f13af3ce3bcc769f',
+    'mtime' => '2004-06-11',
+    'sha256' => 'a64a4a14ca1903e6c3a679fde6d655ce6fe377a670b9d27756055f130a4aa055',
+    'size' => '718'
+  },
+  'Net-DNS-SEC-0.12.tar.gz' => {
+    'md5' => '546a1776b23860d510b15303709456e9',
+    'md5-ungz' => '3db5aa2b4caffd85e57ad304e94a9e79',
+    'mtime' => '2004-06-11',
+    'sha256' => '2ecf3a2793aa4b62fb35763866ec59509665d2ace7f1ec0e818a72897c885fd5',
+    'sha256-ungz' => 'b974ae6b70bd8fa894e4c73fc0831991ada17091f9259b474e605779c0cf9248',
+    'size' => '60698'
+  },
+  'Net-DNS-SEC-0.13.meta' => {
+    'md5' => 'd31f05031e09027da4dccbc336b14e62',
+    'mtime' => '2005-12-09',
+    'sha256' => 'd75af24daf1154cde60861cb0e8c254fdceb0e699e87576529e8047ec68d0f82',
+    'size' => '758'
+  },
+  'Net-DNS-SEC-0.13.tar.gz' => {
+    'md5' => 'c8a361cb30deb0f3030253a023273885',
+    'md5-ungz' => '4ce0c4d94707e3dad05ec8ee0122b12d',
+    'mtime' => '2005-12-09',
+    'sha256' => '597aa386cc8bb95e0cc6cde0a23f47c35db65382936fec2ede7651826a914d94',
+    'sha256-ungz' => 'fbe7c329240c76309f92eb2b6201de4f1de66373655ebea3fb6f359a98452f91',
+    'size' => '71928'
+  },
+  'Net-DNS-SEC-0.14.meta' => {
+    'md5' => '10cd7766366361f26c611fd788667de7',
+    'mtime' => '2006-02-14',
+    'sha256' => '675897eb5f4625d03fe7d9b98ec8633cb7f2fea6a19495e2026c3ce532f352e8',
+    'size' => '758'
+  },
+  'Net-DNS-SEC-0.14.tar.gz' => {
+    'md5' => 'a87e3e4c8467ea2d64408abae2abcfc6',
+    'md5-ungz' => 'ada36d38de77d60d712307b9702fa4dc',
+    'mtime' => '2006-02-14',
+    'sha256' => 'f1b879a89617060753340a51c72661acf219fc31b0752a178c150df189532912',
+    'sha256-ungz' => '02d29ad3ec313f0df0fa347b4d8d176925c7bc94caf864649bb94322027ed93e',
+    'size' => '75473'
+  },
+  'Net-DNS-TestNS-1.06.meta' => {
+    'md5' => '9a4f67020dbfd54fc1d9a7f212565068',
+    'mtime' => '2005-05-10',
+    'sha256' => 'bcf8d8e79f89d452f03f01f90c46a9213420303a138df018e0d646a6374756e4',
+    'size' => '419'
+  },
+  'Net-DNS-TestNS-1.06.tar.gz' => {
+    'md5' => 'd56c78ec779597c0d16d3835db739cf1',
+    'md5-ungz' => '0a4c5ed84fa6d78cb73a4f7487a7150c',
+    'mtime' => '2005-05-10',
+    'sha256' => 'e84347e7071e34d5cc4e195c4bc043c6fa8d7d44e1a21b1cc8545148fefa6ccf',
+    'sha256-ungz' => '8f6939dd718b9b7816fe15528d5275ffcadbdc0d2fc9114fba9140c70f99aa0b',
+    'size' => '8195'
+  },
+  'Net-DNS-TestNS-1.09.meta' => {
+    'md5' => 'a5ebbcd105e796595ccc57056ceff76c',
+    'mtime' => '2005-06-08',
+    'sha256' => '7f0fd49c69d0785493355572ad50979ada41594493934dde8faf0cf8ed99b483',
+    'size' => '410'
+  },
+  'Net-DNS-TestNS-1.09.tar.gz' => {
+    'md5' => '452fc913da05b9de14d99d516407b3d0',
+    'md5-ungz' => '69bc26d369efba91ccce4f1bb808b20e',
+    'mtime' => '2005-06-08',
+    'sha256' => 'f10848fb4297ec926051541ddf2a8dfb105632b788123577e0e6e7116d4440f5',
+    'sha256-ungz' => '55e158e34dbaf9695488577d9b8a9a483e25a41d2aff1bc28d9669d016d9f784',
+    'size' => '16840'
+  },
+  'Net-DNS-Zone-Parser-0.002.meta' => {
+    'md5' => '7cda3ff6542f9c5374d3ff5eba36d6e8',
+    'mtime' => '2004-07-21',
+    'sha256' => '87545d39ac04af278c6fe0a2e40e9903ad20336c10a28a5133f30684eca4ee73',
+    'size' => '460'
+  },
+  'Net-DNS-Zone-Parser-0.002.tar.gz' => {
+    'md5' => '849d8fa00b82da2dc29ec6bf909f4c13',
+    'md5-ungz' => 'af5aaf57847cd64beae349a293cf8623',
+    'mtime' => '2004-07-21',
+    'sha256' => 'be2debffca4fcff5b10b500257e8910562d2935ec720b39a65a0f62a713876b3',
+    'sha256-ungz' => '6b06e6bd293987e5b97b6099749280a6177fe54ce0f0919c360332a6847d885a',
+    'size' => '55924'
+  },
+  'Net-DNS-Zone-Parser-0.01.meta' => {
+    'md5' => 'e2c32ecf4a7ad99cd1e60284880d15c5',
+    'mtime' => '2005-07-26',
+    'sha256' => '79b7d36bc351624331a53b0dc2fc472d4da5f2a0e7b930519e96987f504f9cae',
+    'size' => '461'
+  },
+  'Net-DNS-Zone-Parser-0.01.tar.gz' => {
+    'md5' => '8303eb2a6b87e20b3deeaab73cb3a2c1',
+    'md5-ungz' => '4bca5d8c9ff3c3a80efde23d43d6fc49',
+    'mtime' => '2005-07-26',
+    'sha256' => 'cf27f0be0417fdf5060b3a8ed4b2a06a4e26a42f380662e62795c2141b2ca0c9',
+    'sha256-ungz' => '126da968fea635d7cb6d7ec83ef11b8fe5719931393ac004b2f3067a064ddc5a',
+    'size' => '56372'
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHdVCBMo2oZ0UPiewRAkVWAJ9YViWjGR4OkuGPt6JR6zyUYa5LSQCfWyqj
+xfY4JVx2wbmdgkP5IB9oeKw=
+=F0mF
+-----END PGP SIGNATURE-----

@@ -1,0 +1,51 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Mon Jan  7 08:40:21 2008 GMT by CPAN::Checksums (v1.064)
+$cksum = {
+  'Apache-TempFile-0.05.tar.gz' => {
+    'md5' => 'f827aff3904c762632e01633914f7154',
+    'md5-ungz' => '202b94217ea60c139d78df7453681ec2',
+    'mtime' => '2002-08-17',
+    'sha256' => 'e692b9fbdbca4b93c0b9c28033ac48ae49a6aee1aa863d8653a689538bee6351',
+    'sha256-ungz' => '774f128ec594b818ea4f69beb478f65e80adc442305f9027adafaa5038f0fc92',
+    'size' => '2038'
+  },
+  'IO-Zlib-1.08.meta' => {
+    'md5' => '5624c82fe5faacd770b30a4ee308b295',
+    'mtime' => '2007-11-18',
+    'sha256' => '495baf1e5488030451cd940abd28ba34ed3a37d5e439bf678e0cc15889c293a2',
+    'size' => '346'
+  },
+  'IO-Zlib-1.08.tar.gz' => {
+    'md5' => '0758cc9daaab62883ebefae8d74c4a5f',
+    'md5-ungz' => 'e34bb9d7e4155fcd51596daf66779d44',
+    'mtime' => '2007-11-18',
+    'sha256' => '54ebe5c9ecbdc8227e3e0982749ac7e0f79ab57d7c31b3580d8eb0c69b9d245f',
+    'sha256-ungz' => 'cd52b54e4774d0852d8f3fd08aadf5f35b827ca658e26000e3994c50aac52b39',
+    'size' => '9985'
+  },
+  'IO-Zlib-1.09.meta' => {
+    'md5' => '50c22df40d8705f3c8d4d0ec7d0a5dfa',
+    'mtime' => '2008-01-03',
+    'sha256' => 'cc5b6ba0f83fc79e17776ab6a0f6087d091ad4df703b1b3d3e03135fcaea346d',
+    'size' => '369'
+  },
+  'IO-Zlib-1.09.tar.gz' => {
+    'md5' => '7e0244de33de418745584adcaad4869e',
+    'md5-ungz' => 'b06dba04cd838f0250b8fbe40bd8964a',
+    'mtime' => '2008-01-03',
+    'sha256' => '5ada9a6c81cbc51b1cc2061911569509834635ff3f396f22f6cdcbbb868222f3',
+    'sha256-ungz' => '0d366f9687c105e5d42b6a0508f8d722ad3e1776ae0e0acd6f50cf6f62c8166f',
+    'size' => '10092'
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHgeV1Mo2oZ0UPiewRApEyAJ0WiD5sghoJDPGgyiNXWYegv3zOMACePFVc
+MWgfl45MHxzrg3XSgzML4PQ=
+=hP+s
+-----END PGP SIGNATURE-----

@@ -1,0 +1,43 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Fri Apr 27 07:46:52 2007 GMT by CPAN::Checksums (v1.050)
+$cksum = {
+  'Class-MethodMaker-2.09.meta' => {
+    'md5' => 'a7f5483c432af1b59e69b14a34d7beff',
+    'mtime' => '2006-12-04',
+    'sha256' => '7ee28dc7b3a63a8de8bd3ab7b30da78a18129bd2d191b17ec4312638d9745b7c',
+    'size' => 738
+  },
+  'Class-MethodMaker-2.09.tar.gz' => {
+    'md5' => '7e0ca5b6eba1e8611db7f77fd2f7cb95',
+    'md5-ungz' => '7ecf04d66ca2aa6ab018df8966cad454',
+    'mtime' => '2007-02-09',
+    'sha256' => 'fe31877af9781b986c2f8eb36497628f133af427a66a3fe9fc3e83f74a4ef2ac',
+    'sha256-ungz' => '3e93462839842378f8e325184c882aba23c6427da160936aa54daedb1785300d',
+    'size' => 87431
+  },
+  'Class-MethodMaker-2.10.meta' => {
+    'md5' => '26ca63a7e98eabbc864e7131ff85d824',
+    'mtime' => '2007-04-27',
+    'sha256' => 'd3fa9f8bf1642abac324b86ca463372e7a29a2a6f95686dfa35471059cadbb6a',
+    'size' => 294
+  },
+  'Class-MethodMaker-2.10.tar.gz' => {
+    'md5' => '97181580315dd9776eafae67827c909f',
+    'md5-ungz' => '9894c11f0a6653eb8f46de3570e1c9c7',
+    'mtime' => '2007-04-27',
+    'sha256' => 'b7583231c404cc43aebb4315ba052cd187c0e754517a4aa28dff5605bded52f0',
+    'sha256-ungz' => 'e181ba0ac10fa763e45b4f131bcc369aee21d93bd375aa7f22dc56717af0fd7c',
+    'size' => 89286
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFGMapsMo2oZ0UPiewRAslrAJ9kY31Tj3WsXItsssXXYniyJwdSfwCgkd+r
+OWNZP6r8HL4Ss2TbTmTtu5M=
+=fpx1
+-----END PGP SIGNATURE-----

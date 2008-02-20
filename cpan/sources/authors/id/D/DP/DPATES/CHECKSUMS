@@ -1,0 +1,55 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Wed Nov 14 02:30:43 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'IPTables-IPv4-0.96.tar.gz' => {
+    'md5' => 'a48b16b6b8d8df36e30af6a88534f468',
+    'md5-ungz' => 'a087a848b1b068d312d6cbb92abd627d',
+    'mtime' => '2003-04-18',
+    'sha256' => '685613287b2b0ef4ced039b693fbc5f08ac84b86052655aad5ba5389e741760d',
+    'sha256-ungz' => '4cfbe1acdc651c4cbb6e343f77f2f82e7925597e81b642589a2a90345c43d325',
+    'size' => 156200
+  },
+  'IPTables-IPv4-0.97.tar.gz' => {
+    'md5' => 'd442d44c831c48bc2bc64e082b06c48f',
+    'md5-ungz' => 'e8bf6018127b6bab0be6082e2b5f4fd5',
+    'mtime' => '2003-04-25',
+    'sha256' => '3866109efbfb103eee589a2d828481c3d6230d204a02ecae586a6e4c240c6c47',
+    'sha256-ungz' => '050f26135a8dead15cfbafccdeedf557cc78cec7ad4d6fe7816fe040aa2211b9',
+    'size' => 169497
+  },
+  'IPTables-IPv4-0.97a.tar.gz' => {
+    'md5' => '198a9033a3c411a4d910c59d9827aea6',
+    'md5-ungz' => '1ae2117bd2775e1a9593a7eb0da992f4',
+    'mtime' => '2003-04-30',
+    'sha256' => '9705f8b009355cb259a3a1c1d165877c97ea15378a7c34781bb6046e9229a91c',
+    'sha256-ungz' => '6cf5f8796ba108e5d2d1f065e6f40813ce0fb68d7d3f14c65c86b9d0632afe3b',
+    'size' => 169806
+  },
+  'IPTables-IPv4-0.97b.tar.gz' => {
+    'md5' => 'c542abd9bd628176d7223b912c58e8c1',
+    'md5-ungz' => 'cc8629c8fefb58a1991593e9264add7a',
+    'mtime' => '2003-04-30',
+    'sha256' => 'c4bcef873561a7d2199c315fcc6488ff869b5a9aa445504b7b1f1aed2b5f5025',
+    'sha256-ungz' => 'a67ba4545f9e37b8e4642eec7ef54b98c86db8c4831040f95fe1a8a22e28e42c',
+    'size' => 169821
+  },
+  'IPTables-IPv4-0.98.tar.gz' => {
+    'md5' => 'e89860a19babcc9fc125e2f352c5160a',
+    'md5-ungz' => 'fb4499c000af32aac28069fbe7c08976',
+    'mtime' => '2003-08-19',
+    'sha256' => '5c91b0bc035df5d05743d5a70377049caaba9eb48848bda398a0e9e994959787',
+    'sha256-ungz' => '79789e4d29c40d9ce1fe408f6bdfa6493340c77fd8f24e48b57afe7a1d4163bc',
+    'size' => 195375
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHOl3TMo2oZ0UPiewRAnK0AJ4jsvRuox37J/di94knPdYjT5zmJgCgor/e
+TswGTPnvrNEnCs/YpNresWY=
+=ABTI
+-----END PGP SIGNATURE-----

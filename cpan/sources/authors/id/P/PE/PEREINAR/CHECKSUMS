@@ -1,0 +1,55 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Sat Nov 17 20:37:00 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'File-Which-0.01.tar.gz' => {
+    'md5' => 'e1440421c76e2e4cca68211baf697ce7',
+    'md5-ungz' => '944e34ff157f5c1528cabfbf4bf0edbf',
+    'mtime' => '2002-04-14',
+    'sha256' => 'a3e4584e1d14acace33fea6694a3f9675f30acfbbd157b0ba507cc114b6fcd22',
+    'sha256-ungz' => 'e969d850d36a456b040aeab5542cede10fb7c5d41d1efe37752fe645707ed268',
+    'size' => 2969
+  },
+  'File-Which-0.02.tar.gz' => {
+    'md5' => '449ec1b76824b765202966ae6079929a',
+    'md5-ungz' => 'ff0de4bc600ec6e4851dbdd5932ccac7',
+    'mtime' => '2002-04-19',
+    'sha256' => '64212d22a139c38830c9b9fc6d3b693f38c35ab3d6b04eb7b5b435f1d749c06a',
+    'sha256-ungz' => '1e2f23ec8cc3c08fcfacc1cdd1bbbe32d63ce197162a9558040fa64adac9f69c',
+    'size' => 3922
+  },
+  'File-Which-0.03.tar.gz' => {
+    'md5' => '07cc49e75ee07dd61a233fa0485170c0',
+    'md5-ungz' => '3c32e8181508473afc097d90ba2440f5',
+    'mtime' => '2002-04-24',
+    'sha256' => '9fb37928a6c5b42f8bc19233d3c6857aa4370c00df97ce1419030b1a78e5c91a',
+    'sha256-ungz' => '7c6e1c6ce0f69382a2a70be5730af817e2cfa861c6c1731bc44cead6c03610e3',
+    'size' => 4586
+  },
+  'File-Which-0.04.tar.gz' => {
+    'md5' => '05263f95ab27d1f7392ae1b8c584e4e6',
+    'md5-ungz' => '7e6a2868823cf97fe9eeb93ac1a3a16d',
+    'mtime' => '2002-06-20',
+    'sha256' => '61e34420faa5606fa645434e02157e6b2f8dbe94095d3d0efb81e231a983976b',
+    'sha256-ungz' => 'ebd1b3caa4fbdb02771aa09a3ddd1d1ff97283a382dd3c5b8b120b441bbd6ad9',
+    'size' => 5097
+  },
+  'File-Which-0.05.tar.gz' => {
+    'md5' => 'bd671a65f770fc0a124095e74c7c8013',
+    'md5-ungz' => '98e78ab901f78149491a1caf0e3170d2',
+    'mtime' => '2002-06-24',
+    'sha256' => 'ee85f83119c7a5952c2a44a0183ea5c0809e98129a3473ee36cdf2227c836765',
+    'sha256-ungz' => 'ad750190b9695067d7becbd50b3560ff3c363a38feb9ba60681a2cc0520a31dd',
+    'size' => 7264
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHP1DsMo2oZ0UPiewRAr4mAKCQaOga63z90iwbfBe6nGOOJCN/GQCcCtaT
+cYwhQt+CJeQpqsfRslU/uV4=
+=GTPH
+-----END PGP SIGNATURE-----

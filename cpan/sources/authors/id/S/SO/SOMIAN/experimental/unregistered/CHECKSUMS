@@ -1,0 +1,39 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Mon Nov 19 08:38:13 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'Filesys-CygwinPaths-0.02.tar.gz' => {
+    'md5' => '1d27a88ddecc6954bae620ee7251c608',
+    'md5-ungz' => '08f18b01cb2db156d62ac28c7bc2aa2e',
+    'mtime' => '2002-11-13',
+    'sha256' => '04d24d82aec6842af1c165ee5b6790f3cded2a5d6b5dd6e138cd9a8b0ef27059',
+    'sha256-ungz' => 'f94c86a476de0ee423c26b4aabd0e9509602a6e897c3eff549a6d2ef8925553e',
+    'size' => 5901
+  },
+  'Filesys-CygwinPaths-0.03.tar.gz' => {
+    'md5' => 'fae1d53959b7123b2b04a45735f9947f',
+    'md5-ungz' => '8a7431d17e3a644b648d62554f1b1033',
+    'mtime' => '2002-11-14',
+    'sha256' => '3385a14f12af7b4371477f02a47a30d42f8c55e5999878ed0c7a67d5d1c2b930',
+    'sha256-ungz' => '6be2533fd60f83c839021c866b9404e0daa2936dc7d989c104f84ae533cf0914',
+    'size' => 8580
+  },
+  'Filesys-CygwinPaths-0.04.tar.gz' => {
+    'md5' => 'f682ef62ef8cf838bfced3831f393719',
+    'md5-ungz' => 'e3b40e940c5208119f7207ce23082bc8',
+    'mtime' => '2003-06-02',
+    'sha256' => 'be9746436de6d659809aa3f7ced90323294cb53c7d628b4417852fd5df6ab563',
+    'sha256-ungz' => '68330b245be3ad333b4fa91ee7750efbaf86e939630392a7287267d51c3b2fc6',
+    'size' => 8947
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHQUt1Mo2oZ0UPiewRArgZAJ92rE6zaR3zSzHiFy6Re6wDFn75eACfX3OM
+Se+Zp1iPylSrxcNCft2KA1A=
+=xbBE
+-----END PGP SIGNATURE-----

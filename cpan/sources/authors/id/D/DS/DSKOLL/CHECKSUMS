@@ -1,0 +1,85 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Sun Mar 18 08:33:59 2007 GMT by CPAN::Checksums (v1.050)
+$cksum = {
+  'IO-stringy-2.110.meta' => {
+    'md5' => '1bc4e71439a1990e21017b8226005b0d',
+    'mtime' => '2005-02-10',
+    'sha256' => '68dda1b6450c9f626a6ddfc7a8dd35e70cf490ccaf8bd06610fb9ee7427b5dc9',
+    'size' => 305
+  },
+  'IO-stringy-2.110.tar.gz' => {
+    'md5' => '2e6a976cfa5521e815c1fdf4006982de',
+    'md5-ungz' => 'ebedcfb71dea5620e49beed80ceab991',
+    'mtime' => '2005-02-14',
+    'sha256' => '7e3cf438b3938a2692cb502704c0bbfa2c5ec4a5071ab77906a2432126b004ee',
+    'sha256-ungz' => '9e70c4c5fb307ffb8d4eb0ea03c61ccff8f7edbcb4e92c019230756c52a95d16',
+    'size' => 40590
+  },
+  'MIME-tools-5.417.meta' => {
+    'md5' => '6deb80052f9bea66d6280baedd7492ec',
+    'mtime' => '2005-01-20',
+    'sha256' => '0787c2bda6336f9c294c2552d8bc075a4b1088d6734bd73096449289b3f26f1d',
+    'size' => 583
+  },
+  'MIME-tools-5.417.tar.gz' => {
+    'md5' => 'a92299db8729f0f7886ada6e3539b265',
+    'md5-ungz' => 'ae95cf388021a9d3f1cb2a8c8c45a390',
+    'mtime' => '2005-01-20',
+    'sha256' => '38375b761b33644a00da5d3b632057e779a3bea2ca9caeae0d2998f1eb1714ac',
+    'sha256-ungz' => '477252298fd04592876ffad2a4b9311fe097d927aa07ab95e7ffbcbe6f558f8e',
+    'size' => 385018
+  },
+  'MIME-tools-5.418.meta' => {
+    'md5' => '8926e4f0f454cb5fe000e5f2d88e1362',
+    'mtime' => '2005-09-29',
+    'sha256' => '89ca8ed816013b8f6a81610d9c6be92cfee230b23fe9c2e4b6b08982a266b4ef',
+    'size' => 583
+  },
+  'MIME-tools-5.418.tar.gz' => {
+    'md5' => '39bfa5efc92ef6838a932ee9fc0d437d',
+    'md5-ungz' => 'a4d2709670eb0282b4425985e69815d1',
+    'mtime' => '2005-09-29',
+    'sha256' => '306641db7567e03fdb6721fd0649b823cd0db41e0520e687a0825c31f5faf699',
+    'sha256-ungz' => '56924a46d0e9c74200f69c96a1ff6535f175f7b318fe7b08b2149ae9798367cb',
+    'size' => 384664
+  },
+  'MIME-tools-5.419.meta' => {
+    'md5' => '6ca67d11840a372b31e14dca1a3231e7',
+    'mtime' => '2005-12-22',
+    'sha256' => '09838257ec45f5ae38c5db767d3fe616c01fb4bd56098fe49274c34741e47d46',
+    'size' => 620
+  },
+  'MIME-tools-5.419.tar.gz' => {
+    'md5' => '1c033072b751e27ecb096bc155a7e406',
+    'md5-ungz' => 'b6c873fc8d16612b3f52878874a7ab91',
+    'mtime' => '2005-12-22',
+    'sha256' => 'c35e4dcd56fe44b5c89fe150987a5edb26cf05b23acc50760cfcaec91882bf1e',
+    'sha256-ungz' => 'd2b286ea3428a63eaae5b0b2e4c8d473b3e4bc87bd0da1bf3bf6767b00febde0',
+    'size' => 387584
+  },
+  'MIME-tools-5.420.meta' => {
+    'md5' => '9e9f533679ef1659757897d010531677',
+    'mtime' => '2006-03-17',
+    'sha256' => '7df28619602a43ff29b4cf27f2970206861b5fd555d1970387f600a50a16f57b',
+    'size' => 620
+  },
+  'MIME-tools-5.420.tar.gz' => {
+    'md5' => '4db6505cc0132c80c5a9cc54f443a21a',
+    'md5-ungz' => '10fbbf8d37368c19b265aa5aea8796a7',
+    'mtime' => '2006-03-17',
+    'sha256' => 'd05a618d9efb16091014536ae9944e6f87cd35663b30d9ca7b11fc932afd0f60',
+    'sha256-ungz' => '6f5f87736e40d15b113d80f897df687635f09e9a592114908f8d6c6c03b3fccf',
+    'size' => 387747
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFF/Pl3Mo2oZ0UPiewRAnqnAJ0TD05bs+s5cxwVjyooMYGI8lBNCQCfcblr
+IRZf2RXHFHic08oMI209Baw=
+=/bnU
+-----END PGP SIGNATURE-----

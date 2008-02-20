@@ -1,0 +1,167 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Thu Sep 27 21:44:44 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'DateTime-Event-Easter-1.04.tar.gz' => {
+    'md5' => '900eff6cada85e57580621b98bf94629',
+    'md5-ungz' => '7088172fee5de7dd86c36ea6b2d1b5aa',
+    'mtime' => '2004-04-04',
+    'sha256' => '53294126ddc7c3a392c94193d3649483430745d57a8231339a9703ec1cf02a57',
+    'sha256-ungz' => '442a14818d134d476712771825c59763bab2b1eb046778480b462b819197be8d',
+    'size' => 20449
+  },
+  'DateTime-Format-Baby-1.0100.tar.gz' => {
+    'md5' => '4e74820f88e2793cc95c627633532f58',
+    'md5-ungz' => '8b9d555b8b47b9dbdb6f4cc1fc83e9ea',
+    'mtime' => '2003-06-28',
+    'sha256' => '21830017b6ce5455d0af916e439bf67ed1ba39afee6caee27143d79ba2f61026',
+    'sha256-ungz' => 'beddc087f85d8ff32939a2a5f0794e48bc1179cce96895772940496bab4a9c41',
+    'size' => 6262
+  },
+  'DateTime-Format-Duration-1.02.tar.gz' => {
+    'md5' => 'd8438540fa90f1efc5a0a12b63485b2e',
+    'md5-ungz' => 'c4241031dce22f23c65f96a82ce9b71b',
+    'mtime' => '2004-04-04',
+    'sha256' => '9bb938f23052ef8e8a69ec94b3ff831efac02e904e1973cbb7b5407fe5b19a3b',
+    'sha256-ungz' => 'bde05227e2c3e0049adbf214228f6776b2c43e9e00511aaf572f7c32d011c396',
+    'size' => 85610
+  },
+  'DateTime-Format-Duration-1.03.tgz' => {
+    'md5' => '101dc308e1b2fa58be3be322c95a1c2e',
+    'mtime' => '2007-07-01',
+    'sha256' => 'f2df5feee86c8decd755c1510cc135d4fa335ff4730940c2046a33cd652667f6',
+    'size' => 86360
+  },
+  'DateTime-Format-Duration-1.03a.tgz' => {
+    'md5' => 'f395c9f17d8fe65aa3b3cca6c8fecf17',
+    'mtime' => '2007-07-01',
+    'sha256' => 'b3e04c18bd1ba4da4332c14d9010a79101b4419ca8a46a5354e837282280e359',
+    'size' => 86358
+  },
+  'DateTime-Format-Strptime-1.0601.meta' => {
+    'md5' => '628f3c13f4e32163a1cb3e24e607fb77',
+    'mtime' => '2004-08-31',
+    'sha256' => 'c299e3e8d15e452c07c05f7921bd10ae6bcbbc47da979a56ca07dcc05f26f527',
+    'size' => 443
+  },
+  'DateTime-Format-Strptime-1.0601.tar.gz' => {
+    'md5' => '4d65ba10fb7886c313ab817fe611ee65',
+    'md5-ungz' => '391c23d8790add4f22cc780e927a734f',
+    'mtime' => '2004-08-31',
+    'sha256' => 'e0ead31847a4a10fd440370e0e1dbf7979956f102cfe3349fc229360736e5539',
+    'sha256-ungz' => 'd06d7ee502aaeed17bdaca28a8ba845fed95c7dc71e3560e2ccb024a5ba4a7bc',
+    'size' => 25630
+  },
+  'DateTime-Format-Strptime-1.0700.meta' => {
+    'md5' => '628f3c13f4e32163a1cb3e24e607fb77',
+    'mtime' => '2004-08-31',
+    'sha256' => 'c299e3e8d15e452c07c05f7921bd10ae6bcbbc47da979a56ca07dcc05f26f527',
+    'size' => 443
+  },
+  'DateTime-Format-Strptime-1.0700.tar.gz' => {
+    'md5' => 'fcda7127b01dcad43ca7cf30be9a1dc6',
+    'md5-ungz' => 'd52fb5f394dd262c6e56648b27c48945',
+    'mtime' => '2005-11-04',
+    'sha256' => 'b274707930bfb3cb830a81784b6328569288ea385c32051c46044abb166e25c5',
+    'sha256-ungz' => 'f5d5920a548cb5afd31ac6f3f416ae8b3e48ac883a9d0d7d8a9bce66ebe7efd0',
+    'size' => 26324
+  },
+  'DateTime-Format-Strptime-1.0701.meta' => {
+    'md5' => '9534f5bfb980eb91572fa869418c8405',
+    'mtime' => '2007-09-17',
+    'sha256' => '358aa043f31a18567c9ba27a1025e784cbd9f3da58421903d1c8c083691ceb22',
+    'size' => 443
+  },
+  'DateTime-Format-Strptime-1.0701.tar.gz' => {
+    'md5' => '49dd0f2cfc6b6fe44a5bfc981f8285c9',
+    'md5-ungz' => '97f439210c46e13c85052f9bcfed8d7c',
+    'mtime' => '2007-09-17',
+    'sha256' => '3af4199ec11f1ab0d2469e35a8f5ea11b790eb40c9e3819d003915174dc465c7',
+    'sha256-ungz' => '028f14a9bedff712ea412f84ef59281b3b2322c4ad5069d13735270f91378772',
+    'size' => 26433
+  },
+  'DateTime-Format-Strptime-1.0702.meta' => {
+    'md5' => '97d4871b93349b7af86ab1ce3c834b03',
+    'mtime' => '2007-09-18',
+    'sha256' => 'b0f3958a399eca6deb70e8eb883a1dba9d69e38292e80a75e031dda664f25874',
+    'size' => 953
+  },
+  'DateTime-Format-Strptime-1.0702.tgz' => {
+    'md5' => '4a57ed0d53c49f68afefc1df1ec19043',
+    'mtime' => '2007-09-18',
+    'sha256' => '60cf7edf4e76006f1b85f4c8c9558194d1d8ae1eff111a67f64b9920185783e8',
+    'size' => 26655
+  },
+  'DateTime-LazyInit-0.10.tgz' => {
+    'md5' => '3078b56a8256d9cf7fb6c7e123c6b3f2',
+    'mtime' => '2005-07-23',
+    'sha256' => '2b1c62144f0c2ea01e7c75142fa59c956f477e205c43b4840ad896c30a395ba4',
+    'size' => 4259
+  },
+  'DateTime-LazyInit-1.0200.tgz' => {
+    'md5' => 'f4a0469efeb8da4eb791ae18f9e0b454',
+    'mtime' => '2006-05-14',
+    'sha256' => '776954a2ab1e373403f081abfd1b0413ad4e06745ad92f54e68948e4d2916145',
+    'size' => 6602
+  },
+  'DateTime-TimeZone-LMT-1.00.tar.gz' => {
+    'md5' => 'cc4fd1d3c869c533c9e5a9658be71411',
+    'md5-ungz' => 'e727ce2d3520931c5dfc78ba37bb5b8d',
+    'mtime' => '2003-10-19',
+    'sha256' => 'd702752fca6ebfeebed00f0e26fb71fbaa0e187bf4001c827f61dbb3aaa88fed',
+    'sha256-ungz' => '34cc2e2236edd44a571d0c7e833b0e89774acbffadf18dd1a68a367ff46cb271',
+    'size' => 12219
+  },
+  'Net-Jaiku-0.01.tgz' => {
+    'md5' => 'b2d1e851cce3e1f920653dc2cb62dacd',
+    'mtime' => '2007-04-15',
+    'sha256' => 'e0ef6fae40c3f126efdc0f6dbc95c087071a25103612cbc2fe9264f701f4a101',
+    'size' => 11186
+  },
+  'Net-Jaiku-0.02.tgz' => {
+    'md5' => '5edb2efb7c70bd0194ea1b3a43191ff9',
+    'mtime' => '2007-05-18',
+    'sha256' => 'e3920fc2355a1d362c883668a1940d93892843293d1ef7f94e334bbf6e7c6023',
+    'size' => 13032
+  },
+  'Net-Jaiku-0.03.tgz' => {
+    'md5' => '19ce98ecfbc5bc59769705949f09010a',
+    'mtime' => '2007-05-21',
+    'sha256' => '5ecd1b2ff7a445b3a51dfcc66c84b4a24eeb288efc27ced23e41fc69cdf10f66',
+    'size' => 22347
+  },
+  'Net-Jaiku-0.0301.tgz' => {
+    'md5' => 'ab4f6ab511403148253eb9bf362d3134',
+    'mtime' => '2007-05-21',
+    'sha256' => '9c27fc5d73243d9b5a8dcbfcd4d79ac66e6d08ef852cd477e45adb794d82849f',
+    'size' => 13175
+  },
+  'Net-Jaiku-0.0400.tgz' => {
+    'md5' => '5a86bede672d420a9a952124cdbf5c5f',
+    'mtime' => '2007-09-16',
+    'sha256' => '0bbb2f32dec02117c83bb8b0b373028fc559e6ce6c07d36dd81a33a97b8c6a29',
+    'size' => 13859
+  },
+  'Net-Jaiku-0.0500.tgz' => {
+    'md5' => '244d51d24b50d6249c3e0ff45e1be6cc',
+    'mtime' => '2007-09-27',
+    'sha256' => 'cb9db49db8ebcae57ded1b478f8cb934764a9b16ce9abec2b3943f51ccc59a04',
+    'size' => 14117
+  },
+  'Net-Jaiku-0.0501.tgz' => {
+    'md5' => '23363fbe9e9d6d64140f88e51a8f9d5d',
+    'mtime' => '2007-09-27',
+    'sha256' => 'dd5fb327d2e7f48bcaa8cb44b46217c12b2358f3f4895a26efc0242d904027a5',
+    'size' => 14231
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFG/CRMMo2oZ0UPiewRAlZzAJ9KGfQO/MGrW16F/mcoiLfl7yc+0QCgivZ6
+19nelgEbYGcSFTcvUpKOb+E=
+=fTDc
+-----END PGP SIGNATURE-----

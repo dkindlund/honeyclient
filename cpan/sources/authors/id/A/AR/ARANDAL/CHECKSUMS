@@ -1,0 +1,113 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Wed Jan  9 11:37:00 2008 GMT by CPAN::Checksums (v1.064)
+$cksum = {
+  'Pod-PseudoPod-0.12.meta' => {
+    'md5' => 'c836de197a63051c2c4f299610f7ebbb',
+    'mtime' => '2005-07-18',
+    'sha256' => '0a3f5a0bde667ebdba00efd42a8261e92897c017b46e2c57f24157cec914ec29',
+    'size' => '881'
+  },
+  'Pod-PseudoPod-0.12.tar.gz' => {
+    'md5' => 'b71e8c5c8eeee3a91fb2551d196792be',
+    'md5-ungz' => '23a7e86b1894dcf09b68f690d7011af6',
+    'mtime' => '2005-07-18',
+    'sha256' => '77fd0fb10789bf74b165230d62a11d9b398ce07a1e73442fb33cb71de4f70805',
+    'sha256-ungz' => '6bea73c9acc3a390bd53f277f0a792072965890b7dd2b1d54222ff3a7f752878',
+    'size' => '121326'
+  },
+  'Pod-PseudoPod-0.13.meta' => {
+    'md5' => '999cdcb40cf5434d0fa54e61b7c3dbff',
+    'mtime' => '2006-08-04',
+    'sha256' => '0bdae998cf2257123b58fdced87a02d137a3abddf7598bd608eaca3f84e4a902',
+    'size' => '1026'
+  },
+  'Pod-PseudoPod-0.13.tar.gz' => {
+    'md5' => '40493e1c150683308cee8eaf7738e821',
+    'md5-ungz' => 'b17d0fd9072aa725de4d6bb6a99e7e15',
+    'mtime' => '2006-08-04',
+    'sha256' => '1eeb9b2105f4ea25f1d6121bd3899a90f67e51ced10c937ed6ab1770e3fa1546',
+    'sha256-ungz' => 'd7a3f72230d0f4e929e82e1eeb639b5f586d9109c429cdd910441be776e70bcc',
+    'size' => '121382'
+  },
+  'Pod-Simple-3.04.meta' => {
+    'md5' => 'efdc2e33a270638362ab27abae4695df',
+    'mtime' => '2006-01-19',
+    'sha256' => 'e8437e85c831ea0022b5d576916fe32478a72e64c2f32c892c15b04a0a5e7a48',
+    'size' => '796'
+  },
+  'Pod-Simple-3.04.tar.gz' => {
+    'md5' => 'bf566103b75c7955d0880da3ce268744',
+    'md5-ungz' => '2443e32a86135c86e835cb48dfc2c21a',
+    'mtime' => '2006-01-19',
+    'sha256' => '7161532828525981aa54bcb34604c6fe84d7fe663528adbce956fcc3a3f5060e',
+    'sha256-ungz' => '19ca224e2fad145c303458f9342d4e589dc7a2fbe41cb6ec332acedd8de49ed6',
+    'size' => '261943'
+  },
+  'Pod-Simple-3.05.meta' => {
+    'md5' => '0f5d056191e33a3af43945c0e38d5ec8',
+    'mtime' => '2007-03-03',
+    'sha256' => 'c8dd59ca3d5b94dde3b7c1a8c656239d544405b164a7c38c4307c2d3f1c4ec0c',
+    'size' => '796'
+  },
+  'Pod-Simple-3.05.tar.gz' => {
+    'md5' => 'be3f9e5d685ff38a3f0be66322d68cef',
+    'md5-ungz' => 'a56d1068f43a5abfa869df9889b67d9b',
+    'mtime' => '2007-03-03',
+    'sha256' => '0bcffee9302156a4c789b97072c79afebd35af0df2a49327c56cfa9437c313c8',
+    'sha256-ungz' => '415ad043eb7dfaceff16ed524bfecb17c093ff2d26fd2d2711d4fb0d08edd899',
+    'size' => '233308'
+  },
+  'Pod-Webserver-3.04.meta' => {
+    'md5' => '719f94b81931ae1be7bacc8e8af1afe0',
+    'mtime' => '2006-09-15',
+    'sha256' => 'b251f576511e855cfff540ecffc08de89494210aa89c87e32e574515b71863b5',
+    'size' => '646'
+  },
+  'Pod-Webserver-3.04.tar.gz' => {
+    'md5' => '4cdfa6f4c9d45aee836e81d7eed48108',
+    'md5-ungz' => '5662d2039035e51ae17d5af11cecaaec',
+    'mtime' => '2006-09-15',
+    'sha256' => 'b09aaad8c4a3d9d7c30529cac3fd57d361c6870d4de4ffe6ea7e7bd88a722211',
+    'sha256-ungz' => 'cf4b98f18c545bc96a55a2badb248d03af84e563121f179acf2058a086ecaf91',
+    'size' => '11232'
+  },
+  'Pod-Webserver-3.05.meta' => {
+    'md5' => '9494e1620c6404387f2934fc7fa8b7d2',
+    'mtime' => '2008-01-09',
+    'sha256' => '2a204cd9ba4f72bae0e4e07694c5d45519fe5002075f9131a853a6a4b5744ee4',
+    'size' => '727'
+  },
+  'Pod-Webserver-3.05.tar.gz' => {
+    'md5' => '99f47207edf23b5adb3a607348adb8ca',
+    'md5-ungz' => 'f3747fdbf7e2a86ae04760da4ed17cbf',
+    'mtime' => '2008-01-09',
+    'sha256' => '6f094e1cc548e189ba58923afc40e16b51f7d63db2376462fed58ff6a81d555f',
+    'sha256-ungz' => 'ee5c30461046d4c87e75ffe1c68ecc143664c0b6e2b06d6b2ade9feb4b2b53c2',
+    'size' => '11284'
+  },
+  'parrot-0.4.13.meta' => {
+    'md5' => '3e54053d7849e442b4bfd034237e36e6',
+    'mtime' => '2007-06-19',
+    'sha256' => '923f791604ed6ecc3f5ed44a820e0b038bd839f77f5d5551bd8e7f9298f8f958',
+    'size' => '687'
+  },
+  'parrot-0.4.13.tar.gz' => {
+    'md5' => 'e5d20f853413398cc08879c010e3884f',
+    'md5-ungz' => '76ed20e0af8744553b7ff422ea66850b',
+    'mtime' => '2007-06-19',
+    'sha256' => '9ef308f1943cec95357b8fbdcadda06caa857255ab828c94d8f37d5138b61d49',
+    'sha256-ungz' => 'fbb4e69b8ce9cafb7cbda259e83aaede3fa4d3f66efbb96f5cdfc42c9f7f4238',
+    'size' => '4284268'
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHhLHcMo2oZ0UPiewRAoU2AJ4s681H+ZLrHVfYKqhhQM+KqdEELACdHw32
+9M8ikWXHQOH75L5Q4cfNwDk=
+=D1mg
+-----END PGP SIGNATURE-----
