@@ -18,7 +18,7 @@ while [ $IP = "0.0.0.0" ] ; do
     sleep 1 
 done
 
-ping pingu.honeyclient.org
+/cygdrive/c/windows/system32/ping.exe pingu.honeyclient.org
 cd ~/honeyclient && svn update
 
 ~/honeyclient/Capture2/capture-client-xeno-mod/install/CaptureBAT.exe -c -l "C:\cygwin\tmp\realtime-changes.txt"&
