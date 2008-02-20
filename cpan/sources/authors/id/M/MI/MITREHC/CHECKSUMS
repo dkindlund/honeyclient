@@ -1,27 +1,27 @@
-# CHECKSUMS file written on Fri Feb  1 17:56:16 2008 GMT by CPAN::Checksums (v1.064)
+# CHECKSUMS file written on Wed Feb 20 15:23:06 2008 GMT by CPAN::Checksums (v1.064)
 $cksum = {
   'Bundle-HoneyClient-Agent-1.0.1.tar.gz' => {
-    'md5' => 'd23902693995a17dd013711a333d4c26',
-    'md5-ungz' => '603b1f6459d3b61c343cf32bcf58474e',
-    'mtime' => '2008-02-01',
-    'sha256' => '2f3811ac3391df12cba9181338449df74d4d104716c43e186331a6c2218a5b1f',
-    'sha256-ungz' => '3ce53fdda36dc96951a1524666667727020361f70745c7303894696da476412b',
-    'size' => '2651'
+    'md5' => '16ce24d205502120138c0c0e1a0a0b7f',
+    'md5-ungz' => '8dcf256f0b1dcb0b15f02e5bc9cde0a9',
+    'mtime' => '2008-02-20',
+    'sha256' => 'c421724cf4e72255dd17095b4258fa008ae51b37cde48faa848e45c3c2e888b8',
+    'sha256-ungz' => '3fc8d3f5c064e1be7b1ca63daa5a0ae594fcb9c1da7508c279aef74e00564924',
+    'size' => '2652'
   },
   'Bundle-HoneyClient-Manager-1.0.1.tar.gz' => {
-    'md5' => '10ffaa4298f4e0b7be0f578209f58006',
-    'md5-ungz' => 'b124e66fa12870f2e3d47d55d25f34ce',
-    'mtime' => '2008-02-01',
-    'sha256' => 'e664b4d6db3138bbfc75b43aa4db16cc42602e2228d775d6c350fcf6186e6d0c',
-    'sha256-ungz' => '61c291ce4674df8a7030312fac2b6d689cd0d8b38e829ab28898b9fbc0199cb0',
-    'size' => '2986'
+    'md5' => 'ea2baac81e8bf4742d990660a7bdc74b',
+    'md5-ungz' => '6684da47e75a169ee521f25b4fafcdee',
+    'mtime' => '2008-02-19',
+    'sha256' => '6930118ddfa58b11b3619daeecdbf2237419d4bd4798de896c22fffbee3f728f',
+    'sha256-ungz' => '1cb7692f4e6f4e216a7136febbc8b94dcab9e1223d1ace492f716bb4bf740766',
+    'size' => '2721'
   },
   'Bundle-HoneyClient-Util-1.0.1.tar.gz' => {
-    'md5' => 'b61a97a4d299315cbf9862df644f46a6',
-    'md5-ungz' => '618f9a41e38746524569991b1d40d76c',
-    'mtime' => '2008-02-01',
-    'sha256' => 'feb54960eb682d7a61fb3fad777bde7767e25a8386ff7afa3732770e5fd56e2f',
-    'sha256-ungz' => 'ef842631c31cb5e1f8e9763fd5052cf8b9aee392d77b954c309a2b8517f305d2',
-    'size' => '3200'
+    'md5' => '5bc724c672aefbf72c2885f7c976e6c2',
+    'md5-ungz' => '65420487d845be9f5a852f096852364c',
+    'mtime' => '2008-02-19',
+    'sha256' => '6a1431f854bf9afffd8d28a7180126cbbdcfceefa95057de7976d2e2c3ccd043',
+    'sha256-ungz' => 'feb14b2a802866ebd502d577a4c389bbcbc661db63355c4a323bd5c8d621efc0',
+    'size' => '3233'
   }
 };
