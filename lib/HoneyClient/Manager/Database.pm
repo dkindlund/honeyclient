@@ -160,10 +160,10 @@ require_ok('Test::Exception');
 can_ok('Test::Exception', 'dies_ok');
 use Test::Exception;
 
-# Make sure YAML loads.
-BEGIN { use_ok('YAML') or diag("Can't load YAML package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('YAML');
-use YAML;
+# Make sure YAML::XS loads.
+BEGIN { use_ok('YAML::XS') or diag("Can't load YAML::XS package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('YAML::XS');
+use YAML::XS;
 
 # Make sure XML::RPC loads.
 BEGIN { use_ok('XML::RPC') or diag("Can't load XML::RPC package.  Check to make sure the package library is correctly listed within the path."); }
@@ -191,7 +191,7 @@ use Data::Structure::Util;
 use HoneyClient::Util::Config qw(getVar);
 
 # Include Parsing Library
-use YAML;
+use YAML::XS;
 
 # Include Communications Library
 use XML::RPC;
@@ -258,7 +258,7 @@ sub _AUTOLOAD {
 # Outputs: the returned data from the web service
 sub AUTOLOAD {
     my $obj = shift;
-    my $obj_yaml = YAML::freeze(Data::Structure::Util::unbless($obj));
+    my $obj_yaml = YAML::XS::Dump(Data::Structure::Util::unbless($obj));
     return _AUTOLOAD($obj_yaml);
 }
 
@@ -266,7 +266,7 @@ sub AUTOLOAD {
 sub get_queue_urls {
     $AUTOLOAD = "Database::get_queue_urls";
     # Results from this call are YAML-encoded; need to deserialize them.
-    return YAML::thaw(_AUTOLOAD(@_));
+    return YAML::XS::Load(_AUTOLOAD(@_));
 }
 
 #######################################################################
