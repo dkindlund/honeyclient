@@ -759,7 +759,7 @@ sub runSession {
                         # XXX: Delete this block, eventually.
                         $Data::Dumper::Terse = 0;
                         $Data::Dumper::Indent = 2;
-                        print $dump_file "\$vmName = " . $vmName . ";\n";
+                        print $dump_file "\$vmName = \"" . $vmName . "\";\n";
                         print $dump_file Dumper($fingerprint);
                         $dump_file->close();
                     }
