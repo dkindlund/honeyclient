@@ -540,6 +540,8 @@ sub _cleanup {
     # process of asynchronously archiving a VM, then the async archive
     # process will fail.
 
+	# Make sure all processes in our process group our dead.
+	kill("KILL", -$$);
     exit;
 }
 
