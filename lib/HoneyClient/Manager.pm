@@ -541,6 +541,7 @@ sub _cleanup {
     # process will fail.
 
 	# Make sure all processes in our process group our dead.
+    # TODO: Need to eventually properly destroy sub-processes.
 	kill("KILL", -$$);
     exit;
 }
