@@ -126,7 +126,6 @@
 # Alert about executables or scripts that are written to disk
 -	Write	.*	.+\.bat
 -	Write	.*	.+\.cmd
--	Write	.*	.+\.exe
 -	Write	.*	.+\.inf
 -	Write	.*	.+\.lnk
 -	Write	.*	.+\.msi
@@ -142,6 +141,9 @@
 #commented out for IE because \.com cache files and \.vb script files are very common
 #-	Write	.*	.+\.vb
 #-	Write	.*	.+\.com
+#commented out for IE because \.exe downloads to the cache dir are very common
+# TODO: This is a bug that needs to be resolved.
+#-	Write	.*	.+\.exe
 # Alert about modifications to startup locations
 -	Write	.*	C:\\Documents and Settings\\.+\\Start Menu\\Programs\\Startup.+
 -	Write	.*	C:\\WINDOWS\\win.ini
