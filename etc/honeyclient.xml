@@ -331,11 +331,11 @@ Keep in mind, though, that some variables should remain module-specific
     <Manager>
         <!-- TODO: Update this. -->
         <manager_state description="Upon termination, the Manager will attempt to append a complete copy of its state into this file, if specified." default="">
-            Manager.dump
+            manager.dump
         </manager_state>
-        <compromise_dump description="When the Manager encounters a compromised VM, it will attempt to append a complete copy of the compromised information to this file, if specified.">
-            Compromise.dump
-        </compromise_dump>
+        <fingerprint_dump description="When the Manager encounters a suspicious VM, it will attempt to append a complete copy of the fingerprint information to this file, if specified.">
+            fingerprint.dump
+        </fingerprint_dump>
         <!-- TODO: Update this. -->
         <address description="The IP or hostname that all Manager modules should use, when accepting SOAP requests." default="localhost">
             localhost

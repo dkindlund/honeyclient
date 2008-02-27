@@ -751,9 +751,9 @@ sub runSession {
                     my $fingerprint = $ret->{$args{'driver'}}->{status}->{fingerprint};
                     $LOG->warn("VM Compromised. Last Resource (" . $fingerprint->{'last_resource'} . ")");
 
-                    # Dump the fingerprint to the compromise file, if needed.
+                    # Dump the fingerprint to a file, if needed.
                     # XXX: May want to change this format/usage, eventually.
-                    my $COMPROMISE_FILE = getVar(name => "compromise_dump");
+                    my $COMPROMISE_FILE = getVar(name => "fingerprint_dump");
                     if (length($COMPROMISE_FILE) > 0 &&
                         defined($fingerprint)) {
                         $LOG->info("Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
