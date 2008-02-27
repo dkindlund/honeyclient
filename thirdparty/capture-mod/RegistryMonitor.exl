@@ -311,3 +311,6 @@
 +	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
 +	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\Print\\Printers
 +	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\Print\\Providers
+
+#### Honeyclient manual add - helpsvc.exe
++	SetValueKey	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\.+

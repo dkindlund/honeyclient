@@ -542,7 +542,9 @@ sub _cleanup {
 
 	# Make sure all processes in our process group our dead.
     # TODO: Need to eventually properly destroy sub-processes.
-	kill("KILL", -$$);
+    # We can't enable this, otherwise active VM objects won't be properly
+    # suspended.
+	#kill("KILL", -$$);
     exit;
 }
 

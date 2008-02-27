@@ -833,6 +833,8 @@ sub destroy {
         # If the process doesn't respond to 'QUIT', then
         # try 'KILL'.
         if (kill("QUIT", $DAEMON_PID)) {
+            # XXX: Delete this, eventually.
+            $LOG->warn("Killing VM daemon at PID: " . $DAEMON_PID);
             kill("KILL", $DAEMON_PID);
         }
     }

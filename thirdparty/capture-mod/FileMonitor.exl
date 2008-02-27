@@ -9,6 +9,7 @@
 +	Delete	C:\\program Files\\capture\\captureclient\.exe	C:\\program files\\capture\\.+\.zip
 #Prefetch
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch\\.+
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch\\.+
 +	Write	System	C:\\WINDOWS\\Prefetch\\.+
 #NTFS Metadata
 +	Write	.*	c:\\\$mft
@@ -93,10 +94,10 @@
 # msg activeX
 +	Write	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT.LOG
 +	Delete	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT.LOG
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\$LogFile
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\$Directory
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\$Mft
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	F:\$LogFile
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$LogFile
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Directory
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Mft
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	F:\\$LogFile
 
 ###################################################
 ### Honeyclient added/specific?			###
@@ -167,3 +168,7 @@
 +	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.ini
 +	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.h
 +	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\PerfStringBackup\.TMP
+
+#### Honeyclient manual add - helpsvc.exe
++   Write   C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
++   Delete  C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
