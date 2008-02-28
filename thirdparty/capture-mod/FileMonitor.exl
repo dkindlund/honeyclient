@@ -94,10 +94,10 @@
 # msg activeX
 +	Write	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT.LOG
 +	Delete	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT.LOG
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$LogFile
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Directory
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Mft
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	F:\\$LogFile
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$LogFile
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$Directory
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$Mft
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	F:\\\$LogFile
 
 ###################################################
 ### Honeyclient added/specific?			###
@@ -156,11 +156,11 @@
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\Macromed\\Flash\\testUpdate\.txt
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	Delete	C:\\WINDOWS\\system32\\defrag\.exe	C:\\.*\.tmp
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\$ReplaceAttribute
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\$ReplaceAttribute
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$LogFile
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Directory
-+	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\$Mft
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\\$ReplaceAttribute
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\\$ReplaceAttribute
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$LogFile
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$Directory
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$Mft
 #### HONEYCLIENT manual
 +	Write	C:\\WINDOWS\\system32\\dwwin\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp\\.*
 
@@ -168,7 +168,18 @@
 +	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.ini
 +	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\wbem\\Performance\\WmiApRpl\.h
 +	Delete	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\PerfStringBackup\.TMP
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\config
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\wbem
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\Prefetch
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Config
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\PackageStore
+
 
 #### Honeyclient manual add - helpsvc.exe
-+   Write   C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
-+   Delete  C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
++   Write   C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
++   Delete  C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
+
+#### Honeyclient manual add - dfrgntfs.exe
++   Write   C:\\WINDOWS\\system32\\dfrgntfs\.exe
