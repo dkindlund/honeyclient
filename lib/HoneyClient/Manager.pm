@@ -533,6 +533,7 @@ sub _cleanup {
                                client_id   => $clientDbId);
         }
 
+		# TODO: Move this logic into VM::Clone::DESTROY, eventually.
         # Mark the VM as suspended within the database.
         HoneyClient::Manager::Database::set_client_suspended($clientDbId);
     }
