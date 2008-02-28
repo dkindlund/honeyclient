@@ -527,9 +527,11 @@ sub _cleanup {
     }
 
     if ($DB_ENABLE && ($clientDbId > 0)) {
-        $LOG->info("Saving URL History to Database.");
-        insert_url_history(agent_state => $globalAgentState,
-                           client_id   => $clientDbId);
+	    if (defined($globalAgentState)) {
+        	$LOG->info("Saving URL History to Database.");
+        	insert_url_history(agent_state => $globalAgentState,
+                               client_id   => $clientDbId);
+        }
 
         # Mark the VM as suspended within the database.
         HoneyClient::Manager::Database::set_client_suspended($clientDbId);
