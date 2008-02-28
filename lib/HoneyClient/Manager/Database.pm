@@ -221,15 +221,22 @@ sub _AUTOLOAD {
     $name =~  s/.*://;
 
     # Perform the RPC call.
-    # XXX: Externalize this URL.
     my $xmlrpc = XML::RPC->new(getVar(name => "url"));
-    #my $xmlrpc = XML::RPC->new('http://172.16.164.103:3000/hc_database/api');
-    #my $ret = $xmlrpc->call($name,$obj_yaml);
-    my $ret = $xmlrpc->call($name,@_);
+    my $ret = undef;
+   
+    eval {
+		$ret = $xmlrpc->call($name,@_);
+	};
+
+    # Error checking.
+    if ($@ || !defined($ret)) {
+		$LOG->error("Error: RPC communications failure.");
+		Carp::croak("Error: RPC communications failure.");
+	}
 
     # Error checking.
     if ((ref($ret) eq "HASH") && (exists($ret->{faultCode}))) {
-        # XXX: Log this error.
+		$LOG->error("Error: " . $ret->{faultString});
         Carp::croak("Error: " . $ret->{faultString});
     }
 
