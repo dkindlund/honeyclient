@@ -142,15 +142,15 @@ sleep 1;
 # =begin testing
 {
 eval{
-	diag("Testing fwInit()...");
+	diag("Testing installDefaultRules()...");
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep(1);
     # Connect to daemon as a client.
     $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-    $som = $stub->fwInit($hashref);
+    $som = $stub->installDefaultRules($hashref);
     $som = $stub->_validateInit();
-    is($som->result, 24, "fwInit current has set up 28 rules")   or diag("The fwInit() call failed.");
+    is($som->result, 24, "installDefaultRules current has set up 28 rules")   or diag("The installDefaultRules() call failed.");
     $som = $stub->_setAcceptPolicy();
     $som = $stub->_flushChains();
 
@@ -228,16 +228,16 @@ if ($@) {
 # =begin testing
 {
 eval{
-     diag("Testing addRule()...");
+     diag("Testing addRules()...");
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep 1;
     # Connect to daemon as a client.
     $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-    my $som  = $stub->fwInit($hashref);
+    my $som  = $stub->installDefaultRules($hashref);
     $som = $stub->addChain($hashref);
-    $som = $stub->addRule($hashref);
-    ok($som->result, "addRule() successfully passed and added a new rule.")   or diag("The addRule() call failed.");
+    $som = $stub->addRules($hashref);
+    ok($som->result, "addRules() successfully passed and added a new rule.")   or diag("The addRules() call failed.");
     $som = $stub->_setAcceptPolicy();
     $som = $stub->_flushChains();
 };
@@ -257,7 +257,7 @@ if ($@) {
 # =begin testing
 {
 eval{
-	diag("Testing fwStatus()...");
+	diag("Testing getStatus()...");
     $URL = HoneyClient::Manager::FW->init_fw();
     # Wait at least a second, in order to initialize the daemon.
     sleep 1;
@@ -292,7 +292,7 @@ eval{
     sleep 1;
     # Connect to daemon as a client.
     $stub = getClientHandle(namespace => "HoneyClient::Manager::FW");
-    my $som  = $stub->fwInit($hashref);
+    my $som  = $stub->installDefaultRules($hashref);
     $som = $stub->addChain($hashref);
     is($som->result, 1, "_chainExists($hashref) successfully passed.")  or diag("The _chainExists() call failed.");
     $som = $stub->_setAcceptPolicy();

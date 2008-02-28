@@ -82,14 +82,13 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
-# Check if HoneyClient::DB support is enabled. 
+# Check if HoneyClient::Manager::Database support is enabled. 
 my $DB_ENABLE = getVar(name      => "enable",
-                       namespace => "HoneyClient::DB");
-
+                       namespace => "HoneyClient::Manager::Database");
 if ($DB_ENABLE) {
-    # Make sure HoneyClient::DB::Fingerprint loads. 
-    require_ok('HoneyClient::DB::Fingerprint');
-    require HoneyClient::DB::Fingerprint;
+    # Make sure HoneyClient::Manager::Database loads.
+    require_ok('HoneyClient::Manager::Database');
+    require HoneyClient::Manager::Database;
 }
 
 # Make sure Storable loads.
