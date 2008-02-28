@@ -159,173 +159,6 @@ Keep in mind, though, that some variables should remain module-specific
             <realtime_changes_file description="When an integrity check fails, all changes will be written to this file within the compromized honeyclient VM's filesystem." default="/tmp/realtime-changes.txt">
                 /tmp/realtime-changes.txt
             </realtime_changes_file>
-            <!-- HoneyClient::Agent::Integrity::Filesystem Options -->
-            <Filesystem>
-                <directories_to_check description="List of base directories on the filesystem to recursively analyze.  Use a regular slash (/) instead of a backslash (\) as a directory separator character.">
-                    <name>C:/</name>
-                </directories_to_check>
-                <exclude_list description="List of regular expressions that match files/directories to exclude from analysis.  These entries match files/directories that change normally during the course of driving the target application.  As such, they are excluded from analysis in order to reduce false positives.  Use a regular slash (/) instead of a backslash (\) as a directory separator character.  Never prefix any entry with a carat (^) before the drive letter, such as '^C:/', and never add the regex suffix ($) to the end of an expression, such as 'C:/Temp$'.  All comparisons are case-insensitive.">
-                    <regex>C:/Documents and Settings/All Users/Application Data/Microsoft/Network/Downloader.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Application Data/Mozilla/Firefox/Profiles.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Cookies.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Macromedia/Flash Player.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Microsoft/Windows Media.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Local Settings/Application Data/Mozilla/Firefox/Profiles.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Local Settings/History/History.IE5.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Local Settings/Temporary Internet Files/Content.IE5.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/Local Settings/Temp</regex>
-                    <regex>C:/Documents and Settings/Administrator/Recent.*</regex>
-                    <regex>C:/Documents and Settings/Administrator/ntuser.dat.LOG</regex>
-                    <regex>C:/Program Files/Mozilla Firefox/active-update.xml</regex>
-                    <regex>C:/Program Files/Mozilla Firefox/updates</regex>
-                    <regex>C:/WINDOWS/PCHEALTH/HELPCTR/DataColl.*</regex>
-                    <regex>C:/WINDOWS/Prefetch.*</regex>
-                    <regex>C:/WINDOWS/Debug/UserMode/userenv.log</regex>
-                    <regex>C:/WINDOWS/SchedLgU.txt</regex>
-                    <regex>C:/WINDOWS/SoftwareDistribution/DataStore.*</regex>
-                    <regex>C:/WINDOWS/SoftwareDistribution/ReportingEvents.log</regex>
-                    <regex>C:/WINDOWS/SoftwareDistribution/WuRedir.*</regex>
-                    <regex>C:/WINDOWS/SYSTEM32</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/config/SecEvent.evt</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/config/SysEvent.evt</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/config/software</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/config/software.log</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/config/system.LOG</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/Macromed/Flash.*</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/perfc009.dat</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/perfd009.dat</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/perfh009.dat</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/perfi009.dat</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/PerfStringBackup.INI</regex>
-                    <regex>C:/WINDOWS/SYSTEM32/wbem.*</regex>
-                    <regex>C:/WINDOWS/WindowsUpdate.log</regex>
-                    <regex>C:/WINDOWS/wmsetup.log</regex>
-                    <!-- To exclude entries inside cygwin, use the following format. -->
-                    <regex>/cygdrive/c/cygwin/tmp.*</regex>
-                    <regex>/cygdrive/c/cygwin/home/Administrator/honeyclient.*</regex>
-                </exclude_list>
-                <!-- HoneyClient::Agent::Integrity::Filesystem::Test Options -->
-                <Test>
-                    <!--
-                        Note: you should *never* need to change *any* values
-                        within this section of the configuration.  All contents
-                        are *only* used for unit testing.
-                    -->
-                    <monitor_dir description="The relative path to the test directory, that's used during unit testing." default="t/test_filesystem">
-                        t/test_filesystem
-                    </monitor_dir>
-                </Test>
-            </Filesystem>
-            <!-- HoneyClient::Agent::Integrity::Registry Options -->
-            <Registry>
-                <hives_to_check description="List of registry hives to analyze.">
-                    <name>HKEY_LOCAL_MACHINE</name>
-                    <name>HKEY_CLASSES_ROOT</name>
-                    <name>HKEY_CURRENT_USER</name>
-                    <name>HKEY_USERS</name>
-                    <name>HKEY_CURRENT_CONFIG</name>
-                </hives_to_check>
-                <exclude_list description="List of perl regular expressions, each matching one or more registry key directory names to exclude from analysis.  These entries match registry key directories that change normally during the course of driving the target application.  As such, they are excluded from analysis in order to reduce false positives.  As in normal regular expressions, each backslash (\) must be escaped (\\) and each regex must not end with any backslash character.">
-                    <regex>^HKEY_CURRENT_USER\\SessionInformation.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\ActiveMovie\\devenum.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\IntelliForms$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\International$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\International\\CpMRU$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\Main$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\TypedURLs$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\MediaPlayer.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Multimedia.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\.+\\Count.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Connections.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\ShellNoRoam\\DUIBags\\ShellFolders\\.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\ShellNoRoam\\MUICache.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Software\\Microsoft\\Windows Media\\WMSDK\\General.*$</regex>
-                    <regex>^HKEY_CURRENT_USER\\Volatile Environment$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Macromedia\\FlashPlayer$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography\\RNG$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Dfrg\\BootOptimizeFunction$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Direct3D\\MostRecentApplication$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\PCHealth\\PchSvc$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\SystemCertificates\\.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\WBEM.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BITS$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\Machine\\Extension-List\\.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\S.+\\Extension-List\\.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Prefetcher$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Notify\\WgaLogon\\Settings$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet.+\\Services\\.+\\Parameters\\Tcpip.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet.+\\Services\\Dhcp\\Parameters.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet.+\\Services\\Eventlog\\Application\\ESENT.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet.+\\Services\\SharedAccess\\Epoch.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet.+\\Services\\Tcpip\\Parameters\\Interfaces\\.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Dhcp\\Parameters.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Eventlog\\Application\\ESENT.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Epoch$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\.*$</regex>
-                    <regex>^HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\.+\\Parameters\\Tcpip.*$</regex>
-                    <regex>^HKEY_USERS\\.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\.+\\Count.*$</regex>
-                    <regex>^HKEY_USERS\\.+\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU.*$</regex>
-                    <regex>^HKEY_USERS\\.+\\UNICODE Program Groups.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\SessionInformation$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\ActiveMovie\\devenum.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\IntelliForms$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\International$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\International\\CpMRU$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\Main$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Internet Explorer\\TypedURLs$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\MediaPlayer.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Multimedia.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\Links.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Start Menu2\\Programs.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Connections.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\ShellNoRoam\\DUIBags\\ShellFolders\\.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows\\ShellNoRoam\\MUICache.*$</regex>
-                    <regex>^HKEY_USERS\\S.+\\Software\\Microsoft\\Windows Media\\WMSDK\\General.*$</regex>
-                </exclude_list>
-                <!-- HoneyClient::Agent::Integrity::Registry::Test Options -->
-                <Test>
-                    <!--
-                        Note: you should *never* need to change *any* values
-                        within this section of the configuration.  All contents
-                        are *only* used for unit testing.
-                    -->
-                    <before_registry_file description="The relative path to a (before) sample registry dump, that's used during unit testing." default="t/test_registry/before.reg">
-                        t/test_registry/before.reg
-                    </before_registry_file>
-                    <after_registry_file description="The relative path to an (after) sample registry dump, that's used during unit testing." default="t/test_registry/after.reg">
-                        t/test_registry/after.reg
-                    </after_registry_file>
-                </Test>
-                <Parser>
-                    <!-- HoneyClient::Agent::Integrity::Registry::Parser::Test Options -->
-                    <Test>
-                        <!--
-                            Note: you should *never* need to change *any* values
-                            within this section of the configuration.  All contents
-                            are *only* used for unit testing.
-                        -->
-                        <registry_file description="The relative path to a sample registry dump, that's used during unit testing." default="t/test_registry/dump.reg">
-                            t/test_registry/dump.reg
-                        </registry_file>
-                    </Test>
-                </Parser>
-            </Registry>
         </Integrity>
     </Agent>
     <Manager>
@@ -380,7 +213,7 @@ Keep in mind, though, that some variables should remain module-specific
                 128.29.40.1
             </secondaryDns>
             <!-- TODO: Update this. -->
-            <gsx_gateway description="IP address of GSX or VMware Server">
+            <gsx_gateway description="IP address of VMware Server">
                 10.0.0.1/32
             </gsx_gateway>
             <!-- TODO: Update this. -->
@@ -466,7 +299,7 @@ Keep in mind, though, that some variables should remain module-specific
             <snapshot_path description="The absolute path to the directory that contains all snapshot data, associated with every HoneyClient VM." default="/vm/snapshots">
                 /vm/snapshots
             </snapshot_path>
-            <vmware_port description="The TCP port that VMware Server / GSX uses for console communication.  By default, this TCP port is 902.  Unless you've explicitly changes this port during the vmware-config.pl setup process, leave this setting as the default." default="902">
+            <vmware_port description="The TCP port that VMware Server uses for console communication.  By default, this TCP port is 902.  Unless you've explicitly changes this port during the vmware-config.pl setup process, leave this setting as the default." default="902">
                 902
             </vmware_port>
             <bin_tar description="The absolute path to the 'tar' executable, accessible on the host filesystem." default="/bin/tar">
@@ -475,7 +308,7 @@ Keep in mind, though, that some variables should remain module-specific
             <vm_id_length description="The length of each corresponding VM identifier (VMID).  This value can be any integer between 1 and 32, inclusive.  The VMID is a hexadecimal string that represents the VM's name.  It is designed to be generated once per clone and remain for the life of the VM (regardless of where it runs).  The VMID is used externally by HoneyClient::Manager and HoneyClient::Manager::FW.  The HoneyClient::Manager::FW package uses IPTables and binds each rule to a specific VMID.  However, IPTable's firewall rule labels can only be a maximum of 30 characters in length.  Thus, 26 is specified here, to account for 'VMID-OUT' as a possible chain name." default="26">
                 26
             </vm_id_length>
-            <dhcp_log description="The absolute path to the file that contains the DHCP logs, when a new VM gets a DHCP lease from the VMware Server / GSX server." default="/var/log/messages">
+            <dhcp_log description="The absolute path to the file that contains the DHCP logs, when a new VM gets a DHCP lease from the VMware Server." default="/var/log/messages">
                 /var/log/messages
             </dhcp_log>
             <!-- HoneyClient::Manager::VM::Test Options -->
