@@ -548,6 +548,12 @@ sub _cleanup {
     exit;
 }
 
+END {
+    # TODO: Make sure this works correctly.
+	# Make sure all processes in our process group our dead.
+	kill("KILL", -$$);
+}
+
 # XXX: Install the cleanup handler, in case the parent process dies
 # unexpectedly.
 $SIG{HUP}  = \&_cleanup;
