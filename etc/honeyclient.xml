@@ -188,7 +188,7 @@ Keep in mind, though, that some variables should remain module-specific
             </enable>
             <!-- TODO: Update this. -->
             <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
-                http://172.16.164.1:3000/hc_database/api
+                http://127.0.0.1:3000/hc_database/api
             </url>
         </Database>
         <!-- HoneyClient::Manager::FW Options -->
