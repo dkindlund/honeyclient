@@ -37,7 +37,7 @@ model for handling a single HoneyClient cloned VM on the host system.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Manager::VM::Clone version 1.00.
+This documentation refers to HoneyClient::Manager::VM::Clone version 1.01.
 
 =head1 SYNOPSIS
 
@@ -143,7 +143,7 @@ BEGIN {
     our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
     # Set our package version.
-    $VERSION = 1.00;
+    $VERSION = 1.01;
 
     @ISA = qw(Exporter);
 
