@@ -188,7 +188,7 @@ Keep in mind, though, that some variables should remain module-specific
             </enable>
             <!-- TODO: Update this. -->
             <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
-                http://127.0.0.1:3000/hc_database/api
+                http://172.16.164.1:3000/hc_database/api
             </url>
         </Database>
         <!-- HoneyClient::Manager::FW Options -->
@@ -288,7 +288,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/master-vms/Agent.Master-30/winXPPro.cfg
+                /vm/master-vms/Agent.Master-31/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="8089">
                 8089
