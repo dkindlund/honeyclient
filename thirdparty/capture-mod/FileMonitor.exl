@@ -178,8 +178,8 @@
 
 
 #### Honeyclient manual add - helpsvc.exe
-+   Write   C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
-+   Delete  C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
++	Write	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
++	Delete	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
 
 #### Honeyclient manual add - dfrgntfs.exe
-+   Write   C:\\WINDOWS\\system32\\dfrgntfs\.exe
++	Write	C:\\WINDOWS\\system32\\dfrgntfs\.exe	.*
