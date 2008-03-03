@@ -20,7 +20,7 @@ while [ $IP = "0.0.0.0" ] ; do
     sleep 1 
 done
 
-# Ping a remote site, to test for connectivity.
+# Ping a remote site, to test for connectivity (optional).
 /cygdrive/c/windows/system32/ping.exe pingu.honeyclient.org
 
 # Change to the honeyclient directory.
