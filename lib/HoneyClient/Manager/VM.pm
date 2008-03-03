@@ -4410,7 +4410,7 @@ sub snapshotVM {
     if (!$argsExist || 
         !exists($args{'snapshot_file'}) ||
         !defined($args{'snapshot_file'})) {
-        my $dt = DateTime::HiRes->now();
+        my $dt = DateTime::HiRes->now(time_zone => "local");
         my $date = $dt->ymd('') . 'T' . $dt->hms('');
         $args{'snapshot_file'} = "$SNAPSHOT_PATH/$dirName-$date.tar.gz";
     }

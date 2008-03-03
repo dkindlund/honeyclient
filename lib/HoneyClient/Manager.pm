@@ -932,7 +932,7 @@ sub insert_url_history {
 
 sub dbRegisterClient {
     my $vm = shift;
-    my $dt = DateTime::HiRes->now();
+    my $dt = DateTime::HiRes->now(time_zone => "local");
 
     # Register the VM with the DB
     my $client = {

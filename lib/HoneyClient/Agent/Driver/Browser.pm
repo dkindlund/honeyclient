@@ -511,7 +511,7 @@ sub _getNextLink {
 # Inputs: none
 # Outputs: timestamp
 sub _getTimestamp {
-    my $dt = DateTime::HiRes->now();
+    my $dt = DateTime::HiRes->now(time_zone => "local");
     return $dt->ymd('-') . " " .
            $dt->hms(':') . "." .
            $dt->nanosecond();
