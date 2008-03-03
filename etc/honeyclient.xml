@@ -183,7 +183,7 @@ Keep in mind, though, that some variables should remain module-specific
         </max_agent_error_count>
         <!-- HoneyClient::Manager::Database Options -->
         <Database>
-            <enable description="Enables database operations. 1 enables, 0 disables." default="0">
+            <enable description="Enables database operations. 1 enables, 0 disables." default="1">
                 1
             </enable>
             <!-- TODO: Update this. -->
