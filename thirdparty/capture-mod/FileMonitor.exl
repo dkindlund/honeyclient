@@ -175,7 +175,10 @@
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Config
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\PackageStore
-
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\Prefetch
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\
 
 #### Honeyclient manual add - helpsvc.exe
 +	Write	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
