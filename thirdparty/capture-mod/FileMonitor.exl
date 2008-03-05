@@ -127,7 +127,8 @@
 # Alert about executables or scripts that are written to disk
 -	Write	.*	.+\.bat
 -	Write	.*	.+\.cmd
--	Write	.*	.+\.inf
+#commanted out for VMwareService.exe, since it writes .inf files.
+#-	Write	.*	.+\.inf
 -	Write	.*	.+\.lnk
 -	Write	.*	.+\.msi
 -	Write	.*	.+\.msp
