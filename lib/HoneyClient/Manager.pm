@@ -982,8 +982,11 @@ sub get_urls {
 
         # XXX: Hardcoded timeout.
         sleep (2);
-        $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
-        $remoteLinksExist = scalar(%{$queue_url_list});
+        # XXX: Trap/ignore all errors and simply retry.
+        eval {
+            $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(10, $vm->database_id);
+            $remoteLinksExist = scalar(%{$queue_url_list});
+        };
     }
 
     # If we do have URLs from the database, then merge them into the agent state.
