@@ -220,23 +220,30 @@ sub _AUTOLOAD {
     my $name = $AUTOLOAD;
     $name =~  s/.*://;
 
+    # Set a custom timeout.
+    my $ua = LWP::UserAgent->new();
+    $ua->timeout(getVar(name => "timeout"));
+    my %options = (
+        lwp_useragent => $ua,
+    );
+
     # Perform the RPC call.
-    my $xmlrpc = XML::RPC->new(getVar(name => "url"));
+    my $xmlrpc = XML::RPC->new(getVar(name => "url"), %options);
     my $ret = undef;
    
     eval {
-		$ret = $xmlrpc->call($name,@_);
-	};
+        $ret = $xmlrpc->call($name,@_);
+    };
 
     # Error checking.
     if ($@ || !defined($ret)) {
-		$LOG->error("Error: RPC communications failure.");
-		Carp::croak("Error: RPC communications failure.");
-	}
+        $LOG->error("Error: RPC communications failure.");
+        Carp::croak("Error: RPC communications failure.");
+    }
 
     # Error checking.
     if ((ref($ret) eq "HASH") && (exists($ret->{faultCode}))) {
-		$LOG->error("Error: " . $ret->{faultString});
+        $LOG->error("Error: " . $ret->{faultString});
         Carp::croak("Error: " . $ret->{faultString});
     }
 
