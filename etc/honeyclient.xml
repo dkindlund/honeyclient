@@ -165,7 +165,6 @@ Keep in mind, though, that some variables should remain module-specific
         </Integrity>
     </Agent>
     <Manager>
-        <!-- TODO: Update this. -->
         <manager_state description="Upon termination, the Manager will attempt to append a complete copy of its state into this file, if specified." default="">
             manager.dump
         </manager_state>
@@ -302,6 +301,9 @@ Keep in mind, though, that some variables should remain module-specific
             <snapshot_path description="The absolute path to the directory that contains all snapshot data, associated with every HoneyClient VM." default="/vm/snapshots">
                 /vm/snapshots
             </snapshot_path>
+            <min_space_free description="The minimum amount of disk space (in GB) that must remain free in both the datastore_path and snapshot_path in order for the Manager to continue processing.  If the free disk space drops below this threshold, then the Manager will gracefully terminate." default="2">
+                2
+            </min_space_free>
             <vmware_port description="The TCP port that VMware Server uses for console communication.  By default, this TCP port is 902.  Unless you've explicitly changes this port during the vmware-config.pl setup process, leave this setting as the default." default="902">
                 902
             </vmware_port>

@@ -323,6 +323,9 @@ use Sys::Hostname::Long;
 # TODO: Include unit tests.
 use Sys::HostIP;
 
+# TODO: Include unit tests.
+use Filesys::DfPortable;
+
 # Include Logging Library
 use Log::Log4perl qw(:easy);
 
@@ -542,11 +545,6 @@ sub _cleanup {
     # process of asynchronously archiving a VM, then the async archive
     # process will fail.
 
-	# Make sure all processes in our process group our dead.
-    # TODO: Need to eventually properly destroy sub-processes.
-    # We can't enable this, otherwise active VM objects won't be properly
-    # suspended.
-	#kill("KILL", -$$);
     exit;
 }
 
@@ -655,6 +653,9 @@ sub runSession {
     #FIXME: This needs to be more limited for the multi-vm case, and should probably 
     # just be included by making the default rules require no action
     $stubFW->allowAllTraffic();
+
+    # Check disk space.
+    checkSpaceAvailable();
 
     # Create a new cloned VM.
     $vm = HoneyClient::Manager::VM::Clone->new();
@@ -831,7 +832,7 @@ sub runSession {
                             print "Calling updateState()...\n";
                             $som = $stubAgent->updateState($args{'agent_state'});
                         } else {
-                            $LOG->info("All URLs exhausted.  Shutting down Manager.");
+                            $LOG->info("All URLs exhausted. Shutting down Manager.");
                             $vm = undef;
                             _cleanup();
                         }
@@ -996,6 +997,30 @@ sub get_urls {
     }
 
     return $agent_state;
+}
+
+sub checkSpaceAvailable {
+
+    my $datastore_path = getVar(name      => "datastore_path",
+                                namespace => "HoneyClient::Manager::VM");
+    my $snapshot_path  = getVar(name      => "snapshot_path",
+                                namespace => "HoneyClient::Manager::VM");
+    my $min_space_free = getVar(name      => "min_space_free",
+                                namespace => "HoneyClient::Manager::VM");
+
+                                                    # Obtain sizes in GB
+    my $datastore_attr = dfportable($datastore_path, 1024 * 1024 * 1024);
+    my $snapshot_attr  = dfportable($snapshot_path,  1024 * 1024 * 1024);
+
+    if ($datastore_attr->{bavail} < $min_space_free) {
+        $LOG->warn("Directory (" . $datastore_path . ") has low disk space (" . $datastore_attr->{bavail} . " GB).");
+    } elsif ($snapshot_attr->{bavail} < $min_space_free) {
+        $LOG->warn("Directory (" . $snapshot_path . ") has low disk space (" . $snapshot_attr->{bavail} . " GB).");
+    } else {
+        return;
+    }
+    $LOG->info("Low disk space detected. Shutting down Manager.");
+    _cleanup();
 }
 
 #######################################################################
