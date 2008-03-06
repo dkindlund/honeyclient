@@ -833,7 +833,6 @@ sub runSession {
                         } else {
                             $LOG->info("All URLs exhausted.  Shutting down Manager.");
                             $vm = undef;
-                            print "Done!\n";
                             _cleanup();
                         }
                     } else {
@@ -938,9 +937,8 @@ sub dbRegisterClient {
     my $client = {
         cid => $vm->name,
         status => 'running',
-        # TODO: Collect host, application, and config through automation/config files
         host => {
-            org => 'MITRE',
+            org => getVar(name => "organization"),
             hostname => Sys::Hostname::Long::hostname_long,
             ip => Sys::HostIP->ip,
         },

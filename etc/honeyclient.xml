@@ -46,8 +46,11 @@ Keep in mind, though, that some variables should remain module-specific
 -->
 <HoneyClient>
     <!-- Global Options -->
+    <organization description="The name of the organization that owns the host system.">
+        MITRE
+    </organization>
     <!-- Note: This timeout should be long enough so that the Agent watchdog code will properly let the integrity checking code finish, before detecting a faulty timeout in processing. -->
-    <timeout description="Default timeout used for all communications between each module (in seconds)." default="900">
+    <timeout description="Default timeout used for all communications between each module (in seconds)." default="3600">
         3600
     </timeout>
     <log_config description="The global Log4perl configuration file, used throughout all modules.  This setting should not need to be changed." default="etc/honeyclient_log.conf">
