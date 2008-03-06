@@ -314,3 +314,11 @@
 
 #### Honeyclient manual add - helpsvc.exe
 +	SetValueKey	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\.+
+
+#### Honeyclient manual add - iexplore.exe - ticket #144 (windows update services)
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ModuleUsage\\C:\/WINDOWS\/System32\/wuweb\.dll
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\SharedDLLs
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\DownloadInformation
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\InstalledVersion
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\Contains\\Files
++	SetValueKey	C:\\WINDOWS\\system32\\winlogon.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon
