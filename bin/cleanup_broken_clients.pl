@@ -26,6 +26,12 @@ while (my ($cid, $id) = each %{$clients}) {
 
     $LOG->info("Deleting VM (" . $cid . ")");
 
+    $LOG->info("Executing: vmware-cmd " . $datastore_path . "/" . $cid . "/*.vmx stop hard");
+    system("vmware-cmd " . $datastore_path . "/" . $cid . "/*.vmx stop hard");
+
+    $LOG->info("Executing: vmware-cmd " . $datastore_path . "/" . $cid . "/*.cfg stop hard");
+    system("vmware-cmd " . $datastore_path . "/" . $cid . "/*.cfg stop hard");
+
     $LOG->info("Executing: vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.vmx");
     system("vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.vmx");
 
