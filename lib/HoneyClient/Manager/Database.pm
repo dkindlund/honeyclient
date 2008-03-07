@@ -231,6 +231,8 @@ sub _AUTOLOAD {
     # Set a custom timeout.
     my $ua = LWP::UserAgent->new();
     $ua->timeout(getVar(name => "timeout"));
+    $ua->env_proxy();
+
     my %options = (
         lwp_useragent => $ua,
     );
