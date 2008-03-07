@@ -1,0 +1,113 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Sun Aug 12 02:36:35 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'Filesys-Df-0.92.meta' => {
+    'md5' => '66503774e927f87f215045094ac8ffdc',
+    'mtime' => '2006-06-25',
+    'sha256' => '865976c0e8d4f27144505f6c4d8b6f1fa5f36bd76b87a9664b715c650ebcace1',
+    'size' => 292
+  },
+  'Filesys-Df-0.92.tar.gz' => {
+    'md5' => 'a8b0aa3e5151a8a6c8b3067625980934',
+    'md5-ungz' => '9ae3b0428d8fe81f69a55fd492fcbe81',
+    'mtime' => '2006-06-25',
+    'sha256' => 'fe89cbb427e0e05f1cd97c2dd6d3866ac6b21bc7a85734ede159bdc35479552a',
+    'sha256-ungz' => 'a92e1ca75f666702323753f50f0b3681d21b55b790c532fb1d428ec0d1c3fa7b',
+    'size' => 7113
+  },
+  'Filesys-DfPortable-0.85.meta' => {
+    'md5' => 'ce0e1a25c43a260f533642fd319e28cc',
+    'mtime' => '2006-06-25',
+    'sha256' => '79c5f2afef9c964fe6094bced2fd12d397d68c82ace34dd73c44bededbae228c',
+    'size' => 308
+  },
+  'Filesys-DfPortable-0.85.tar.gz' => {
+    'md5' => 'd4a66a0e2c7225b8622936b0ef7ee80b',
+    'md5-ungz' => '74017818520ed11605c7b96136877c8d',
+    'mtime' => '2006-06-25',
+    'sha256' => '7849db0398de770d058629922ffd82bda0fed7885219b045a5c0804b8ea74661',
+    'sha256-ungz' => '134ea7c6010e9da990779c1bb4a1ae8ebc3c161b474e934cc8c30895ae64bd64',
+    'size' => 7221
+  },
+  'Filesys-Statvfs-0.82.meta' => {
+    'md5' => 'ee1f2d6a3836f8a7288e5f5fe39fe1f7',
+    'mtime' => '2006-06-25',
+    'sha256' => '386e6cc0ea66bc7bd8066aa2eec0e5cb6ad318996671c0be6b577d30918eca1b',
+    'size' => 302
+  },
+  'Filesys-Statvfs-0.82.tar.gz' => {
+    'md5' => '133d3f4ad285572b66ca4e5ab42a33a0',
+    'md5-ungz' => 'c2781ba7c6aa2f83c453c6a6a8c49766',
+    'mtime' => '2006-06-25',
+    'sha256' => 'dc9494ca17af2b5226d50313efc5f02f3ff268d71c653cdb39bdd65fb3cf916a',
+    'sha256-ungz' => '76af89641716c21f2b81eb97ded5946d9064b9a9c05a2e8a4be70dd80fe86283',
+    'size' => 3964
+  },
+  'Net-Bluetooth-0.37.meta' => {
+    'md5' => '488b76154e4c5419c844aa33bbbe579b',
+    'mtime' => '2006-06-24',
+    'sha256' => '8508e4a3659bcce78aec058d7e7b5bd747f848339b000080f36cac02b072ce99',
+    'size' => 302
+  },
+  'Net-Bluetooth-0.37.tar.gz' => {
+    'md5' => 'e7102881ad3e40f82b2eba4b70b15b88',
+    'md5-ungz' => '23d9115c7e2945737cf19616df41d392',
+    'mtime' => '2006-06-24',
+    'sha256' => '0521ceae05e0fc5f042140ef21357da3891479af74094e308517f6aea1f20963',
+    'sha256-ungz' => '7e04fd91453e023c5f774b922a7cdba5940f159602ea2256948391af04a97ec9',
+    'size' => 15530
+  },
+  'Net-Bluetooth-0.38.meta' => {
+    'md5' => '2dc0c51f05a662322a7de3bb4160971f',
+    'mtime' => '2006-10-09',
+    'sha256' => '8f1a27efb93e8cb0ef10d241c90cb98335701cba8b78486a7f28d53c7742ebbd',
+    'size' => 302
+  },
+  'Net-Bluetooth-0.38.tar.gz' => {
+    'md5' => '1033d6486e2f0092324dcbf4c420f651',
+    'md5-ungz' => '435c57a0e8162bfe29517993552b910f',
+    'mtime' => '2006-10-09',
+    'sha256' => 'f1597ea01470b8e08d9b2b8226f41df71573f6d9fd24750c4a330a6e513e056a',
+    'sha256-ungz' => '2ea787302d41e14f97714ee5206b9ad592caf9901069398617585163d2afefa2',
+    'size' => 15696
+  },
+  'Net-Bluetooth-0.39.meta' => {
+    'md5' => 'c41875904ffc656f42548382646ada75',
+    'mtime' => '2007-01-14',
+    'sha256' => '79ba8a766ebeb6b93cafb7d7d2bd550979aa30e00e2218a36b597970576f1caf',
+    'size' => 302
+  },
+  'Net-Bluetooth-0.39.tar.gz' => {
+    'md5' => 'bf7844f003ffdf215c00d38bdb8a07d2',
+    'md5-ungz' => 'c60b28636fcd3ca0b60c75a1b493e58c',
+    'mtime' => '2007-01-14',
+    'sha256' => '71663d1c89bf43c8fd5594e6f858c02753aa7fcd26a92415ac5b4324e10381a3',
+    'sha256-ungz' => '840d1c3ea39124638bb090adca7aad3c6f2632322f513be1c030a3afc47027b7',
+    'size' => 15864
+  },
+  'Net-Bluetooth-0.40.meta' => {
+    'md5' => '9a8d9a655fd0fc2ca974551d974a1259',
+    'mtime' => '2007-08-12',
+    'sha256' => 'e2ab1ea49119d3b0ba0c588a22bcad325da0c9989ca9e4fe20055815a2c5bd15',
+    'size' => 302
+  },
+  'Net-Bluetooth-0.40.tar.gz' => {
+    'md5' => '576ca36af4151ec61f2ecd0312eed95f',
+    'md5-ungz' => 'f095b38d7dfda551155dd73304a88d63',
+    'mtime' => '2007-08-12',
+    'sha256' => '62cd1f79f5edd7d90a483bb5488d1cfbca0b887b84d0f22b21574fff4e659fd1',
+    'sha256-ungz' => 'e8df85a7a9b576e201572d8ba34acbf69a8bc2c535567413c9d084e9e3fcb89f',
+    'size' => 15935
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFGvnIzMo2oZ0UPiewRAiPoAJ9y2sYA2b6cjAhgJBHL2lf2YHdSpgCePcnl
+qRzU6DprGE12+5k1Lij30Fg=
+=E34m
+-----END PGP SIGNATURE-----
