@@ -196,6 +196,8 @@
 
 #### Honeyclient manual add - iexplore.exe - ticket #144 (windows update services)
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\WindowsUpdate.log
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\wuweb\.dll
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\wuweb\.dll
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD1\.tmp
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD1\.tmp\\wuweb\.dll
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD1\.tmp\\wuweb\.dll
@@ -214,6 +216,7 @@
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WuRedir\\9482F4B4-E343-43B6-B170-9A65BC822C77\\wuredir\.xml
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WuRedir\\9482F4B4-E343-43B6-B170-9A65BC822C77\\wuredir\.cab
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wuident\.txt
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wuident\.cab
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.cab
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.inf
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.cat
