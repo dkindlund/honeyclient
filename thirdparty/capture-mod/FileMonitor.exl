@@ -206,20 +206,25 @@
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD1\.tmp\\wuweb\.cat
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD1\.tmp\\wuweb\.cat
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\CatRoot2\\dberr\.txt
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\LastGood\\TMP1\.tmp
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\SET3\.tmp
-+	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\SET3\.tmp
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Downloaded Program Files\\SET4\.tmp
-+	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Downloaded Program Files\\SET4\.tmp
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\LastGood\\TMP.?.?\.tmp
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\SET.?.?\.tmp
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\SET.?.?\.tmp
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Downloaded Program Files\\SET.?.?\.tmp
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Downloaded Program Files\\SET.?.?\.tmp
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WuRedir\\9482F4B4-E343-43B6-B170-9A65BC822C77\\wuredir\.cab\.bak
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WuRedir\\9482F4B4-E343-43B6-B170-9A65BC822C77\\wuredir\.cab\.bak
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WuRedir\\9482F4B4-E343-43B6-B170-9A65BC822C77\\wuredir\.xml
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WuRedir\\9482F4B4-E343-43B6-B170-9A65BC822C77\\wuredir\.cab
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wuident\.txt
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wuident\.txt
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wuident\.cab
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wuident\.cab
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.cab
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.cab
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.inf
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.inf
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.cat
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\SoftwareDistribution\\WebSetup\\wsus3setup\.cat
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot2\\tmp\.edb
 +	Write	C:\\WINDOWS\\system32\\winlogon\.exe	C:\\WINDOWS\\system32\\dllcache\\wuweb\.dll\.new
 
