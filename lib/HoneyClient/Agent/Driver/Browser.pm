@@ -1072,6 +1072,9 @@ sub drive {
     my $base = $response->base;
     my $content = $response->content;
     my $type = $response->header('Content-Type');
+    if (!defined($type)) {
+        $type = ""; 
+    }
 
     # Get the current time.
     my $timestamp = _getTimestamp();
