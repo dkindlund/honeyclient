@@ -302,6 +302,15 @@ sub get_broken_clients {
     return YAML::XS::Load(_AUTOLOAD($obj_yaml));
 }
 
+# XXX: Need to comment this further.
+sub get_not_deleted_clients {
+    $AUTOLOAD = "Database::get_not_deleted_clients";
+    my $obj = shift;
+    my $obj_yaml = YAML::XS::Dump(Data::Structure::Util::unbless($obj));
+    # Results from this call are YAML-encoded; need to deserialize them.
+    return YAML::XS::Load(_AUTOLOAD($obj_yaml));
+}
+
 #######################################################################
 
 1;
