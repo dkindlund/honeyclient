@@ -34,11 +34,11 @@ while (my ($cid, $id) = each %{$clients}) {
     #$LOG->info("Executing: vmware-cmd " . $datastore_path . "/" . $cid . "/*.cfg stop hard");
     #system("vmware-cmd " . $datastore_path . "/" . $cid . "/*.cfg stop hard");
 
-    #$LOG->info("Executing: vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.vmx");
-    #system("vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.vmx");
+    $LOG->info("Executing: vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.vmx");
+    system("vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.vmx");
 
-    #$LOG->info("Executing: vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.cfg");
-    #system("vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.cfg");
+    $LOG->info("Executing: vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.cfg");
+    system("vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.cfg");
     
     #$LOG->info("Executing: cp -Rp " . $old_datastore_path . "/" . $cid . " " . $datastore_path);
     #system("cp -Rp " . $old_datastore_path . "/" . $cid . " " . $datastore_path);
@@ -46,11 +46,11 @@ while (my ($cid, $id) = each %{$clients}) {
     #$LOG->info("Executing: cp -Rp " . $old_snapshot_path . "/" . $cid . "* " . $snapshot_path);
     #system("cp -Rp " . $old_snapshot_path . "/" . $cid . "* " . $snapshot_path);
     
-	$LOG->info("Executing: vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.vmx");
-    system("vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.vmx");
+    #$LOG->info("Executing: vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.vmx");
+    #system("vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.vmx");
 
-    $LOG->info("Executing: vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.cfg");
-    system("vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.cfg");
+    #$LOG->info("Executing: vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.cfg");
+    #system("vmware-cmd -s register " . $datastore_path . "/" . $cid . "/*.cfg");
 
     #HoneyClient::Manager::Database::set_client_deleted($id);
 
