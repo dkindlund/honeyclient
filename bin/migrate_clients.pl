@@ -21,6 +21,7 @@ my $old_datastore_path = "/vm.old/clones";
 my $old_snapshot_path = "/vm.old/snapshots";
 my $datastore_path = getVar(name => "datastore_path", namespace => "HoneyClient::Manager::VM");
 my $snapshot_path = getVar(name => "snapshot_path", namespace => "HoneyClient::Manager::VM");
+my $suspicious_path = "/vm/suspicious";
 
 my $clients = HoneyClient::Manager::Database::get_not_deleted_clients($args);
 
@@ -39,6 +40,15 @@ while (my ($cid, $id) = each %{$clients}) {
 
     $LOG->info("Executing: vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.cfg");
     system("vmware-cmd -s unregister " . $datastore_path . "/" . $cid . "/*.cfg");
+    
+    $LOG->info("Executing: mv " . $datastore_path . "/" . $cid . " " . $suspicious_path);
+    system("mv " . $datastore_path . "/" . $cid . " " . $suspicious_path);
+
+    $LOG->info("Executing: vmware-cmd -s register " . $suspicious_path . "/" . $cid . "/*.vmx");
+    system("vmware-cmd -s register " . $suspicious_path . "/" . $cid . "/*.vmx");
+    
+    $LOG->info("Executing: vmware-cmd -s register " . $suspicious_path . "/" . $cid . "/*.cfg");
+    system("vmware-cmd -s register " . $suspicious_path . "/" . $cid . "/*.cfg");
     
     #$LOG->info("Executing: cp -Rp " . $old_datastore_path . "/" . $cid . " " . $datastore_path);
     #system("cp -Rp " . $old_datastore_path . "/" . $cid . " " . $datastore_path);
