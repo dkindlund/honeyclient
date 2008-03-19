@@ -138,7 +138,8 @@
 -	Write	.*	.+\.reg
 -	Write	.*	.+\.sct
 -	Write	.*	.+\.shs
--	Write	.*	.+\.scr
+#commented out for sites that download \.scr into the temp files folder.
+#-	Write	.*	.+\.scr
 -	Write	.*	.+\.wsc
 -	Write	.*	.+\.wsf
 -	Write	.*	.+\.wsh
