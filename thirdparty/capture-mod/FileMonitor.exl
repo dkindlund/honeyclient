@@ -176,6 +176,7 @@
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\AppPatch
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\config
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\systemprofile
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\wbem
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\wbem\\Repository\\FS
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\system32\\Prefetch
@@ -185,7 +186,18 @@
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\Prefetch
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\WinSxS
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\WinSxS\\MANIFESTS
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\WinSxS\\Policies
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\REGISTRATION
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\Documents and Settings
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\Documents and Settings\\Default User
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\Documents and Settings\\ALL USERS
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\Documents and Settings\\Default User\\Start Menu\\Programs
++	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	C:\\Documents and Settings\\All Users\\START MENU
 
 #### Honeyclient manual add - helpsvc.exe
 +	Write	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\DataColl\\.*
