@@ -506,7 +506,8 @@ sub _cleanup {
     $SIG{TERM}    = sub { };
 
     # XXX: Need to clean this up.
-    my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW");
+    my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
+                                 fault_handler => \&_handleFault);
 
     # XXX: Change this to installDefaultRules(), eventually.
     # Reset the firewall, to allow everything open.
