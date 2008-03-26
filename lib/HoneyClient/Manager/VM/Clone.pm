@@ -633,7 +633,7 @@ sub _init {
     $self->{'name'} = $som->result();
 
     # Now, get the VM's IP address.
-    $LOG->debug("Retrieving IP address of clone VM (" . $self->{'config'} . ").");
+    $LOG->info("Waiting for a valid IP address of clone VM (" . $self->{'config'} . ").");
     $ret = undef;
     my $stubAgent = undef;
     my $logMsgPrinted = 0;
