@@ -252,3 +252,6 @@
 
 #### Honeyclient manual add - iexplore.exe - ticket #152
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\VGX.?.?.?\.tmp
+
+#### Honeyclient manual add - iexplore.exe
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\wbk.?.?.?\.tmp
