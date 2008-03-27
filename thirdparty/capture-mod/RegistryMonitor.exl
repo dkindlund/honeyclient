@@ -323,3 +323,28 @@
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\InstalledVersion
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\Contains\\Files
 +	SetValueKey	C:\\WINDOWS\\system32\\winlogon.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing\\B3BB5BBA-E7D5-40AB-A041-A5B1C0B26C8F
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\S.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\LowRegistry
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\S.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Zoom
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\CTF\\TIP\\\{1188450c-fdab-47ae-80d8-c9633f71be64\}\\LanguageProfile\\0x00000000\\\{63800dac-e7ca-4df9-9a5c-20765055488d\}
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Ports
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\S.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	DeleteValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\S.+\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	DeleteValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Cached
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	SetValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKCU\\Printers

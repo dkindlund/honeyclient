@@ -32,6 +32,11 @@
 +	userinit.exe	.*	C:\\WINDOWS\\system32\\userinit\.exe
 +	WgaTray.exe	.*	C:\\WINDOWS\\system32\\WgaTray\.exe
 +	alg.exe	.*	C:\\WINDOWS\\system32\\alg\.exe
-+	firefox.exe	.*	C:\\Program Files\\Mozilla Firefox\\firefox\.exe#### HONEYCLIENT AUTO EXCLUDE SCRIPT
++	firefox.exe	.*	C:\\Program Files\\Mozilla Firefox\\firefox\.exe
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	setup_wm.exe	.*	C:\\Program Files\\Windows Media Player\\setup_wm.exe
 +	wmplayer.exe	.*	C:\\Program Files\\Windows Media Player\\wmplayer.exe
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
++	verclsid.exe	.*	C:\\WINDOWS\\system32\\verclsid.exe

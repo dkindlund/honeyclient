@@ -255,3 +255,10 @@
 
 #### Honeyclient manual add - iexplore.exe
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\wbk.?.?.?\.tmp
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\Logs
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\repair
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
