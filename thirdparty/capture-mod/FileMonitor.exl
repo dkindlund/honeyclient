@@ -264,7 +264,10 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies\\index.dat
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5\\MSHist012008032720080328\\index\.dat
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
++	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
++	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
@@ -273,10 +276,8 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache\\index\.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\Microsoft\\Internet Explorer\\MSIMGSIZ\.DAT
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\AntiPhishing\\B3BB5BBA-E7D5-40AB-A041-A5B1C0B26C8F\.dat
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\AntiPhishing\\.+
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Internet Explorer
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5\\index\.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\Macromed\\Flash
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
