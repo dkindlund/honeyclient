@@ -264,7 +264,7 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5\\MSHist012008032720080328\\index\.dat
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\lib\\perl5\\site_perl\\5\.8\\cygwin\\HTML
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\lib\\perl5\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5\\.*
@@ -276,6 +276,10 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Internet Explorer
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5\\index\.dat
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\lib\\perl5\\site_perl\\5\.8\\auto\\Data\\Validate\\URI
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\lib\\perl5\\site_perl\\5\.8\\DateTime\\TimeZone
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\Macromed\\Flash
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Favorites
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Messenger
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\Microsoft\\Feeds Cache\\index\.dat
