@@ -264,7 +264,7 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History\\History\.IE5\\MSHist012008032720080328\\index\.dat
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\lib\\perl5\\.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5\\.*
