@@ -350,3 +350,6 @@
 +	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
 +	SetValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKCU\\Printers
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\PhishingFilter
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
++	SetValueKey	C:\\Program Files\\Windows Media Player\\wmpnscfg\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows Media Player NSS\\.*
