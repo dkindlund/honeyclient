@@ -286,3 +286,4 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Messenger
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\Microsoft\\Feeds Cache\\index\.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Microsoft\.NET\\Framework.*
++	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temporary Internet Files\\.*
