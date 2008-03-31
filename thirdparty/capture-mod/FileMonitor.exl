@@ -129,7 +129,7 @@
 # Alert about executables or scripts that are written to disk
 #-	Write	.*	.+\.bat
 #-	Write	.*	.+\.cmd
-#commanted out for VMwareService.exe, since it writes .inf files.
+#commented out for VMwareService.exe, since it writes .inf files.
 #-	Write	.*	.+\.inf
 -	Write	.*	.+\.lnk
 -	Write	.*	.+\.msi
@@ -291,3 +291,5 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\index.dat
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\.+
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\index.dat
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\
