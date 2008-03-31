@@ -264,10 +264,10 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies\\index.dat
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
-+	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
-+	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
++	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
++	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
@@ -285,3 +285,4 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Favorites
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Messenger
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\Microsoft\\Feeds Cache\\index\.dat
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Microsoft\.NET\\Framework.*
