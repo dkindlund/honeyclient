@@ -353,3 +353,4 @@
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\wmpnscfg\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows Media Player NSS\\.*
++	SetValueKey	C:\\Program Files\\Windows Media Player\\wmpnetwk\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows Media Player NSS\\.*
