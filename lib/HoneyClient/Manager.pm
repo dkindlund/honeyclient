@@ -892,11 +892,14 @@ sub runSession {
             return $args{'agent_state'};
         }
         if ($globalAgentErrorCount >= getVar(name => "max_agent_error_count")) {
-		    # TODO: Need to update the API first.
-            #if ($DB_ENABLE && ($vm->database_id > 0)) {
-            #    # Mark the VM as suspended within the database.
-            #    HoneyClient::Manager::Database::set_client_suspicious($vm->database_id);
-            #}
+            if ($DB_ENABLE && ($vm->database_id > 0)) {
+                # Mark the VM as suspended within the database.
+    			my $dt = DateTime::HiRes->now(time_zone => "local");
+                HoneyClient::Manager::Database::set_client_suspicious({
+					client_id => $vm->database_id,
+        			compromise => $dt->ymd('-').'T'.$dt->hms(':'),
+				});
+            }
             $globalAgentErrorCount = 0;
             # Reset the FW state table. 
             $vmStateTable = ( );
