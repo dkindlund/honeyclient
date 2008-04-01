@@ -900,6 +900,10 @@ sub runSession {
         			compromise => $dt->ymd('-').'T'.$dt->hms(':'),
 				});
             }
+            # The VM should be suspended after the return.  Clear out the global DB ID, so
+            # that our cleanup code doesn't re-mark the VM as suspended.
+            $clientDbId = 0;
+
             $globalAgentErrorCount = 0;
             # Reset the FW state table. 
             $vmStateTable = ( );
