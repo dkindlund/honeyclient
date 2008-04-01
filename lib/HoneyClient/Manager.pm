@@ -531,9 +531,9 @@ sub _cleanup {
     }
 
     if ($DB_ENABLE && ($clientDbId > 0)) {
-	    if (defined($globalAgentState)) {
-        	$LOG->info("Saving URL History to Database.");
-        	insert_url_history(agent_state => $globalAgentState,
+        if (defined($globalAgentState)) {
+            $LOG->info("Saving URL History to Database.");
+            insert_url_history(agent_state => $globalAgentState,
                                client_id   => $clientDbId);
         }
 
@@ -551,8 +551,8 @@ sub _cleanup {
 
 END {
     # TODO: Make sure this works correctly.
-	# Make sure all processes in our process group our dead.
-	kill("KILL", -$$);
+    # Make sure all processes in our process group our dead.
+    kill("KILL", -$$);
 }
 
 # XXX: Install the cleanup handler, in case the parent process dies
@@ -892,6 +892,10 @@ sub runSession {
             return $args{'agent_state'};
         }
         if ($globalAgentErrorCount >= getVar(name => "max_agent_error_count")) {
+            if ($DB_ENABLE && ($vm->database_id > 0)) {
+                # Mark the VM as suspended within the database.
+                HoneyClient::Manager::Database::set_client_suspicious($vm->database_id);
+            }
             $globalAgentErrorCount = 0;
             # Reset the FW state table. 
             $vmStateTable = ( );
