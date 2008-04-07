@@ -1,30 +1,27 @@
-# CHECKSUMS file written on Fri Mar  7 17:40:41 2008 GMT by CPAN::Checksums (v1.064)
+# CHECKSUMS file written on Mon Apr  7 13:56:12 2008 GMT by CPAN::Checksums (v1.064)
 $cksum = {
-  'Bundle-HoneyClient-Agent-1.0.1.tar.gz' => {
-    'md5' => '16ce24d205502120138c0c0e1a0a0b7f',
-    'md5-ungz' => '8dcf256f0b1dcb0b15f02e5bc9cde0a9',
-    'mtime' => '2008-03-07',
-    'sha256' => 'c421724cf4e72255dd17095b4258fa008ae51b37cde48faa848e45c3c2e888b8',
-    'sha256-ungz' => '3fc8d3f5c064e1be7b1ca63daa5a0ae594fcb9c1da7508c279aef74e00564924',
-    'size' => '2652'
+  'Bundle-HoneyClient-Agent-1.0.2.tar.gz' => {
+    'md5' => 'a26c09945c20eae36cc7d3f8065c922d',
+    'md5-ungz' => '114310efec852af851779451a8447a8c',
+    'mtime' => '2008-04-07',
+    'sha256' => 'a6edbbb80867def29b9039fc3924acc0aa03f8ba6d61f01701f22caba6911cb9',
+    'sha256-ungz' => '4dddd03db4b8645947760b954706ffe0d65d77952dadd9bc1f6fd16486009c73',
+    'size' => '2653'
   },
-  'Bundle-HoneyClient-Manager-1.0.1' => {
-    'isdir' => 1
+  'Bundle-HoneyClient-Manager-1.0.2.tar.gz' => {
+    'md5' => 'e18c867944305722e4968dab5527c59a',
+    'md5-ungz' => '9d0bd8f1ec795000f41029a6f2b57516',
+    'mtime' => '2008-04-07',
+    'sha256' => '6f9e0e19a15d9d72f431c64711fef0a63cf3b11b7a14026b608dee00ff883c39',
+    'sha256-ungz' => '95bb76fd9b4ca1a425ed4a202a3d014229ca436fc4d8a02e017b48b19487f639',
+    'size' => '2738'
   },
-  'Bundle-HoneyClient-Manager-1.0.1.tar.gz' => {
-    'md5' => '8c0d887b9271cc3daafe1f69da945825',
-    'md5-ungz' => '22b5e909ad9087cadeb2235e20e7c417',
-    'mtime' => '2008-03-07',
-    'sha256' => '06462c1023bc15f65b71ae4417620c173abe05622fbf12d7d3e8344ee58946bc',
-    'sha256-ungz' => '986f7ef34c0916205034173dfc5dbabfb6d7756584c18a2b019d4d7671030fde',
-    'size' => '2739'
-  },
-  'Bundle-HoneyClient-Util-1.0.1.tar.gz' => {
-    'md5' => '5bc724c672aefbf72c2885f7c976e6c2',
-    'md5-ungz' => '65420487d845be9f5a852f096852364c',
-    'mtime' => '2008-03-07',
-    'sha256' => '6a1431f854bf9afffd8d28a7180126cbbdcfceefa95057de7976d2e2c3ccd043',
-    'sha256-ungz' => 'feb14b2a802866ebd502d577a4c389bbcbc661db63355c4a323bd5c8d621efc0',
-    'size' => '3233'
+  'Bundle-HoneyClient-Util-1.0.2.tar.gz' => {
+    'md5' => 'f81bcdc6f52fe15b714217eb64ceabbf',
+    'md5-ungz' => 'd4d286782663cfcbf51efd71f543a83e',
+    'mtime' => '2008-04-07',
+    'sha256' => '98fc22de0c8b46e76d15ee945a52eec968adf5606b09a5e0a585194e93c93aac',
+    'sha256-ungz' => '1cbbed2e31115000320304f8f58064a3cb8c3241d493e4fcafac22cb61039c40',
+    'size' => '3235'
   }
 };
