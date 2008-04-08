@@ -1,0 +1,43 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Mon Nov 12 08:29:22 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'Compress-Bzip2-2.08.meta' => {
+    'md5' => '737f5ac6555f267616da41128f3226ac',
+    'mtime' => '2005-05-12',
+    'sha256' => 'e0050bba7d3baf1531a9d4780bbc66c30cfe6883994b6e645d9a5321e8336e3a',
+    'size' => 571
+  },
+  'Compress-Bzip2-2.08.tar.gz' => {
+    'md5' => '53415f50dc5ad7505542bc754a325bbd',
+    'md5-ungz' => '926ab813509f7c24fdbe6e4cec20e868',
+    'mtime' => '2005-05-12',
+    'sha256' => 'b5f3185492ac3c7f38b29b2e753c026fb4273a88f3c6f4d2366f2e441eae6652',
+    'sha256-ungz' => '653ab8ba8c43d6dad1143c85d26a4f2178469f5567638da0d4c289a91f11367c',
+    'size' => 429159
+  },
+  'Compress-Bzip2-2.09.meta' => {
+    'md5' => '19753233577c6efea1f1c8311e00e8ef',
+    'mtime' => '2005-08-09',
+    'sha256' => '2133d4f17551456b180ae3af0652e4ddd8e88b7cf8ac08ba8f2e099d29446d2f',
+    'size' => 571
+  },
+  'Compress-Bzip2-2.09.tar.gz' => {
+    'md5' => '1699fde3e86f2a036f135ae606d456bf',
+    'md5-ungz' => 'e3de0b21482e759324bb12bedc2e58de',
+    'mtime' => '2005-08-09',
+    'sha256' => 'b43b7fbd90a406454b4b9b3765b140699a72653dd6bba298f2974ca1a9d5c4f8',
+    'sha256-ungz' => '52c05af7475a5409368b3bffe7de23b9be8f0fc1d7497c8d9bca15d1a92fc6c4',
+    'size' => 429584
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHOA7iMo2oZ0UPiewRAud8AJ9/ICMYV3alPA7scbCVmKzRJJYkDQCgmF/c
+ZZJYMgeNz/DFa8Xhn1wPNPo=
+=PjnA
+-----END PGP SIGNATURE-----
