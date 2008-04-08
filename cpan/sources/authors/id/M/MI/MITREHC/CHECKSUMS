@@ -1,12 +1,12 @@
-# CHECKSUMS file written on Mon Apr  7 13:56:12 2008 GMT by CPAN::Checksums (v1.064)
+# CHECKSUMS file written on Tue Apr  8 00:43:36 2008 GMT by CPAN::Checksums (v1.064)
 $cksum = {
   'Bundle-HoneyClient-Agent-1.0.2.tar.gz' => {
-    'md5' => 'a26c09945c20eae36cc7d3f8065c922d',
-    'md5-ungz' => '114310efec852af851779451a8447a8c',
-    'mtime' => '2008-04-07',
-    'sha256' => 'a6edbbb80867def29b9039fc3924acc0aa03f8ba6d61f01701f22caba6911cb9',
-    'sha256-ungz' => '4dddd03db4b8645947760b954706ffe0d65d77952dadd9bc1f6fd16486009c73',
-    'size' => '2653'
+    'md5' => '3c60018ce1ae380816e5ba7fc9a97a3c',
+    'md5-ungz' => '3e4b4609f5603fe2087de9ad16185d51',
+    'mtime' => '2008-04-08',
+    'sha256' => 'e1da7c449e337d42a7ce0dbdc8610301c4a3decc3d681d38e9b00fbcefd184d6',
+    'sha256-ungz' => '341362589165e110b1749cb97d4d039c0c95bb4fa18d3542154c0956f4163e3c',
+    'size' => '2668'
   },
   'Bundle-HoneyClient-Manager-1.0.2.tar.gz' => {
     'md5' => 'e18c867944305722e4968dab5527c59a',
@@ -15,6 +15,12 @@ $cksum = {
     'sha256' => '6f9e0e19a15d9d72f431c64711fef0a63cf3b11b7a14026b608dee00ff883c39',
     'sha256-ungz' => '95bb76fd9b4ca1a425ed4a202a3d014229ca436fc4d8a02e017b48b19487f639',
     'size' => '2738'
+  },
+  'Bundle-HoneyClient-Util-1.0.1.tar' => {
+    'md5' => 'd41d8cd98f00b204e9800998ecf8427e',
+    'mtime' => '2008-04-07',
+    'sha256' => 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    'size' => '0'
   },
   'Bundle-HoneyClient-Util-1.0.2.tar.gz' => {
     'md5' => 'f81bcdc6f52fe15b714217eb64ceabbf',
