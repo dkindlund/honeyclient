@@ -61,14 +61,13 @@ Keep in mind, though, that some variables should remain module-specific
     </syslog_address>
     <!-- HoneyClient::Agent Options -->
     <Agent>
-        <!-- TODO: Update this. -->
         <address description="The IP or hostname that all Agent modules should use, when accepting SOAP requests." default="0.0.0.0">
             0.0.0.0
         </address>
         <!-- TODO: Update this. -->
         <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running inside the VM. -->
-        <port description="The TCP port number that the SOAP server for all Agent modules will listen on for requests." default="9000">
-            9000
+        <port description="The TCP port number that the SOAP server for all Agent modules will listen on for requests." default="7627">
+            7627
         </port>
         <allowed_drivers description="List of implemented Drivers that the Agent is allowed to run directly.">
             <name>HoneyClient::Agent::Driver::Browser::IE</name>
@@ -79,56 +78,11 @@ Keep in mind, though, that some variables should remain module-specific
         </default_driver>
         <!-- HoneyClient::Agent::Driver Options -->
         <Driver>
-            <!-- TODO: Update this. -->
+            <!-- TODO: Update this. XXX: Command-line option, eventually? -->
             <timeout description="How long the Driver waits during a drive operation, before timing out (in seconds)." default="60">
                 20
             </timeout>
-            <ActiveContent>
-                <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
-                    0
-                </enable>
-                <Flash>
-                    <flasm_exec description="Path to the flasm executable." default="thirdparty/flasm/flasm.exe">
-                        thirdparty/flasm/flasm.exe
-                    </flasm_exec>
-                </Flash>
-            </ActiveContent>
             <Browser>
-                <!-- HoneyClient::Agent::Driver::IE Options -->
-                <!-- TODO: Update this. -->
-                <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
-                    1
-                </ignore_links_timed_out>
-                <limit_spidering description="When set to 1, the Browser will not visit any derived links other than the initial set of URLs given.  This is useful when you want the Browser to only visit a specific set of URLs (perhaps malicious) and no other links that it finds on any of the visited pages.  When set to 1, this option will override max_relative_links_to_visit (essentially setting it to 0).  If you want the Browser to spider through derived links, set this value to 0." default="1">
-                    1
-                </limit_spidering>
-                <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites. Note that this value can be overridden if limit_spidering is set to 1 above." default="-1">
-                    5
-                </max_relative_links_to_visit>
-                <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
-                    <word>news</word>
-                    <word>new</word>
-                    <word>big</word>
-                    <word>latest</word>
-                    <word>main</word>
-                    <word>update</word>
-                    <word>sell</word>
-                    <word>free</word>
-                    <word>buy</word>
-                    <word>science</word>
-                </positive_words>
-                <negative_words description="If a link contains any number of these words, then its probability of being visited (its score) will decrease.">
-                    <word>archive</word>
-                    <word>privacy</word>
-                    <word>legal</word>
-                    <word>disclaim</word>
-                    <word>about</word>
-                    <word>contact</word>
-                    <word>copyright</word>
-                    <word>jobs</word>
-                    <word>careers</word>
-                    <word>term</word>
-                </negative_words>
                 <IE>
                     <!-- HoneyClient::Agent::Driver::Browser::IE Options -->
                     <process_exec description="The absolute path to the Internet Explorer application process, as it sits in the VM filesystem." default="C:\Program Files\Internet Explorer\iexplore.exe">
@@ -148,8 +102,6 @@ Keep in mind, though, that some variables should remain module-specific
                     </process_name>
                 </FF>
             </Browser>
-            <EmailClient>
-            </EmailClient>
         </Driver>
         <perform_integrity_checks description="An integer, representing whether the Agent should perform any integrity checks. 1 enables, 0 disables." default="1">
             1
@@ -162,27 +114,88 @@ Keep in mind, though, that some variables should remain module-specific
             <realtime_changes_file description="When an integrity check fails, all changes will be written to this file within the compromized honeyclient VM's filesystem." default="/tmp/realtime-changes.txt">
                 /tmp/realtime-changes.txt
             </realtime_changes_file>
+            <!-- HoneyClient::Agent::Integrity::Test Options -->
+            <Test>
+                <!--
+                    Note: you should *never* need to change *any* values
+                    within this section of the configuration.  All contents
+                    are *only* used for unit testing.
+                -->
+                <realtime_changes_file description="When an integrity check fails, all changes will be written to this file within the compromized honeyclient VM's filesystem." default="/tmp/realtime-changes.txt">
+                    t/test_integrity/realtime-changes.txt
+                </realtime_changes_file>
+            </Test>
         </Integrity>
     </Agent>
+    <!-- TODO: Update this. -->
+    <Crawler>
+        <ActiveContent>
+            <enable description="Enables active content parsing. 1 enables, 0 disables." default="1">
+                0
+            </enable>
+            <Flash>
+                <flasm_exec description="Path to the flasm executable." default="thirdparty/flasm/flasm.exe">
+                    thirdparty/flasm/flasm.exe
+                </flasm_exec>
+            </Flash>
+        </ActiveContent>
+        <Browser>
+            <!-- TODO: Update this. -->
+            <ignore_links_timed_out description="If this parameter is 1, then the browser will never attempt to revisit any links that caused the browser to initially time out." default="0">
+                1
+            </ignore_links_timed_out>
+            <limit_spidering description="When set to 1, the Browser will not visit any derived links other than the initial set of URLs given.  This is useful when you want the Browser to only visit a specific set of URLs (perhaps malicious) and no other links that it finds on any of the visited pages.  When set to 1, this option will override max_relative_links_to_visit (essentially setting it to 0).  If you want the Browser to spider through derived links, set this value to 0." default="1">
+                1
+            </limit_spidering>
+            <max_relative_links_to_visit description="An integer, representing the maximum number of relative links that the browser should visit, before moving onto another website.  If negative, then the browser will exhaust all possible relative links found, before moving on.  This functionality is best effort; it's possible for the browser to visit new links on previously visited websites. Note that this value can be overridden if limit_spidering is set to 1 above." default="-1">
+                5
+            </max_relative_links_to_visit>
+            <positive_words description="If a link contains any number of these words, then its probability of being visited (its score) will increase.">
+                <word>news</word>
+                <word>new</word>
+                <word>big</word>
+                <word>latest</word>
+                <word>main</word>
+                <word>update</word>
+                <word>sell</word>
+                <word>free</word>
+                <word>buy</word>
+                <word>science</word>
+            </positive_words>
+            <negative_words description="If a link contains any number of these words, then its probability of being visited (its score) will decrease.">
+                <word>archive</word>
+                <word>privacy</word>
+                <word>legal</word>
+                <word>disclaim</word>
+                <word>about</word>
+                <word>contact</word>
+                <word>copyright</word>
+                <word>jobs</word>
+                <word>careers</word>
+                <word>term</word>
+            </negative_words>
+        </Browser>
+    </Crawler>
     <Manager>
-        <manager_state description="Upon termination, the Manager will attempt to append a complete copy of its state into this file, if specified." default="">
-            manager.dump
-        </manager_state>
         <fingerprint_dump description="When the Manager encounters a suspicious VM, it will attempt to append a complete copy of the fingerprint information to this file, if specified.">
             fingerprint.dump
         </fingerprint_dump>
-        <!-- TODO: Update this. -->
         <address description="The IP or hostname that all Manager modules should use, when accepting SOAP requests." default="localhost">
             localhost
         </address>
-        <!-- TODO: Update this. -->
         <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running on the host system. -->
-        <port description="The TCP port number that the SOAP server for all Manager modules will listen on for requests." default="8089">
-            8089
+        <port description="The TCP port number that the SOAP server for all Manager modules will listen on for requests." default="7627">
+            7627
         </port>
-        <max_agent_error_count description="When the Agent is running, this value is the maximum number of SOAP communication errors the Manager will ignore (e.g., timeouts) before the Manager suspends the corresponding VM and clones a new Agent.  These errors mainly occur when the Manager loses connectivity to the Agent for some reason (i.e., software/OS crashing inside the VM).  Otherwise, the Manager would loop forever trying to reconnect with the faulty VM.  This value should never be set to 0 and should always be positive." default="3">
-            3
-        </max_agent_error_count>
+        <num_urls_to_process description="If database support is enabled, this value indicates how many URLs the Manager will fetch from the database, process, and report back, before fetching for more URLs." default="10">
+            10
+        </num_urls_to_process>
+        <database_retry_delay description="If database support is enabled, this value indicates how often (in seconds) the Manager will retry contacting the database, when it is ready for more URLs to process and no URLs were provided during the first request." default="2">
+            2
+        </database_retry_delay>
+        <command_line_base_priority description="When the Manager is supplied URLs from the command line, it will assign each URL the following numerical base priority." default="1000">
+            1000
+        </command_line_base_priority>
         <!-- HoneyClient::Manager::Database Options -->
         <Database>
             <enable description="Enables database operations. 1 enables, 0 disables." default="1">
@@ -202,7 +215,7 @@ Keep in mind, though, that some variables should remain module-specific
             <address description="eth0 interface static IP">
                 192.168.0.128
             </address>
-            <!-- TODO: Update this. -->
+            <!-- TODO: Update this to 7627, eventually. -->
             <port description="Default FW port number" default="8083">
                 8083
             </port>
@@ -290,10 +303,10 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/Agent.Master-36/winXPPro.cfg
+                /vm/masters/Agent.Master-37/winXPPro.cfg
             </master_vm_config>
-            <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="8089">
-                8089
+            <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
+                7627
             </port>
             <datastore_path description="The absolute path to the parent directory, where all HoneyClient VM data is stored on the host server.  It is assumed that individual VM data is stored in separate subdirectories within this parent directory." default="/vm">
                 /vm/clones
@@ -316,6 +329,12 @@ Keep in mind, though, that some variables should remain module-specific
             <dhcp_log description="The absolute path to the file that contains the DHCP logs, when a new VM gets a DHCP lease from the VMware Server." default="/var/log/messages">
                 /var/log/messages
             </dhcp_log>
+            <!-- HoneyClient::Manager::VM::Clone Options -->
+            <Clone>
+                <archive_upon_suspend description="If set to 1, then everytime a cloned VM is suspended, a copy of the VM will be archived in the 'snapshot_path' directory.  Set this option to 0, if you discover errors during cloning operations, where the hard disk on the host system is overworked on slow systems." default="1">
+                    1
+                </archive_upon_suspend>
+            </Clone>
             <!-- HoneyClient::Manager::VM::Test Options -->
             <Test>
                 <!--

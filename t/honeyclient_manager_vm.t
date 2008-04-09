@@ -249,8 +249,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -294,8 +292,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -338,8 +334,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -394,8 +388,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -441,8 +433,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -498,8 +488,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -547,8 +535,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -617,8 +603,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -661,8 +645,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -714,8 +696,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -760,8 +740,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -812,8 +790,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -859,8 +835,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -903,8 +877,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -974,8 +946,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1046,8 +1016,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1131,8 +1099,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1227,8 +1193,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1340,8 +1304,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1452,8 +1414,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {

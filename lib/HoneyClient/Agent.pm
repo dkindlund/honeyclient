@@ -1,5 +1,5 @@
 #######################################################################
-# Created on:  May 11, 2006
+# Created on:  April 02, 2008
 # Package:     HoneyClient::Agent
 # File:        Agent.pm
 # Description: Central library used for agent-based operations.
@@ -8,7 +8,7 @@
 #
 # @author knwang, ttruong, kindlund
 #
-# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -37,17 +37,81 @@ operations.
 
 =head1 VERSION
 
-1.02
+This documentation refers to HoneyClient::Agent version 1.02.
 
 =head1 SYNOPSIS
 
 =head2 CREATING THE SOAP SERVER
 
-# XXX: Fill this in.
+  use HoneyClient::Agent;
+
+  # Handle SOAP requests on the default address:port.
+  my $URL = HoneyClient::Agent->init();
+
+  # Handle SOAP requests on TCP port localhost:9090
+  my $URL = HoneyClient::Agent->init(address => "localhost",
+                                     port    => 9090);
+
+  print "Server URL: " . $URL . "\n";
+
+  # Create a cleanup function, to execute whenever
+  # the SOAP server needs to be destroyed.
+  sub cleanup {
+      HoneyClient::Agent->destroy();
+      exit;
+  }
+
+  # Install the cleanup handler, in case parent process
+  # dies unexpectedly.
+  $SIG{HUP}       = \&cleanup;
+  $SIG{INT}       = \&cleanup;
+  $SIG{QUIT}      = \&cleanup;
+  $SIG{ABRT}      = \&cleanup;
+  $SIG{PIPE}      = \&cleanup;
+  $SIG{TERM}      = \&cleanup;
+
+  # Catch all parent code errors, in order to perform cleanup
+  # on all child processes before exiting.
+  eval {
+      # Do rest of the parent processing here...
+  };
+
+  # We assume you still want to still want to "die" on
+  # any errors found within the eval block.
+  if ($@) {
+      HoneyClient::Agent->destroy();
+      die $@;
+  }
+
+  # Even if no errors occurred, initiate cleanup.
+  cleanup();
 
 =head2 INTERACTING WITH THE SOAP SERVER
 
-# XXX: Fill this in.
+  use HoneyClient::Util::SOAP qw(getClientHandle);
+  use Data::Dumper;
+  use MIME::Base64 qw(encode_base64 decode_base64);
+  use Storable qw(thaw);
+  $Storable::Deparse = 1;
+  $Storable::Eval = 1;
+
+  # Create a new SOAP client, to talk to the HoneyClient::Agent
+  # module.
+  my $stub = getClientHandle(namespace => "HoneyClient::Agent",
+                             address   => "localhost");
+  my $som;
+
+  # Get the properties of the Agent OS and driven application.
+  $som = $stub->getProperties(driver_name => "HoneyClient::Agent::Driver::Browser::IE");
+  print Dumper($som->result()) . "\n";
+
+  # Drive HoneyClient::Agent::Driver::Browser::IE to a website.
+  $som = $stub->drive(driver_name => "HoneyClient::Agent::Driver::Browser::IE",
+                      parameters  => encode_base64("http://www.mitre.org"));
+
+  # Check the result to see if any compromise was found.
+  # Look for the 'fingerprint' key in the resulting hastable.
+  print Dumper(thaw(decode_base64($som->result()))) . "\n"; 
 
 =head1 DESCRIPTION
 
@@ -59,14 +123,10 @@ VM.
 
 package HoneyClient::Agent;
 
-# XXX: Disabled version check, Honeywall does not have Perl v5.8 installed.
-#use 5.008006;
 use strict;
 use warnings FATAL => 'all';
 use Config;
 use Carp ();
-# TODO: This can go away.
-use POSIX qw(SIGALRM);
 
 #######################################################################
 # Module Initialization                                               #
@@ -100,14 +160,10 @@ BEGIN {
     # Symbols to autoexport (when qw(:all) tag is used)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-    # Check to make sure our OS is Windows-based.
-    # XXX: Fix this!
-    #if ($Config{osname} !~ /^MSWin32$/) {
-    #    Carp::croak "Error: " . __PACKAGE__ . " will only run on Win32 platforms!\n";
-    #}
-
-    # Check to see if ithreads are compiled into this version of Perl.
-    $Config{useithreads} or Carp::croak "Error: Recompile Perl with ithread support, in order to use this module.\n";
+    # Check to make sure our environment is Cygwin-based.
+    if ($Config{osname} !~ /^cygwin$/) {
+        Carp::croak "Error: " . __PACKAGE__ . " will only run in Cygwin environments!\n";
+    }
 
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
 }
@@ -117,13 +173,73 @@ our (@EXPORT_OK, $VERSION);
 
 =begin testing
 
+
+# Make sure Log::Log4perl loads
+BEGIN { use_ok('Log::Log4perl', qw(:nowarn))
+        or diag("Can't load Log::Log4perl package. Check to make sure the package library is correctly listed within the path.");
+
+        # Suppress all logging messages, since we need clean output for unit testing.
+        Log::Log4perl->init({
+            "log4perl.rootLogger"                               => "DEBUG, Buffer",
+            "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+            "log4perl.appender.Buffer.min_level"                => "fatal",
+            "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+            "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+        });
+}
+require_ok('Log::Log4perl');
+use Log::Log4perl qw(:easy);
+
+# Make sure HoneyClient::Util::Config loads.
+BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar))
+        or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path.");
+
+        # Suppress all logging messages, since we need clean output for unit testing.
+        Log::Log4perl->init({
+            "log4perl.rootLogger"                               => "DEBUG, Buffer",
+            "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+            "log4perl.appender.Buffer.min_level"                => "fatal",
+            "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+            "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+        });
+}
+require_ok('HoneyClient::Util::Config');
+can_ok('HoneyClient::Util::Config', 'getVar');
+use HoneyClient::Util::Config qw(getVar);
+
+# Suppress all logging messages, since we need clean output for unit testing.
+Log::Log4perl->init({
+    "log4perl.rootLogger"                               => "DEBUG, Buffer",
+    "log4perl.appender.Buffer"                          => "Log::Log4perl::Appender::TestBuffer",
+    "log4perl.appender.Buffer.min_level"                => "fatal",
+    "log4perl.appender.Buffer.layout"                   => "Log::Log4perl::Layout::PatternLayout",
+    "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
+});
+
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Agent') or diag("Can't load HoneyClient::Agent package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent');
-can_ok('HoneyClient::Agent', 'init');
-can_ok('HoneyClient::Agent', 'destroy');
-use HoneyClient::Agent;
+BEGIN {
+    # Check to make sure we're in a suitable environment.
+    use Config;
+    SKIP: {
+        skip 'HoneyClient::Agent only works in Cygwin environment.', 1 if ($Config{osname} !~ /^cygwin$/);
+    
+        use_ok('HoneyClient::Agent') or diag("Can't load HoneyClient::Agent package.  Check to make sure the package library is correctly listed within the path.");
+    }
+}
+
+# Check to make sure we're in a suitable environment.
+use Config;
+SKIP: {
+    skip 'HoneyClient::Agent only works in Cygwin environment.', 3 if ($Config{osname} !~ /^cygwin$/);
+
+    require_ok('HoneyClient::Agent');
+    can_ok('HoneyClient::Agent', 'init');
+    can_ok('HoneyClient::Agent', 'destroy');
+    if ($Config{osname} =~ /^cygwin$/) {
+        require HoneyClient::Agent;
+    }
+}
 
 # Make sure HoneyClient::Util::SOAP loads.
 BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
@@ -132,33 +248,17 @@ can_ok('HoneyClient::Util::SOAP', 'getServerHandle');
 can_ok('HoneyClient::Util::SOAP', 'getClientHandle');
 use HoneyClient::Util::SOAP qw(getServerHandle getClientHandle);
 
-# Make sure HoneyClient::Util::Config loads.
-BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar)) or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Util::Config');
-can_ok('HoneyClient::Util::Config', 'getVar');
-use HoneyClient::Util::Config qw(getVar);
-
-# TODO: Include FF
-# Make sure HoneyClient::Agent::Driver::Browser::IE loads.
-BEGIN { use_ok('HoneyClient::Agent::Driver::Browser::IE') or diag("Can't load HoneyClient::Agent::Driver::Browser::IE package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Agent::Driver::Browser::IE');
-# TODO: Update this list of function names.
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'new');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'drive');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'getNextLink');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'next');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'isFinished');
-can_ok('HoneyClient::Agent::Driver::Browser::IE', 'status');
-use HoneyClient::Agent::Driver::Browser::IE;
+# Make sure HoneyClient::Agent::Integrity loads.
+BEGIN { use_ok('HoneyClient::Agent::Integrity') or diag("Can't load HoneyClient::Agent::Integrity package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Agent::Integrity');
+use HoneyClient::Agent::Integrity;
 
 # Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(freeze nfreeze thaw dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('Storable', qw(nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
-can_ok('Storable', 'freeze');
 can_ok('Storable', 'nfreeze');
 can_ok('Storable', 'thaw');
-can_ok('Storable', 'dclone');
-use Storable qw(freeze nfreeze thaw dclone);
+use Storable qw(nfreeze thaw);
 
 # Make sure MIME::Base64 loads.
 BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
@@ -167,7 +267,39 @@ can_ok('MIME::Base64', 'encode_base64');
 can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
 
-#XXX: Check to see if the port number should be externalized.
+# Make sure DateTime::HiRes loads.
+BEGIN { use_ok('DateTime::HiRes') or diag("Can't load DateTime::HiRes package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::HiRes');
+use DateTime::HiRes;
+
+# Make sure Data::Dumper loads.
+BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Data::Dumper');
+use Data::Dumper;
+
+BEGIN {
+
+    # Check to make sure we're in a suitable environment.
+    use Config;
+    SKIP: {
+        skip 'Win32 libraries only work in a Cygwin environment.', 1 if ($Config{osname} !~ /^cygwin$/);
+   
+        # Make sure Win32::Job loads.
+        use_ok('Win32::Job') or diag("Can't load Win32::Job package.  Check to make sure the package library is correctly listed within the path.");
+    }
+}
+
+# Check to make sure we're in a suitable environment.
+use Config;
+SKIP: {
+    skip 'Win32 libraries only work in a Cygwin environment.', 1 if ($Config{osname} !~ /^cygwin$/);
+
+    require_ok('Win32::Job');
+    if ($Config{osname} =~ /^cygwin$/) {
+        require Win32::Job;
+    }
+}
+
 # Global test variables.
 our $PORT = getVar(name      => "port",
                    namespace => "HoneyClient::Agent");
@@ -183,40 +315,27 @@ our ($stub, $som);
 use HoneyClient::Util::SOAP qw(getClientHandle getServerHandle);
 
 # Include Integrity Library
-# TODO: Include corresponding unit tests.
 use HoneyClient::Agent::Integrity;
-
-# Include Thread Libraries
-use threads;
-use threads::shared;
-use Thread::Semaphore;
-use Thread::Queue;
 
 # Include utility access to global configuration.
 use HoneyClient::Util::Config qw(getVar);
 
-# XXX: Remove this, eventually.
+# Include Dumper Library
 use Data::Dumper;
 
 # Include Hash Serialization Utility Libraries
-use Storable qw(freeze nfreeze thaw dclone);
+use Storable qw(nfreeze thaw);
 $Storable::Deparse = 1;
 $Storable::Eval = 1;
 
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
 
-# Include Data Differential Analysis Libraries
-# TODO: Include corresponding unit tests.
-# XXX: Do we need this?
-#use Data::Diff;
-# TODO: Include corresponding unit tests.
-# XXX: Do we need this?
-#use Data::Structure::Util qw(unbless);
+# Include Win32 Libraries
+use Win32::Job;
 
-# Include Data Differential Analysis Libraries
-# TODO: Include corresponding unit tests.
-use Data::Compare;
+# Use ISO 8601 DateTime Libraries
+use DateTime::HiRes;
 
 # Include Logging Library
 use Log::Log4perl qw(:easy);
@@ -225,50 +344,11 @@ use Log::Log4perl qw(:easy);
 our $LOG = get_logger();
 
 # Complete URL of SOAP server, when initialized.
-our $URL_BASE       : shared = undef;
-our $URL            : shared = undef;
+our $URL_BASE       = undef;
+our $URL            = undef;
 
 # The process ID of the SOAP server daemon, once created.
-our $DAEMON_PID     : shared = undef;
-
-# Global array, to indicate which implemented Drivers the
-# Agent is allowed to run.
-our $ALLOWED_DRIVERS = getVar(name => 'allowed_drivers')->{name};
-
-# Global value, to indicate if the Agent should perform
-# any integrity checks.
-our $PERFORM_INTEGRITY_CHECKS : shared =
-    getVar(name => "perform_integrity_checks");
-
-# A globally shared object, containing the initialized integrity
-# state of the VM -- ready to be checked against, at any time after
-# initialization.
-our $integrityData;
-
-# A globally shared, serialized hashtable, containing data per
-# registered driver.  Specifically, for each @DRIVER <entry>,
-# the following data is created:
-#   '<entry_name>' => {
-#       'state'     => undef; # Driver-specific state information.
-#       'thread_id' => undef; # The thread registered to handle
-#                             # the driver.
-#       'status'    => undef; # Driver-specific status information.
-#       'next'      => undef; # Driver-specific connection information.
-#   }
-our $driverData     : shared = undef;
-
-# A global shared semaphore, designed to limit read/write
-# access to $driverData, by only allowing one thread
-# at a time to freeze/thaw the data.  While $driverData is
-# a scalar, the freeze/thaw operation is not atomic; thus,
-# this semaphore ensures all operations remain atomic.
-our $driverDataSemaphore     = Thread::Semaphore->new(1);
-
-# A globally shared hashtable, containing one "update queue"
-# per driver.  This allows different "driver threads" to
-# receive asynchronous updates to their state information
-# in a thread-safe manor.
-our %driverUpdateQueues : shared = ( );
+our $DAEMON_PID     = undef;
 
 #######################################################################
 # Daemon Initialization / Destruction                                 #
@@ -296,22 +376,11 @@ I<Inputs>:
  B<$localAddr> is an optional argument, specifying the IP address for the SOAP server to listen on.
  B<$localPort> is an optional argument, specifying the TCP port for the SOAP server to listen on.
 
-Additionally optional, driver-specific arguments can be specified 
-as sub-hashtables, where the top-level key corresponds to the name of 
-the implemented driver and the value contains all the expected hash data
-that can be fed to HoneyClient::Agent::Driver->new() instances.
-
  Here is an example set of arguments:
 
    HoneyClient::Agent->init(
        address => '127.0.0.1',
        port    => 9000,
-       IE      => {
-           timeout => 30,
-           links_to_visit => {
-               'http://www.mitre.org/' => 1,
-           },
-       },
    );
 
  
@@ -321,19 +390,23 @@ I<Output>: The full URL of the web service provided by the SOAP server.
 
 =begin testing
 
-# XXX: Test init() method.
-our $URL = HoneyClient::Agent->init();
-our $PORT = getVar(name      => "port", 
-                   namespace => "HoneyClient::Agent");
-our $HOST = getVar(name      => "address",
-                   namespace => "HoneyClient::Agent");
-is($URL, "http://$HOST:$PORT/HoneyClient/Agent", "init()") or diag("Failed to start up the VM SOAP server.  Check to see if any other daemon is listening on TCP port $PORT.");
+# Check to make sure we're in a suitable environment.
+use Config;
+SKIP: {
+    skip 'HoneyClient::Agent only works in Cygwin environment.', 1 if ($Config{osname} !~ /^cygwin$/);
+
+    our $URL = HoneyClient::Agent->init();
+    our $PORT = getVar(name      => "port", 
+                       namespace => "HoneyClient::Agent");
+    our $HOST = getVar(name      => "address",
+                       namespace => "HoneyClient::Agent");
+    is($URL, "http://$HOST:$PORT/HoneyClient/Agent", "init()") or diag("Failed to start up the VM SOAP server.  Check to see if any other daemon is listening on TCP port $PORT.");
+}
 
 =end testing
 
 =cut
 
-# TODO: Update documentation to reflect hash-based args.
 sub init {
     # Extract arguments.
     # Hash-based arguments are used, since HoneyClient::Util::SOAP is unable to handle
@@ -341,50 +414,19 @@ sub init {
     # for consistency.
     my ($class, %args) = @_;
 
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
     # Sanity check.  Make sure the daemon isn't already running.
     if (defined($DAEMON_PID)) {
         $LOG->fatal("Error: " . __PACKAGE__ . " daemon is already running (PID = " . $DAEMON_PID .")!");
         Carp::croak "Error: " . __PACKAGE__ . " daemon is already running (PID = $DAEMON_PID)!\n";
     }
-
-    # Reinitialize global constants (for dynamic updates).
-    $PERFORM_INTEGRITY_CHECKS = getVar(name => "perform_integrity_checks");
-
-    # Figure out what our list of allowed Drivers are. 
-    $ALLOWED_DRIVERS = getVar(name => 'allowed_drivers')->{name};
-
-    # Acquire data lock.
-    _lock();
-
-    # Initialize the $driverData shared hashtable.
-    my $data = { };
-    for my $driverName (@{$ALLOWED_DRIVERS}) {
-
-        eval "use $driverName";
-        if ($@) {
-            $LOG->fatal($@);
-            Carp::croak $@;
-        }
- 
-        $data->{$driverName} = { 
-            'state'     => undef,
-            'thread_id' => undef,
-            'status'    => undef,
-            'next'      => undef,
-        };
-
-        # Initialize the corresponding %driverUpdateQueues
-        $driverUpdateQueues{$driverName} = new Thread::Queue;
-    }
-
-    # Perform initial integrity baseline check.
-    if ($PERFORM_INTEGRITY_CHECKS) {
-        $integrityData = HoneyClient::Agent::Integrity->new();
-        $integrityData->closeFiles();
-    }
-
-    # Release data lock.
-    _unlock($data);
 
     my $argsExist = scalar(%args);
 
@@ -404,43 +446,38 @@ sub init {
     $URL = $URL_BASE . "/" . join('/', split(/::/, __PACKAGE__));
 
     my $pid = undef;
-    if ($pid = fork) {
+    if ($pid = fork()) {
+        # Wait at least a second, in order to initialize the daemon.
+        sleep (1);
         # We use a local variable to get the pid, and then we set the global
         # DAEMON_PID variable after the fork().  This is intentional, because
         # it seems the Win32 version of fork() doesn't seem to be an atomic
         # operation.
         $DAEMON_PID = $pid;
+        $LOG->debug("Initializing Agent daemon at PID: " . $DAEMON_PID);
         return $URL;
    
     } else {
         # Make sure the fork was successful.
         if (!defined($pid)) {
-            $LOG->fatal("Error: Unable to fork child process.\n$!");
+            $LOG->fatal("Error: Unable to fork child process. $!");
             Carp::croak "Error: Unable to fork child process.\n$!";
         }
 
-        # Do not attempt to rejoin parent process tree,
-        # if any type of termination signal is received.
-        local $SIG{HUP} = sub { exit; };
-        local $SIG{INT} = sub { exit; };
-        local $SIG{QUIT} = sub { exit; };
-        local $SIG{ABRT} = sub { exit; };
-        local $SIG{PIPE} = sub { exit; };
-        local $SIG{TERM} = sub { exit; };
+        our $daemon = getServerHandle(address => $args{'address'},
+                                      port    => $args{'port'});
 
-        my $daemon = getServerHandle(address => $args{'address'},
-                                     port    => $args{'port'});
+        # Unbind port, if we're shutting down.
+        sub shutdown {
+            $daemon->shutdown(2);
+            exit;
+        };
+        $SIG{HUP}  = \&shutdown;
+        $SIG{INT}  = \&shutdown;
+        $SIG{QUIT} = \&shutdown;
+        $SIG{ABRT} = \&shutdown;
+        $SIG{TERM} = \&shutdown;
 
-        # Populate our driver's object state with the remaining
-        # arguments.
-        delete($args{'address'});
-        delete($args{'port'});
-
-        # If this call fails, an exception is thrown or the process
-        # remains locked.  If the process locks, then external
-        # detection is used to catch for these types of failures.
-        updateState($class, encode_base64(nfreeze(\%args)));
-    
         for (;;) {
             $daemon->handle();
         }
@@ -461,52 +498,40 @@ I<Output>: True if successful, false otherwise.
 
 =begin testing
 
-# XXX: Test destroy() method.
-is(HoneyClient::Agent->destroy(), 1, "destroy()") or diag("Unable to terminate Agent SOAP server.  Be sure to check for any stale or lingering processes.");
+# Check to make sure we're in a suitable environment.
+use Config;
+SKIP: {
+    skip 'HoneyClient::Agent only works in Cygwin environment.', 1 if ($Config{osname} !~ /^cygwin$/);
 
-# TODO: delete this.
-#exit;
+    is(HoneyClient::Agent->destroy(), 1, "destroy()") or diag("Unable to terminate Agent SOAP server.  Be sure to check for any stale or lingering processes.");
+}
 
 =end testing
 
 =cut
 
 sub destroy {
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper();
+    });
+
     my $ret = undef;
     # Make sure the PID is defined and not
     # the parent process...
-    if (defined($DAEMON_PID) && ($DAEMON_PID != 0)) {
-        $LOG->error("Killing PID = " . $DAEMON_PID);
-        print STDERR "Killing PID = " . $DAEMON_PID . "\n";
-        # The Win32 version of kill() seems to only respond to SIGKILL(9).
-        # XXX: This doesn't work.
-        #$ret = kill(9, $DAEMON_PID);
+    if (defined($DAEMON_PID) && $DAEMON_PID) {
+        $LOG->debug("Destroying Agent daemon at PID: " . $DAEMON_PID);
         
-        # TODO: Need unit tests.
         require Win32::Process;
         Win32::Process::KillProcess($DAEMON_PID, 0);
         $ret = 1;
     }
     if ($ret) {
-        # Acquire data lock.
-        _lock();
-
-        # Destroy all globally shared state data.
-        $URL                  = undef;
-        $URL_BASE             = undef;
-        $DAEMON_PID           = undef;
-        $driverData           = undef;
-        $driverDataSemaphore  = Thread::Semaphore->new(1);
-        %driverUpdateQueues   = ( );
-
-        # Destroy all integrity data, if defined.
-        if (defined($integrityData)) {
-            $integrityData->destroy();
-        }
-        $integrityData        = undef;
-        
-        # Release data lock.
-        _unlock();
+        $DAEMON_PID = undef;
     }
     return $ret;
 }
@@ -515,114 +540,18 @@ sub destroy {
 # Private Methods Implemented                                         #
 #######################################################################
 
-# Helper function designed to acquire exclusive access to the
-# shared $driverData, for use within any thread.
+# Helper function designed to get a current timestamp from
+# the system OS.
 #
-# In perl, it is difficult to share hashtables between threads.
-# However, it is easy to share scalars between threads.
-# As such, we share a hashtable between threads by *serializing*
-# the data using nfreeze().  The result can be stored in a scalar.
-# 
-# When we are in a thread where we subsequently want to read/use
-# this hashtable, we thaw() the serialized data (it performs the
-# deserialization process) and use the hashtable accordingly.
+# Note: This timestamp is in ISO 8601 format.
 #
-# This function guarantees that no other thread will access
-# $driverData and returns the thaw()'d contents of $driverData.
-#
-# Input: None
-# Output: driverData (deserialized)
-sub _lock {
-    # Acquire lock on stored driver state.
-    $driverDataSemaphore->down();
-        
-    # Thaw the data.
-    return thaw($driverData);
-}
-
-# Helper function designed to release exclusive access to the
-# shared $driverData, for use within any thread.
-#
-# By calling this function, we assume that the thread has already
-# called _lock() and would like to (optionally) update $driverData
-# with a new, modified hashtable, prior to releasing the lock
-# on $driverData.
-#
-# This function can optionally take in a normal hashtable reference,
-# overwriting the $driverData with the contents of the supplied
-# hashtable.  Once the $driverData's updated contents has been
-# set and serialized, this function releases the corresponding
-# lock.
-#
-# Input: driverData (deserialized, optional)
-# Output: None
-sub _unlock {
-    my $data = shift;
-
-    if (defined($data)) {
-        # Refreze changed data.
-        $driverData = nfreeze($data);
-    }
-    
-    # Release lock on stored driver state.
-    $driverDataSemaphore->up();
-}
-
-# Helper function designed to retrieve queued, external
-# updates to driver state information from %driverUpdateQueues.
-# 
-# When called from run(), this function takes in the corresponding
-# Driver object; checks to see if there's a new entry within the
-# driver's corresponding update queue; and dequeues the *all*
-# entries in the queue, overwriting the Driver's state data
-# accordingly.
-#
-# The external updateState() call adds new driver state into the queue,
-# one entry per call.  The internal _update() function merges this
-# driver state with the currently running driver, merging everything
-# queued per call.  In order words, a single call to _update()
-# *WILL* empty the corresponding Driver update queue completely
-# -- all entries within the queue will be dequeued per _update()
-# call made.
-#
-# Input: driver
-# Output: driver (updated)
-sub _update {
-    # Extract arguments.
-    my $driver = shift;
-
-    # Figure out the corresponding driver name.
-    my $driverName = ref($driver);
-
-    # Extract the corresponding queue.
-    my $queue = $driverUpdateQueues{$driverName};
-
-    # XXX: One possible DoS condition here; what if
-    # the manager keeps feeding updates to the Agent
-    # before the Agent has a chance to do any work?
-    
-    # If we have data in our driver specific queue...
-    while ($queue->pending) {
-
-        # Update our driver state with the first entry
-        # found...
-        my $queuedData = thaw($queue->dequeue_nb);
-
-        # Sanity check: Only copy defined data.
-        if (defined($queuedData)) {
-
-            # Copy (and overwrite) overloaded object data 
-            # into shared memory.  This looks creepy, I know, but
-            # it actually works.  We're essentially identifying
-            # driver-specific parameters that the user supplied
-            # via $queuedData and overwriting our current driver state
-            # with any matching, user supplied values.
-            @{$driver}{keys %{$queuedData}} = values %{$queuedData};
-        }
-    }
-
-    # Return the modified driver state.
-    return $driver;
+# Inputs: none
+# Outputs: timestamp
+sub _getTimestamp {
+    my $dt = DateTime::HiRes->now(time_zone => "local");
+    return $dt->ymd('-') . " " .
+           $dt->hms(':') . "." .
+           $dt->nanosecond();
 }
 
 #######################################################################
@@ -633,7 +562,7 @@ sub _update {
 
 =head1 EXTERNAL SOAP FUNCTIONS
 
-=head2 run(driver_name => $driverName)
+=head2 drive(driver_name => $driverName, parameters => $params, timeout => $timeout)
 
 =over 4
 
@@ -643,45 +572,758 @@ Runs the Agent for one cycle.  In this cycle, the following happens:
 
 =item 1)
 
-The specified Driver is driven for multiple work units, where each
-consecutive drive operation contacts the same network resources
-(aka. "targets").  The Driver ceases its operation, as soon as
-it has exhausted all targets or until it is ready to contact a
-different set of targets.
+The specified target application (Driver) is driven for a single work unit,
+by executing the application with the supplied arguments for a specified
+period of time.
 
 =item 2)
 
 Once the specified driver has stopped, the Agent performs a corresponding
 Integrity check.
 
-=back 
+=item 3)
 
-# XXX: Fill this in.
+The results of this Integrity check are then returned.
+
+=back 
 
 I<Inputs>: 
  B<$driverName> is the name of the Driver to use, when running this 
 cycle.
- 
-I<Output>: Returns true if the Agent successfully started a new cycle;
-returns false, if the Agent is still running an existing cycle and
-has not finished yet.
+ B<$params> are the optional parameters to supply to the driven
+application, as arguments.  If supplied, then this data MUST be base64
+encoded.
+ B<$timeout> is an optional argument, specifying how long the Agent
+should wait after executing the driven application before it performs
+an Integrity check.
 
-I<Notes>:
-During a single run() cycle, it is expected that the driven application
-will only contact the same targets.  This allows the Manager to update
-firewall rules between cycles.
+I<Output>:
+ A nfreezed, base64 encoded hashtable containing the following
+ information:
+
+ {
+     # Status information about the Win32::Job.
+     'status' => {
+         # The PID of the job, when it was ran.
+         '21252' => {
+             # How much time the job consumed...
+             'time' => {
+                 # ... in kernel space.
+                 'kernel' => '0.801152',
+                 # ... in user space.
+                 'user' => '0.3304752',
+                 # ... total elapsed.
+                 'elapsed' => '20.1489728'
+             },
+             'exitcode' => '293'
+         }
+     },
+     # Any fingerprint information, if the job caused
+     # an integrity check failure.
+     'fingerprint' => {
+         'os_processes' => []
+     },
+     # Time inside VM when job was executed.
+     'time_at' => '2008-04-02 22:17:00.889667987'
+ };
 
 =back
 
-#=begin testing
-#
-# XXX: Fill this in.
-#
-#=end testing
+=begin testing
+
+# Check to make sure we're in a suitable environment.
+use Config;
+SKIP: {
+    skip 'HoneyClient::Agent only works in Cygwin environment.', 11 if ($Config{osname} !~ /^cygwin$/);
+
+    # Shared test variables.
+    my ($stub, $som, $URL);
+
+    # Catch all errors, in order to make sure child processes are
+    # properly killed.
+    eval {
+
+        $URL = HoneyClient::Agent->init();
+
+        # Connect to daemon as a client.
+        $stub = getClientHandle(namespace => "HoneyClient::Agent",
+                                address   => "localhost");
+
+        # Make sure the realtime_changes_file exists and is 0 bytes.
+        my $realtime_changes_file = getVar(name      => 'realtime_changes_file',
+                                           namespace => 'HoneyClient::Agent::Integrity');
+        unlink($realtime_changes_file);
+        open(REALTIME_CHANGES_FILE, ">", $realtime_changes_file);
+        close(REALTIME_CHANGES_FILE); 
+
+        diag("Driving HoneyClient::Agent::Driver::Browser::IE with no parameters and no changes...");
+
+        # Drive the Agent using IE.
+        $som = $stub->drive(driver_name => "HoneyClient::Agent::Driver::Browser::IE");
+
+        # Verify changes.
+        my $changes = thaw(decode_base64($som->result()));
+
+        # Check to see if the drive operation completed properly. 
+        ok($changes, "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'status'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'time_at'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'fingerprint'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+
+        # Check that os_processes is empty.
+        ok(!scalar(@{$changes->{'fingerprint'}->{os_processes}}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+
+        diag("Driving HoneyClient::Agent::Driver::Browser::IE with no parameters and artificial changes...");
+        
+        my $test_realtime_changes_file = getVar(name      => 'realtime_changes_file',
+                                                namespace => 'HoneyClient::Agent::Integrity::Test');
+
+        system("cp " . $test_realtime_changes_file . " " . $realtime_changes_file); 
+        
+        my $expectedFingerprint = {
+          'os_processes' => [
+            {
+              'parent_name' => 'C:\\WINDOWS\\explorer.exe',
+              'name' => 'C:\\WINDOWS\\system32\\notepad.exe',
+              'created' => '2008-04-02 21:44:40.376',
+              'stopped' => '2008-04-02 21:44:57.94',
+              'pid' => '2496',
+              'regkeys' => [
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'Recent',
+                  'value' => 'C:\\Documents and Settings\\Administrator\\Recent',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:48.985'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'BaseClass',
+                  'value' => 'Drive',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\{259bda13-8b6f-11d7-9c24-806d6172696f}',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.32'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'BaseClass',
+                  'value' => 'Drive',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\{1bdee3a6-fbab-11dc-9af4-806d6172696f}',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.32'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'BaseClass',
+                  'value' => 'Drive',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\{259bda11-8b6f-11d7-9c24-806d6172696f}',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.32'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'BaseClass',
+                  'value' => 'Drive',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\{86efd67e-0a06-11dc-97a7-806d6172696f}',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.32'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'Personal',
+                  'value' => 'C:\\Documents and Settings\\Administrator\\My Documents',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.329'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'Common Documents',
+                  'value' => 'C:\\Documents and Settings\\All Users\\Documents',
+                  'name' => 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.329'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'Desktop',
+                  'value' => 'C:\\Documents and Settings\\Administrator\\Desktop',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.344'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'Common Desktop',
+                  'value' => 'C:\\Documents and Settings\\All Users\\Desktop',
+                  'name' => 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.344'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'Favorites',
+                  'value' => 'C:\\Documents and Settings\\Administrator\\Favorites',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:49.797'
+                },
+                {
+                  'value_type' => 'REG_BINARY',
+                  'value_name' => 'b',
+                  'value' => '6e06f07406507006106402e0650780650004303a05c06307906707706906e05c06806f06d06505c04106406d06906e06907307407206107406f07205c07407207506e06b02d07207705c04306107007407507206503205c06306107007407507206502d06306c06906506e07402d07806506e06f02d06d06f06405c06906e07307406106c06c000',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\LastVisitedMRU',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.79'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'MRUList',
+                  'value' => 'bac',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\LastVisitedMRU',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.79'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'a',
+                  'value' => 'C:\\cygwin\\home\\Administrator\\trunk-rw\\Capture2\\capture-client-xeno-mod\\install\\foo.txt',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\OpenSaveMRU\\txt',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.94'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'MRUList',
+                  'value' => 'a',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\OpenSaveMRU\\txt',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.94'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'e',
+                  'value' => 'C:\\cygwin\\home\\Administrator\\trunk-rw\\Capture2\\capture-client-xeno-mod\\install\\foo.txt',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\OpenSaveMRU\\*',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.94'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'MRUList',
+                  'value' => 'edcbjihagf',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\OpenSaveMRU\\*',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.94'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfEscapement',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfOrientation',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfWeight',
+                  'value' => '190',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfItalic',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfUnderline',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfStrikeOut',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfCharSet',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfOutPrecision',
+                  'value' => '3',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfClipPrecision',
+                  'value' => '2',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfQuality',
+                  'value' => '1',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'lfPitchAndFamily',
+                  'value' => '31',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iPointSize',
+                  'value' => '8c',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'fWrap',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'StatusBar',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'fSaveWindowPositions',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'lfFaceName',
+                  'value' => 'Lucida Console',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'szHeader',
+                  'value' => '&f',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'szTrailer',
+                  'value' => 'Page &p',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iMarginTop',
+                  'value' => '3e8',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iMarginBottom',
+                  'value' => '3e8',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iMarginLeft',
+                  'value' => '2ee',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iMarginRight',
+                  'value' => '2ee',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'fMLE_is_broken',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iWindowPosX',
+                  'value' => 'fffffff9',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iWindowPosY',
+                  'value' => '38',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iWindowPosDX',
+                  'value' => '40c',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'iWindowPosDY',
+                  'value' => '299',
+                  'name' => 'HKCU\\Software\\Microsoft\\Notepad',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:57.63'
+                }
+              ],
+              'parent_pid' => '1380',
+              'process_files' => [
+                {
+                  'name' => 'C:\\cygwin\\home\\Administrator\\trunk-rw\\Capture2\\capture-client-xeno-mod\\install\\foo.txt',
+                  'time_at' => '2008-04-02 21:44:54.79',
+                  'event' => 'Delete'
+                },
+                {
+                  'name' => 'C:\\cygwin\\home\\Administrator\\trunk-rw\\Capture2\\capture-client-xeno-mod\\install\\foo.txt',
+                  'file_content' => {
+                    'sha1' => 'C:\\cygwin\\home\\Administrator\\trunk-rw\\Capture2\\capture-client-xeno-mod\\install\\foo.txt2008-04-02 21:44:54.172',
+                    'md5' => 'C:\\cygwin\\home\\Administrator\\trunk-rw\\Capture2\\capture-client-xeno-mod\\install\\foo.txt2008-04-02 21:44:54.172',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.172',
+                  'event' => 'Write'
+                }
+              ]
+            },
+            {
+              'regkeys' => [],
+              'pid' => '984',
+              'name' => 'C:\\WINDOWS\\system32\\svchost.exe',
+              'process_files' => [
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\SendTo',
+                  'file_content' => {
+                    'sha1' => 'C:\\Documents and Settings\\Administrator\\SendTo2008-04-02 21:44:42.766',
+                    'md5' => 'C:\\Documents and Settings\\Administrator\\SendTo2008-04-02 21:44:42.766',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:42.766',
+                  'event' => 'Write'
+                },
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data',
+                  'file_content' => {
+                    'sha1' => 'C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data2008-04-02 21:44:42.782',
+                    'md5' => 'C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data2008-04-02 21:44:42.782',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:42.782',
+                  'event' => 'Write'
+                }
+              ]
+            },
+            {
+              'regkeys' => [
+                {
+                  'value_type' => 'REG_EXPAND_SZ',
+                  'value_name' => 'CachePath',
+                  'value' => '%USERPROFILE%\\Local Settings\\History\\History.IE5\\MSHist012008040220080403',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\Extensible Cache\\MSHist012008040220080403',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.376'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'CachePrefix',
+                  'value' => ':2008040220080403: ',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\Extensible Cache\\MSHist012008040220080403',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.376'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'CacheLimit',
+                  'value' => '2000',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\Extensible Cache\\MSHist012008040220080403',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.376'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'CacheOptions',
+                  'value' => 'b',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\Extensible Cache\\MSHist012008040220080403',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.376'
+                },
+                {
+                  'value_type' => 'REG_EXPAND_SZ',
+                  'value_name' => 'CachePath',
+                  'value' => '%USERPROFILE%\\Local Settings\\History\\History.IE5\\MSHist012008040220080403',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\Extensible Cache\\MSHist012008040220080403',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.376'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'CacheRepair',
+                  'value' => '0',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\Extensible Cache\\MSHist012008040220080403',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:44:54.376'
+                }
+              ],
+              'pid' => '1380',
+              'name' => 'C:\\WINDOWS\\explorer.exe',
+              'process_files' => [
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\Recent\\foo.txt.lnk',
+                  'file_content' => {
+                    'sha1' => 'C:\\Documents and Settings\\Administrator\\Recent\\foo.txt.lnk2008-04-02 21:44:54.282',
+                    'md5' => 'C:\\Documents and Settings\\Administrator\\Recent\\foo.txt.lnk2008-04-02 21:44:54.282',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.282',
+                  'event' => 'Write'
+                },
+                {
+                  'name' => 'C:\\cygwin\\home\\Administrator\\src\\honeyclient-trunk\\thirdparty\\capture-mod\\logs\\deleted_files\\C\\Documents and Settings\\Administrator\\Recent\\install.lnk',
+                  'file_content' => {
+                    'sha1' => 'C:\\cygwin\\home\\Administrator\\src\\honeyclient-trunk\\thirdparty\\capture-mod\\logs\\deleted_files\\C\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.516',
+                    'md5' => 'C:\\cygwin\\home\\Administrator\\src\\honeyclient-trunk\\thirdparty\\capture-mod\\logs\\deleted_files\\C\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.516',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.516',
+                  'event' => 'Write'
+                },
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk',
+                  'time_at' => '2008-04-02 21:44:54.516',
+                  'event' => 'Delete'
+                },
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk',
+                  'file_content' => {
+                    'sha1' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.547',
+                    'md5' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.547',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.547',
+                  'event' => 'Write'
+                }
+              ]
+            },
+            {
+              'regkeys' => [],
+              'pid' => '4',
+              'name' => 'System',
+              'process_files' => [
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\Recent\\foo.txt.lnk',
+                  'file_content' => {
+                    'sha1' => 'C:\\Documents and Settings\\Administrator\\Recent\\foo.txt.lnk2008-04-02 21:44:54.579',
+                    'md5' => 'C:\\Documents and Settings\\Administrator\\Recent\\foo.txt.lnk2008-04-02 21:44:54.579',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.579',
+                  'event' => 'Write'
+                },
+                {
+                  'name' => 'C:\\cygwin\\home\\Administrator\\src\\honeyclient-trunk\\thirdparty\\capture-mod\\logs\\deleted_files\\C\\Documents and Settings\\Administrator\\Recent\\install.lnk',
+                  'file_content' => {
+                    'sha1' => 'C:\\cygwin\\home\\Administrator\\src\\honeyclient-trunk\\thirdparty\\capture-mod\\logs\\deleted_files\\C\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.579',
+                    'md5' => 'C:\\cygwin\\home\\Administrator\\src\\honeyclient-trunk\\thirdparty\\capture-mod\\logs\\deleted_files\\C\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.579',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.579',
+                  'event' => 'Write'
+                },
+                {
+                  'name' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk',
+                  'file_content' => {
+                    'sha1' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.579',
+                    'md5' => 'C:\\Documents and Settings\\Administrator\\Recent\\install.lnk2008-04-02 21:44:54.579',
+                    'mime_type' => 'UNKNOWN',
+                    'size' => -1
+                  },
+                  'time_at' => '2008-04-02 21:44:54.579',
+                  'event' => 'Write'
+                }
+              ]
+            },
+            {
+              'parent_name' => 'C:\\WINDOWS\\explorer.exe',
+              'name' => 'C:\\WINDOWS\\regedit.exe',
+              'created' => '2008-04-02 21:45:07.829',
+              'stopped' => '2008-04-02 21:45:22.344',
+              'pid' => '2648',
+              'regkeys' => [
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'New Value #1',
+                  'value' => '',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:45:15.985'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'foo',
+                  'value' => '',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:45:17.266'
+                },
+                {
+                  'value_type' => 'REG_NONE',
+                  'value_name' => 'New Value #1',
+                  'value' => '',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer',
+                  'event' => 'DeleteValueKey',
+                  'time_at' => '2008-04-02 21:45:17.266'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'foo',
+                  'value' => 'bar',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:45:19.204'
+                },
+                {
+                  'value_type' => 'REG_BINARY',
+                  'value_name' => 'View',
+                  'value' => '2c00000001000ffffffffffffffffffffffffffffffff500005c000c43008f200d8000c200078000201001000',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:45:22.344'
+                },
+                {
+                  'value_type' => 'REG_DWORD',
+                  'value_name' => 'FindFlags',
+                  'value' => 'e',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:45:22.344'
+                },
+                {
+                  'value_type' => 'REG_SZ',
+                  'value_name' => 'LastKey',
+                  'value' => 'My Computer\\HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer',
+                  'name' => 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit',
+                  'event' => 'SetValueKey',
+                  'time_at' => '2008-04-02 21:45:22.344'
+                }
+              ],
+              'parent_pid' => '1380',
+              'process_files' => []
+            }
+          ],
+          'time_at' => '2008-04-02 21:44:40.376'
+        };
+
+        # Drive the Agent using IE.
+        $som = $stub->drive(driver_name => "HoneyClient::Agent::Driver::Browser::IE");
+
+        # Verify changes.
+        $changes = thaw(decode_base64($som->result()));
+   
+        # Check to see if the drive operation completed properly. 
+        ok($changes, "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'status'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'time_at'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'fingerprint'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+
+        # Check that os_processes is not empty.
+        ok(scalar(@{$changes->{'fingerprint'}->{os_processes}}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+
+        # Check that fingerprint matches.
+        is_deeply($expectedFingerprint, $changes->{'fingerprint'}, "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+
+        # Delete the mock realtime_changes_file.
+        unlink($realtime_changes_file);
+    };
+
+    # Kill the child daemon, if it still exists.
+    HoneyClient::Agent->destroy();
+
+    # Report any failure found.
+    if ($@) {
+        fail($@);
+    }
+}
+
+=end testing
 
 =cut
 
-sub run {
+sub drive {
     # Extract arguments.
     my ($class, %args) = @_;
 
@@ -700,542 +1342,276 @@ sub run {
         !defined($args{'driver_name'})) {
 
         # Die if no valid argument is supplied.
-        $LOG->warn("No Driver name specified.");
-        die SOAP::Fault->faultcode(__PACKAGE__ . "->run()")
+        $LOG->error("No Driver name specified.");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->drive()")
                        ->faultstring("No Driver name specified.");
     }
 
     # Sanity check.  Make sure the driver name specified is
     # on our allowed list.
-    my @drivers_found = grep(/^$args{'driver_name'}$/, @{$ALLOWED_DRIVERS});
+    my @drivers_found = grep(/^$args{'driver_name'}$/, @{getVar(name => 'allowed_drivers')->{name}});
     my $driverName = pop(@drivers_found);
     unless (defined($driverName)) {
-        $LOG->warn("Not allowed to run Driver (" . $args{'driver_name'} . ").");
-        die SOAP::Fault->faultcode(__PACKAGE__ . "->run()")
+        $LOG->error("Not allowed to run Driver (" . $args{'driver_name'} . ").");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->drive()")
                        ->faultstring("Not allowed to run Driver (" . $args{'driver_name'} . ").");
     }
-
-    # Temporary variable, used to hold thawed driver data.
-    my $data = undef;
-
-    # Temporary variable, used to hold thread IDs.
-    my $tid = undef;
-
-    # Temporary variable, used to hold thread objects.
-    my $thread = undef;
-
-    if (defined($driverName)) {
-
-        # Acquire data lock.
-        $data = _lock();
-
-        # Read the TID.
-        $tid = $data->{$driverName}->{'thread_id'};
-
-# XXX: Delete this, eventually.
-print $driverName . " - Checking TID = " . Dumper($tid) . "\n";
-if (defined(threads->object($tid))) {
-    print $driverName . " - Thread defined.\n";
-    if (threads->object($tid)->is_running()) {
-        print $driverName . " - Thread is running.\n";
+   
+    # Sanity check for optional arguments.
+    if (!$argsExist ||
+        !exists($args{'parameters'}) ||
+        !defined($args{'parameters'})) {
+        $args{'parameters'} = "";
     } else {
-        print $driverName . " - Thread is NOT running.\n";
-    }
-} else {
-    print $driverName . " - Thread NOT defined.\n";
-}
-        
-        # Sanity check: Return false, if we already have a
-        # driver thread running.
-        if (defined($tid) &&
-            defined($thread = threads->object($tid)) &&
-            $thread->is_running()) {
-
-            # Release data lock.
-            _unlock();
-
-            return 0;
-        } else {
-            # XXX: Remove this, eventually.
-            print $driverName . " - Creating a new run() child thread...\n";
-        }
-
-        # Quickly define a temporary thread ID.
-        # This value is simply a placeholder that will
-        # get redefined later on in this function to
-        # the thread's valid ID, once the thread has been
-        # initialized.
-        #
-        # By defining a placeholder valid here, we avoid
-        # a potential race condition, where multiple calls
-        # to run() are made consecutively.
-        #
-        # Temporarily set the driver thread to be the
-        # main thread.
-        $data->{$driverName}->{'thread_id'} = 0;
-        
-        # Release data lock.
-        _unlock($data);
-
-        $thread = threads->create(\&worker,
-                                  {
-                                    'driver_name' => $driverName,
-                                    'integrity'   => $integrityData,
-                                  }
-                                 );
-            
-        # Acquire data lock.
-        $data = _lock();
-            
-        # Set the valid thread ID.
-        $data->{$driverName}->{'thread_id'} = $thread->tid();
-        if ($thread->is_running()) {
-            # XXX: Debugging, remove eventually. 
-            print $driverName . " - Thread ID = " . $thread->tid() . "\n";
-        } else {
-            # XXX: Debugging, remove eventually. 
-            print $driverName . " - Thread ID = " . $thread->tid() . " (NOT RUNNING)\n";
-        }
-
-        # Release data lock.
-        _unlock($data);
+        $args{'parameters'} = decode_base64($args{'parameters'});
     }
 
-    # XXX: Debugging, remove eventually. 
-    print "Run thread(s) initialized.\n";
+    if (!$argsExist ||
+        !exists($args{'timeout'}) ||
+        !defined($args{'timeout'})) {
+        $args{'timeout'} = getVar(name => "timeout",
+                                  namespace => $args{'driver_name'});
+    }
 
-    # At this point, the driver thread is initialized and running,
-    # return true.
-    return 1;
+    # Construct the output hashtable.
+    my $ret = {
+        # Time when application was driven.
+        'time_at'   => _getTimestamp(),
+
+        # Fingerprint information found (if any).
+        'fingerprint' => undef,
+
+        # Status information about the Win32::Job call.
+        'status'      => undef,
+    };
+
+    # Create a new Job.
+    my $job = Win32::Job->new();
+
+    # Sanity check.
+    if (!defined($job)) {
+        $LOG->error("Error: Unable to spawn a new process - " . $^E . ".");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->drive()")
+                       ->faultstring("Error: Unable to spawn a new process - " . $^E . ".");
+    }
+
+    # Spawn the job.
+    my $processExec = getVar(name => "process_exec",
+                             namespace => $args{'driver_name'});
+    my $processName = getVar(name => "process_name",
+                             namespace => $args{'driver_name'});
+    my $status = $job->spawn($processExec, $processName . " " . $args{'parameters'});
+
+    # Sanity check.
+    if (!defined($status)) {
+        $LOG->error("Error: Unable to execute '" . $processExec . "'");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->drive()")
+                       ->faultstring("Error: Unable to execute '" . $processExec . "'");
+    }
+
+    $LOG->info($args{'driver_name'} . " - Driving To Resource: " . $args{'parameters'});
+
+    # Run the job.
+    $job->run($args{'timeout'});
+
+    # Check to see if run fails.
+    $status = $job->status();
+    $ret->{'status'} = $status;
+
+    # Sanity check.
+    if (!defined($status) ||
+        !scalar(%{$status})) {
+        $LOG->error("Error: Unable to retrieve job status from spawned process.");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->drive()")
+                       ->faultstring("Error: Unable to retrieve job status from spawned process.");
+    }
+
+    # Figure out the correct Process ID.
+    my @keys = keys(%{$status});
+    my $processID = pop(@keys);
+
+    # Sanity checks.
+    if (!defined($processID) ||
+        !exists($status->{$processID}->{'exitcode'}) ||
+        !defined($status->{$processID}->{'exitcode'})) {
+        $LOG->error("Error: Unable to retrieve job status from spawned process.");
+        die SOAP::Fault->faultcode(__PACKAGE__ . "->drive()")
+                       ->faultstring("Error: Unable to retrieve job status from spawned process.");
+    }
+
+    # Check to make sure the exitcode is '293', meaning, that the
+    # application didn't unexpectedly die early.
+    if ($status->{$processID}->{'exitcode'} != 293) {
+        $LOG->warn("Unexpected: '" . $processName . "' process (ID = " . $processID . ") terminated early!");
+    }
+
+    # Perform an integrity check, if desired.
+    if (getVar(name => "perform_integrity_checks")) {
+        my $integrity = HoneyClient::Agent::Integrity->new();
+        $ret->{'fingerprint'} = $integrity->check();
+        if (scalar(@{$ret->{'fingerprint'}->{os_processes}})) {
+            $LOG->warn($args{'driver_name'} . " - Integrity Check: FAILED");
+        } else {
+            $LOG->info($args{'driver_name'} . " - Integrity Check: PASSED");
+        }
+    }
+ 
+    return encode_base64(nfreeze($ret));
 }
 
-# TODO: Clean up this comment block.
-# This function should do the following:
-# - Initialize all drivers with starting state.
-# - "Drive" each driver, one-by-one.
-# - Collect any integrity violations found, with offending
-#   state information.
-#
-# Notes:
-# This function will eventually sit in a sub-thread, allowing the parent
-# thread to return without any delay.  It is expected that the Manager
-# would then subsequently call a getStatus() operation, in order to
-# then poll for any new violations found.
-#
-# TODO: We need to create a fault reporting mechanism, in order
-# to properly deal with exceptions/faults that occur within this
-# thread.
-sub worker {
+=pod
 
-    # Extract arguments.
-    my $args = shift;
-    my $driverName = $args->{'driver_name'};
-    my $integrity  = $args->{'integrity'};
+=head2 getProperties(driver_name => $driverName)
 
-    # Temporary variable, used to hold thawed driver data.
-    my $data = undef;
+=over 4
 
-    # Yield processing to parent thread.
-    threads->yield();
+Retrieves properties about the Agent's OS and target driver application,
+if specified.
 
-    # Trap all faults that may occur from these asynchronous operations.
+I<Inputs>: 
+ B<$driverName> an optional argument, indicating the Driver proprties to
+return.
+
+I<Output>:
+ A hashtable containing the following information:
+
+ {
+     # Short name of the OS.
+     'shortname' => 'Microsoft Windows',
+     # Version of the OS.
+     'version' => '5.1.2600.2.2.0.256.1',
+     # Formal name of the OS.
+     'name' => 'Windows XP Service Pack 2',
+     # The targeted application(s) being driven, if driver_name was specified.
+     'os_applications' => [
+         {
+             # The short name of the app.
+             'shortname' => 'Internet Explorer',
+             # The manufacturer of the app.
+             'manufacturer' => 'Microsoft Corporation',
+             # The app version.
+             'version' => '7.0.6000.16608'
+         }
+     ]
+ };
+
+=back
+
+=begin testing
+
+# Check to make sure we're in a suitable environment.
+use Config;
+SKIP: {
+    skip 'HoneyClient::Agent only works in Cygwin environment.', 5 if ($Config{osname} !~ /^cygwin$/);
+
+    # Shared test variables.
+    my ($stub, $som, $URL);
+
+    # Catch all errors, in order to make sure child processes are
+    # properly killed.
     eval {
 
-        ###################################
-        ### Driver Initialization Phase ###
-        ###################################
+        $URL = HoneyClient::Agent->init();
 
-        # Initially set all driver objects to undef. 
-        my $driver = undef;
+        # Connect to daemon as a client.
+        $stub = getClientHandle(namespace => "HoneyClient::Agent",
+                                address   => "localhost");
 
-        # Last resource used by driver.
-        my $lastResource = undef;
-    
-        # Acquire lock on stored driver state.
-        $data = _lock();
+        # Drive the Agent using IE.
+        $som = $stub->getProperties(driver_name => "HoneyClient::Agent::Driver::Browser::IE");
 
-        # Now, initialize each driver object. 
-        # Figure out which $driver object to use...
-        my $driverClass = $driverName;
+        # Verify output.
+        my $output = $som->result();
 
-        if (!defined($data->{$driverName}->{'state'})) {
-    
-            # If the driver state is undefined, then
-            # create a new state object.
-            $driver = $driverClass->new();
+        # Check to see if the operation completed properly. 
+        ok($output, "getProperties(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The getProperties() call failed.");
+        ok(exists($output->{'shortname'}), "getProperties(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($output->{'version'}), "getProperties(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($output->{'name'}), "getProperties(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($output->{'os_applications'}), "getProperties(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
 
-        } else {
-            # Then the driver state object is already defined,
-            # so go ahead and reuse it.
-            $driver = $driverClass->new(
-                %{$data->{$driverName}->{'state'}}, 
-            );
-        }
-
-        # Next, we make sure we have no updates, before we update
-        # the corresponding shared memory version.
-        $driver = _update($driver);
-
-        # Once we've initialized the object, be sure to update
-        # the corresponding shared memory version.  We do this
-        # one time before the loop starts, in case we end up
-        # finishing before we drove anywhere.
-                
-        # Copy object data to shared memory.
-        $data->{$driverName}->{'next'} = $driver->next();
-        $data->{$driverName}->{'status'} = $driver->status();
-        $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
-        $data->{$driverName}->{'status'}->{'is_running'} = 1;
-        $data->{$driverName}->{'state'} = $driver;
-
-        # Release lock on stored driver state.
-        _unlock($data);
-                
-        ###################################
-        ### Driver Running Phase        ###
-        ###################################
-
-        # Boolean to indicate that the driver is about to transition
-        # to a new set of targets upon the next drive() operation.
-        my $driverTargetsChanged = 0;
-
-        # Boolean to indicate that the driver has been compromised.
-        my $isCompromised = 0;
-
-        # Variable to hold any changes found in a compromise.
-        my $changes = undef;
-
-        while (!$driver->isFinished() && !$driverTargetsChanged) {
-            # XXX: Debug.  Remove this.
-            # We assume $driver->next() returns defined data.
-            foreach my $resource (keys %{$driver->next()->{resources}}) {
-                $LOG->info($driverName . " - Driving To Resource: " . $resource);
-                $lastResource = $resource;
-            }
-
-            # Drive the driver for one step.
-            # If the operation fails, then an exception will be generated.
-            $driver->drive();
-  
-            # Perform an integrity check, if needed.
-            if (defined($integrity)) {
-                # For now, we update a scalar called 'is_compromised' within
-                # the $data->{$driverName}->{'status'} sub-hashtable.
-                $LOG->info($driverName . " - Performing Integrity Checks.");
-                $changes = $integrity->check();
-                if (scalar(@{$changes->{os_processes}})) { 
-                    $LOG->warn($driverName . " - Integrity Check: FAILED");
-                    $isCompromised = 1;
-                    $changes->{'last_resource'} = $lastResource;
-        
-                    # Release our copy of the integrity object, but do not destroy 
-                    # any internal references.
-                    $integrity = undef;
-
-                    # Exit the while block.
-                    last;
-
-                } else {
-                    $LOG->info($driverName . " - Integrity Check: PASSED");
-                }
-            }
-
-            # Acquire lock on stored driver state.
-            $data = _lock();
-                    
-            # Check for any additional external driver updates.
-            $driver = _update($driver);
-
-            # Check to see if our driver's targets have changed.
-            $driverTargetsChanged = not(Compare($data->{$driverName}->{'next'}->{'targets'}, $driver->next()->{'targets'}));
-            # XXX: Delete this, eventually.
-            if ($driverTargetsChanged) {
-                $LOG->info($driverName . " - Driver targets have changed.");
-                #$Data::Dumper::Terse = 0;
-                #$Data::Dumper::Indent = 1;
-                #print "Current: " . Dumper($data->{$driverName}->{'next'}->{'targets'}) . "\n";
-                #print "Next: " . Dumper($driver->next()->{'targets'}) . "\n";
-            }
-
-            # Copy object data to shared memory.
-            $data->{$driverName}->{'next'} = $driver->next();
-            $data->{$driverName}->{'status'} = $driver->status();
-            $data->{$driverName}->{'status'}->{'is_compromised'} = $isCompromised;
-            $data->{$driverName}->{'status'}->{'is_running'} = 1;
-            $data->{$driverName}->{'state'} = $driver;
-
-            # Release lock on stored driver state.
-            _unlock($data);
-        }
-        
-        # XXX: This code may come in handy again, if we decide to keep the
-        # old-style integrity checks.
-        # Perform an integrity check, if needed.
-        # if (defined($integrity)) {
-        #     # For now, we update a scalar called 'is_compromised' within
-        #     # the $data->{$driverName}->{'status'} sub-hashtable.
-        #     $LOG->info($driverName . " - Performing Integrity Checks.");
-        #     $changes = $integrity->check();
-        #     if (scalar(@{$changes->{os_processes}})) { 
-        #         $LOG->warn($driverName . " - Integrity Check: FAILED");
-        #         $isCompromised = 1;
-        #         $changes->{'last_resource'} = $lastResource;
-        #     } else {
-        #         $LOG->info($driverName . " - Integrity Check: PASSED");
-        #     }
-        # }
-
-        # Release our copy of the integrity object, but do not destroy 
-        # any internal references.
-        $integrity = undef;
-
-        # Update driver state one last time, before exiting.
-        # Acquire lock on stored driver state.
-        $data = _lock();
-                    
-        # Check for any additional external driver updates.
-        $driver = _update($driver);
-
-        # Copy object data to shared memory.
-        $data->{$driverName}->{'next'} = $driver->next();
-        $data->{$driverName}->{'status'} = $driver->status();
-        $data->{$driverName}->{'status'}->{'is_compromised'} = $isCompromised;
-        $data->{$driverName}->{'status'}->{'fingerprint'} = $changes;
-        $data->{$driverName}->{'status'}->{'is_running'} = 0;
-        $data->{$driverName}->{'state'} = $driver;
- 
-        # Release lock on stored driver state.
-        _unlock($data);
     };
-    
-    ###################################
-    ### Driver Cleanup Phase        ###
-    ###################################
-           
-    # Check to see if any errors occurred within the thread.
-    # Queue any faults found, to transmit back to the next SOAP
-    # caller. 
+
+    # Kill the child daemon, if it still exists.
+    HoneyClient::Agent->destroy();
+
+    # Report any failure found.
     if ($@) {
-        # Release any pending locks, to avoid deadlocks.
-        _unlock();
-
-        # TODO: Do proper fault queuing.
-        $LOG->error($driverName . " - FAULT: " . $@);
+        fail($@);
     }
-
-    # XXX: Debugging, remove eventually. 
-    print $driverName . " - About to return out of child thread.\n";
-    if (!threads->is_detached()) {
-        threads->detach();
-    }
-    threads->exit();
 }
 
-# XXX: Document this.
-# Should be something like:
-#  updateState(
-#    IE => {
-#       links  => [ url1, url2, ... , ],
-#       params => {
-#           timeout => 5,
-#           blah    => "testing",
-#       },
-#    },
-#  )
-# TODO: When updateState() hashtable data is sent across SOAP,
-# we get the warning message:
-# 
-# Cannot encode 'links_to_visit' element as 'hash'.
-# Will be encoded as 'map' instead.
-#
-# Check to make sure this issue is not critical.
-#
-# We must base64 encode the data, since SOAP doesn't like URLs
-# that contain amperstands.
-sub updateState {
+=end testing
 
-    # Extract arguments.
-    my ($class, $arg) = @_;
-    my %args = ();
+=cut
 
-    # Decode serialized hash.
-    if (defined($arg)) {
-        %args = %{thaw(decode_base64($arg))};
-    }
-
-    my $argsExist = scalar(%args);
-
-    # Temporary variable, used to hold thawed driver data.
-    my $data = undef;
-
-    # Temporary variable, used to hold thread IDs.
-    my $tid = undef;
-
-    # Temporary variable, used to hold retrieved driver state.
-    my $driver = undef;
-
-    # Temporary variable, used to hold thread objects.
-    my $thread = undef;
-
-    # Figure out which driver to use.
-    for my $driverName (@{$ALLOWED_DRIVERS}) {
-  
-        # If the corresponding key within the argument
-        # hash does not exist or is not defined, then
-        # go ahead and skip to the next  
-        if (!($argsExist && 
-              exists($args{$driverName}) &&
-              defined($args{$driverName}))) {
-            next;
-        }
-
-        # Enqueue the updated state information.
-        # If this call fails, an exception is thrown or the process
-        # remains locked.  If the process locks, then external
-        # detection is used to catch for these types of failures.
-        $driverUpdateQueues{$driverName}->enqueue(nfreeze($args{$driverName}));
-
-        # Acquire data lock.
-        $data = _lock();
-
-        # Sanity check: See if the run() thread is already running.
-        $tid = $data->{$driverName}->{'thread_id'};
-        if (defined($tid) &&
-            defined($thread = threads->object($tid)) &&
-            $thread->is_running()) {
-
-            # The run() thread is active, so we assume that the run() thread will actually
-            # merge these updates into the shared driver state.
-
-            # Release data lock.
-            _unlock();
-
-        } else {
-
-            # If we've gotten this far, then the run() thread is no longer active,
-            # which means that we have to manually update the driver state
-            # information.
-
-            # Initialize the driver object. 
-            # Figure out which $driver object to use...
-            my $driverClass = $driverName;
-
-            if (!defined($data->{$driverName}->{'state'})) {
+sub getProperties {
     
-                # If the existing driver state is undefined, then
-                # create a new state object.
-                $driver = $driverClass->new();
+    # Extract arguments.
+    my ($class, %args) = @_;
 
-            } else {
-                # Else the driver state object is already defined,
-                # so go ahead and reuse it.
-                $driver = $driverClass->new(
-                    %{$data->{$driverName}->{'state'}}, 
-                );
-            }
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
 
-            # Once we have the correct driver state (either newly initialized or
-            # preinitialized from a prior run() thread), we need to update this 
-            # state with our new information.
-            $driver = _update($driver);
+    # Sanity check.  Make sure we get a valid argument.
+    my $argsExist = scalar(%args);
+    if (!$argsExist ||
+        !exists($args{'driver_name'}) ||
+        !defined($args{'driver_name'})) {
 
-            # Copy object data to shared memory.
-            $data->{$driverName}->{'next'} = $driver->next();
-            $data->{$driverName}->{'status'} = $driver->status();
-            # XXX: This may not be ideal, as a previous compromised status indicator
-            # would get overwritten, during the next updateState() call.
-            $data->{$driverName}->{'status'}->{'is_compromised'} = 0;
-            $data->{$driverName}->{'status'}->{'is_running'} = 0;
-            $data->{$driverName}->{'state'} = $driver;
-
-            # Release data lock.
-            _unlock($data);
-        }
+        $args{'driver_name'} = undef;
     }
-}
 
-# XXX: Document this.
-sub getState {
-    my $ret  = undef;
-    _lock();
+    # Get OS Properties
+    require Win32;
+    my @os_name = Win32::GetOSName();
+    my @os_vers = Win32::GetOSVersion();
 
-    # Sanity check.
-    if (defined($driverData)) {
+    # Translate known OS names.
+    my $name = $os_name[0];
+    $name =~ s/^WinXP.*/Windows XP/;
+    $name .= " " . $os_name[1];
 
-        # We're only interested in driver state information
-        # (and no other status information).  Thus, we prune the
-        # hashtable, before transmitting.
-        my $data = thaw($driverData);
-        my $driverName = undef;
-        my @driverNames = keys %{$data};
+    # Get rid of any 'Service Pack' identifiers.
+    shift(@os_vers);
+    my $version = join('.', @os_vers); 
 
-        foreach $driverName (@driverNames) {
-            $data->{$driverName} = $data->{$driverName}->{'state'};
-        }
-        $ret = encode_base64(nfreeze($data));
-    }
-    _unlock();
-    return $ret;
-}
-
-# XXX: Document this.
-sub getStatus {
-    my $ret = undef;
-    _lock();
-    if (defined($driverData)) {
-        $ret = encode_base64($driverData);
-    }
-    _unlock();
-    return $ret;
-}
-
-# XXX: Document this.
-# XXX: Do we really need this?
-sub shutdown {
-
-    print "Shutting down...\n";
-
-    # Shutdown in 5 seconds after returning.
-    my $thread = async {
-        threads->yield();
-        sleep(5);
-        exit;
+    # Construct initial output.
+    my $ret = {
+        shortname => 'Microsoft Windows',
+        name => $name,
+        version => $version,
+        os_applications => [],
     };
 
-    # Return true.
-    return 1;
-}
+    if (defined($args{'driver_name'})) {
+        # Get Driver Application Properties
+        require Win32::Exe;
+        my $process_exec = getVar(name      => 'process_exec',
+                                  namespace => $args{'driver_name'});
+        my $exe = Win32::Exe->new($process_exec);
+        my $exe_name = $exe->version_info->get('FileDescription');
+        my $exe_comp = $exe->version_info->get('CompanyName');
+        my $exe_vers = $exe->version_info->get('ProductVersion');
 
-# XXX: Document this.
-# TODO: Make this more robust.
-sub killProcess {
+        # Translate commas into periods.
+        $exe_vers =~ s/,/./g;
 
-    # Extract arguments.
-    my ($class, $processName) = @_;
+        my $app_properties = {
+            manufacturer => $exe_comp,
+            shortname    => $exe_name,
+            version      => $exe_vers,
+        };
 
-    # Sanity check.
-    unless (defined($processName)) {
-        return 0;
+        push(@{$ret->{os_applications}}, $app_properties);
     }
 
-    # TODO: Need unit tests.
-    require Win32::Process;
-    require Win32::Process::Info;
-
-    # Create a new process inspector.
-    my $inspector = Win32::Process::Info->new();
-    my @procs = $inspector->GetProcInfo();
-
-    foreach my $proc (@procs) {
-        if ($proc->{Name} eq $processName) {
-            # TODO: Should this statement be in here?
-            $LOG->warn("Killing Process ID: " . $proc->{ProcessId});
-            Carp::carp "Killing Process ID: " . $proc->{ProcessId} . "\n";
-            Win32::Process::KillProcess($proc->{ProcessId}, 0);
-        }
-    }
-
-    return 1;
+    return $ret;
 }
 
 #######################################################################
@@ -1250,7 +1626,9 @@ __END__
 
 =head1 BUGS & ASSUMPTIONS
 
-# XXX: Fill this in.
+If, at any time, the Manager's SOAP connection to the Agent
+is disrupted during a drive() operation, then the Manager should assume
+that the VM has been compromised and proceed to handle the VM as such.
 
 =head1 SEE ALSO
 
@@ -1266,15 +1644,13 @@ Paul Kulchenko for developing the SOAP::Lite module.
 
 =head1 AUTHORS
 
-Kathy Wang, E<lt>knwang@mitre.orgE<gt>
-
-Thanh Truong, E<lt>ttruong@mitre.orgE<gt>
-
 Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
+
+Kathy Wang, E<lt>knwang@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

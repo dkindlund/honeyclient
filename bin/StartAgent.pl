@@ -1,4 +1,4 @@
-#!perl -w -Ilib
+#!perl -Ilib
 
 # $Id$
 
@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Carp ();
 
+use Term::ReadKey;
 use HoneyClient::Util::Config qw(getVar);
 use HoneyClient::Agent;
 use HoneyClient::Util::SOAP qw(getClientHandle);
@@ -20,77 +21,14 @@ our $LOG = get_logger();
 our ($stub, $som);
 our $URL = HoneyClient::Agent->init();
 
-our $agentState = undef;
-my $tempState = undef;
-our $faultDetected = 0;
-
 print "URL: " . $URL. "\n";
 
-sub _watchdogFaultHandler {
-
-    # Extract arguments.
-    my ($class, $res) = @_;
-
-    # Construct error message.
-    # Figure out if the error occurred in transport or over
-    # on the other side.
-    my $errMsg = $class->transport->status; # Assume transport error.
-
-    if (ref $res) {
-        $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
-    }
-
-    if (!$faultDetected) {
-        $LOG->error("Watchdog fault detected, recovering Agent daemon.");
-        $faultDetected = 1;
-    }
-    # XXX: Reenable this, eventually.
-    $LOG->error(__PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg);
-    Carp::carp __PACKAGE__ . "->_watchdogFaultHandler(): Error occurred during processing.\n" . $errMsg;
-
-
-    # Regardless of the error, destroy the Agent process and reinitialize it.
-    # XXX: Sanity check this, eventually.
-    HoneyClient::Agent->destroy();
-
-    # Wait for a small amount of time, in order for the killed process to release
-    # its control of the bound TCP port.
-    sleep 5;
-
-    $URL = HoneyClient::Agent->init();
-
-    # Recreate a new stub handle, in case the global configuration has
-    # changed.
-    $stub = getClientHandle(address   => 'localhost',
-                            namespace => 'HoneyClient::Agent',
-                            fault_handler => \&_watchdogFaultHandler);
-
-    # Restore state information.
-    if (defined($agentState)) {
-        $som = $stub->updateState(encode_base64(nfreeze($agentState)));
-    }
+# Halt when we get any sort of keyboard input.
+my $key;
+ReadMode 4; # Turn off controls keys
+while (not defined ($key = ReadKey(-1))) {
+    # No key yet
 }
-
-$stub = getClientHandle(address   => 'localhost',
-                        namespace => 'HoneyClient::Agent',
-                        fault_handler => \&_watchdogFaultHandler);
-                
-for (;;) {
-    # TODO: Make this a programmatic value.
-    sleep (5);
-    $som = $stub->getState();
-    if (defined($som) and (ref($som) eq "SOAP::SOM")) {
-        $tempState = $som->result();
-        if (defined($tempState)) {
-            # Make sure the new state is parsable, before saving it.
-            eval {
-                $tempState = thaw(decode_base64($tempState));
-            };
-            if (!$@) {
-                $agentState = $tempState;
-            }
-        }
-    }
-}
+ReadMode 0; # Reset tty mode before exiting
 
 HoneyClient::Agent->destroy();

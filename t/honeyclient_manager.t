@@ -58,11 +58,9 @@ Log::Log4perl->init({
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Manager', qw(init destroy)) or diag("Can't load HoneyClient::Manager package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('HoneyClient::Manager') or diag("Can't load HoneyClient::Manager package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager');
-can_ok('HoneyClient::Manager', 'init');
-can_ok('HoneyClient::Manager', 'destroy');
-use HoneyClient::Manager qw(init destroy);
+use HoneyClient::Manager;
 
 # Make sure HonyClient::Manager::VM::Clone loads.
 BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
@@ -82,14 +80,10 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
-# Check if HoneyClient::Manager::Database support is enabled. 
-my $DB_ENABLE = getVar(name      => "enable",
-                       namespace => "HoneyClient::Manager::Database");
-if ($DB_ENABLE) {
-    # Make sure HoneyClient::Manager::Database loads.
-    require_ok('HoneyClient::Manager::Database');
-    require HoneyClient::Manager::Database;
-}
+# Make sure HoneyClient::Manager::Database loads.
+BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient::Manager::Database package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Database');
+use HoneyClient::Manager::Database;
 
 # Make sure Storable loads.
 BEGIN { use_ok('Storable', qw(nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
@@ -104,6 +98,39 @@ require_ok('MIME::Base64');
 can_ok('MIME::Base64', 'encode_base64');
 can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
+
+# Make sure Data::Dumper loads
+BEGIN { use_ok('Data::Dumper')
+        or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Data::Dumper');
+use Data::Dumper;
+}
+
+
+
+# =begin testing
+{
+SKIP: {
+    skip "HoneyClient::Manager->init() is not implemented, yet.", 1;
+}
+}
+
+
+
+# =begin testing
+{
+SKIP: {
+    skip "HoneyClient::Manager->destroy() is not implemented, yet.", 1;
+}
+}
+
+
+
+# =begin testing
+{
+SKIP: {
+    skip "HoneyClient::Manager->run() can't be easily tested, yet.", 1;
+}
 }
 
 

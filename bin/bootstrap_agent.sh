@@ -7,6 +7,9 @@ echo "Starting up Agent - (Hit CTRL-C multiple times to exit.)"
 # Remove all old /tmp/* entries.
 rm /tmp/* > /dev/null 2>&1
 
+# Remove any old capture logs entries.
+rm -rf ~/honeyclient/thirdparty/capture-mod/logs
+
 # Determine the IP address of the VM running.
 IP=$(/cygdrive/c/Program\ Files/VMware/VMware\ Tools/VMip.exe -get)
 echo "IP = $IP"
@@ -33,6 +36,4 @@ svn update
 ~/honeyclient/thirdparty/capture-mod/CaptureBAT.exe -c -l "C:\cygwin\tmp\realtime-changes.txt"&
 
 # Start the Agent code.
-while [ true ] ; do
-    perl -Ilib bin/StartAgent.pl && sleep 1
-done
+perl -Ilib bin/StartAgent.pl

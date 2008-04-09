@@ -9,7 +9,7 @@
 #
 # @author kindlund
 #
-# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -753,8 +753,7 @@ sub init {
         # Wait at least a second, in order to initialize the daemon.
         sleep (1);
         $DAEMON_PID = $pid;
-        # XXX: Delete this, eventually.
-        $LOG->info("Initializing VM daemon at PID: " . $DAEMON_PID);
+        $LOG->debug("Initializing VM daemon at PID: " . $DAEMON_PID);
         return ($URL);
 
     } else {
@@ -826,15 +825,13 @@ sub destroy {
     # Make sure the PID is defined and not
     # the parent process...
     if (defined($DAEMON_PID) && $DAEMON_PID) {
-        # XXX: Delete this, eventually.
-        $LOG->info("Destroying VM daemon at PID: " . $DAEMON_PID);
+        $LOG->debug("Destroying VM daemon at PID: " . $DAEMON_PID);
         $ret = kill("QUIT", $DAEMON_PID);
 
         # If the process doesn't respond to 'QUIT', then
         # try 'KILL'.
         if (kill("QUIT", $DAEMON_PID)) {
-            # XXX: Delete this, eventually.
-            $LOG->warn("Killing VM daemon at PID: " . $DAEMON_PID);
+            $LOG->debug("Killing VM daemon at PID: " . $DAEMON_PID);
             kill("KILL", $DAEMON_PID);
         }
     }
@@ -1231,8 +1228,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1323,8 +1318,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1419,8 +1412,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1550,8 +1541,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1714,8 +1703,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1872,8 +1859,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2016,8 +2001,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2220,8 +2203,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2437,8 +2418,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2566,8 +2545,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2749,8 +2726,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -2886,8 +2861,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3028,8 +3001,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3156,8 +3127,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3318,8 +3287,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3514,8 +3481,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -3713,8 +3678,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4007,8 +3970,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4351,8 +4312,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4644,8 +4603,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -4941,7 +4898,7 @@ Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

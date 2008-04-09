@@ -50,7 +50,7 @@
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SysEvent\.Evt
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SecEvent\.Evt
 #Mapping
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem.*
 #Cataloging
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot2\\.+
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot\\.+
@@ -260,15 +260,19 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\Logs
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\repair
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies\\index.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5\\.*
@@ -292,4 +296,7 @@
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\.+
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\index.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+

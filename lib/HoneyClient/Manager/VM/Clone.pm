@@ -9,7 +9,7 @@
 #
 # @author kindlund
 #
-# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -67,11 +67,21 @@ This documentation refers to HoneyClient::Manager::VM::Clone version 1.02.
   # Get the IP address of the cloned VM's primary network interface.
   my $ip_address = $clone->{'ip_address'};
 
+  # Specify the type of work you want the clone to handle.
+  my $work = {
+      "http://www.google.com/" => 1,
+      "http://www.cnn.com/" => 1,
+      "http://www.mitre.org/" => 10,
+  };
+
+  # Drive the clone, using the work specified.
+  $clone = $clone->drive(work => $work);
+
   # Get the name of the cloned VM (as it appears in the VMware Console).
   my $name = $clone->{'name'};
 
-  # Archive the cloned VM to the snapshot_path directory.
-  $clone->archive();
+  # Suspend and archive the cloned VM to the snapshot_path directory.
+  $clone->suspend(perform_archive => 1);
 
   # If you want the cloned VM to be suspended and no longer used,
   # simply set the variable to 'undef'.
@@ -237,6 +247,11 @@ BEGIN { use_ok('HoneyClient::Manager::VM') or diag("Can't load HoneyClient::Mana
 require_ok('HoneyClient::Manager::VM');
 use HoneyClient::Manager::VM;
 
+# Make sure HoneyClient::Manager::Database loads.
+BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient::Manager::Database package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Database');
+use HoneyClient::Manager::Database;
+
 # Make sure VMware::VmPerl loads.
 BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED)) or diag("Can't load VMware::VmPerl package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('VMware::VmPerl');
@@ -258,10 +273,18 @@ Log::Log4perl->init({
 });
 
 # Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(dclone)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
+BEGIN { use_ok('Storable', qw(dclone thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Storable');
 can_ok('Storable', 'dclone');
-use Storable qw(dclone);
+can_ok('Storable', 'thaw');
+use Storable qw(dclone thaw);
+
+# Make sure MIME::Base64 loads.
+BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('MIME::Base64');
+can_ok('MIME::Base64', 'encode_base64');
+can_ok('MIME::Base64', 'decode_base64');
+use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
@@ -285,6 +308,32 @@ require_ok('File::Basename');
 can_ok('File::Basename', 'dirname');
 can_ok('File::Basename', 'basename');
 use File::Basename qw(dirname basename);
+
+# Make sure Sys::Hostname loads.
+BEGIN { use_ok('Sys::Hostname') or diag("Can't load Sys::Hostname package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::Hostname');
+use Sys::Hostname;
+
+# Make sure Sys::HostIP loads.
+BEGIN { use_ok('Sys::HostIP') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::HostIP');
+use Sys::HostIP;
+
+# Make sure DateTime::HiRes loads.
+BEGIN { use_ok('DateTime::HiRes') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::HiRes');
+use DateTime::HiRes;
+
+# Make sure IO::File loads.
+BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('IO::File');
+use IO::File;
+
+# Make sure Filesys::DfPortable loads
+BEGIN { use_ok('Filesys::DfPortable')
+        or diag("Can't load Filesys::DfPortable package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Filesys::DfPortable');
+use Filesys::DfPortable;
 
 =end testing
 
@@ -310,7 +359,7 @@ use VMware::VmPerl qw(VM_EXECUTION_STATE_ON
 use HoneyClient::Manager::VM;
 
 # Use Storable Library
-use Storable qw(dclone);
+use Storable qw(dclone thaw);
 
 # Use Dumper Library
 use Data::Dumper;
@@ -324,9 +373,30 @@ use Log::Log4perl qw(:easy);
 # The global logging object.
 our $LOG = get_logger();
 
+# Use Hostname Libraries
+use Sys::Hostname::Long;
+
+# Use HostIP Libraries
+use Sys::HostIP;
+
+# Use DateTime::HiRes Libraries
+use DateTime::HiRes;
+
 # The global variable, used to count the number of
 # Clone objects that have been created.
 our $OBJECT_COUNT : shared = -1;
+
+# Include Database Libraries
+use HoneyClient::Manager::Database;
+
+# Include Base64 Libraries
+use MIME::Base64 qw(encode_base64 decode_base64);
+
+# Include IO::File Libraries
+use IO::File;
+
+# Include Disk Utilization Library
+use Filesys::DfPortable;
 
 =pod
 
@@ -388,7 +458,23 @@ The name of the cloned VM.
 
 =over 4
 
-The ID of the VM data, if it is stored within a database.
+The ID of the VM instance, if it is stored within the Drone database.
+
+=back
+
+=head2 status
+
+=over 4
+
+The status of the cloned VM.
+
+=back
+
+=head2 driver_name
+
+=over 4
+
+The Driver assigned to this cloned VM.
 
 =back
 
@@ -460,6 +546,13 @@ sub DESTROY {
     my $self = shift;
 
     if (($OBJECT_COUNT >= 0) && defined($self->{'config'})) {
+        # Signal firewall to deny traffic from this clone.
+        # Ignore errors.
+        eval {
+            $self->{'_fw_handle'} = getClientHandle(namespace     => "HoneyClient::Manager::FW",
+                                                    fault_handler => \&_handleFWFault);
+            $self->_denyNetwork();
+        };
        
         # Initialize a new handler, but suppress any initial connection errors.
         $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM",
@@ -477,11 +570,6 @@ sub DESTROY {
             # Make sure the VM daemon was properly destroyed.
             HoneyClient::Manager::VM->destroy();
             
-            # Sleep a bit, in order for the terminated VM daemon to release
-            # its network bindings.
-            # XXX: See if this is still needed.
-            #sleep(20);
-
             # Reinitialize VM daemon.
             HoneyClient::Manager::VM->init();
 
@@ -494,8 +582,10 @@ sub DESTROY {
 
         if (!defined($som)) {
             $LOG->error("Unable to suspend VM (" . $self->{'config'} . ").");
+            $self->_changeStatus(status => "error");
+        } else {
+            $self->_changeStatus(status => "suspended");
         }
-
     }
 
     # Decrement our global object count.
@@ -505,13 +595,38 @@ sub DESTROY {
 END {
     # Upon termination, destroy the global instance of the VM manager.
     if ($OBJECT_COUNT == 0) {
-        # XXX: Delete this, eventually.
-        $LOG->info("Destroying VM daemon.");
+        $LOG->debug("Destroying VM daemon.");
         HoneyClient::Manager::VM->destroy();
     }
 }
 
-# Handle SOAP faults.
+# Handle FW SOAP faults.
+#
+# During VM Clone object destruction, it's possible that the
+# firewall will be reset by the Manager's END logic before the chains
+# have been properly flushed by the DESTROY logic.  As such,
+# we suppress error during chain deletion.
+sub _handleFWFault {
+
+    # Extract arguments.
+    my ($class, $res) = @_;
+
+    # Construct error message.
+    # Figure out if the error occurred in transport or over
+    # on the other side.
+    my $errMsg = $class->transport->status; # Assume transport error.
+
+    if (ref $res) {
+        $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
+    }
+    
+    if ($errMsg !~ /Unable to flush entries in chain/) {
+        $LOG->warn("Error occurred during processing. " . $errMsg);
+        Carp::carp __PACKAGE__ . "->_handleFWFault(): Error occurred during processing.\n" . $errMsg;
+    }
+}
+
+# Handle Agent SOAP faults.
 #
 # When initially contacting the HoneyClient::Agent daemon running
 # inside the cloned VM, we suppress any "Connection refused" messages
@@ -519,7 +634,7 @@ END {
 # assume it's because the initial integrity check is still running
 # and the daemon isn't ready to accept commands from the
 # HoneyClient::Manager yet.
-sub _handleFault {
+sub _handleAgentFault {
 
     # Extract arguments.
     my ($class, $res) = @_;
@@ -536,7 +651,7 @@ sub _handleFault {
     if (($errMsg !~ /Connection refused/) &&
         ($errMsg !~ /No route to host/)) {
         $LOG->warn("Error occurred during processing. " . $errMsg);
-        Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
+        Carp::carp __PACKAGE__ . "->_handleAgentFault(): Error occurred during processing.\n" . $errMsg;
     }
 }
 
@@ -552,9 +667,6 @@ sub _handleFault {
 #
 # Output: The updated Clone $object, containing state information
 # from starting the clone VM.  Will croak if this operation fails.
-#
-# TODO: Need to configure a timeout failure operation -- in case
-# there's a problem and the VM operations hang.
 sub _init {
 
     # Extract arguments.
@@ -595,6 +707,7 @@ sub _init {
             Carp::croak "Unable to start clone VM (" . $self->{'config'} . ").";
         }
     }
+    $self->_changeStatus(status => "initialized");
 
     # Wait until the VM gets registered, before proceeding.
     $LOG->debug("Checking if clone VM (" . $self->{'config'} . ") is registered.");
@@ -608,6 +721,7 @@ sub _init {
             sleep ($self->{'_retry_period'});
         }
     }
+    $self->_changeStatus(status => "registered");
 
     # Once registered, check if the VM is ON yet.
     $LOG->debug("Checking if clone VM (" . $self->{'config'} . ") is powered on.");
@@ -621,6 +735,7 @@ sub _init {
             sleep ($self->{'_retry_period'});
         }
     }
+    $self->_changeStatus(status => "running");
 
     # Now, get the VM's MAC address.
     $LOG->debug("Retrieving MAC address of clone VM (" . $self->{'config'} . ").");
@@ -635,7 +750,6 @@ sub _init {
     # Now, get the VM's IP address.
     $LOG->info("Waiting for a valid IP address of clone VM (" . $self->{'config'} . ").");
     $ret = undef;
-    my $stubAgent = undef;
     my $logMsgPrinted = 0;
     while (!defined($self->{'ip_address'}) or !defined($ret)) {
         $som = $self->{'_vm_handle'}->getIPaddrVM(config => $self->{'config'});
@@ -648,16 +762,21 @@ sub _init {
         } elsif (!$logMsgPrinted) {
             $LOG->info("Initialized clone VM (" . $self->{'name'} . ") using IP (" .
                        $self->{'ip_address'} . ") and MAC (" . $self->{'mac_address'} . ").");
+
+            # Signal firewall to allow traffic from this clone through.
+            $self->_allowNetwork();
+
+            $LOG->info("Waiting for Agent daemon to initialize inside clone VM.");
             $logMsgPrinted = 1;
         }
         
         # Now, try contacting the Agent.
-        $stubAgent = getClientHandle(namespace     => "HoneyClient::Agent",
-                                     address       => $self->{'ip_address'},
-                                     fault_handler => \&_handleFault);
+        $self->{'_agent_handle'} = getClientHandle(namespace     => "HoneyClient::Agent",
+                                                   address       => $self->{'ip_address'},
+                                                   fault_handler => \&_handleAgentFault);
 
         eval {
-            $som = $stubAgent->getStatus();
+            $som = $self->{'_agent_handle'}->getProperties(driver_name => $self->{'driver_name'});
             $ret = $som->result();
         };
         # Clear returned state, if any fault occurs.
@@ -668,10 +787,292 @@ sub _init {
         # If the Agent daemon isn't responding yet, wait before trying again.
         if (!defined($ret)) {
             sleep ($self->{'_retry_period'});
+        } elsif (getVar(name      => "enable",
+                        namespace => "HoneyClient::Manager::Database")) {
+            # Register the cloned VM with the Drone database.
+            my $dt = DateTime::HiRes->now(time_zone => "local");
+   
+            # XXX: We need to separate this call into 2 smaller ones.
+            #      1) Register basic client information.
+            #      2) Register OS/application details.
+            #      That way, if this function fails for some reason,
+            #      we have *some* sort of record in the database about it,
+            #      for cleanup purposes.
+
+            # Construct the 'Client' object.
+            my $client = {
+                cid => $self->{'name'},
+                status => $self->{'status'},
+                host => {
+                    org => getVar(name => "organization"),
+                    hostname => Sys::Hostname::Long::hostname_long,
+                    ip => Sys::HostIP->ip,
+                },
+                os => $ret,
+                start => $dt->ymd('-').'T'.$dt->hms(':'),
+            };
+            $self->{'database_id'} = HoneyClient::Manager::Database::insert_client($client);
         }
     }
 
     return $self;
+}
+
+# Helper function designed to "pop" a key off a given hashtable.
+# When given a hashtable reference, this function will extract a valid key
+# from the hashtable and delete the (key, value) pair from the
+# hashtable.  The link with the highest score is returned.
+#
+# Inputs: hashref
+# Outputs: valid key, or undef if the hash is empty
+sub _pop {
+
+    # Get supplied hash reference.
+    my $hash = shift;
+
+    # Get the highest score.
+    my @array = sort {$$hash{$b} <=> $$hash{$a}} keys %{$hash};
+    my $topkey = $array[0];
+
+    # Delete the key from the hashtable.
+    if (defined($topkey)) {
+        delete $hash->{$topkey};
+    }
+
+    # Return the key found.
+    return $topkey;
+}
+
+# Helper function designed to change the status of a supplied
+# VM Clone object.
+#
+# Input: hashref
+#
+# Output: The updated Clone $object, reflecting the status change
+# of the clone VM.  Will croak if this operation fails.
+sub _changeStatus {
+
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!";
+    }
+
+    # Sanity check.  Make sure we get a valid argument.
+    my $argsExist = scalar(%args);
+    if (!$argsExist || 
+        !exists($args{'status'}) ||
+        !defined($args{'status'})) {
+
+        # Croak if no valid argument is supplied.
+        $LOG->error("Error: No status argument supplied.");
+        Carp::croak "Error: No status argument supplied.";
+    }
+
+    # Don't change the status field for any VM that has been marked
+    # as suspicious or compromised.
+    if (($self->{'status'} eq "suspicious") ||
+        ($self->{'status'} eq "compromised")) {
+        return $self;
+    }
+
+    # Change the status field.
+    $self->{'status'} = $args{'status'};
+
+    # Update the corresponding client record in the Drone database.
+    if (defined($self->{'database_id'})) {
+        for ($self->{'status'}) {
+            if (/running/) {
+                HoneyClient::Manager::Database::set_client_running($self->{'database_id'});
+            } elsif (/suspended/) {
+                HoneyClient::Manager::Database::set_client_suspended($self->{'database_id'});
+            } elsif (/suspicious/) {
+                if (!$argsExist || 
+                    !exists($args{'fingerprint'}) ||
+                    !defined($args{'fingerprint'})) {
+
+                    # Warn if no valid fingerprint is supplied.
+                    $LOG->warn("(" . $self->{'name'} . ") - No valid fingerprint found.");
+                    Carp::carp __PACKAGE__ . "->_changeStatus(): (" . $self->{'name'} . ") - No valid fingerprint found.";
+
+                    # Mark the VM as suspicious, manually.
+                    my $dt = DateTime::HiRes->now(time_zone => "local");
+                    HoneyClient::Manager::Database::set_client_suspicious({
+                        client_id => $self->{'database_id'},
+                        compromise => $dt->ymd('-').'T'.$dt->hms(':'),
+                    });
+
+                } else {
+
+                    # Mark the VM as suspicious indirectly, by inserting the fingerprint.
+
+                    $LOG->info("(" . $self->{'name'} . ") - Inserting Fingerprint Into Database.");
+                    # Make sure the fingerprint contains a client_id.
+                    $args{'fingerprint'}->{'client_id'} = $self->{'database_id'};
+                    my $fingerprint_id = undef;
+                    eval {
+                        $fingerprint_id = HoneyClient::Manager::Database::insert_fingerprint($args{'fingerprint'});
+                    };
+                    if ($@ || ($fingerprint_id == 0) || !defined($fingerprint_id)) {
+                        $LOG->warn("(" . $self->{'name'} . ") - Failure Inserting Fingerprint: " . $@);
+                    } else {
+                        $LOG->info("(" . $self->{'name'} . ") - Database Insert Successful.");
+                    }
+                }
+            } elsif (/compromised/) {
+                HoneyClient::Manager::Database::set_client_compromised($self->{'database_id'});
+            } elsif (/deleted/) {
+                HoneyClient::Manager::Database::set_client_deleted($self->{'database_id'});
+            } elsif (/error/) {
+                HoneyClient::Manager::Database::set_client_error($self->{'database_id'});
+            }
+        }
+    }
+
+    return $self;
+}
+
+# If specified, dumps the supplied fingerprint information to
+# a corresponding file.
+# 
+# Inputs: self, fingerprint hashref
+sub _dumpFingerprint {
+
+    # Get the supplied fingerprint.
+    my ($self, $fingerprint) = @_;
+
+    # XXX: Should this be a new .dump file, per compromise?
+    # Dump the fingerprint to a file, if needed.
+    my $COMPROMISE_FILE = getVar(name => "fingerprint_dump");
+    if (length($COMPROMISE_FILE) > 0 &&
+        defined($fingerprint)) {
+        $LOG->info("Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
+        my $dump_file = new IO::File($COMPROMISE_FILE, "a");
+
+        $Data::Dumper::Terse = 0;
+        $Data::Dumper::Indent = 2;
+        print $dump_file "\$vm_name = \"" . $self->{'name'} . "\";\n";
+        print $dump_file Dumper($fingerprint);
+        $dump_file->close();
+    }
+}
+
+# Allows the specified VM to use the network.
+#
+# Inputs: self
+sub _allowNetwork {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # Determine if the firewall needs to be bypassed.
+    if ($self->{'_bypass_firewall'}) {
+        return;
+    }
+
+    # Mark that the VM has been granted network access.
+    $self->{'_has_network_access'} = 1;
+
+    # Build our VM's network connection table.
+    # Note: We assume our VM has a single MAC address
+    # and a single IP address.
+    my $netTable = {};
+
+    # XXX: This code is a hack and needs to be fixed.
+    $netTable->{$self->{'name'}}->{'sources'}->{$self->{'mac_address'}}->{$self->{'ip_address'}} = {
+        # Allow all TCP traffic from this VM through on ports 80, 443, and 3690.
+        tcp => [ 80, ], #443, 3690 ],
+    };
+
+    # XXX: This is a defect.  The current FW code requires we set a target, but
+    # doesn't care what hostname we provide -- as long as it's resolvable.
+    # However, it *does* care about the target ports, which are hardcoded.
+    $netTable->{$self->{'name'}}->{'targets'} = {
+        'www.cnn.com' => {
+            tcp => [ 80, 443, 3690 ],
+        },
+    };
+
+    $LOG->info("Allowing VM (" . $self->{'name'} . ") network access.");
+    # XXX: Currently, faults get propagated -- is this okay?
+    $self->{'_fw_handle'}->addChain($netTable);
+    $self->{'_fw_handle'}->addRules($netTable);
+}
+
+# Denies the specified VM use of the network.
+# 
+# Inputs: self
+sub _denyNetwork {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # Determine if the firewall needs to be bypassed.
+    if ($self->{'_bypass_firewall'}) {
+        return;
+    }
+
+    # Check if the VM even has network access.
+    if (!$self->{'_has_network_access'}) {
+        return;
+    }
+    
+    # Mark that the VM has been denied network access.
+    $self->{'_has_network_access'} = 0;
+
+    # Build our VM's network connection table.
+    # Note: We assume our VM has a single MAC address
+    # and a single IP address.
+    my $netTable = {};
+    
+    # XXX: This code is a hack and needs to be fixed.
+    $netTable->{$self->{'name'}}->{'sources'}->{$self->{'mac_address'}}->{$self->{'ip_address'}} = {
+        # Deny all TCP traffic from this VM.
+        tcp => [ 80, ], #443, 3690 ],
+    };
+
+    # XXX: This is a defect.  The current FW code requires we set a target, but
+    # doesn't care what hostname we provide -- as long as it's resolvable.
+    # However, it *does* care about the target ports, which are hardcoded.
+    $netTable->{$self->{'name'}}->{'targets'} = {
+        'www.cnn.com' => {
+            tcp => [ 80, 443, 3690 ],
+        },
+    };
+
+    $LOG->info("Denying VM (" . $self->{'name'} . ") network access.");
+    # XXX: Currently, faults get propagated -- is this okay?
+    $self->{'_fw_handle'}->deleteRules($netTable);
+    $self->{'_fw_handle'}->deleteChain($netTable);
+}
+
+# Helper function to check if the host system has enough disk
+# space available, in order to run the Manager.
+sub _checkSpaceAvailable {
+
+    my $datastore_path = getVar(name      => "datastore_path",
+                                namespace => "HoneyClient::Manager::VM");
+    my $snapshot_path  = getVar(name      => "snapshot_path",
+                                namespace => "HoneyClient::Manager::VM");
+    my $min_space_free = getVar(name      => "min_space_free",
+                                namespace => "HoneyClient::Manager::VM");
+
+                                                    # Obtain sizes in GB
+    my $datastore_attr = dfportable($datastore_path, 1024 * 1024 * 1024);
+    my $snapshot_attr  = dfportable($snapshot_path,  1024 * 1024 * 1024);
+
+    if ($datastore_attr->{bavail} < $min_space_free) {
+        $LOG->warn("Directory (" . $datastore_path . ") has low disk space (" . $datastore_attr->{bavail} . " GB).");
+    } elsif ($snapshot_attr->{bavail} < $min_space_free) {
+        $LOG->warn("Directory (" . $snapshot_path . ") has low disk space (" . $snapshot_attr->{bavail} . " GB).");
+    } else {
+        return;
+    }
+    $LOG->info("Low disk space detected. Shutting down.");
+    exit;
 }
 
 #######################################################################
@@ -754,13 +1155,11 @@ eval {
 
     # Now, kill the VM daemon.
     HoneyClient::Manager::VM->destroy();
-    # XXX: See if this is still needed.
-    #sleep (10);
 
     # Create a generic empty clone, with test state data.
-    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM, _dont_init => 1);
-    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1)") or diag("The new() call failed.");
-    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1)") or diag("The new() call failed.");
+    my $clone = HoneyClient::Manager::VM::Clone->new(test => 1, master_vm_config => $masterVM, _dont_init => 1, _bypass_firewall => 1);
+    is($clone->{test}, 1, "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1, _bypass_firewall => 1)") or diag("The new() call failed.");
+    isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "new(test => 1, master_vm_config => '$masterVM', _dont_init => 1, _bypass_firewall => 1)") or diag("The new() call failed.");
     $clone = undef;
 
     # Destroy the master VM.
@@ -771,6 +1170,9 @@ eval {
                        "# Note: Testing real clone operations will *ONLY* work\n" .
                        "# with a fully functional master VM that has the HoneyClient code\n" .
                        "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# This test also requires that the firewall VM is registered,\n" .
+                       "# powered on, and operational.\n" .
                        "#\n" .
                        "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
                        "#\n" .
@@ -789,8 +1191,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -815,6 +1215,9 @@ sub new {
 
     # Get the class name.
     my $self = shift;
+    
+    # Sanity check: Make sure there is enough disk space available. 
+    _checkSpaceAvailable();
 
     # Get the rest of the arguments, as a hashtable.
     # Hash-based arguments are used, since HoneyClient::Util::SOAP is unable to handle
@@ -849,16 +1252,39 @@ sub new {
 
         # A variable containing the database identifier, if any is specified.
         database_id => undef,
-    
+   
+        # A variable reflecting the current status of the cloned VM.
+        status => "uninitialized",
+
+        # A variable reflected the driver assigned to this cloned VM.
+        driver_name => getVar(name      => "default_driver",
+                              namespace => "HoneyClient::Agent"),
+
         # A SOAP handle to the VM manager daemon.  (This internal variable
         # should never be modified externally.)
         _vm_handle => undef,
 
+        # A SOAP handle to the Agent daemon.  (This internal variable
+        # should never be modified externally.)
+        _agent_handle => undef,
+
+        # A SOAP handle to the FW daemon.  (This internal variable
+        # should never be modified externally.)
+        _fw_handle => undef,
+
         # A variable indicated how long the object should wait for
-        # between subsequent retries to the HoneyClient::Manager::VM
+        # between subsequent retries to any SOAP server
         # daemon (in seconds).  (This internal variable should never
         # be modified externally.)
         _retry_period => 2,
+
+        # A variable indicating if the firewall should be bypassed.
+        # (For testing use only.)
+        _bypass_firewall => 0,
+
+        # A variable indicating if the cloned VM has been granted
+        # network access.
+        _has_network_access => 0,
     );
 
     @{$self}{keys %params} = values %params;
@@ -878,6 +1304,24 @@ sub new {
 
     # Set a valid handle for the VM daemon.
     $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
+    
+    # Set a valid handle for the FW daemon.
+    $self->{'_fw_handle'} = getClientHandle(namespace => "HoneyClient::Manager::FW");
+
+    # Install the default firewall rules only if we're being called by code
+    # other than HoneyClient::Manager or by ourselves.
+    my $caller = caller();
+    if (($caller ne __PACKAGE__) && ($caller ne "HoneyClient::Manager")) {
+        $LOG->info("Installing default firewall rules.");
+        # XXX: Currently, faults get propagated -- is this okay?
+        $self->{'_fw_handle'}->installDefaultRules();
+    }
+
+    # Determine if the firewall needs to be bypassed.
+    if ($self->{'_bypass_firewall'}) {
+        # XXX: Currently, faults get propagated -- is this okay?
+        $self->{'_fw_handle'}->allowAllTraffic();
+    }
 
     # If the clone's configuration wasn't supplied initially, then
     # set the master VM to prepare for cloning.
@@ -904,21 +1348,24 @@ sub new {
 
 =pod
 
-=head2 $object->archive(snapshot_file => $snapshotFile) 
+=head2 $object->suspend(perform_archive => $boolean, snapshot_file => $snapshotFile) 
 
 =over 4
 
-Archives an existing Clone object, by suspending the VM and saving
-a tar.gz archive file containing the VM to the B<$SNAPSHOT_PATH>
+Suspends and optionally archives an existing Clone object,
+by suspending the VM and saving a tar.gz archive file
+containing the VM to the B<$SNAPSHOT_PATH>
 directory, as specified in the <HoneyClient/><Manager/><VM/>
 section of the etc/honeyclient.xml file.
 
 I<Inputs>:
+ B<$boolean> is an optional argument, indicating that the
+Clone object should be archived upon suspend.
  B<$snapshotFile> is an optional argument, indicating the
 full, absolute path and filename of where the snapshot
 file should be stored.
  
-I<Output>: The archived Clone B<$object>.
+I<Output>: The suspended/archived Clone B<$object>.
 
 I<Notes>:
 If B<$snapshotFile> is not specified, all snapshots
@@ -929,9 +1376,10 @@ The format of this destination directory is:
 S<"$SNAPSHOT_PATH/$VMDIRNAME-YYYYMMDDThhmmss.tar.gz">, 
 using ISO8601 date format variables.
 
-This operation destroys the Clone B<$object>.  Do not
+This operation alters the Clone B<$object>.  Do not
 expect to perform any additional operations with 
-this object once this call is finished.
+this object once this call is finished, since the
+underlying VM has been suspended.
 
 =back
 
@@ -957,27 +1405,30 @@ eval {
     
     my $question;
     $question = prompt("#\n" .
-                       "# Note: Testing real archive operations will *ONLY* work\n" .
+                       "# Note: Testing real suspend/archive operations will *ONLY* work\n" .
                        "# with a fully functional master VM that has the HoneyClient code\n" .
                        "# loaded upon boot-up.\n" .
                        "#\n" .
+                       "# This test also requires that the firewall VM is registered,\n" .
+                       "# powered on, and operational.\n" .
+                       "#\n" .
                        "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
                        "#\n" .
-                       "# Do you want to test cloning this master VM?", "no");
+                       "# Do you want to test cloning and archiving this master VM?", "no");
     if ($question =~ /^y.*/i) {
 
         # Create a generic empty clone, with test state data.
-        my $clone = HoneyClient::Manager::VM::Clone->new();
+        my $clone = HoneyClient::Manager::VM::Clone->new(_bypass_firewall => 1);
         my $cloneConfig = $clone->{config};
 
         # Archive the clone.
-        $clone->archive(snapshot_file => $snapshot);
+        $clone->suspend(perform_archive => 1, snapshot_file => $snapshot);
 
-        # Wait for the archive to complete.
+        # Wait for the suspend/archive to complete.
         sleep (45);
     
-        # Test if the archive worked.
-        is(-f $snapshot, 1, "archive(snapshot_file => '$snapshot')") or diag("The archive() call failed.");
+        # Test if the operations worked.
+        is(-f $snapshot, 1, "suspend(perform_archive => 1, snapshot_file => '$snapshot')") or diag("The suspend() call failed.");
    
         unlink $snapshot;
         $clone = undef;
@@ -992,8 +1443,6 @@ eval {
 
 # Kill the child daemon, if it still exists.
 HoneyClient::Manager::VM->destroy();
-# XXX: See if this is still needed.
-#sleep (1);
 
 # Report any failure found.
 if ($@) {
@@ -1004,7 +1453,7 @@ if ($@) {
 
 =cut
 
-sub archive {
+sub suspend {
 
     # Extract arguments.
     my ($self, %args) = @_;
@@ -1027,6 +1476,14 @@ sub archive {
 
     # Sanity checks; check if any args were specified.
     my $argsExist = scalar(%args);
+    if (!$argsExist || 
+        !exists($args{'perform_archive'}) ||
+        !defined($args{'perform_archive'})) {
+        $args{'perform_archive'} = getVar(name => "archive_upon_suspend");
+    }
+
+    # Signal firewall to deny traffic from this clone.
+    $self->_denyNetwork();
 
     # Extract the VM configuration file.
     my $vmConfig = $self->{'config'};
@@ -1035,18 +1492,255 @@ sub archive {
     # avoid potential object DESTROY() calls.
     $self->{'config'} = undef;
     
-    $LOG->debug("Archiving clone VM (" . $vmConfig . ").");
+    $LOG->info("Suspending clone VM (" . $vmConfig . ").");
     my $som = $self->{'_vm_handle'}->suspendVM(config => $vmConfig);
-    if ($argsExist &&
-        exists($args{'snapshot_file'}) &&
-        defined($args{'snapshot_file'})) {
-        $som = $self->{'_vm_handle'}->snapshotVM(config        => $vmConfig,
-                                                 snapshot_file => $args{'snapshot_file'});
-    } else {
-        $som = $self->{'_vm_handle'}->snapshotVM(config => $vmConfig);
-    }
+
     if (!defined($som)) {
-        $LOG->error("Unable to archive VM (" . $vmConfig . ").");
+        $LOG->error("Unable to suspend VM (" . $self->{'config'} . ").");
+        $self->_changeStatus(status => "error");
+    } else {
+        $self->_changeStatus(status => "suspended");
+    }
+
+    if ($args{'perform_archive'}) {
+        if ($argsExist &&
+            exists($args{'snapshot_file'}) &&
+            defined($args{'snapshot_file'})) {
+            $som = $self->{'_vm_handle'}->snapshotVM(config        => $vmConfig,
+                                                     snapshot_file => $args{'snapshot_file'});
+        } else {
+            $som = $self->{'_vm_handle'}->snapshotVM(config => $vmConfig);
+        }
+        if (!defined($som)) {
+            $LOG->error("Unable to archive VM (" . $vmConfig . ").");
+        }
+    }
+
+    return $self;
+}
+
+=pod
+
+=head2 $object->drive(work => $work)
+
+=over 4
+
+Drives the Agent running inside the Clone VM, based upon
+the work supplied.  If any portion of the work causes the
+VM to become compromised, then the compromised VM will be
+suspended, archived, and logged -- while a new clone VM
+will be created to continue processing the remaining
+work.
+
+I<Inputs>:
+ B<$work> is a required argument, referencing a hashtable of
+different parameters to pass to the driven application,
+which is running on the Agent inside the cloned VM.
+
+I<Notes>:
+ Each "key" in the $work hashtable is a parameter;
+each "value" in the $work hashtable is an integer,
+reflecting the priority assigned to that key.  Large values
+indicate high priority.
+
+Here is an example of a possible $work hashtable:
+
+ my $work = {
+     "http://www.mitre.org/"  => 10, # First to process
+     "http://www.google.com/" =>  5, # Second to process
+     "http://www.cnn.com/"    =>  1, # Last to process
+ };
+
+=back
+
+=begin testing
+
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
+
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    # Pretend as though no other Clone objects have been created prior
+    # to this point.
+    $HoneyClient::Manager::VM::Clone::OBJECT_COUNT = -1;
+    
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real drive operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# This test also requires that the firewall VM is registered,\n" .
+                       "# powered on, and operational.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning and driving this master VM?", "no");
+    if ($question =~ /^y.*/i) {
+
+        # Create a generic empty clone, with test state data.
+        my $clone = HoneyClient::Manager::VM::Clone->new(_bypass_firewall => 1);
+        my $cloneConfig = $clone->{config};
+
+        $clone = $clone->drive(work => { 'http://www.google.com/' => 1 });
+        isa_ok($clone, 'HoneyClient::Manager::VM::Clone', "drive(work => { 'http://www.google.com/' => 1})") or diag("The drive() call failed.");
+        $clone = undef;
+
+        # Connect to daemon as a client.
+        $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+    
+        # Destroy the clone VM.
+        $som = $stub->destroyVM(config => $cloneConfig);
+    }
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub drive {
+
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Sanity check.  Make sure we get a valid argument.
+    my $argsExist = scalar(%args);
+    if (!$argsExist || 
+        !exists($args{'work'}) ||
+        !defined($args{'work'})) {
+
+        # Croak if no valid argument is supplied.
+        $LOG->error("Error: No work argument supplied.");
+        Carp::croak "Error: No work argument supplied.";
+    }
+
+    my $som;
+    my $result;
+    my $currentWork;
+    my $finishedWork = {
+        'client_id'     => {},
+        'links_visited' => {}, 
+        'links_timed_out' => {},
+        'links_ignored' => {},
+    };
+    my $numWorkInserted;
+
+    while (scalar(%{$args{'work'}})) {
+        # Create a new clone, if the current clone is not already running.
+        if ($self->{'status'} ne "running") {
+            # Be sure to carry over any customizations into the newly created
+            # clones.
+            $self = HoneyClient::Manager::VM::Clone->new(
+                        master_vm_config => $self->{'master_vm_config'},
+                        driver_name      => $self->{'driver_name'},
+                    );
+        }
+
+        # Make sure the database_id is set to the client_id.
+        $finishedWork->{'client_id'} = $self->{'database_id'};
+
+        # Extract the highest priority work.
+        $currentWork = _pop($args{'work'});
+
+        # Drive the Agent.
+        eval {
+            $LOG->info("(" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
+            $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
+                                                   parameters  => encode_base64($currentWork));
+            $result = thaw(decode_base64($som->result()));
+        };
+        if ($@) {
+            # We lost communications with the Agent; assume the worst
+            # and mark the VM as suspicious.
+            $LOG->warn("(" . $self->{'name'} . ") - Lost Communication with Agent! Assuming Integrity Failure.");
+
+            # Suspend and archive the cloned VM.
+            $self->suspend();
+
+            # If possibile, insert work history.
+            # XXX: This may need to be changed; we need to mark these URLs differently.
+            #      Technically, the link didn't time out; we lost some sort of communication
+            #      with the Agent, when we tried visiting the link.
+            $finishedWork->{'links_timed_out'}->{$currentWork} = $result->{'time_at'};
+            if (defined($self->{'database_id'})) {
+                $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
+                $LOG->info($numWorkInserted . " URL(s) Inserted.");
+            }
+
+            # Mark the VM as suspicious.
+            $self->_changeStatus(status => "suspicious");
+
+        # Figure out if there was a compromise found.
+        } elsif (scalar(@{$result->{'fingerprint'}->{os_processes}})) {
+            $LOG->warn("(" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
+
+            # Dump the fingerprint to a file, if need be.
+            $self->_dumpFingerprint($result->{'fingerprint'});
+
+            # Suspend and archive the cloned VM.
+            $self->suspend();
+
+            # If possibile, insert work history.
+            $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
+            if (defined($self->{'database_id'})) {
+                $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
+                $LOG->info($numWorkInserted . " URL(s) Inserted.");
+            }
+
+            # Mark the VM as suspicious and insert the fingerprint, if possible.
+            $self->_changeStatus(status => "suspicious", fingerprint => $result->{'fingerprint'});
+
+        } else {
+            $LOG->info("(" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
+            # If possibile, insert work history.
+            $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
+            if (defined($self->{'database_id'})) {
+                $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
+                $LOG->info($numWorkInserted . " URL(s) Inserted.");
+            }
+        }
+
+        # Flush the work history, after committing to the database.
+        $finishedWork->{'links_visited'} = {};
+
+        # Create a new clone, if a compromise was found and we still have work to do.
+        if (($self->{'status'} eq "suspicious") &&
+            scalar(%{$args{'work'}})) {
+            # Be sure to carry over any customizations into the newly created
+            # clones.
+            $self = HoneyClient::Manager::VM::Clone->new(
+                        master_vm_config => $self->{'master_vm_config'},
+                        driver_name      => $self->{'driver_name'},
+                    );
+        }
     }
 
     return $self;
@@ -1097,7 +1791,7 @@ Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

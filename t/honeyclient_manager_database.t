@@ -77,6 +77,11 @@ BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check 
 require_ok('Data::Dumper');
 use Data::Dumper;
 
+# Make sure LWP::UserAgent loads.
+BEGIN { use_ok('LWP::UserAgent') or diag("Can't load LWP::UserAgent package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('LWP::UserAgent');
+use LWP::UserAgent;
+
 # Make sure Data::Structure::Util loads.
 BEGIN { use_ok('Data::Structure::Util', qw(unbless)) or diag("Can't load Data::Structure::Util package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Structure::Util');

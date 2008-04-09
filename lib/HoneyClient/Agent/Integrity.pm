@@ -9,7 +9,7 @@
 #
 # @author knwang, xkovah, ttruong, kindlund, stephenson
 #
-# Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -608,7 +608,7 @@ sub check {
         chop($line);
         
         my @toks = split("\",\"", $line, $TOTAL_REG_TOKENS+1);
-        print "toks = @toks\n";
+        #print "toks = @toks\n";
         my $index = undef;
         my $proc_obj = undef;
         my $proc_push;
@@ -770,7 +770,7 @@ sub check {
             $Data::Dumper::Terse = 1;
             $Data::Dumper::Indent = 1;
             print CHANGE_FILE Dumper(\%changes);
-            print Dumper(\%changes);
+            #print Dumper(\%changes);
             close CHANGE_FILE;
         }
     }
@@ -943,7 +943,7 @@ Brad Stephenson, E<lt>stephenson@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

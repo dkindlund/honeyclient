@@ -1,10 +1,131 @@
-#!perl -w -Ilib
+#!perl -Ilib
+#######################################################################
+# Created on:  Apr 08, 2008
+# File:        StartManager.pl
+# Description: Start up script for manager-based operations.
+#
+# CVS: $Id$
+#
+# @author knwang, kindlund
+#
+# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, using version 2
+# of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+#######################################################################
 
-# $Id$
+BEGIN {
+    our $VERSION = 1.02;
+}
+our ($VERSION);
+
+=pod
+
+=head1 NAME
+
+StartManager.pl - Perl script to start the Manager on the
+host system.
+
+=head1 SYNOPSIS
+
+ StartManager.pl [options] [http://www.google.com http://www.cnn.com ...]
+
+ Options:
+ --help               This help message.
+ --man                Print full man page.
+ --driver_name=       Name of driver to use.
+ --master_vm_config=  Absolute path to the master VM configuration to use.
+ --url_list=          File containing newline separated URLs to use.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help>
+
+Print a brief help message and exits.
+
+=item B<--driver_name=>
+
+Specifies the driver name to use.  If none is specified, the
+default will be used.
+
+=item B<--master_vm_config=>
+
+Specifies the master VM configuration file to use.  If none
+is specified, the default will be used.
+
+=item B<--url_list=>
+
+If specified, the newline separated URLs inside this file will
+be parsed and fed into the Manager upon startup.
+
+=back
+
+=head1 DESCRIPTION
+
+This program starts the Manager on the host system.  If URLs
+are specified on the command-line, the program will 
+assign a base priority to each URL and feed them into the Manager
+for additional processing.
+
+This program will run until manually terminated by the user, by
+pressing CTRL-C.
+
+=head1 SEE ALSO
+
+L<http://www.honeyclient.org/trac>
+
+=head1 REPORTING BUGS
+
+L<http://www.honeyclient.org/trac/newticket>
+
+=head1 AUTHORS
+
+Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
+
+Kathy Wang, E<lt>knwang@mitre.orgE<gt>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation, using version 2
+of the License.
+ 
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+ 
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301, USA.
+
+=cut
 
 use strict;
 use warnings;
 use Carp ();
+
+# Include Pod Library
+use Pod::Usage;
 
 # Include Dumper Library
 use Data::Dumper;
@@ -16,13 +137,11 @@ use Storable qw(nfreeze thaw);
 use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Include Getopt Parser
-use Getopt::Long;
+use Getopt::Long qw(:config auto_help ignore_case_always);
 
 # Include utility access to global configuration.
 use HoneyClient::Util::Config qw(getVar);
 
-# Include Manager Library
-use HoneyClient::Manager;
 
 # Include Logging Library
 use Log::Log4perl qw(:easy);
@@ -33,64 +152,52 @@ our $LOG = get_logger();
 # We expect that the user will supply a single argument to this script.
 # Namely, the initial set of URLs that they want the Agent to use.
 
-# Change to 'HoneyClient::Agent::Driver::Browser::IE' or
-#           'HoneyClient::Agent::Driver::Browser::FF'
-my $driver = undef;
-my $config = undef;
-my $maxrel = undef;
-my $nexturl = "";
-my $urllist= "";
+# Inputs.
+my $driver_name = undef;
+my $master_vm_config = undef;
+my $url_list= "";
 
-# TODO: Need --help option, along with sanity checking.
-# TODO: Also need a decent POD for this code.
-GetOptions('driver=s'             => \$driver,
-           'master_vm_config=s'   => \$config,
-           'url_list=s'           => \$urllist,
-           'max_relative_links:i' => \$maxrel);
-
-# Sanity Check.  Make sure $driver is set.
-unless (defined($driver)) {
-    $driver = getVar(name      => "default_driver",
-                     namespace => "HoneyClient::Agent");
-}
-
-# Sanity Check.  Make sure $max_relative_links is set.
-unless (defined($maxrel)) {
-    $maxrel = getVar(name      => "max_relative_links_to_visit",
-                     namespace => "HoneyClient::Agent::Driver::Browser");
-}
+GetOptions('driver_name=s'        => \$driver_name,
+           'master_vm_config=s'   => \$master_vm_config,
+           'url_list=s'           => \$url_list,
+           'man'                  => sub { pod2usage(-exitstatus => 0, -verbose => 2) },
+           'version'              => sub {
+                                        print "MITRE HoneyClient Project (http://www.honeyclient.org)\n" .
+                                              "------------------------------------------------------\n" .
+                                              $0  . " (v" . $VERSION . ")\n";
+                                        exit(0);
+                                     }) or pod2usage(2);
 
 # Go through the list of urls to create the array
 # Anything not associated with an option is a URL
 # Grab those first and then get the ones from the file specified
 my @urls;
 push( @urls, @ARGV ); 
-if( -e $urllist ){
-    open URL, $urllist;
+if( -e $url_list ){
+    open URL, $url_list;
     push(@urls, <URL>);
 }
 
-# Get the first url from the list
-# Create a hashtable in the form: url => 1 for links_to_visit 
-chomp @urls;
-my $firsturl = shift @urls;
-my %remaining_urls;
+# Get the base priority.
+my $priority = getVar(name      => "command_line_base_priority",
+                      namespace => "HoneyClient::Manager");
+
+# Create a hashtable in the form: url => priority.
+my $work = {};
 foreach(@urls){
     # We assign our initial list of URLs a priority of 1000, so that
     # they'll be (likely to be) selected first, before going to any other
     # external URLs found from subsequent drive operations.
-    $remaining_urls{$_} = 1000;
+    chomp;
+    if ($_ ne "") {
+        $work->{$_} = $priority;
+    }
 }
 
-my $agentState = HoneyClient::Manager->run(
-                    driver           => $driver,
-                    master_vm_config => $config,
-                    agent_state      => encode_base64(nfreeze({
-                        $driver => {
-                            next_link_to_visit => $firsturl,
-                            max_relative_links_to_visit => $maxrel,
-                            links_to_visit => \%remaining_urls,
-                         },
-                    })), 
-                 );
-
+# Start the Manager.
+require HoneyClient::Manager;
+HoneyClient::Manager->run(
+    driver_name      => $driver_name,
+    master_vm_config => $master_vm_config,
+    work             => $work,
+);

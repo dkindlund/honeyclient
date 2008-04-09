@@ -354,3 +354,6 @@
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\wmpnscfg\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows Media Player NSS\\.*
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\wmpnetwk\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows Media Player NSS\\.*
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\Shell\\Bag.+
