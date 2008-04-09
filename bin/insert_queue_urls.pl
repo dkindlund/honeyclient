@@ -7,10 +7,13 @@ use warnings;
 
 use Data::Dumper;
 use HoneyClient::Manager::Database;
+use HoneyClient::Util::Config qw(getVar);
 
 my $urls = {
-    'http://www.cpan.org/' => 20,
-    'http://www.craigslist.org/' => 100,
+    'source_type'            => 'command_line',
+    'source_name'            => getVar(name => "organization", namespace => "HoneyClient"),
+    'http://www.google.com/' => 1,
+    'http://www.mitre.org/'  => 1,
 };
 
 my $output = HoneyClient::Manager::Database::insert_queue_urls($urls);
