@@ -50,7 +50,7 @@
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SysEvent\.Evt
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SecEvent\.Evt
 #Mapping
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem\\.+
 #Cataloging
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot2\\.+
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot\\.+
@@ -127,27 +127,34 @@
 ### Minus List - General Malicious Activity	###
 ###################################################
 # Alert about executables or scripts that are written to disk
+#XENO: I recommend commenting out all blacklist entries until this has some way to
+#deal with the fact that these will always be written to the tmp file if you visit
+#a link to one of these directly...If we could add whitelist entries back in AFTER
+#these, pointing at the tmp file dir, signifying that we don't care as long as it
+#is in that dir, but care about everything else, then this would be usable...but until
+#then...not so much.
+#I tested adding a + entry for the temp downloads file after the - entry. It seemed
+#to work for .vb files, but not .exe files, which is what we care about much more.
 #-	Write	.*	.+\.bat
 #-	Write	.*	.+\.cmd
 #commented out for VMwareService.exe, since it writes .inf files.
 #-	Write	.*	.+\.inf
--	Write	.*	.+\.lnk
--	Write	.*	.+\.msi
--	Write	.*	.+\.msp
--	Write	.*	.+\.pif
--	Write	.*	.+\.reg
--	Write	.*	.+\.sct
--	Write	.*	.+\.shs
+#-	Write	.*	.+\.lnk
+#-	Write	.*	.+\.msi
+#-	Write	.*	.+\.msp
+#-	Write	.*	.+\.pif
+#-	Write	.*	.+\.reg
+#-	Write	.*	.+\.sct
+#-	Write	.*	.+\.shs
 #commented out for sites that download \.scr into the temp files folder.
 #-	Write	.*	.+\.scr
--	Write	.*	.+\.wsc
--	Write	.*	.+\.wsf
--	Write	.*	.+\.wsh
+#-	Write	.*	.+\.wsc
+#-	Write	.*	.+\.wsf
+#-	Write	.*	.+\.wsh
 #commented out for IE because \.com cache files and \.vb script files are very common
-#-	Write	.*	.+\.vb
+-	Write	.*	.+\.vb
 #-	Write	.*	.+\.com
-#commented out for IE because \.exe downloads to the cache dir are very common
-# TODO: This is a bug that needs to be resolved.
+#commented out for IE because .exe downloads to the cache dir are very common
 #-	Write	.*	.+\.exe
 # Alert about modifications to startup locations
 -	Write	.*	C:\\Documents and Settings\\.+\\Start Menu\\Programs\\Startup.+
@@ -260,19 +267,15 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\Logs
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\repair
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies\\index.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5\\.*
@@ -296,11 +299,4 @@
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\.+
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\index.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp\\WGANotify\.settings
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\Microsoft\\CryptnetUrlCache.*
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\All Users
