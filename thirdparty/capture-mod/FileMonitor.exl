@@ -303,3 +303,4 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\Microsoft\\CryptnetUrlCache.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\All Users
