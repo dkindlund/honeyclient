@@ -298,5 +298,7 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp\\WGANotify\.settings
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
