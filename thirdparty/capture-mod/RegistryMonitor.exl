@@ -385,5 +385,9 @@
 
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\CTF\\LangBar
 
-#NOTE: looks like a liketely bug value (translation not getting done)
+#NOTE: looks like a likely bug value (translation not getting done)
 +	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	\\REGIS
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
++	DeleteValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
