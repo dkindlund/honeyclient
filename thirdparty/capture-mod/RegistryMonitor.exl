@@ -360,3 +360,5 @@
 #The above should cover the below 2 cases...but it didn't...why?
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\Shell\\BagMRU
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
++	SetValueKey	C:\\Program Files\\Internet Explorer\\IEXPLORE\.EXE	HKCU\\Software\\Microsoft\\Internet Explorer\\International
