@@ -304,3 +304,6 @@
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 #No guarantees that the % will be interpreted literally by the regex processing...but this is what it spit out
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\UserData\\index\.dat
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
++	Write	C:\\WINDOWS\\system32\\lsass\.exe	C:\\Documents and Settings\\Administrator\\Application Data\\Microsoft\\Protect\\.*

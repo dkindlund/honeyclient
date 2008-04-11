@@ -22,7 +22,7 @@
 ###################################################
 ### Honeyclient added/specific?			###
 ###################################################
-#FIXME: Xeno - Does specifying a parent process even work? I tried
+#FIXME: Xeno - specifying a parent process doesn't work - this is a known bug
 +	bash.exe	.*	C:\\cygwin\\bin\\bash\.exe
 +	perl.exe	.*	C:\\cygwin\\bin\\perl\.exe
 +	helpsvc.exe	.*	C:\\WINDOWS\\PCHEALTH\\HELPCTR\\Binaries\\helpsvc\.exe
@@ -40,3 +40,7 @@
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
 +	verclsid.exe	.*	C:\\WINDOWS\\system32\\verclsid.exe
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
+#This is related to the language bar...I just installed updates, and it was newly activated
+#thus I consider it something valid to add
++	ctfmon.exe	.*	C:\\WINDOWS\\system32\\ctfmon.exe

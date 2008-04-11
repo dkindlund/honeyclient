@@ -362,3 +362,28 @@
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\Shell\\BagMRU
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\IEXPLORE\.EXE	HKCU\\Software\\Microsoft\\Internet Explorer\\International
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
+#After installing updates, the language bar was newly activated, these are related to that, and thus seem reasonable to add
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\CTF\\Sapilayr
++	DeleteValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\CTF\\TIP\\.+\\LanguageProfile\\.*
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\CTF\\LangBar
+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\SearchScopes\\.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\LowRegistry\\Extensions\\CmdMapping
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\SearchUrl
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Clients\\StartMenuInternet\\IEXPLORE\.EXE\\DefaultIcon
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Toolbar\\WebBrowser
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Internet Explorer\\Setup\\7\.0
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Cached
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\SearchScopes
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing\\.+\\Smart Screen DAT file
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellExecuteHooks
+
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\CTF\\LangBar
+
+#NOTE: looks like a liketely bug value (translation not getting done)
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	\\REGIS
