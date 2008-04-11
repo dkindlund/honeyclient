@@ -300,3 +300,7 @@
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Cookies\\index.dat
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT
+#No guarantees that the % will be interpreted literally by the regex processing...but this is what it spit out
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\UserData\\index\.dat
