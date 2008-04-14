@@ -50,7 +50,7 @@
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SysEvent\.Evt
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\system32\\config\\SecEvent\.Evt
 #Mapping
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\wbem.*
 #Cataloging
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot2\\.+
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\CatRoot\\.+
@@ -152,7 +152,7 @@
 #-	Write	.*	.+\.wsf
 #-	Write	.*	.+\.wsh
 #commented out for IE because \.com cache files and \.vb script files are very common
--	Write	.*	.+\.vb
+#-	Write	.*	.+\.vb
 #-	Write	.*	.+\.com
 #commented out for IE because .exe downloads to the cache dir are very common
 #-	Write	.*	.+\.exe
@@ -275,7 +275,7 @@
 +	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
 +	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin\\.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content\.IE5\\.*
@@ -307,3 +307,16 @@
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	Write	C:\\WINDOWS\\system32\\lsass\.exe	C:\\Documents and Settings\\Administrator\\Application Data\\Microsoft\\Protect\\.*
+
+
+###Stuff that got accidentally removed in r 1511
+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp\\WGANotify\.settings  
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config  
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+  
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+  
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\Microsoft\\CryptnetUrlCache.*  
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\All Users
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download  
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*  
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.* 
