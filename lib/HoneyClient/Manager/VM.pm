@@ -653,7 +653,7 @@ our $URL            : shared = undef;
 # If connectivity to the VMware Server / GSX server is 
 # ever lost, this indicates how may reconnection attempts 
 # will be made before failing completely.
-our $MAX_RETRIES    : shared = 5;
+our $MAX_RETRIES    : shared = getVar(name => "max_connect_retries");
 
 # The process ID of the SOAP server daemon, once created.
 our $DAEMON_PID     : shared = undef;
@@ -884,7 +884,7 @@ sub _connectVM {
         $status = $vm->connect($connectParams, $config);
         $count++;
     } while (!$status && $count < $MAX_RETRIES);
-    if ($count >= $MAX_RETRIES) {
+    if (!$status && ($count >= $MAX_RETRIES)) {
         my ($errorNumber, $errorString) = $server->get_last_error();
         $LOG->warn("Could not connect to VM (" . $config . "). (" .
                    $errorNumber . ": " . $errorString . ")");

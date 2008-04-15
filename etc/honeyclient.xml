@@ -329,6 +329,9 @@ Keep in mind, though, that some variables should remain module-specific
             <dhcp_log description="The absolute path to the file that contains the DHCP logs, when a new VM gets a DHCP lease from the VMware Server." default="/var/log/messages">
                 /var/log/messages
             </dhcp_log>
+            <max_connect_retries description="When the VMware Server attempts to connect to any VM, it will repeatedly attempt to connect to the VM if the first attempt fails, for a maximum number of times specified by this value.  Generally, this value should not be changed, unless the host system has an exceptionally slow disk - in which case, increasing this value may help." default="5">
+                5
+            </max_connect_retries>
             <!-- HoneyClient::Manager::VM::Clone Options -->
             <Clone>
                 <archive_upon_suspend description="If set to 1, then everytime a cloned VM is suspended, a copy of the VM will be archived in the 'snapshot_path' directory.  Set this option to 0, if you discover errors during cloning operations, where the hard disk on the host system is overworked on slow systems." default="1">
