@@ -205,6 +205,12 @@ Keep in mind, though, that some variables should remain module-specific
             <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
                 http://172.16.164.1/hc_database/api
             </url>
+			<max_retry_count description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry up to the specified number of times before giving up." default="1800">
+				1800
+			</max_retry_count>
+			<delay_between_retries description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry, waiting the specified amount of time (in seconds) between each retry attempt." default="2">
+				2
+			</delay_between_retries>
         </Database>
         <!-- HoneyClient::Manager::FW Options -->
         <FW>

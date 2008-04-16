@@ -240,11 +240,19 @@ sub _AUTOLOAD {
     # Perform the RPC call.
     my $xmlrpc = XML::RPC->new(getVar(name => "url"), %options);
     my $ret = undef;
-   
-    eval {
-        $ret = $xmlrpc->call($name,@_);
-    };
 
+    # Retry if communications fail intermittently.
+    my $count = 0;
+    while (($@ || !defined($ret)) && ($count < getVar(name => "max_retry_count"))) {
+        eval {
+            $ret = $xmlrpc->call($name,@_);
+        };
+        if ($@ || !defined($ret)) {
+		    $LOG->warn("Database connectivity lost.  Retrying in (" . getVar(name => "delay_between_retries") . ") seconds.");
+            sleep(getVar(name => "delay_between_retries"));
+        }
+        $count++;
+    }
     # Error checking.
     if ($@ || !defined($ret)) {
         $LOG->error("Error: RPC communications failure.");
