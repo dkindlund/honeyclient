@@ -312,15 +312,15 @@
 
 ###Stuff that got accidentally removed in r 1511
 
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp\\WGANotify\.settings  
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config  
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+  
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+  
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\Microsoft\\CryptnetUrlCache.*  
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp\\WGANotify\.settings
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Application Data\\Microsoft\\CryptnetUrlCache.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\All Users
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download  
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*  
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.* 
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\Download.*
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - IE7 accessing live.com
 +	Write	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	C:\\WINDOWS\\system32\\config\\system\.LOG
