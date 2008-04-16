@@ -391,3 +391,9 @@
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	DeleteValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
 +	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT - IE7 accessing live.com
++	SetValueKey	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\Application
++	SetValueKey	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\Application\\idsvc
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main

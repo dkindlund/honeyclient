@@ -44,3 +44,6 @@
 #This is related to the language bar...I just installed updates, and it was newly activated
 #thus I consider it something valid to add
 +	ctfmon.exe	.*	C:\\WINDOWS\\system32\\ctfmon.exe
+
+#### HONEYCLIENT AUTO EXCLUDE SCRIPT - IE7 accessing live.com
++	infocard.exe	.*	C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.0\\Windows Communication Foundation\\infocard.exe
