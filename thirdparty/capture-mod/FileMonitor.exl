@@ -256,6 +256,8 @@
 #### Honeyclient manual add - iexplore.exe - ticket #136 (flash)
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\fla.*\.tmp
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\fla.*\.tmp
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\fla.*\.tmp
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\fla.*\.tmp
 
 #### Honeyclient manual add - iexplore.exe - ticket #152
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\VGX.*\.tmp
