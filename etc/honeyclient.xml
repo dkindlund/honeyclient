@@ -205,12 +205,12 @@ Keep in mind, though, that some variables should remain module-specific
             <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
                 http://172.16.164.1/hc_database/api
             </url>
-			<max_retry_count description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry up to the specified number of times before giving up." default="1800">
-				1800
-			</max_retry_count>
-			<delay_between_retries description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry, waiting the specified amount of time (in seconds) between each retry attempt." default="2">
-				2
-			</delay_between_retries>
+            <max_retry_count description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry up to the specified number of times before giving up." default="1800">
+                1800
+            </max_retry_count>
+            <delay_between_retries description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry, waiting the specified amount of time (in seconds) between each retry attempt." default="2">
+                2
+            </delay_between_retries>
         </Database>
         <!-- HoneyClient::Manager::FW Options -->
         <FW>
@@ -309,7 +309,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/Agent.Master-38/winXPPro.cfg
+                /vm/masters/IE.7-Patched-2008-03-27-Default.Policy-Disabled.Active.Scripting-Disabled.File.Downloads/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
                 7627
