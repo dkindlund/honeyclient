@@ -73,10 +73,10 @@
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temporary Internet Files\\Content\.IE5\\.+
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temp\\.+tmp
 # History
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
-+	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
-+	Write	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
-+	Delete	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5\\.+
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5\\.+
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5\\.+
++	Write	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5\\.+
++	Delete	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5\\.+
 # IE Cookies
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Cookies\\.+
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\Cookies\\index.dat
@@ -273,10 +273,10 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies\\index.dat
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
-+	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
-+	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History.IE5.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5.*
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5.*
++	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5.*
++	Delete	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\Documents and Settings\\.+\\Local Settings\\History\\History\.IE5.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\cygwin.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Desktop\\%USERPROFILE%\\Local Settings\\Application Data\\Microsoft\\Feeds Cache
