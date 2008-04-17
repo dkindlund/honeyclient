@@ -214,10 +214,10 @@
 +	Write	C:\\WINDOWS\\system32\\dfrgntfs\.exe	.*
 
 #### Honeyclient manual add - iexplore.exe - ticket #142
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Cab.?\.tmp
-+	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Cab.?\.tmp
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Tar.?\.tmp
-+	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Tar.?\.tmp
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Cab.*\.tmp
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Cab.*\.tmp
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Tar.*\.tmp
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Tar.*\.tmp
 
 #### Honeyclient manual add - iexplore.exe - ticket #144 (windows update services)
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\WindowsUpdate.log
