@@ -8,8 +8,8 @@
 +	Write	C:\\program Files\\capture\\captureclient\.exe	C:\\program files\\capture\\logs\\.+
 +	Delete	C:\\program Files\\capture\\captureclient\.exe	C:\\program files\\capture\\.+\.zip
 #Prefetch
-+	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch\\.+
-+	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch.*
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch.*
 +	Write	System	C:\\WINDOWS\\Prefetch\\.+
 #NTFS Metadata
 +	Write	.*	c:\\\$mft
