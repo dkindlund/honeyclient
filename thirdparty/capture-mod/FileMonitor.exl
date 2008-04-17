@@ -331,3 +331,4 @@
 
 # IE7 - Exclusion
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\LocalService
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\SysEvent\.Evt
