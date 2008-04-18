@@ -397,3 +397,6 @@
 +	SetValueKey	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\Application
 +	SetValueKey	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\Application\\idsvc
 +	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main
+
+# IE7 - accessing multimedia pages
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\MPEG2Demultiplexer
