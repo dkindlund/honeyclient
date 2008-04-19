@@ -895,8 +895,8 @@ my $result 		 = 0;
 
 	$table->commit() or die ("Error: Unable to commit changes to filter table");
 	# Lets delete our PREROUTING logging
-	$result = _deletePreroutingLogging($hashref, $vmname);
-	print "got $result in deleteRules\n";
+	#$result = _deletePreroutingLogging($hashref, $vmname);
+	#print "got $result in deleteRules\n";
 	return $result;
 }
 
@@ -1054,7 +1054,7 @@ sub addRules {
 	$vmname = _getVMName($hashref);
 
 	# Lets create our PREROUTING logging
-	_createPreroutingLogging($hashref, $vmname);
+	#_createPreroutingLogging($hashref, $vmname);
 
 	# concatenating chain name to handle "in" chain flow and "out" chain flow
 	$vin  = $vmname . "-IN";
