@@ -1708,7 +1708,7 @@ sub drive {
         if ($@) {
             # We lost communications with the Agent; assume the worst
             # and mark the VM as suspicious.
-            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Lost Communication with Agent! Assuming Integrity Failure.");
+            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED");
 
             # Suspend and archive the cloned VM.
             $self->suspend();

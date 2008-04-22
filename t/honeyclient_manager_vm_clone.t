@@ -114,6 +114,11 @@ BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  
 require_ok('threads::shared');
 use threads::shared;
 
+# Make sure Thread::Semaphore loads.
+BEGIN { use_ok('Thread::Semaphore') or diag("Can't load Thread::Semaphore package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Thread::Semaphore');
+use Thread::Semaphore;
+
 # Make sure File::Basename loads.
 BEGIN { use_ok('File::Basename', qw(dirname basename)) or diag("Can't load File::Basename package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('File::Basename');
