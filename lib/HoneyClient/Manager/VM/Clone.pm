@@ -302,6 +302,11 @@ BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  
 require_ok('threads::shared');
 use threads::shared;
 
+# Make sure Thread::Semaphore loads.
+BEGIN { use_ok('Thread::Semaphore') or diag("Can't load Thread::Semaphore package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Thread::Semaphore');
+use Thread::Semaphore;
+
 # Make sure File::Basename loads.
 BEGIN { use_ok('File::Basename', qw(dirname basename)) or diag("Can't load File::Basename package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('File::Basename');
@@ -344,6 +349,7 @@ use Filesys::DfPortable;
 # Include Threading Library
 use threads;
 use threads::shared;
+use Thread::Semaphore;
 
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
@@ -385,6 +391,11 @@ use DateTime::HiRes;
 # The global variable, used to count the number of
 # Clone objects that have been created.
 our $OBJECT_COUNT : shared = -1;
+
+# Global semaphore, designed to guarantee only one
+# thread may set/access the $OBJECT_COUNT variable
+# at any given time.
+our $OBJECT_COUNT_SEMAPHORE = Thread::Semaphore->new(1);
 
 # Include Database Libraries
 use HoneyClient::Manager::Database;
@@ -558,7 +569,7 @@ sub DESTROY {
         $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM",
                                                 fault_handler => sub { die "ERROR"; });
 
-        $LOG->info("Suspending clone VM (" . $self->{'config'} . ").");
+        $LOG->info("Thread ID (" . threads->tid() . "): Suspending clone VM (" . $self->{'config'} . ").");
         my $som = undef;
         eval {
             $som = $self->{'_vm_handle'}->suspendVM(config => $self->{'config'});
@@ -567,6 +578,11 @@ sub DESTROY {
         # Reinitialize the VM daemon, in case it died from
         # a CTRL-C or other forced termination.
         unless(defined($som)) {
+            # XXX: There may be an issue with multiple threads attempting
+            # to all run DESTROY simultaneously.  Worst case scenario should
+            # be a warning indicating that the VM daemon bound address is
+            # already in use.
+
             # Make sure the VM daemon was properly destroyed.
             HoneyClient::Manager::VM->destroy();
             
@@ -581,7 +597,7 @@ sub DESTROY {
         }
 
         if (!defined($som)) {
-            $LOG->error("Unable to suspend VM (" . $self->{'config'} . ").");
+            $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'config'} . ").");
             $self->_changeStatus(status => "error");
         } else {
             $self->_changeStatus(status => "suspended");
@@ -595,7 +611,7 @@ sub DESTROY {
 END {
     # Upon termination, destroy the global instance of the VM manager.
     if ($OBJECT_COUNT == 0) {
-        $LOG->debug("Destroying VM daemon.");
+        $LOG->debug("Thread ID (" . threads->tid() . "): Destroying VM daemon.");
         HoneyClient::Manager::VM->destroy();
     }
 }
@@ -621,7 +637,7 @@ sub _handleFWFault {
     }
     
     if ($errMsg !~ /Unable to flush entries in chain/) {
-        $LOG->warn("Error occurred during processing. " . $errMsg);
+        $LOG->warn("Thread ID (" . threads->tid() . "): Error occurred during processing. " . $errMsg);
         Carp::carp __PACKAGE__ . "->_handleFWFault(): Error occurred during processing.\n" . $errMsg;
     }
 }
@@ -650,7 +666,7 @@ sub _handleAgentFault {
     
     if (($errMsg !~ /Connection refused/) &&
         ($errMsg !~ /No route to host/)) {
-        $LOG->warn("Error occurred during processing. " . $errMsg);
+        $LOG->warn("Thread ID (" . threads->tid() . "): Error occurred during processing. " . $errMsg);
         Carp::carp __PACKAGE__ . "->_handleAgentFault(): Error occurred during processing.\n" . $errMsg;
     }
 }
@@ -689,28 +705,28 @@ sub _init {
     # If the clone's configuration wasn't supplied initially, then
     # perform the quick clone operation.
     if (!defined($self->{'config'})) {
-        $LOG->info("Quick cloning master VM (" . $self->{'master_vm_config'} . ").");
+        $LOG->info("Thread ID (" . threads->tid() . "): Quick cloning master VM (" . $self->{'master_vm_config'} . ").");
         $som = $self->{'_vm_handle'}->quickCloneVM(src_config => $self->{'master_vm_config'});
         $ret = $som->result();
         if (!$ret) {
-            $LOG->fatal("Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").");
+            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").");
             Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_config'} . ").";
         }
         # Set the cloned VM configuration.
         $self->{'config'} = $ret;
     } else {
-        $LOG->debug("Starting clone VM (" . $self->{'config'} . ").");
+        $LOG->debug("Thread ID (" . threads->tid() . "): Starting clone VM (" . $self->{'config'} . ").");
         $som = $self->{'_vm_handle'}->startVM(config => $self->{'config'});
         $ret = $som->result();
         if (!$ret) {
-            $LOG->fatal("Unable to start clone VM (" . $self->{'config'} . ").");
+            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'config'} . ").");
             Carp::croak "Unable to start clone VM (" . $self->{'config'} . ").";
         }
     }
     $self->_changeStatus(status => "initialized");
 
     # Wait until the VM gets registered, before proceeding.
-    $LOG->debug("Checking if clone VM (" . $self->{'config'} . ") is registered.");
+    $LOG->debug("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'config'} . ") is registered.");
     $ret = undef;
     while (!defined($ret) or !$ret) {
         $som = $self->{'_vm_handle'}->isRegisteredVM(config => $self->{'config'});
@@ -724,7 +740,7 @@ sub _init {
     $self->_changeStatus(status => "registered");
 
     # Once registered, check if the VM is ON yet.
-    $LOG->debug("Checking if clone VM (" . $self->{'config'} . ") is powered on.");
+    $LOG->debug("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'config'} . ") is powered on.");
     $ret = undef;
     while (!defined($ret) or ($ret != VM_EXECUTION_STATE_ON)) {
         $som = $self->{'_vm_handle'}->getStateVM(config => $self->{'config'});
@@ -738,17 +754,17 @@ sub _init {
     $self->_changeStatus(status => "running");
 
     # Now, get the VM's MAC address.
-    $LOG->debug("Retrieving MAC address of clone VM (" . $self->{'config'} . ").");
+    $LOG->debug("Thread ID (" . threads->tid() . "): Retrieving MAC address of clone VM (" . $self->{'config'} . ").");
     $som = $self->{'_vm_handle'}->getMACaddrVM(config => $self->{'config'});
     $self->{'mac_address'} = $som->result();
 
     # Now, get the VM's name.
-    $LOG->debug("Retrieving name of clone VM (" . $self->{'config'} . ").");
+    $LOG->debug("Thread ID (" . threads->tid() . "): Retrieving name of clone VM (" . $self->{'config'} . ").");
     $som = $self->{'_vm_handle'}->getNameVM(config => $self->{'config'});
     $self->{'name'} = $som->result();
 
     # Now, get the VM's IP address.
-    $LOG->info("Waiting for a valid IP address of clone VM (" . $self->{'config'} . ").");
+    $LOG->info("Thread ID (" . threads->tid() . "): Waiting for a valid IP address of clone VM (" . $self->{'config'} . ").");
     $ret = undef;
     my $logMsgPrinted = 0;
     while (!defined($self->{'ip_address'}) or !defined($ret)) {
@@ -760,13 +776,13 @@ sub _init {
             sleep ($self->{'_retry_period'});
             next; # skip further processing
         } elsif (!$logMsgPrinted) {
-            $LOG->info("Initialized clone VM (" . $self->{'name'} . ") using IP (" .
+            $LOG->info("Thread ID (" . threads->tid() . "): Initialized clone VM (" . $self->{'name'} . ") using IP (" .
                        $self->{'ip_address'} . ") and MAC (" . $self->{'mac_address'} . ").");
 
             # Signal firewall to allow traffic from this clone through.
             $self->_allowNetwork();
 
-            $LOG->info("Waiting for Agent daemon to initialize inside clone VM.");
+            $LOG->info("Thread ID (" . threads->tid() . "): Waiting for Agent daemon to initialize inside clone VM.");
             $logMsgPrinted = 1;
         }
         
@@ -821,7 +837,7 @@ sub _init {
 # Helper function designed to "pop" a key off a given hashtable.
 # When given a hashtable reference, this function will extract a valid key
 # from the hashtable and delete the (key, value) pair from the
-# hashtable.  The link with the highest score is returned.
+# hashtable.  The key with the highest score is returned.
 #
 # Inputs: hashref
 # Outputs: valid key, or undef if the hash is empty
@@ -870,7 +886,7 @@ sub _changeStatus {
         !defined($args{'status'})) {
 
         # Croak if no valid argument is supplied.
-        $LOG->error("Error: No status argument supplied.");
+        $LOG->error("Thread ID (" . threads->tid() . "): Error: No status argument supplied.");
         Carp::croak "Error: No status argument supplied.";
     }
 
@@ -897,7 +913,7 @@ sub _changeStatus {
                     !defined($args{'fingerprint'})) {
 
                     # Warn if no valid fingerprint is supplied.
-                    $LOG->warn("(" . $self->{'name'} . ") - No valid fingerprint found.");
+                    $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - No valid fingerprint found.");
                     Carp::carp __PACKAGE__ . "->_changeStatus(): (" . $self->{'name'} . ") - No valid fingerprint found.";
 
                     # Mark the VM as suspicious, manually.
@@ -911,7 +927,7 @@ sub _changeStatus {
 
                     # Mark the VM as suspicious indirectly, by inserting the fingerprint.
 
-                    $LOG->info("(" . $self->{'name'} . ") - Inserting Fingerprint Into Database.");
+                    $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Inserting Fingerprint Into Database.");
                     # Make sure the fingerprint contains a client_id.
                     $args{'fingerprint'}->{'client_id'} = $self->{'database_id'};
                     my $fingerprint_id = undef;
@@ -919,9 +935,9 @@ sub _changeStatus {
                         $fingerprint_id = HoneyClient::Manager::Database::insert_fingerprint($args{'fingerprint'});
                     };
                     if ($@ || ($fingerprint_id == 0) || !defined($fingerprint_id)) {
-                        $LOG->warn("(" . $self->{'name'} . ") - Failure Inserting Fingerprint: " . $@);
+                        $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Failure Inserting Fingerprint: " . $@);
                     } else {
-                        $LOG->info("(" . $self->{'name'} . ") - Database Insert Successful.");
+                        $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Database Insert Successful.");
                     }
                 }
             } elsif (/compromised/) {
@@ -951,7 +967,7 @@ sub _dumpFingerprint {
     my $COMPROMISE_FILE = getVar(name => "fingerprint_dump");
     if (length($COMPROMISE_FILE) > 0 &&
         defined($fingerprint)) {
-        $LOG->info("Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
+        $LOG->info("Thread ID (" . threads->tid() . "): Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
         my $dump_file = new IO::File($COMPROMISE_FILE, "a");
 
         $Data::Dumper::Terse = 0;
@@ -997,7 +1013,7 @@ sub _allowNetwork {
         },
     };
 
-    $LOG->info("Allowing VM (" . $self->{'name'} . ") network access.");
+    $LOG->info("Thread ID (" . threads->tid() . "): Allowing VM (" . $self->{'name'} . ") network access.");
     # XXX: Currently, faults get propagated -- is this okay?
     $self->{'_fw_handle'}->addChain($netTable);
     $self->{'_fw_handle'}->addRules($netTable);
@@ -1043,7 +1059,7 @@ sub _denyNetwork {
         },
     };
 
-    $LOG->info("Denying VM (" . $self->{'name'} . ") network access.");
+    $LOG->info("Thread ID (" . threads->tid() . "): Denying VM (" . $self->{'name'} . ") network access.");
     # XXX: Currently, faults get propagated -- is this okay?
     $self->{'_fw_handle'}->deleteRules($netTable);
     $self->{'_fw_handle'}->deleteChain($netTable);
@@ -1065,13 +1081,13 @@ sub _checkSpaceAvailable {
     my $snapshot_attr  = dfportable($snapshot_path,  1024 * 1024 * 1024);
 
     if ($datastore_attr->{bavail} < $min_space_free) {
-        $LOG->warn("Directory (" . $datastore_path . ") has low disk space (" . $datastore_attr->{bavail} . " GB).");
+        $LOG->warn("Thread ID (" . threads->tid() . "): Directory (" . $datastore_path . ") has low disk space (" . $datastore_attr->{bavail} . " GB).");
     } elsif ($snapshot_attr->{bavail} < $min_space_free) {
-        $LOG->warn("Directory (" . $snapshot_path . ") has low disk space (" . $snapshot_attr->{bavail} . " GB).");
+        $LOG->warn("Thread ID (" . threads->tid() . "): Directory (" . $snapshot_path . ") has low disk space (" . $snapshot_attr->{bavail} . " GB).");
     } else {
         return;
     }
-    $LOG->info("Low disk space detected. Shutting down.");
+    $LOG->info("Thread ID (" . threads->tid() . "): Low disk space detected. Shutting down.");
     exit;
 }
 
@@ -1295,12 +1311,18 @@ sub new {
 
     # Now, assign our object the appropriate namespace.
     bless $self, $class;
+    
+    # Lock access to the $OBJECT_COUNT variable.
+    $OBJECT_COUNT_SEMAPHORE->down();
 
     # Upon first use, start up a global instance of the VM manager.
     if ($OBJECT_COUNT < 0) {
         HoneyClient::Manager::VM->init();
         $OBJECT_COUNT = 0;
     }
+    
+    # Unlock access to the $OBJECT_COUNT variable.
+    $OBJECT_COUNT_SEMAPHORE->up();
 
     # Set a valid handle for the VM daemon.
     $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::VM");
@@ -1312,7 +1334,7 @@ sub new {
     # other than HoneyClient::Manager or by ourselves.
     my $caller = caller();
     if (($caller ne __PACKAGE__) && ($caller ne "HoneyClient::Manager")) {
-        $LOG->info("Installing default firewall rules.");
+        $LOG->info("Thread ID (" . threads->tid() . "): Installing default firewall rules.");
         # XXX: Currently, faults get propagated -- is this okay?
         $self->{'_fw_handle'}->installDefaultRules();
     }
@@ -1326,16 +1348,22 @@ sub new {
     # If the clone's configuration wasn't supplied initially, then
     # set the master VM to prepare for cloning.
     unless (defined($self->{'config'})) {
-        $LOG->info("Setting VM (" . $self->{'master_vm_config'} . ") as master.");
+        $LOG->info("Thread ID (" . threads->tid() . "): Setting VM (" . $self->{'master_vm_config'} . ") as master.");
         my $som = $self->{'_vm_handle'}->setMasterVM(config => $self->{'master_vm_config'});
         if (!$som->result()) {
-            $LOG->fatal("Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.");
+            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.");
             Carp::croak "Unable to set VM (" . $self->{'master_vm_config'} . ") as a master VM.";
         }
     }
+    
+    # Lock access to the $OBJECT_COUNT variable.
+    $OBJECT_COUNT_SEMAPHORE->down();
 
     # Update our global object count.
     $OBJECT_COUNT++;
+    
+    # Unlock access to the $OBJECT_COUNT variable.
+    $OBJECT_COUNT_SEMAPHORE->up();
 
     # Finally, return the blessed object, with a fully initialized
     # cloned VM unless otherwise specified.
@@ -1492,11 +1520,11 @@ sub suspend {
     # avoid potential object DESTROY() calls.
     $self->{'config'} = undef;
     
-    $LOG->info("Suspending clone VM (" . $vmConfig . ").");
+    $LOG->info("Thread ID (" . threads->tid() . "): Suspending clone VM (" . $vmConfig . ").");
     my $som = $self->{'_vm_handle'}->suspendVM(config => $vmConfig);
 
     if (!defined($som)) {
-        $LOG->error("Unable to suspend VM (" . $self->{'config'} . ").");
+        $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'config'} . ").");
         $self->_changeStatus(status => "error");
     } else {
         $self->_changeStatus(status => "suspended");
@@ -1512,7 +1540,7 @@ sub suspend {
             $som = $self->{'_vm_handle'}->snapshotVM(config => $vmConfig);
         }
         if (!defined($som)) {
-            $LOG->error("Unable to archive VM (" . $vmConfig . ").");
+            $LOG->error("Thread ID (" . threads->tid() . "): Unable to archive VM (" . $vmConfig . ").");
         }
     }
 
@@ -1638,7 +1666,7 @@ sub drive {
         !defined($args{'work'})) {
 
         # Croak if no valid argument is supplied.
-        $LOG->error("Error: No work argument supplied.");
+        $LOG->error("Thread ID (" . threads->tid() . "): Error: No work argument supplied.");
         Carp::croak "Error: No work argument supplied.";
     }
 
@@ -1672,7 +1700,7 @@ sub drive {
 
         # Drive the Agent.
         eval {
-            $LOG->info("(" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
+            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
             $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
                                                    parameters  => encode_base64($currentWork));
             $result = thaw(decode_base64($som->result()));
@@ -1680,7 +1708,7 @@ sub drive {
         if ($@) {
             # We lost communications with the Agent; assume the worst
             # and mark the VM as suspicious.
-            $LOG->warn("(" . $self->{'name'} . ") - Lost Communication with Agent! Assuming Integrity Failure.");
+            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Lost Communication with Agent! Assuming Integrity Failure.");
 
             # Suspend and archive the cloned VM.
             $self->suspend();
@@ -1692,7 +1720,7 @@ sub drive {
             $finishedWork->{'links_timed_out'}->{$currentWork} = $result->{'time_at'};
             if (defined($self->{'database_id'})) {
                 $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
-                $LOG->info($numWorkInserted . " URL(s) Inserted.");
+                $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
             }
 
             # Mark the VM as suspicious.
@@ -1700,7 +1728,7 @@ sub drive {
 
         # Figure out if there was a compromise found.
         } elsif (scalar(@{$result->{'fingerprint'}->{os_processes}})) {
-            $LOG->warn("(" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
+            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
 
             # Dump the fingerprint to a file, if need be.
             $self->_dumpFingerprint($result->{'fingerprint'});
@@ -1712,19 +1740,19 @@ sub drive {
             $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
             if (defined($self->{'database_id'})) {
                 $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
-                $LOG->info($numWorkInserted . " URL(s) Inserted.");
+                $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
             }
 
             # Mark the VM as suspicious and insert the fingerprint, if possible.
             $self->_changeStatus(status => "suspicious", fingerprint => $result->{'fingerprint'});
 
         } else {
-            $LOG->info("(" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
+            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
             # If possibile, insert work history.
             $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
             if (defined($self->{'database_id'})) {
                 $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
-                $LOG->info($numWorkInserted . " URL(s) Inserted.");
+                $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
             }
         }
 

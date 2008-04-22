@@ -177,6 +177,9 @@ Keep in mind, though, that some variables should remain module-specific
         </Browser>
     </Crawler>
     <Manager>
+        <num_simultaneous_clones description="Upon startup, the Manager will attempt to spawn the specified number of cloned VMs simultaneously.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this specified number (e.g., 4 simultaneous VMs x 256MB = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM the host system can provision.  Allow the host system at least 512MB of RAM for normal operations." default="1">
+            1
+        </num_simultaneous_clones>
         <fingerprint_dump description="When the Manager encounters a suspicious VM, it will attempt to append a complete copy of the fingerprint information to this file, if specified.">
             fingerprint.dump
         </fingerprint_dump>

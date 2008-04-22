@@ -286,6 +286,14 @@ use Log::Log4perl qw(:easy);
 # The global logging object.
 our $LOG = get_logger();
 
+# The global work queue.  Each entry represents
+# work destined for a child thread worker.
+our $WORK_QUEUE : shared = undef;
+
+# The global wait queue.  Each entry represents
+# a thread ID waiting for more work.
+our $WAIT_QUEUE : shared = undef;
+
 #######################################################################
 # Daemon Initialization / Destruction                                 #
 #######################################################################
@@ -417,6 +425,29 @@ END {
         $stubFW->installDefaultRules();
     };
 
+    # Verify all sub threads are finished, prior to shutting down.
+    my $thread;
+    foreach $thread (threads->list()) {
+        # Don't kill/detach the main thread or ourselves.
+        if ($thread->tid() && !$thread->equal(threads->self())) {
+            # Kill the child thread, if it's running.
+            if ($thread->is_running()) {
+                # Send empty work, if need be.
+                my $work = {};
+                $WORK_QUEUE->enqueue(nfreeze($work));
+
+                $LOG->info("Shutting down Thread ID (" . $thread->tid() . ").");
+                $thread->kill('USR1');
+
+                # Join the child thread.
+                if (!$thread->is_detached()) {
+                    $LOG->debug("Joining Thread ID (" . $thread->tid() . ").");
+                    $thread->join();
+                }
+            }
+        }
+    }
+
     # XXX: There is an issue where if we try to quit but are in the
     # process of asynchronously archiving a VM, then the async archive
     # process will fail.
@@ -424,6 +455,103 @@ END {
     # Make sure all processes in our process group our dead.
     kill("KILL", -$$);
 }
+
+# Helper function designed to "pop" a (key, value) pair off a given hashtable.
+# When given a hashtable reference, this function will extract a valid (key, value)
+# pair from the hashtable and delete the (key, value) pair from the
+# hashtable.  The (key, value) pair with the highest score is returned.
+#
+# Inputs: hashref
+# Outputs: valid (key, val) hashref or undef if the hash is empty
+sub _pop {
+
+    # Get supplied hash reference.
+    my $hash = shift;
+
+    # Get the highest score.
+    my @array = sort {$$hash{$b} <=> $$hash{$a}} keys %{$hash};
+    my $topkey = $array[0];
+
+    if (defined($topkey)) {
+        # Delete the key from the hashtable.
+        # Return the (key, val) pair found.
+        return { $topkey => delete($hash->{$topkey}) };
+    } else {
+        return undef;
+    }
+}
+
+# Helper function designed to take in specified work
+# and split up that work evenly amongst the specified
+# number of clones by creating individual "buckets"
+# for each clone, adding non-empty buckets to the
+# work queue.
+#
+# Inputs: work_queue, wait_queue, work, num_simultaneous_clones
+# Outputs: None.
+sub _divide_work {
+
+    # Extract arguments.
+    my (%args) = @_;
+
+    # Initalize buckets - 1 bucket per client.
+    my $buckets = [ ];
+    for (my $counter = 0; $counter < $args{'num_simultaneous_clones'}; $counter++) {
+        $buckets->[$counter] = { };
+    }
+
+    # Divide up the work evenly across each bucket.
+    while (scalar(%{$args{'work'}})) {
+        for (my $counter = 0; $counter < $args{'num_simultaneous_clones'}; $counter++) {
+            my $item = _pop($args{'work'});
+            if (defined($item)) {
+                $buckets->[$counter] = { %{$buckets->[$counter]}, %{$item} };
+            } else {
+                # We have no more work to place into any bucket,
+                # so exit the loop.
+                last;
+            }
+        }
+    }
+
+    # Place the contents of each bucket onto the work queue,
+    # but ignore empty buckets.
+    my $tid = undef;
+    for (my $counter = 0; $counter < $args{'num_simultaneous_clones'}; $counter++) {
+        if (scalar %{$buckets->[$counter]}) {
+
+            # For each bucket inserted into the work queue, delete a corresponding
+            # signal from the wait queue -- if there is a signal on the wait queue.
+            if (defined($tid = $args{'wait_queue'}->dequeue_nb)) {
+        
+                # Sanity check: Make sure the thread is still alive.
+                if (!defined(threads->object($tid))) {
+                    $LOG->error("Thread ID (" . $tid . "): Unexpectedly terminated.");
+                    Carp::croak "Thread ID (" . $tid . "): Unexpectedly terminated.";
+                }
+
+            }
+
+            # TODO: Delete this, eventually.
+            print "\nBucket #" . $counter . ":\n" . Dumper($buckets->[$counter]) . "\n\n";
+            $args{'work_queue'}->enqueue(nfreeze($buckets->[$counter]));
+        }
+    }
+}
+
+
+# Signal handler to help give user immediate feedback during
+# shutdown process.
+sub _shutdown {
+    my $LOG = get_logger();
+    $LOG->warn("Received termination signal.  Shutting down (please wait).");
+    exit;
+};
+$SIG{HUP}  = \&_shutdown;
+$SIG{INT}  = \&_shutdown;
+$SIG{QUIT} = \&_shutdown;
+$SIG{ABRT} = \&_shutdown;
+$SIG{TERM} = \&_shutdown;
 
 #######################################################################
 # Public Methods Implemented                                          #
@@ -495,15 +623,36 @@ sub run {
         delete $args{'driver_name'}; 
     }
 
-    # Create a new cloned VM.
-    $vm = HoneyClient::Manager::VM::Clone->new(%args);
+    # Create a new work queue.
+    $WORK_QUEUE = new Thread::Queue;
+    
+    # Create a new wait queue.
+    $WAIT_QUEUE = new Thread::Queue;
+
+    # Create the thread pool.
+    my @THREAD_POOL;
+
+    # Create the cloned VMs.
+    for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
+        my $thread = threads->create(\&_worker, \%args);
+        if (!defined($thread)) {
+            $LOG->error("Unable to create worker thread! Shutting down.");
+            Carp::croak "Unable to create worker thread! Shutting down.";
+        }
+        # Push thread onto thread pool.
+        push(@THREAD_POOL, $thread);
+    }
 
     # If supported, get a URL list from the database.
     my $remoteLinksExist = 0;
     my $queue_url_list = {};
-    while (defined($vm->database_id)) {
+    my $tid = undef;
+    while (getVar(name      => "enable",
+                  namespace => "HoneyClient::Manager::Database")) {
         $LOG->info("Waiting for new URLs from database.");
-        $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), $vm->database_id);
+        # TODO: Fix this.
+        #$queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), $vm->database_id);
+        $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), 1145);
         $remoteLinksExist = scalar(%{$queue_url_list});
         while (!$localLinksExist && !$remoteLinksExist) {
 
@@ -511,7 +660,9 @@ sub run {
             sleep(getVar(name => "database_retry_delay"));
             # XXX: Trap/ignore all errors and simply retry.
             eval {
-                $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), $vm->database_id);
+                # TODO: Fix this.
+                #$queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), $vm->database_id);
+                $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), 1145);
                 $remoteLinksExist = scalar(%{$queue_url_list});
             };
         }
@@ -521,8 +672,31 @@ sub run {
             $args{'work'} = { %{$args{'work'}}, %{$queue_url_list} };
         }
         
-        # Drive the VM, using the work found.
-        $vm = $vm->drive(work => $args{'work'});
+        # Drive the VMs, using the work found.
+        $LOG->info("Received new work and updating queue.");
+        _divide_work(work_queue              => $WORK_QUEUE,
+                     wait_queue              => $WAIT_QUEUE,
+                     work                    => $args{'work'},
+                     num_simultaneous_clones => getVar(name => "num_simultaneous_clones"));
+
+        # Wait until the VMs need more work.
+        while (!$WAIT_QUEUE->pending) {
+            # Poll the wait queue every 2 seconds.
+            # This time delay should be short.
+            threads->yield();
+            sleep(2);
+
+            # Make sure all worker threads are still alive.
+            for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
+                my $thread = $THREAD_POOL[$counter];
+                if (!$thread->is_running()) {
+                    $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
+                    Carp::croak "Thread ID (" . $thread->tid() . "): Unexpectedly terminated.";
+                }
+            }
+        }
+        $LOG->info("Got a signal that a thread needs more work.");
+
         # Once finished, empty the work queue.
         $args{'work'} = {};
         # If we had any local links, they definately will have been processed by now.
@@ -534,11 +708,137 @@ sub run {
     # If we don't have a database connection, then just handle the work
     # that was provided from the command line and then shut down.
     if (scalar(%{$args{'work'}})) {
-        $vm = $vm->drive(work => $args{'work'});
+
+        # Drive the VMs, using the work found.
+        $LOG->info("Received new work and updating queue.");
+        _divide_work(work_queue              => $WORK_QUEUE,
+                     wait_queue              => $WAIT_QUEUE,
+                     work                    => $args{'work'},
+                     num_simultaneous_clones => getVar(name => "num_simultaneous_clones"));
+
+        # Wait until all VMs are finished.
+        # We wait for each worker to signal that they are waiting for more work, before shutting down
+        # the application.
+        for (my $i = 0; $i < getVar(name => "num_simultaneous_clones"); $i++) {
+            my $tid = undef;
+            # This is a little hackish, since calling Thread::Queue->dequeue
+            # doesn't properly handle signals.
+            while (!defined($tid = $WAIT_QUEUE->dequeue_nb)) {
+                # Poll the wait queue every 2 seconds.
+                # This time delay should be short.
+                threads->yield();
+                sleep(2);
+
+                # Make sure all worker threads are still alive.
+                for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
+                    my $thread = $THREAD_POOL[$counter];
+                    if (!$thread->is_running()) {
+                        $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
+                        Carp::croak "Thread ID (" . $thread->tid() . "): Unexpectedly terminated.";
+                    }
+                }
+            }
+        }
         # Once finished, empty the work queue.
         $args{'work'} = {};
     }
     $LOG->info("All URLs exhausted. Shutting down Manager.");
+}
+
+# TODO: Comment this.
+# Note: We can gracefully stop each worker, by sending an empty hashtable of work,
+# or by signalling the thread.
+sub _worker {
+
+    # Make sure the thread can only kill itself and not the entire application.
+    threads->set_thread_exit_only(1);
+
+    # Register interrupt/kill signal handlers.
+    # These handlers are designed to kill this thread upon overall module
+    # destruction.  These handlers should never be used for normal program
+    # operations, since they will NOT release any locks/semaphores properly.
+    local $SIG{USR1} = sub {
+        my $LOG = get_logger();
+        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down worker.");
+        threads->exit();
+    };
+
+    local $SIG{INT} = sub { 
+        my $LOG = get_logger();
+        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down worker.");
+        threads->exit();
+    };
+
+    # Extract arguments.
+    my $args = shift;
+
+    $LOG->info("Thread ID (" . threads->tid() . "): Starting worker.");
+
+    # Yield processing to parent thread.
+    threads->yield();
+
+    eval {
+        # Create a new cloned VM.
+        my $vm = HoneyClient::Manager::VM::Clone->new(%{$args});
+
+        # Variable to hold our work.
+        my $work = undef;
+        my $data = undef;
+
+        # If there's no work on the queue, signal that we need more work.
+        if (!$WORK_QUEUE->pending) {
+            $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
+            # Signal that we're ready for more work.
+            $WAIT_QUEUE->enqueue(threads->tid());
+        }
+
+        # This is a little hackish, since calling Thread::Queue->dequeue
+        # doesn't properly handle signals.
+        $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
+        while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
+            # Poll the wait queue every 2 seconds.
+            # This time delay should be short.
+            threads->yield();
+            sleep(2);
+        }
+        $work = thaw($data);
+        
+        while (scalar(%{$work})) {
+            $vm = $vm->drive(work => $work);
+
+            # If there's no work on the queue, signal that we need more work.
+            if (!$WORK_QUEUE->pending) {
+                $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
+                # Signal that we're ready for more work.
+                $WAIT_QUEUE->enqueue(threads->tid());
+            }
+            # This is a little hackish, since calling Thread::Queue->dequeue
+            # doesn't properly handle signals.
+            $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
+            while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
+                # Poll the wait queue every 2 seconds.
+                # This time delay should be short.
+                threads->yield();
+                sleep(2);
+            }
+            $work = thaw($data);
+        }
+    };
+    # Report when a fault occurs.
+    if ($@) {
+        $LOG->warn("Thread ID (" . threads->tid() . "): Encountered an error. Shutting down worker. " . $@);
+    } else {
+        $LOG->info("Thread ID (" . threads->tid() . "): Received empty work. Shutting down worker.");
+    }
+
+    # Signal to the parent that we're shutting down.
+    if (!threads->is_detached()) {
+        threads->detach();
+    }
+    $WAIT_QUEUE->enqueue(threads->tid());
+   
+    # Shut thread down.
+    threads->exit();
 }
 
 #######################################################################

@@ -612,7 +612,7 @@ our $maxThreadSemaphore = Thread::Semaphore->new(5);
 # Hashtable used to contain VM-specific semaphores,
 # used to guarantee only one operation per VM is performed
 # at any given time.
-our %vmSemaphoreHash;
+our %vmSemaphoreHash : shared;
 
 # Global semaphore, designed to limit exclusive access
 # to the %vmSemaphoreHash object. This lock is designed
@@ -2303,7 +2303,7 @@ sub fullCloneVM {
             # Release any acquired locks.
             $vmSemaphore->up();
             $maxThreadSemaphore->up();
-            return;
+            threads->exit();
         };
 
         # Trap all faults that may occur from these asynchronous operations.
@@ -2362,7 +2362,7 @@ sub fullCloneVM {
         }
         
         $maxThreadSemaphore->up();
-        return;
+        threads->exit();
     };
 
     return ($destConfig);
@@ -4100,7 +4100,7 @@ sub quickCloneVM {
 #            # Release any acquired locks.
 #            $vmSemaphore->up();
 #            $maxThreadSemaphore->up();
-#            return;
+#            threads->exit();
 #        };
 #
 #        # Trap all faults that may occur from these asynchronous operations.
@@ -4169,7 +4169,7 @@ sub quickCloneVM {
 #        }
 #
 #        $maxThreadSemaphore->up();
-#        return;
+#        threads->exit();
 #    };
 
     return ($destConfig);
@@ -4377,7 +4377,19 @@ sub snapshotVM {
     $LOG->info("Snapshotting VM (" . $args{'config'} . ") to (" . $args{'snapshot_file'} . ").");
 
     # Perform the snapshot operations...
-    # Since this usually takes awhile, we perform the remaining operations in a child thread.
+    if ($powerState != VM_EXECUTION_STATE_SUSPENDED &&
+        $powerState != VM_EXECUTION_STATE_OFF) {
+        
+        # Okay, the VM is alive; so suspend it...
+        suspendVM($class, %args);
+    }
+
+    # Now, temporarily unregister the VM, in order to ensure
+    # it doesn't get used while we snapshot it.
+    unregisterVM($class, %args);
+
+
+    # Since this may take awhile, we perform the remaining operations in a child thread.
     my $thread = async {
 
         # Register a kill signal handler.
@@ -4398,7 +4410,7 @@ sub snapshotVM {
             # Release any acquired locks.
             $vmSemaphore->up();
             $maxThreadSemaphore->up();
-            return;
+            threads->exit();
         };
 
         # Trap all faults that may occur from these asynchronous operations.
@@ -4406,17 +4418,6 @@ sub snapshotVM {
         # commands, we must do callbacks to the main thread over SOAP.
         # Yes, this is annoying and ugly.
         eval {
-
-            if ($powerState != VM_EXECUTION_STATE_SUSPENDED &&
-                $powerState != VM_EXECUTION_STATE_OFF) {
-        
-                # Okay, the VM is alive; so suspend it...
-                _callback($class, "suspendVM", %args);
-            }
-
-            # Now, temporarily unregister the VM, in order to ensure
-            # it doesn't get used while we snapshot it.
-            _callback($class, "unregisterVM", %args);
 
             # Lock the VM.
             $vmSemaphore->down();
@@ -4431,11 +4432,10 @@ sub snapshotVM {
             my @fileList = glob($dirName . "/*");
             chdir $pwd;
 
-            # Unlock chdirSemaphore.
-            $chdirSemaphore->up();
 
             if (system(getVar(name => "bin_tar"), '-C', $parentDir, '-zcpf', $args{'snapshot_file'}, @fileList) != 0) {
                 # Unlock VM, if fail.
+                $chdirSemaphore->up();
                 $vmSemaphore->up();
                 $LOG->warn("Could not snapshot VM to ($args{'snapshot_file'}). " .
                            "(" . $? . ": " . $! . ")");
@@ -4445,6 +4445,9 @@ sub snapshotVM {
                                                      errStr => $!},
                                              'err');
             }
+
+            # Unlock chdirSemaphore.
+            $chdirSemaphore->up();
             
             # Unlock the VM.
             $vmSemaphore->up();
@@ -4464,7 +4467,7 @@ sub snapshotVM {
             _queueFault($@);
         }
         $maxThreadSemaphore->up();
-        return;
+        threads->exit();
     };
 
     return ($args{'snapshot_file'});
@@ -4706,7 +4709,7 @@ sub revertVM {
             my $LOG = get_logger();
             $LOG->warn("Asynchronous revert of ($vmDir) interrupted!");
             $maxThreadSemaphore->up();
-            return;
+            threads->exit();
         };
 
         # Trap all faults that may occur from these asynchronous operations.
@@ -4763,7 +4766,7 @@ sub revertVM {
             _queueFault($@);
         }
         $maxThreadSemaphore->up();
-        return;
+        threads->exit();
     };
 
     return ($args{'config'});
