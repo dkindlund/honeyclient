@@ -240,6 +240,16 @@ BEGIN { use_ok('Data::Dumper')
 require_ok('Data::Dumper');
 use Data::Dumper;
 
+# Make sure Sys::Hostname loads.
+BEGIN { use_ok('Sys::Hostname') or diag("Can't load Sys::Hostname package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::Hostname');
+use Sys::Hostname;
+
+# Make sure Sys::HostIP loads.
+BEGIN { use_ok('Sys::HostIP') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::HostIP');
+use Sys::HostIP;
+
 =end testing
 
 =cut
@@ -263,6 +273,12 @@ use HoneyClient::Manager::VM::Clone;
 
 # Include Database Libraries
 use HoneyClient::Manager::Database;
+
+# Use Hostname Libraries
+use Sys::Hostname::Long;
+
+# Use HostIP Libraries
+use Sys::HostIP;
 
 # Use Dumper Library
 use Data::Dumper;
@@ -539,6 +555,30 @@ sub _divide_work {
     }
 }
 
+# Helper function designed to get new URLs from the Drone
+# database.  If it's the first attempt at obtaining URLs,
+# then it will ask the Drone database for any existing,
+# pre-assigned URLs.  Otherwise, it will ask the Drone
+# database for new, unassigned URLs.
+#
+# Inputs: first_attempt
+# Outputs: Hashref of (url => priority) pairs.
+sub _get_urls {
+
+    # Extract arguments.
+    my (%args) = @_;
+
+    # Returned argument.
+    my $ret = { };
+
+    # If this is the first attempt, then get any pre-assigned URLs.
+    if ($args{'first_attempt'}) {
+        $ret = HoneyClient::Manager::Database::get_queue_urls_by_hostname(Sys::Hostname::Long::hostname_long);
+    } else {
+        $ret = HoneyClient::Manager::Database::get_new_queue_urls(Sys::Hostname::Long::hostname_long, getVar(name => "num_urls_to_process"));
+    }
+    return $ret;
+}
 
 # Signal handler to help give user immediate feedback during
 # shutdown process.
@@ -643,16 +683,29 @@ sub run {
         push(@THREAD_POOL, $thread);
     }
 
+    # Register the host system with the database, if need be.
+    if (getVar(name      => "enable",
+               namespace => "HoneyClient::Manager::Database")) {
+
+        my $host = {
+            org => getVar(name => "organization"),
+            hostname => Sys::Hostname::Long::hostname_long,
+            ip => Sys::HostIP->ip,
+        };
+        HoneyClient::Manager::Database::insert_host($host);
+    }
+
     # If supported, get a URL list from the database.
     my $remoteLinksExist = 0;
     my $queue_url_list = {};
     my $tid = undef;
+    my $first_access_attempt = 1;
     while (getVar(name      => "enable",
                   namespace => "HoneyClient::Manager::Database")) {
         $LOG->info("Waiting for new URLs from database.");
-        # TODO: Fix this.
-        #$queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), $vm->database_id);
-        $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), 1145);
+        $queue_url_list = _get_urls(first_attempt => $first_access_attempt);
+        $first_access_attempt = 0;
+
         $remoteLinksExist = scalar(%{$queue_url_list});
         while (!$localLinksExist && !$remoteLinksExist) {
 
@@ -660,9 +713,7 @@ sub run {
             sleep(getVar(name => "database_retry_delay"));
             # XXX: Trap/ignore all errors and simply retry.
             eval {
-                # TODO: Fix this.
-                #$queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), $vm->database_id);
-                $queue_url_list = HoneyClient::Manager::Database::get_queue_urls(getVar(name => "num_urls_to_process"), 1145);
+                $queue_url_list = _get_urls(first_attempt => 0);
                 $remoteLinksExist = scalar(%{$queue_url_list});
             };
         }

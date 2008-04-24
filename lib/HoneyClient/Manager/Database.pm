@@ -295,11 +295,19 @@ sub AUTOLOAD {
 }
 
 # XXX: Need to comment this further.
-sub get_queue_urls {
-    $AUTOLOAD = "Database::get_queue_urls";
+sub get_queue_urls_by_hostname {
+    $AUTOLOAD = "Database::get_queue_urls_by_hostname";
     # Results from this call are YAML-encoded; need to deserialize them.
     return YAML::XS::Load(_AUTOLOAD(@_));
 }
+
+# XXX: Need to comment this further.
+sub get_new_queue_urls {
+    $AUTOLOAD = "Database::get_new_queue_urls";
+    # Results from this call are YAML-encoded; need to deserialize them.
+    return YAML::XS::Load(_AUTOLOAD(@_));
+}
+
 
 # XXX: Need to comment this further.
 sub get_broken_clients {
