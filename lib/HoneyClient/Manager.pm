@@ -547,9 +547,6 @@ sub _divide_work {
                 }
 
             }
-
-            # TODO: Delete this, eventually.
-            print "\nBucket #" . $counter . ":\n" . Dumper($buckets->[$counter]) . "\n\n";
             $args{'work_queue'}->enqueue(nfreeze($buckets->[$counter]));
         }
     }
@@ -579,6 +576,105 @@ sub _get_urls {
     }
     return $ret;
 }
+
+# Helper function designed to create a worker thread which manages a single
+# VM, using a WORK_QUEUE and a WAIT_QUEUE.
+#
+# Note: We can gracefully stop each worker, by sending an empty hashtable of work,
+# or by signalling the thread.
+sub _worker {
+
+    # Make sure the thread can only kill itself and not the entire application.
+    threads->set_thread_exit_only(1);
+
+    # Register interrupt/kill signal handlers.
+    # These handlers are designed to kill this thread upon overall module
+    # destruction.  These handlers should never be used for normal program
+    # operations, since they will NOT release any locks/semaphores properly.
+    local $SIG{USR1} = sub {
+        my $LOG = get_logger();
+        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down worker.");
+        threads->exit();
+    };
+
+    local $SIG{INT} = sub { 
+        my $LOG = get_logger();
+        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down worker.");
+        threads->exit();
+    };
+
+    # Extract arguments.
+    my $args = shift;
+
+    $LOG->info("Thread ID (" . threads->tid() . "): Starting worker.");
+
+    # Yield processing to parent thread.
+    threads->yield();
+
+    eval {
+        # Create a new cloned VM.
+        my $vm = HoneyClient::Manager::VM::Clone->new(%{$args});
+
+        # Variable to hold our work.
+        my $work = undef;
+        my $data = undef;
+
+        # If there's no work on the queue, signal that we need more work.
+        if (!$WORK_QUEUE->pending) {
+            $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
+            # Signal that we're ready for more work.
+            $WAIT_QUEUE->enqueue(threads->tid());
+        }
+
+        # This is a little hackish, since calling Thread::Queue->dequeue
+        # doesn't properly handle signals.
+        $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
+        while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
+            # Poll the wait queue every 2 seconds.
+            # This time delay should be short.
+            threads->yield();
+            sleep(2);
+        }
+        $work = thaw($data);
+        
+        while (scalar(%{$work})) {
+            $vm = $vm->drive(work => $work);
+
+            # If there's no work on the queue, signal that we need more work.
+            if (!$WORK_QUEUE->pending) {
+                $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
+                # Signal that we're ready for more work.
+                $WAIT_QUEUE->enqueue(threads->tid());
+            }
+            # This is a little hackish, since calling Thread::Queue->dequeue
+            # doesn't properly handle signals.
+            $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
+            while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
+                # Poll the wait queue every 2 seconds.
+                # This time delay should be short.
+                threads->yield();
+                sleep(2);
+            }
+            $work = thaw($data);
+        }
+    };
+    # Report when a fault occurs.
+    if ($@) {
+        $LOG->warn("Thread ID (" . threads->tid() . "): Encountered an error. Shutting down worker. " . $@);
+    } else {
+        $LOG->info("Thread ID (" . threads->tid() . "): Received empty work. Shutting down worker.");
+    }
+
+    # Signal to the parent that we're shutting down.
+    if (!threads->is_detached()) {
+        threads->detach();
+    }
+    $WAIT_QUEUE->enqueue(threads->tid());
+   
+    # Shut thread down.
+    threads->exit();
+}
+
 
 # Signal handler to help give user immediate feedback during
 # shutdown process.
@@ -794,102 +890,6 @@ sub run {
         $args{'work'} = {};
     }
     $LOG->info("All URLs exhausted. Shutting down Manager.");
-}
-
-# TODO: Comment this.
-# Note: We can gracefully stop each worker, by sending an empty hashtable of work,
-# or by signalling the thread.
-sub _worker {
-
-    # Make sure the thread can only kill itself and not the entire application.
-    threads->set_thread_exit_only(1);
-
-    # Register interrupt/kill signal handlers.
-    # These handlers are designed to kill this thread upon overall module
-    # destruction.  These handlers should never be used for normal program
-    # operations, since they will NOT release any locks/semaphores properly.
-    local $SIG{USR1} = sub {
-        my $LOG = get_logger();
-        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down worker.");
-        threads->exit();
-    };
-
-    local $SIG{INT} = sub { 
-        my $LOG = get_logger();
-        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down worker.");
-        threads->exit();
-    };
-
-    # Extract arguments.
-    my $args = shift;
-
-    $LOG->info("Thread ID (" . threads->tid() . "): Starting worker.");
-
-    # Yield processing to parent thread.
-    threads->yield();
-
-    eval {
-        # Create a new cloned VM.
-        my $vm = HoneyClient::Manager::VM::Clone->new(%{$args});
-
-        # Variable to hold our work.
-        my $work = undef;
-        my $data = undef;
-
-        # If there's no work on the queue, signal that we need more work.
-        if (!$WORK_QUEUE->pending) {
-            $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
-            # Signal that we're ready for more work.
-            $WAIT_QUEUE->enqueue(threads->tid());
-        }
-
-        # This is a little hackish, since calling Thread::Queue->dequeue
-        # doesn't properly handle signals.
-        $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
-        while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
-            # Poll the wait queue every 2 seconds.
-            # This time delay should be short.
-            threads->yield();
-            sleep(2);
-        }
-        $work = thaw($data);
-        
-        while (scalar(%{$work})) {
-            $vm = $vm->drive(work => $work);
-
-            # If there's no work on the queue, signal that we need more work.
-            if (!$WORK_QUEUE->pending) {
-                $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
-                # Signal that we're ready for more work.
-                $WAIT_QUEUE->enqueue(threads->tid());
-            }
-            # This is a little hackish, since calling Thread::Queue->dequeue
-            # doesn't properly handle signals.
-            $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
-            while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
-                # Poll the wait queue every 2 seconds.
-                # This time delay should be short.
-                threads->yield();
-                sleep(2);
-            }
-            $work = thaw($data);
-        }
-    };
-    # Report when a fault occurs.
-    if ($@) {
-        $LOG->warn("Thread ID (" . threads->tid() . "): Encountered an error. Shutting down worker. " . $@);
-    } else {
-        $LOG->info("Thread ID (" . threads->tid() . "): Received empty work. Shutting down worker.");
-    }
-
-    # Signal to the parent that we're shutting down.
-    if (!threads->is_detached()) {
-        threads->detach();
-    }
-    $WAIT_QUEUE->enqueue(threads->tid());
-   
-    # Shut thread down.
-    threads->exit();
 }
 
 #######################################################################
