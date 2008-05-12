@@ -768,6 +768,10 @@ sub run {
     # Create the thread pool.
     my @THREAD_POOL;
 
+# TODO: Fix this.
+my $foo = async {
+threads->detach();
+
     # Create the cloned VMs.
     for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
         my $thread = threads->create(\&_worker, \%args);
@@ -775,9 +779,16 @@ sub run {
             $LOG->error("Unable to create worker thread! Shutting down.");
             Carp::croak "Unable to create worker thread! Shutting down.";
         }
+
         # Push thread onto thread pool.
         push(@THREAD_POOL, $thread);
+
+        # TODO: Fix this.
+        sleep(300);
     }
+
+# TODO: Fix this.
+};
 
     # Register the host system with the database, if need be.
     if (getVar(name      => "enable",
@@ -836,7 +847,7 @@ sub run {
             # Make sure all worker threads are still alive.
             for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
                 my $thread = $THREAD_POOL[$counter];
-                if (!$thread->is_running()) {
+                if (defined($thread) && !$thread->is_running()) {
                     $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
                     Carp::croak "Thread ID (" . $thread->tid() . "): Unexpectedly terminated.";
                 }
