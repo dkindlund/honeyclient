@@ -303,6 +303,7 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS\\Policies\\.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\WinSxS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 #No guarantees that the % will be interpreted literally by the regex processing...but this is what it spit out
