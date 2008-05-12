@@ -768,27 +768,25 @@ sub run {
     # Create the thread pool.
     my @THREAD_POOL;
 
-# TODO: Fix this.
-my $foo = async {
-threads->detach();
+    # Start up workers slowly, in order to not overwhelm the host system.
+    my $startup_thread = async {
+        threads->detach();
 
-    # Create the cloned VMs.
-    for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
-        my $thread = threads->create(\&_worker, \%args);
-        if (!defined($thread)) {
-            $LOG->error("Unable to create worker thread! Shutting down.");
-            Carp::croak "Unable to create worker thread! Shutting down.";
+        # Create the cloned VMs.
+        for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
+            my $thread = threads->create(\&_worker, \%args);
+            if (!defined($thread)) {
+                $LOG->error("Unable to create worker thread! Shutting down.");
+                Carp::croak "Unable to create worker thread! Shutting down.";
+            }
+
+            # Push thread onto thread pool.
+            push(@THREAD_POOL, $thread);
+
+            # Sleep for a fixed amount of time, before starting up another worker.
+            sleep(getVar(name => "worker_startup_delay"));
         }
-
-        # Push thread onto thread pool.
-        push(@THREAD_POOL, $thread);
-
-        # TODO: Fix this.
-        sleep(300);
-    }
-
-# TODO: Fix this.
-};
+    };
 
     # Register the host system with the database, if need be.
     if (getVar(name      => "enable",
