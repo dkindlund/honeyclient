@@ -4388,37 +4388,39 @@ sub snapshotVM {
     # it doesn't get used while we snapshot it.
     unregisterVM($class, %args);
 
-
-    # Since this may take awhile, we perform the remaining operations in a child thread.
-    my $thread = async {
-
-        # Register a kill signal handler.
-        # This handler is designed to kill this thread upon overall module
-        # destruction.  This handler should never be used for normal program
-        # operations, since it will NOT release any locks/semaphores properly.
-        local $SIG{USR1} = sub { threads->exit(); };
-
-        $maxThreadSemaphore->down();
-        threads->yield();
-            
+    # Perform the snapshot operation...
+	# XXX: Do this synchronously instead of asynchronously, since we've had problems running
+	# this code in multi-threaded environments.
+#    # Since this may take awhile, we perform the remaining operations in a child thread.
+#    my $thread = async {
+#
+#        # Register a kill signal handler.
+#        # This handler is designed to kill this thread upon overall module
+#        # destruction.  This handler should never be used for normal program
+#        # operations, since it will NOT release any locks/semaphores properly.
+#        local $SIG{USR1} = sub { threads->exit(); };
+#
+#        $maxThreadSemaphore->down();
+#        threads->yield();
+#            
         # Obtain the VM's lock.
         my $vmSemaphore = _getVMlock($class, $args{'config'});
-        
-        local $SIG{INT} = sub { 
-            my $LOG = get_logger();
-            $LOG->warn("Asynchronous snapshot of ($vmDir) interrupted!");
-            # Release any acquired locks.
-            $vmSemaphore->up();
-            $maxThreadSemaphore->up();
-            threads->exit();
-        };
-
-        # Trap all faults that may occur from these asynchronous operations.
-        # None of the VmPerl objects are thread-safe, so in order to perform the following
-        # commands, we must do callbacks to the main thread over SOAP.
-        # Yes, this is annoying and ugly.
-        eval {
-
+#        
+#        local $SIG{INT} = sub { 
+#            my $LOG = get_logger();
+#            $LOG->warn("Asynchronous snapshot of ($vmDir) interrupted!");
+#            # Release any acquired locks.
+#            $vmSemaphore->up();
+#            $maxThreadSemaphore->up();
+#            threads->exit();
+#        };
+#
+#        # Trap all faults that may occur from these asynchronous operations.
+#        # None of the VmPerl objects are thread-safe, so in order to perform the following
+#        # commands, we must do callbacks to the main thread over SOAP.
+#        # Yes, this is annoying and ugly.
+#        eval {
+#
             # Lock the VM.
             $vmSemaphore->down();
 
@@ -4453,22 +4455,24 @@ sub snapshotVM {
             $vmSemaphore->up();
         
             # Now, reregister the VM...
-            _callback($class, "registerVM", %args);
+#            _callback($class, "registerVM", %args);
+            registerVM($class, %args);
 
             # Turn the VM back on, if it was on previously...
             if ($powerState == VM_EXECUTION_STATE_ON) {
-                _callback($class, "startVM", %args);
+#                _callback($class, "startVM", %args);
+                startVM($class, %args);
             }
-        };
-
-        # For any faults that did occur from the previous operations, be sure
-        # to report them back via the fault queue.
-        if ($@) {
-            _queueFault($@);
-        }
-        $maxThreadSemaphore->up();
-        threads->exit();
-    };
+#        };
+#
+#        # For any faults that did occur from the previous operations, be sure
+#        # to report them back via the fault queue.
+#        if ($@) {
+#            _queueFault($@);
+#        }
+#        $maxThreadSemaphore->up();
+#        threads->exit();
+#    };
 
     return ($args{'snapshot_file'});
 }
