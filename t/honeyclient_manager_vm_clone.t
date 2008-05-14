@@ -282,7 +282,7 @@ eval {
                        "#\n" .
                        "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
                        "#\n" .
-                       "# Do you want to test cloning and archiving this master VM?", "no");
+                       "# Do you want to test cloning this master VM and archiving a subsequent clone?", "no");
     if ($question =~ /^y.*/i) {
 
         # Create a generic empty clone, with test state data.
@@ -306,6 +306,73 @@ eval {
     
         # Destroy the clone VM.
         $som = $stub->destroyVM(config => $cloneConfig);
+    }
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
+
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    my $testVMDir = dirname($testVM);
+
+    # Pretend as though no other Clone objects have been created prior
+    # to this point.
+    $HoneyClient::Manager::VM::Clone::OBJECT_COUNT = -1;
+    
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real destroy operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# This test also requires that the firewall VM is registered,\n" .
+                       "# powered on, and operational.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning this master VM and destroying a subsequent clone?", "no");
+    if ($question =~ /^y.*/i) {
+
+        # Create a generic empty clone, with test state data.
+        my $clone = HoneyClient::Manager::VM::Clone->new(_bypass_firewall => 1);
+        my $cloneConfig = $clone->{config};
+
+        # Archive the clone.
+        $clone->destroy();
+
+        # Wait for the destroy to complete.
+        sleep (45);
+    
+        # Test if the operations worked.
+        is(!-f $cloneConfig, 1, "destroy()") or diag("The destroy() call failed.");
+   
+        $clone = undef;
+
+        if (-f $cloneConfig) {
+            # Connect to daemon as a client.
+            $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+    
+            # Destroy the clone VM.
+            $som = $stub->destroyVM(config => $cloneConfig);
+        }
     }
 };
 

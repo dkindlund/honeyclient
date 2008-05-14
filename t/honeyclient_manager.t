@@ -104,6 +104,16 @@ BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
+
+# Make sure Sys::Hostname loads.
+BEGIN { use_ok('Sys::Hostname') or diag("Can't load Sys::Hostname package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::Hostname');
+use Sys::Hostname;
+
+# Make sure Sys::HostIP loads.
+BEGIN { use_ok('Sys::HostIP') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Sys::HostIP');
+use Sys::HostIP;
 }
 
 

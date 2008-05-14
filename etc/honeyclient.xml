@@ -349,6 +349,9 @@ Keep in mind, though, that some variables should remain module-specific
                 <archive_upon_suspend description="If set to 1, then everytime a cloned VM is suspended, a copy of the VM will be archived in the 'snapshot_path' directory.  Set this option to 0, if you discover errors during cloning operations, where the hard disk on the host system is overworked on slow systems." default="1">
                     1
                 </archive_upon_suspend>
+                <work_unit_limit description="An integer, indicating how many work units (e.g., URLs) the clone VM should process before destroying the VM and regenerating a new clone VM.  This option is useful to set, when trying to drive an application that appears to create slow memory leaks within the VM's OS.  For example, after processing X work units, the VM's OS runs out of memory altogether.  To deal with this issue, we preemptively destroy and regenerate a new clone VM at (X-1) work units, so that the leak no longer affects our operations.  To completely disable this functionality, specify -1." default="2000">
+                    2000
+                </work_unit_limit>
             </Clone>
             <!-- HoneyClient::Manager::VM::Test Options -->
             <Test>

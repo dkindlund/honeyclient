@@ -489,6 +489,14 @@ The Driver assigned to this cloned VM.
 
 =back
 
+=head2 work_units_processed
+
+=over 4
+
+The number of work units processed by this VM.
+
+=back
+
 =cut
 
 #######################################################################
@@ -1276,6 +1284,10 @@ sub new {
         driver_name => getVar(name      => "default_driver",
                               namespace => "HoneyClient::Agent"),
 
+        # A variable indicating the number of work units processed by this
+        # cloned VM.
+        work_units_processed => 0,
+
         # A SOAP handle to the VM manager daemon.  (This internal variable
         # should never be modified externally.)
         _vm_handle => undef,
@@ -1442,7 +1454,7 @@ eval {
                        "#\n" .
                        "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
                        "#\n" .
-                       "# Do you want to test cloning and archiving this master VM?", "no");
+                       "# Do you want to test cloning this master VM and archiving a subsequent clone?", "no");
     if ($question =~ /^y.*/i) {
 
         # Create a generic empty clone, with test state data.
@@ -1542,6 +1554,137 @@ sub suspend {
         if (!defined($som)) {
             $LOG->error("Thread ID (" . threads->tid() . "): Unable to archive VM (" . $vmConfig . ").");
         }
+    }
+
+    return $self;
+}
+
+=pod
+
+=head2 $object->destroy()
+
+=over 4
+
+Destroys an existing Clone object, by powering off the VM and
+deleting the subdirectory containing the VM data.
+
+I<Output>: The destroyed Clone B<$object>.
+
+I<Notes>:
+This operation alters the Clone B<$object>.  Do not
+expect to perform any additional operations with 
+this object once this call is finished, since the
+underlying VM has been destroyed.
+
+=back
+
+=begin testing
+
+# Shared test variables.
+my ($stub, $som, $URL);
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+                                      namespace => "HoneyClient::Manager::VM::Test");
+
+# Catch all errors, in order to make sure child processes are
+# properly killed.
+eval {
+
+    my $testVMDir = dirname($testVM);
+
+    # Pretend as though no other Clone objects have been created prior
+    # to this point.
+    $HoneyClient::Manager::VM::Clone::OBJECT_COUNT = -1;
+    
+    my $question;
+    $question = prompt("#\n" .
+                       "# Note: Testing real destroy operations will *ONLY* work\n" .
+                       "# with a fully functional master VM that has the HoneyClient code\n" .
+                       "# loaded upon boot-up.\n" .
+                       "#\n" .
+                       "# This test also requires that the firewall VM is registered,\n" .
+                       "# powered on, and operational.\n" .
+                       "#\n" .
+                       "# Your master VM is: " . getVar(name => "master_vm_config", namespace => "HoneyClient::Manager::VM") . "\n" .
+                       "#\n" .
+                       "# Do you want to test cloning this master VM and destroying a subsequent clone?", "no");
+    if ($question =~ /^y.*/i) {
+
+        # Create a generic empty clone, with test state data.
+        my $clone = HoneyClient::Manager::VM::Clone->new(_bypass_firewall => 1);
+        my $cloneConfig = $clone->{config};
+
+        # Archive the clone.
+        $clone->destroy();
+
+        # Wait for the destroy to complete.
+        sleep (45);
+    
+        # Test if the operations worked.
+        is(!-f $cloneConfig, 1, "destroy()") or diag("The destroy() call failed.");
+   
+        $clone = undef;
+
+        if (-f $cloneConfig) {
+            # Connect to daemon as a client.
+            $stub = getClientHandle(namespace => "HoneyClient::Manager::VM");
+    
+            # Destroy the clone VM.
+            $som = $stub->destroyVM(config => $cloneConfig);
+        }
+    }
+};
+
+# Kill the child daemon, if it still exists.
+HoneyClient::Manager::VM->destroy();
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub destroy {
+
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # Sanity check: Make sure we've been fed an object.
+    unless (ref($self)) {
+        $LOG->error("Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!");
+        Carp::croak "Error: Function must be called in reference to a " .
+                    __PACKAGE__ . "->new() object!\n";
+    }
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Signal firewall to deny traffic from this clone.
+    $self->_denyNetwork();
+
+    # Extract the VM configuration file.
+    my $vmConfig = $self->{'config'};
+
+    # Set the internal VM configuration to undef, in order to
+    # avoid potential object DESTROY() calls.
+    $self->{'config'} = undef;
+    
+    $LOG->info("Thread ID (" . threads->tid() . "): Destroying clone VM (" . $vmConfig . ").");
+    my $som = $self->{'_vm_handle'}->destroyVM(config => $vmConfig);
+
+    if (!defined($som)) {
+        $LOG->error("Thread ID (" . threads->tid() . "): Unable to destroy VM (" . $self->{'config'} . ").");
+        $self->_changeStatus(status => "error");
+    } else {
+        $self->_changeStatus(status => "deleted");
     }
 
     return $self;
@@ -1682,6 +1825,16 @@ sub drive {
     my $numWorkInserted;
 
     while (scalar(%{$args{'work'}})) {
+
+        # Before driving, check if a work unit limit has been specified
+        # and if we've exceeded that limit.
+        if ((getVar(name => "work_unit_limit") > 0) &&
+            ($self->{'work_units_processed'} >= getVar(name => "work_unit_limit"))) {
+
+            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
+            $self->destroy();
+        }
+
         # Create a new clone, if the current clone is not already running.
         if ($self->{'status'} ne "running") {
             # Be sure to carry over any customizations into the newly created
@@ -1701,6 +1854,7 @@ sub drive {
         # Drive the Agent.
         eval {
             $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
+            $self->{'work_units_processed'}++;
             $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
                                                    parameters  => encode_base64($currentWork));
             $result = thaw(decode_base64($som->result()));
