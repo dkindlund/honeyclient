@@ -464,6 +464,11 @@ BEGIN { use_ok('Fcntl', qw(O_RDONLY)) or diag("Can't load Fcntl package.  Check 
 require_ok('Fcntl');
 use Fcntl qw(O_RDONLY);
 
+# Make sure Config::General loads.
+BEGIN { use_ok('Config::General') or diag("Can't load Config::General package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Config::General');
+use Config::General;
+
 # Make sure VMware::VmPerl loads.
 BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED)) or diag("Can't load VMware::VmPerl package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('VMware::VmPerl');
@@ -581,6 +586,7 @@ use File::Copy::Recursive qw(dircopy pathrmdir);
 use File::Basename qw(dirname basename);
 use Tie::File;
 use Fcntl qw(O_RDONLY);
+use Config::General;
 
 # Include Thread Libraries
 use threads;
@@ -2612,20 +2618,36 @@ sub setNameVM {
     # Lock the VM.
     $vmSemaphore->down();
 
-    # Set the displayName within the config file on disk...
-    if (!tie(@configArray, 'Tie::File', $args{'config'})) {
+    my $config_obj = undef;
+    eval {
+        # Construct a new configuration object.
+        $config_obj = new Config::General($args{'config'});
+    };
+    if ($@) {
         # Unlock VM early, if failed.
         $vmSemaphore->up();
         $LOG->warn("Could not set name of VM ($args{'config'}).");
         die SOAP::Fault->faultcode(__PACKAGE__ . "->setNameVM()")
                        ->faultstring("Could not set name of VM ($args{'config'}).");
     }
+    # Parse all the data.
+    my %raw_config = $config_obj->getall;
 
-    for (@configArray) {
-        s/^displayName =.*$/displayName = "$args{'name'}"/g;
+    # Sort the configuration.
+    my @sorted_keys = (sort keys %raw_config);
+   
+    # Adjust the configuration.
+    # Set the displayName within the config file on disk...
+    $raw_config{'displayName'} = $args{'name'};
+
+    # Save the new configuration.
+    my $OUTPUT_FILE = new IO::File($args{'config'}, "w");
+    print $OUTPUT_FILE "#!/usr/bin/vmware\n\n";
+    foreach my $key (@sorted_keys) {
+        print $OUTPUT_FILE $key . " = \"" . $raw_config{$key} . "\"\n";
     }
-    untie @configArray;
-    
+    $OUTPUT_FILE->close();
+
     # Unlock the VM.
     $vmSemaphore->up();
 
@@ -3792,26 +3814,47 @@ sub setMasterVM {
     # Lock the VM.
     $vmSemaphore->down();
 
-    if (!tie(@configArray, 'Tie::File', $args{'config'})) {
+    my $config_obj = undef;
+    eval {
+        # Construct a new configuration object.
+        $config_obj = new Config::General($args{'config'});
+    };
+    if ($@) {
         # Unlock VM early, if failed.
         $vmSemaphore->up();
         $LOG->warn("Could not set Master VM ($args{'config'}).");
         die SOAP::Fault->faultcode(__PACKAGE__ . "->setMasterVM()")
                        ->faultstring("Could not set Master VM ($args{'config'}).");
     }
+    # Parse all the data.
+    my %raw_config = $config_obj->getall;
 
-    for (@configArray) {
-        # Make sure the master VM configuration version is "7", since
-        # versions 8 and higher have marked the undoable mode operation
-        # as deprecated, as it's implemented differently.
-        s/^config.version.*$/config.version = "7"/g;
-        # Switch all virtual disks to undoable mode...
-        s/^(.*)\.mode = "persistent"$/$1\.mode = "undoable"/g;
-        # Make sure all *.vmdk files are specified with absolute paths...
-        s/^(.*)\.fileName = "(.*\/)*(.*\.vmdk)"$/$1\.fileName = \"$srcDir\/$3\"/g;
-    }
-    untie @configArray;
+    # Sort the configuration.
+    my @sorted_keys = (sort keys %raw_config);
     
+    # Adjust the configuration.
+    # Make sure the master VM configuration version is "7", since
+    # versions 8 and higher have marked the undoable mode operation
+    # as deprecated, as it's implemented differently.
+    $raw_config{'config.version'} = 7;
+    foreach my $key (@sorted_keys) {
+        # Switch all virtual disks to undoable mode...
+        if ($key =~ /^.*\.mode/) {
+            $raw_config{$key} = "undoable";
+        } elsif ($key =~ /^.*\.fileName/) {
+            # Make sure all *.vmdk files are specified with absolute paths...
+            $raw_config{$key} =~ s/^(.*\/)*(.*\.vmdk)$/$srcDir\/$2/g;
+        }
+    }
+
+    # Save the new configuration.
+    my $OUTPUT_FILE = new IO::File($args{'config'}, "w");
+    print $OUTPUT_FILE "#!/usr/bin/vmware\n\n";
+    foreach my $key (@sorted_keys) {
+        print $OUTPUT_FILE $key . " = \"" . $raw_config{$key} . "\"\n";
+    }
+    $OUTPUT_FILE->close();
+
     # Unlock the VM.
     $vmSemaphore->up();
 
@@ -4668,25 +4711,38 @@ sub revertVM {
     if (!$argsExist || 
         !exists($args{'snapshot_file'}) ||
         !defined($args{'snapshot_file'})) {
-        my @configArray = undef;
-        unless (tie(@configArray, 'Tie::File', $args{'config'})) { 
+
+        my $config_obj = undef;
+        eval {
+            # Construct a new configuration object.
+            $config_obj = new Config::General($args{'config'});
+        };
+        if ($@) {
             $LOG->warn("Could not read VM configuration ($args{'config'}).");
             die SOAP::Fault->faultcode(__PACKAGE__ . "->revertVM()")
                            ->faultstring("Could not read VM configuration ($args{'config'}).");
         }
-        for (@configArray) {
+        # Parse all the data.
+        my %raw_config = $config_obj->getall;
+
+        # Sort the configuration.
+        my @sorted_keys = (sort keys %raw_config);
+    
+        # Adjust the configuration.
+        foreach my $key (@sorted_keys) {
             # Make sure all *.vmdk files are specified with absolute paths
             # to a Master VM...
-            if (/^(.*)\.fileName = "(.*\/)*(.*\.vmdk)"$/) {
-                $masterConfig = "$2$configFile";
-                if ((!-d $2) || (dirname("$2/x") eq dirname("$vmDir/x"))) { 
-                    $LOG->warn("Could not revert; specified VM is not a quick clone ($2$3).");
+            if (($key =~ /^.*\.fileName/) && ($raw_config{$key} =~ /^(.*\/)*(.*\.vmdk)$/)) {
+                my $dir  = defined($1) ? $1 : "";
+                my $file = defined($2) ? $2 : "";
+                $masterConfig = $dir . $configFile;
+                if ((!-d $dir) || (dirname("$dir/x") eq dirname("$vmDir/x"))) { 
+                    $LOG->warn("Could not revert; specified VM is not a quick clone (" . $args{'config'} . ").");
                     die SOAP::Fault->faultcode(__PACKAGE__ . "->revertVM()")
-                                   ->faultstring("Could not revert; specified VM is not a quick clone ($2$3).");
+                                   ->faultstring("Could not revert; specified VM is not a quick clone (" . $args{'config'} . ").");
                 }
             }
         }
-        untie @configArray;
     }
 
     # If we've gotten this far, then we're ready to start the revert process.

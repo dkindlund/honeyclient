@@ -121,6 +121,11 @@ BEGIN { use_ok('Fcntl', qw(O_RDONLY)) or diag("Can't load Fcntl package.  Check 
 require_ok('Fcntl');
 use Fcntl qw(O_RDONLY);
 
+# Make sure Config::General loads.
+BEGIN { use_ok('Config::General') or diag("Can't load Config::General package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Config::General');
+use Config::General;
+
 # Make sure VMware::VmPerl loads.
 BEGIN { use_ok('VMware::VmPerl', qw(VM_EXECUTION_STATE_ON VM_EXECUTION_STATE_OFF VM_EXECUTION_STATE_STUCK VM_EXECUTION_STATE_SUSPENDED)) or diag("Can't load VMware::VmPerl package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('VMware::VmPerl');
