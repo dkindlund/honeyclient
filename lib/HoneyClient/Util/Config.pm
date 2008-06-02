@@ -528,8 +528,10 @@ sub getVar {
 
         $val = $parent->string_value();
 
-        # Trail leading and trailing whitespace 
-        $val =~ s/^\s+|\s+$//g;
+        # Trail leading and trailing whitespace.
+        if (defined($val)) {
+            $val =~ s/^\s+|\s+$//g;
+        }
     } else { 
 
         # There are child elements; return a
