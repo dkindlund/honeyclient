@@ -315,7 +315,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/IE.7-Patched-2008-03-27-Default.Policy-Disabled.Active.Scripting-Disabled.File.Downloads/winXPPro.cfg
+                /vm/masters/IE.7-Patched-2008-03-27-Default.Policy-Disabled.Active.Scripting-Disabled.File.Downloads-Disabled.Error.Reporting/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
                 7627
