@@ -1821,6 +1821,7 @@ sub drive {
         'links_visited' => {}, 
         'links_timed_out' => {},
         'links_ignored' => {},
+        'links_suspicious' => {},
     };
     my $numWorkInserted;
 
@@ -1891,7 +1892,7 @@ sub drive {
             $self->suspend();
 
             # If possibile, insert work history.
-            $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
+            $finishedWork->{'links_suspicious'}->{$currentWork} = $result->{'time_at'};
             if (defined($self->{'database_id'})) {
                 $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
                 $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
@@ -1912,6 +1913,9 @@ sub drive {
 
         # Flush the work history, after committing to the database.
         $finishedWork->{'links_visited'} = {};
+        $finishedWork->{'links_timed_out'} = {};
+        $finishedWork->{'links_ignored'} = {};
+        $finishedWork->{'links_suspicious'} = {};
 
         # Create a new clone, if a compromise was found and we still have work to do.
         if (($self->{'status'} eq "suspicious") &&
