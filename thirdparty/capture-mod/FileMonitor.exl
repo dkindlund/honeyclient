@@ -333,3 +333,7 @@
 # IE7 - Exclusion
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\LocalService
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\SysEvent\.Evt
+
+# VMware Tools
++	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
++	Delete	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
