@@ -14,11 +14,11 @@
 ###################################################
 ### Microsoft Internet Explorer 6.0		###
 ###################################################
-+	iexplore.exe	.*	C:\\Program Files\\Internet Explorer\\iexplore.exe
++	iexplore.exe	.*	C:\\Program Files\\Internet Explorer\\iexplore\.exe
 #agent server is an activeX control that starts upon displaying multimedia content
-+	agentsvr.exe	.*	C:\\WINDOWS\\msagent\\agentsvr.exe
++	agentsvr.exe	.*	C:\\WINDOWS\\msagent\\agentsvr\.exe
 #messenger activeX
-+	msmsgs.exe	.*	C:\\Program Files\\Messenger\\msmsgs.exe
++	msmsgs.exe	.*	C:\\Program Files\\Messenger\\msmsgs\.exe
 ###################################################
 ### Honeyclient added/specific?			###
 ###################################################
@@ -35,15 +35,15 @@
 +	firefox.exe	.*	C:\\Program Files\\Mozilla Firefox\\firefox\.exe
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
-+	setup_wm.exe	.*	C:\\Program Files\\Windows Media Player\\setup_wm.exe
-+	wmplayer.exe	.*	C:\\Program Files\\Windows Media Player\\wmplayer.exe
++	setup_wm.exe	.*	C:\\Program Files\\Windows Media Player\\setup_wm\.exe
++	wmplayer.exe	.*	C:\\Program Files\\Windows Media Player\\wmplayer\.exe
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
-+	verclsid.exe	.*	C:\\WINDOWS\\system32\\verclsid.exe
++	verclsid.exe	.*	C:\\WINDOWS\\system32\\verclsid\.exe
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 #This is related to the language bar...I just installed updates, and it was newly activated
 #thus I consider it something valid to add
-+	ctfmon.exe	.*	C:\\WINDOWS\\system32\\ctfmon.exe
++	ctfmon.exe	.*	C:\\WINDOWS\\system32\\ctfmon\.exe
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - IE7 accessing live.com
-+	infocard.exe	.*	C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.0\\Windows Communication Foundation\\infocard.exe
++	infocard.exe	.*	C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.0\\Windows Communication Foundation\\infocard\.exe
