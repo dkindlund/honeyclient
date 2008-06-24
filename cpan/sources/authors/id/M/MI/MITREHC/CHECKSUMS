@@ -1,9 +1,9 @@
-# CHECKSUMS file written on Tue Apr  8 16:02:58 2008 GMT by CPAN::Checksums (v1.064)
+# CHECKSUMS file written on Tue Jun 24 16:10:43 2008 GMT by CPAN::Checksums (v1.064)
 $cksum = {
   'Bundle-HoneyClient-Agent-1.0.2.tar.gz' => {
     'md5' => '3c60018ce1ae380816e5ba7fc9a97a3c',
     'md5-ungz' => '3e4b4609f5603fe2087de9ad16185d51',
-    'mtime' => '2008-04-08',
+    'mtime' => '2008-06-24',
     'sha256' => 'e1da7c449e337d42a7ce0dbdc8610301c4a3decc3d681d38e9b00fbcefd184d6',
     'sha256-ungz' => '341362589165e110b1749cb97d4d039c0c95bb4fa18d3542154c0956f4163e3c',
     'size' => '2668'
@@ -12,17 +12,17 @@ $cksum = {
     'isdir' => 1
   },
   'Bundle-HoneyClient-Manager-1.0.2.tar.gz' => {
-    'md5' => '788ca9cad98a2e5fa0a467c7d720596a',
-    'md5-ungz' => 'abf7378a67ab0ccb8c72dc58f1103465',
-    'mtime' => '2008-04-08',
-    'sha256' => '13196d20b87059754b924fe685ab7b75fdccaa25c15cb431ed6c9822ad29b499',
-    'sha256-ungz' => '5079685e18d4f564b9830adf745e774a7e661147b69293a8aa2eb890eab89447',
-    'size' => '2824'
+    'md5' => 'c40e7c2970185fda7562bfc8104e68bc',
+    'md5-ungz' => '2575793295314dd75e66063fab688548',
+    'mtime' => '2008-06-24',
+    'sha256' => 'ff681f1d0c11414b24c4d9b1d259792f7e00e8c0945278448b12d0cdbe3f883a',
+    'sha256-ungz' => '70004367770805d870c2f8a1f511f26eb88897b6a9b9ef1259a25b132e755088',
+    'size' => '2837'
   },
   'Bundle-HoneyClient-Util-1.0.2.tar.gz' => {
     'md5' => 'f81bcdc6f52fe15b714217eb64ceabbf',
     'md5-ungz' => 'd4d286782663cfcbf51efd71f543a83e',
-    'mtime' => '2008-04-07',
+    'mtime' => '2008-06-24',
     'sha256' => '98fc22de0c8b46e76d15ee945a52eec968adf5606b09a5e0a585194e93c93aac',
     'sha256-ungz' => '1cbbed2e31115000320304f8f58064a3cb8c3241d493e4fcafac22cb61039c40',
     'size' => '3235'
