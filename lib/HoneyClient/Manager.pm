@@ -888,7 +888,7 @@ sub run {
                 # Make sure all worker threads are still alive.
                 for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
                     my $thread = $THREAD_POOL[$counter];
-                    if (!$thread->is_running()) {
+                    if (defined($thread) && !$thread->is_running()) {
                         $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
                         Carp::croak "Thread ID (" . $thread->tid() . "): Unexpectedly terminated.";
                     }
