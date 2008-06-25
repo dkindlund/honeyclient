@@ -64,6 +64,9 @@ Keep in mind, though, that some variables should remain module-specific
         <address description="The IP or hostname that all Agent modules should use, when accepting SOAP requests." default="0.0.0.0">
             0.0.0.0
         </address>
+        <timeout description="How long the Manager should wait for a response from the Agent, before timing out the VM (in seconds)." default="120">
+            120
+        </timeout>
         <!-- TODO: Update this. -->
         <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running inside the VM. -->
         <port description="The TCP port number that the SOAP server for all Agent modules will listen on for requests." default="7627">
@@ -315,7 +318,7 @@ Keep in mind, though, that some variables should remain module-specific
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/IE.7-Patched-2008-03-27-Default.Policy-Disabled.Active.Scripting-Disabled.File.Downloads-Disabled.Error.Reporting/winXPPro.cfg
+                /vm/masters/Agent.Master-41-IE7/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
                 7627
