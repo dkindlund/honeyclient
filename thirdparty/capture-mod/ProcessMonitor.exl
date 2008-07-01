@@ -47,3 +47,6 @@
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - IE7 accessing live.com
 +	infocard.exe	.*	C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.0\\Windows Communication Foundation\\infocard\.exe
+
+# IE - Active Scripting Printing
++	rundll32.exe	.*	C:\\WINDOWS\\system32\\rundll32\.exe
