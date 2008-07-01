@@ -400,3 +400,6 @@
 
 # IE7 - accessing multimedia pages
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\MPEG2Demultiplexer
+
+# IE - Active Scripting Printing
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\PageSetup
