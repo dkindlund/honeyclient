@@ -403,3 +403,6 @@
 
 # IE - Active Scripting Printing
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\PageSetup
+
+# IE - Random Crashing Due To Poor Application Coding
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting\\.*

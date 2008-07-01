@@ -50,3 +50,6 @@
 
 # IE - Active Scripting Printing
 +	rundll32.exe	.*	C:\\WINDOWS\\system32\\rundll32\.exe
+
+# IE - Random Crashing Due To Poor Application Coding
++	drwtsn32.exe	.*	C:\\WINDOWS\\system32\\drwtsn32\.exe
