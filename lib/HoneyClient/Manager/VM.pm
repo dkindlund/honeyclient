@@ -459,10 +459,15 @@ BEGIN { use_ok('DateTime::HiRes') or diag("Can't load DateTime::HiRes package.  
 require_ok('DateTime::HiRes');
 use DateTime::HiRes;
 
-# Make sure Fcntl loads.
-BEGIN { use_ok('Fcntl', qw(O_RDONLY)) or diag("Can't load Fcntl package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Fcntl');
-use Fcntl qw(O_RDONLY);
+# Make sure Text::DHCPLeases loads.
+BEGIN { use_ok('Text::DHCPLeases') or diag("Can't load Text::DHCPLeases package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Text::DHCPLeases');
+use Text::DHCPLeases;
+
+# Make sure DateTime::Format::Natural loads.
+BEGIN { use_ok('DateTime::Format::Natural') or diag("Can't load DateTime::Format::Natural package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Format::Natural');
+use DateTime::Format::Natural;
 
 # Make sure Config::General loads.
 BEGIN { use_ok('Config::General') or diag("Can't load Config::General package.  Check to make sure the package library is correctly listed within the path."); }
@@ -584,9 +589,11 @@ use POSIX qw(strftime);
 use File::Copy;
 use File::Copy::Recursive qw(dircopy pathrmdir);
 use File::Basename qw(dirname basename);
-use Tie::File;
-use Fcntl qw(O_RDONLY);
 use Config::General;
+
+# Include DHCP Lease Analysis Libraries
+use Text::DHCPLeases;
+use DateTime::Format::Natural;
 
 # Include Thread Libraries
 use threads;
@@ -667,8 +674,8 @@ our $DAEMON_PID     : shared = undef;
 # The maximum length of any VMID generated.
 our $VM_ID_LENGTH   : shared = getVar(name => "vm_id_length");
 
-# The log file that contains DHCP lease log entries.
-our $DHCP_LOGFILE   : shared = getVar(name => "dhcp_log");
+# The file that contains DHCP leases.
+our $DHCP_LEASES    : shared = getVar(name => "dhcp_leases");
 
 #######################################################################
 # Daemon Initialization / Destruction                                 #
@@ -2848,7 +2855,7 @@ must be present.
 my $PORT = getVar(name      => "port",
                   namespace => "HoneyClient::Manager::VM");
 my ($stub, $som, $URL);
-my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config_livecd",
                                       namespace => "HoneyClient::Manager::VM::Test");
 
 # Catch all errors, in order to make sure child processes are
@@ -2864,9 +2871,9 @@ eval {
     $som = $stub->registerVM(config => $testVM);
     $som = $stub->startVM(config => $testVM);
 
-    # Wait 10 seconds, for the DHCP server to give the testVM
+    # Wait 240 seconds, for the DHCP server to give the testVM
     # a DHCP lease.
-    sleep (10);
+    sleep (240);
 
     # Get the IP address of the test VM.
     # Test getIPaddrVM() method.
@@ -2943,28 +2950,46 @@ sub getIPaddrVM {
         $args{'mac_address'} = getMACaddrVM($class, %args);
     }
 
-    my @logArray = undef;
-    my $match = undef;
+    # Now, let's determine the IP address from the DHCP leases file.
     my $IP = undef;
 
-    if (!tie(@logArray, 'Tie::File', $DHCP_LOGFILE, mode => O_RDONLY)) {
-        $LOG->warn("Could not open DHCP log file ($DHCP_LOGFILE).");
-        die SOAP::Fault->faultcode(__PACKAGE__ . "->getIPaddrVM()")
-                       ->faultstring("Could not open DHCP log file ($DHCP_LOGFILE).");
+    # Create a new DHCP leases parser.
+    my $leases = Text::DHCPLeases->new(file => $DHCP_LEASES);
+
+    # Create a new DateTime parser.
+    my $parser = DateTime::Format::Natural->new(
+        lang => 'en',
+        format => 'yyyy/mm/dd',
+        prefer_future => 0,
+        time_zone => 'UTC',
+    );
+
+    # Current date/time.
+    my $dt_now = $parser->parse_datetime("now");
+
+    # Helper function designed to parse DHCP lease datetime objects.
+    sub parse_datetime {
+        my ($parser,$string) = @_;
+	    # Remove the beginning weekday number.
+        $string =~ s/\d (.*)/$1/;
+	    # Return a parsed DateTime object.
+        return $parser->parse_datetime($string);
     }
 
-    for (@logArray) {
-        # Look for all lines that have the VM's MAC address and the keyword
-        # DHCPACK or DHCPOFFER on it.
-        if ((/DHCPACK/ || /DHCPOFFER/) && /$args{'mac_address'}/) {
-            $match = $_;
-            $match =~ s/^.*?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*$/$1/;
-            if (defined($match) and ($match ne "")) {
-                $IP = $match;
-            }
-        }
+    # Iterate through the lease objects.
+    foreach my $obj ($leases->get_objects()) {
+        # Only look for leases.
+        next if ($obj->type() ne 'lease');
+
+        # Only look for leases that haven't expired.
+        next if (($dt_now < parse_datetime($parser,$obj->starts)) ||
+                 ($dt_now > parse_datetime($parser,$obj->ends)));
+
+        if ($obj->mac_address eq $args{'mac_address'}) {
+            $IP = $obj->name();
+		    last;
+	    }
     }
-    untie @logArray;
 
     return ($IP);
 }
@@ -4432,8 +4457,8 @@ sub snapshotVM {
     unregisterVM($class, %args);
 
     # Perform the snapshot operation...
-	# XXX: Do this synchronously instead of asynchronously, since we've had problems running
-	# this code in multi-threaded environments.
+    # XXX: Do this synchronously instead of asynchronously, since we've had problems running
+    # this code in multi-threaded environments.
 #    # Since this may take awhile, we perform the remaining operations in a child thread.
 #    my $thread = async {
 #
@@ -4938,7 +4963,7 @@ L<http://www.vmware.com/support/developer/>
 
 threads, threads::shared, Thread::Queue, Thread::Semaphore, perlthrtut
 
-POSIX, File::Copy, File::Copy::Recursive, File::Basename, Tie::File
+POSIX, File::Copy, File::Copy::Recursive, File::Basename, Text::DHCPLeases
 
 Apache::SessionX::General::MD5
 

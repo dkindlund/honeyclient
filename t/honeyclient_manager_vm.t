@@ -116,10 +116,15 @@ BEGIN { use_ok('DateTime::HiRes') or diag("Can't load DateTime::HiRes package.  
 require_ok('DateTime::HiRes');
 use DateTime::HiRes;
 
-# Make sure Fcntl loads.
-BEGIN { use_ok('Fcntl', qw(O_RDONLY)) or diag("Can't load Fcntl package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Fcntl');
-use Fcntl qw(O_RDONLY);
+# Make sure Text::DHCPLeases loads.
+BEGIN { use_ok('Text::DHCPLeases') or diag("Can't load Text::DHCPLeases package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Text::DHCPLeases');
+use Text::DHCPLeases;
+
+# Make sure DateTime::Format::Natural loads.
+BEGIN { use_ok('DateTime::Format::Natural') or diag("Can't load DateTime::Format::Natural package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Format::Natural');
+use DateTime::Format::Natural;
 
 # Make sure Config::General loads.
 BEGIN { use_ok('Config::General') or diag("Can't load Config::General package.  Check to make sure the package library is correctly listed within the path."); }
@@ -760,7 +765,7 @@ if ($@) {
 my $PORT = getVar(name      => "port",
                   namespace => "HoneyClient::Manager::VM");
 my ($stub, $som, $URL);
-my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config",
+my $testVM = $ENV{PWD} . "/" . getVar(name      => "test_vm_config_livecd",
                                       namespace => "HoneyClient::Manager::VM::Test");
 
 # Catch all errors, in order to make sure child processes are
@@ -776,9 +781,9 @@ eval {
     $som = $stub->registerVM(config => $testVM);
     $som = $stub->startVM(config => $testVM);
 
-    # Wait 10 seconds, for the DHCP server to give the testVM
+    # Wait 240 seconds, for the DHCP server to give the testVM
     # a DHCP lease.
-    sleep (10);
+    sleep (240);
 
     # Get the IP address of the test VM.
     # Test getIPaddrVM() method.

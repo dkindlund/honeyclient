@@ -1,0 +1,43 @@
+#!/usr/bin/vmware
+config.version = "7"
+virtualHW.version = "3"
+scsi0.present = "TRUE"
+memsize = "256"
+ide0:0.present = "TRUE"
+ide0:0.fileName = "winXPPro.vmdk"
+ide0:0.mode = "persistent"
+ide1:0.present = "TRUE"
+ide1:0.fileName = "install-x86-minimal-2007.0-r1.iso"
+ide1:0.deviceType = "cdrom-image"
+floppy0.fileName = "/dev/fd0"
+usb.present = "FALSE"
+displayName = "testVM"
+guestOS = "winxppro"
+priority.grabbed = "normal"
+priority.ungrabbed = "normal"
+powerType.powerOff = "soft"
+powerType.powerOn = "soft"
+powerType.suspend = "soft"
+powerType.reset = "soft"
+
+ide1:0.startConnected = "TRUE"
+floppy0.startConnected = "FALSE"
+redoLogDir = "."
+
+uuid.location = "56 4d 67 c7 da f3 e5 cd-5a dc c8 79 9d 00 35 81"
+uuid.bios = "56 4d 67 c7 da f3 e5 cd-5a dc c8 79 9d 00 35 81"
+
+Ethernet0.present = "TRUE"
+
+Ethernet0.addressType = "generated"
+ethernet0.generatedAddress = "00:0c:29:00:35:81"
+ethernet0.generatedAddressOffset = "0"
+
+Ethernet0.startConnected = "TRUE"
+
+ide0:0.redo = ""
+ide0:0.deviceType = "ata-hardDisk"
+
+Ethernet0.connectionType = "hostonly"
+
+uuid.action = "create"
