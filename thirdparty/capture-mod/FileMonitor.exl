@@ -343,3 +343,6 @@
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+htm
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+html
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+tmp
+
+# System Log Files - IE7
++	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\Debug\\UserMode\\userenv\.log
