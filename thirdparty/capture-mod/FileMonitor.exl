@@ -330,6 +330,7 @@
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - IE7 accessing live.com
 +	Write	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	C:\\WINDOWS\\system32\\config\\system\.LOG
 +	Write	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	C:\\WINDOWS\\system32\\config\\system
++	Write	C:\\WINDOWS\\Microsoft\.NET\\Framework\\v3\.0\\Windows Communication Foundation\\infocard\.exe	C:\\WINDOWS\\system32\\config
 
 # IE7 - Exclusion
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\LocalService
