@@ -1,0 +1,119 @@
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Mon Nov 19 08:38:29 2007 GMT by CPAN::Checksums (v1.061)
+$cksum = {
+  'Bit-ShiftReg-2.0.tar.gz' => {
+    'md5' => 'd8afa46eb43b252ae019c3193635d1e2',
+    'md5-ungz' => '05251154736c5b878d1acffb70695fe9',
+    'mtime' => '1997-03-23',
+    'sha256' => '83f7fe1e626707f5dbe5374cb672267e399841b8b1049c500819f53f3c00cddb',
+    'sha256-ungz' => '9809d6aa58324888f304101bbca4017f4b4693ca811132b7d7f8ab4fbbf403fd',
+    'size' => 8361
+  },
+  'Bit-Vector-6.4.tar.gz' => {
+    'md5' => '681433ff4f0b4da95dc5c560b7f5cc31',
+    'md5-ungz' => '27f38ab34e0966fee46a65d682452e31',
+    'mtime' => '2004-10-03',
+    'sha256' => '778df15cffff8d57c2833820ed0ec44b05a5a80f8944096aee6c7093d1c9db90',
+    'sha256-ungz' => '5450cf3551cf9d80060177ae29fadb80725958dc060734d790979ad8b33fd468',
+    'size' => 131942
+  },
+  'Carp-Clan-5.3.tar.gz' => {
+    'md5' => 'd0a0431921b2c786aac234dfb6fe02ca',
+    'md5-ungz' => 'ce0fd246fc0e9632292d6aece34af3c3',
+    'mtime' => '2004-05-02',
+    'sha256' => '03f92dca25318a2033fc60d5729668568556155b2213f5847910d491d5475b24',
+    'sha256-ungz' => '0b940ea5766a94190f5ea982fef14bf7648bca54cf2dc00ca539c384cfc70262',
+    'size' => 16789
+  },
+  'Config-Manager-1.7.tar.gz' => {
+    'md5' => 'a5f073be46645a1040dc6ab9f0febc54',
+    'md5-ungz' => 'bba6c3dd6531c3934ec847564feabc62',
+    'mtime' => '2003-07-13',
+    'sha256' => '5410e29d0f90b8108422e23e5329f719f61c9681a57e94826e66a3e4bfc41a85',
+    'sha256-ungz' => '4c3401c4b9a3126c9bbf10068f7e1e63e40143a52bf891a19f2d4317e3661d31',
+    'size' => 311261
+  },
+  'DFA-Kleene-1.0.tar.gz' => {
+    'md5' => 'fd031be3b20a84abcd2016190752c153',
+    'md5-ungz' => '64b747e4974d506b2bf2c02ea426ddc1',
+    'mtime' => '1997-08-07',
+    'sha256' => '6774b1fb8b427b2d8dfc4464907abbdcb9668125ad0f81821f57f166404cbdde',
+    'sha256-ungz' => '50db1eb06314c6ad3d4eb094c66a592d39f762efd1d8566a262d0ae1a1951702',
+    'size' => 5353
+  },
+  'Data-Locations-5.4.tar.gz' => {
+    'md5' => '899ce43b4a3eecbac2452e7940aa0875',
+    'md5-ungz' => '19d9631e3e404954131cfa702d6afd36',
+    'mtime' => '2004-10-25',
+    'sha256' => 'deb1eee65ad1e9265cfd6706773df8f64af9a4fc3d7c43ba50eb6e4d8a908cab',
+    'sha256-ungz' => 'b4f1a76c9ced169c2a78ebbc3a193aa0dda12208dec89db068fa9ccc29e731d2',
+    'size' => 44529
+  },
+  'Date-Calc-5.4.tar.gz' => {
+    'md5' => '7ae34972694127e8f1c9a2af1c24585b',
+    'md5-ungz' => 'a48d04f7bcabdb6234cccc4b641ef3b9',
+    'mtime' => '2004-10-03',
+    'sha256' => '88e14ebba7b4c35676e8dc6ce911593cf213c731923fedd79d2aa899bc0eede0',
+    'sha256-ungz' => '85ded623c0f99869fa97e477063244371ff412e894b9bb20372196ca1c505ee9',
+    'size' => 206622
+  },
+  'Date-Pcalc-1.2.tar.gz' => {
+    'md5' => '1c09a09337c7d2e18a17898ca577c644',
+    'md5-ungz' => '18555f57893673acf02cd478eb0172d6',
+    'mtime' => '2001-04-10',
+    'sha256' => 'c866fd46d2dcdba90f4b13b38319b606cc32677f8a0fe8836d31dc11593c4cbd',
+    'sha256-ungz' => '755382f87c8322efe6f7fe152db85d939e34a3046375bd9fc123e6db39825832',
+    'size' => 61236
+  },
+  'Graph-Kruskal-2.0.tar.gz' => {
+    'md5' => '04abf8673b5a6dcc865981a856fd0b7f',
+    'md5-ungz' => 'fee4bb335f72f7dd9e3844a56104ade3',
+    'mtime' => '1997-08-07',
+    'sha256' => 'dfd4950d8c03888e0b2a2e7173fde93947841d3ecf59c0ef8c46c80fbebadea8',
+    'sha256-ungz' => '7ae64844c1dcf12104a6a3ed35b41393867438425759597a19aae1f029f45d48',
+    'size' => 4842
+  },
+  'Internals-1.1.tar.gz' => {
+    'md5' => 'b064d542f696e2bfa88a634dcde3ca6e',
+    'md5-ungz' => '38ed1a3df9192b9206b38ab3837afb64',
+    'mtime' => '2001-09-30',
+    'sha256' => 'b4f6df2c8ebb6698162adbe255ad34a1757cdb70e85f61b141cc89bdb7d4b272',
+    'sha256-ungz' => '744c8ba8a03c5df63ca56c1a970fcfbfcac5d732655a310fdef4dc404a8ddf6c',
+    'size' => 11167
+  },
+  'LocalModInstall-1.0.tar.gz' => {
+    'md5' => '1d826225a9d278d11d4a8c624680b1c0',
+    'md5-ungz' => '3db6d4a8ea9399465d3e1de6f50aa333',
+    'mtime' => '2001-11-15',
+    'sha256' => '72acc6bdb08156dd9145a410f391633b0a52379b60ce851bbad46afd6f99c474',
+    'sha256-ungz' => '71381deb76e9861f9d9b758f146bf0ebb0dfe9bd8885484b4da4c514ef595c99',
+    'size' => 11288
+  },
+  'Math-MatrixBool-5.7.tar.gz' => {
+    'md5' => '7ca2ec6eaf92301dd9746e8d6154d53b',
+    'md5-ungz' => 'd8a2a869ef29836cd13c2a4dae08171b',
+    'mtime' => '1999-05-19',
+    'sha256' => '5582efc15e39e8b90d139aae4c629b0989afbd9b1c62c3050ba84d78762eb62f',
+    'sha256-ungz' => '96fadb3a0a1a7e7b7c0d4df9df0b46853aed7b4bf05d8bbb0867d6f18bbdd125',
+    'size' => 14140
+  },
+  'Set-IntRange-5.1.tar.gz' => {
+    'md5' => 'a0cd165114eda0ab48128e670823066a',
+    'md5-ungz' => '8b4142b3127a62cacdd84cdca4e97c74',
+    'mtime' => '2002-09-30',
+    'sha256' => 'c1d29934eb02794448b827c4f26e40e01ba71374e96c4391a8c2e8721506ba6b',
+    'sha256-ungz' => '39d55ee2508616b9729bc86622d83567b7bb2f3a40ccd4e6f45c906531c2e89a',
+    'size' => 12845
+  }
+};
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFHQUuFMo2oZ0UPiewRAgMvAJ9raaDj9FGsdr/5qn+jJWLAStwA9wCfRsJb
+cOQscSWglTi4VRmw4kAlz7I=
+=m51h
+-----END PGP SIGNATURE-----

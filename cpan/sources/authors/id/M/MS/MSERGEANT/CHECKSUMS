@@ -2,7 +2,7 @@
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-# CHECKSUMS file written on Mon Jan 21 20:37:18 2008 GMT by CPAN::Checksums (v1.064)
+# CHECKSUMS file written on Fri Mar 21 16:30:37 2008 GMT by CPAN::Checksums (v1.064)
 $cksum = {
   'Apache-AxKit-Provider-OpenOffice-1.02.tar.gz' => {
     'md5' => '3394d2b9c683fe0a6dc0ac2523c67f01',
@@ -337,6 +337,20 @@ $cksum = {
     'sha256' => '848e3db58e46785546514c7100bd8de1a531a35fa5df44cd354dd629dab0789b',
     'sha256-ungz' => '34db087d5777a740ce7e0dcb428e254e753b58f041a10e7c9acbad6f7bf5caa3',
     'size' => '20544'
+  },
+  'CDB_File-0.96.meta' => {
+    'md5' => 'a1b32a18a7c23055105a2fe169cb8dc6',
+    'mtime' => '2008-03-21',
+    'sha256' => '2449bb2e35c0be0b1ba9f980f5ed1f3bb8f5cf1c45b37b7ea18b885095380fbc',
+    'size' => '296'
+  },
+  'CDB_File-0.96.tar.gz' => {
+    'md5' => '898ed12e7548930f178dba5ec4a193d3',
+    'md5-ungz' => '263002e14ace5e455d6bbf09cdc9c194',
+    'mtime' => '2008-03-21',
+    'sha256' => '08b8c1512abd43e27204b7b48cb9f54e7ab2e338a927823f4abd2f785af87f2a',
+    'sha256-ungz' => 'f07640850c3f8058dbe11beba6e381693f4467087f17984d999aafef649c29a7',
+    'size' => '43607'
   },
   'CGI-XMLForm-0.10.tar.gz' => {
     'md5' => '89d5fcc3f0a3753aa184e9ae85474736',
@@ -719,6 +733,20 @@ $cksum = {
     'sha256' => '16fac64a7911f1c0b48463b96c7365ce931fce9d5536651f1a7523366f63e971',
     'sha256-ungz' => '2bd31ca34b0943774f8baa15f73fd0b27313453f3fd91316071702d2382c7692',
     'size' => '20008'
+  },
+  'Danga-Socket-1.59.meta' => {
+    'md5' => 'f8e512e03abae44ab69b50a2b574edc4',
+    'mtime' => '2008-03-13',
+    'sha256' => '5c1740591d8ffdf05f9bdadcd7a85c1aa54d5e5aa3ac8b86d25aba470b90e174',
+    'size' => '567'
+  },
+  'Danga-Socket-1.59.tar.gz' => {
+    'md5' => '1780d88eb50b1aa321f06fbf1534dcb2',
+    'md5-ungz' => 'ce8d509d5a0e604bdc5756b96f2262e4',
+    'mtime' => '2008-03-13',
+    'sha256' => '78c9623f08cb0f3108eeafc1b0ab31812535a00badb0fd4b2f37adb7f8bd8768',
+    'sha256-ungz' => 'c728c538379de42a88873ddbec931accf899a9ce976919bdca4a8726a1beae16',
+    'size' => '20080'
   },
   'File-Same-0.02.tar.gz' => {
     'md5' => '96533f73365e3f68666083d0847ee99e',
@@ -1202,6 +1230,20 @@ $cksum = {
     'sha256-ungz' => 'bdcfeb66713093519ff2ad417460776964624233d1dfab0506b64fbeb50c7c9f',
     'size' => '20536'
   },
+  'Time-Piece-1.13.meta' => {
+    'md5' => 'be0b7b1c1c73d319a91cd9c51c04dc39',
+    'mtime' => '2008-03-02',
+    'sha256' => '51fdcc3460500e7fea0a180e048912c8b1745af322f5623bb76a3c4097d25e85',
+    'size' => '295'
+  },
+  'Time-Piece-1.13.tar.gz' => {
+    'md5' => '95e56428427c5700db2c8f455ee64ffe',
+    'md5-ungz' => 'd8570151b9a796604775093d5a58419b',
+    'mtime' => '2008-03-02',
+    'sha256' => '0bb3a4b4eb91538e0cc21474ef4f876a4b43ed237757ec619afea4d3c42e5013',
+    'sha256-ungz' => 'ccf9b6d81feb6f83897ae387c52253494dafebb57a2203e2543a7ffd2ca56a54',
+    'size' => '20798'
+  },
   'Win32-ADO-0.03.tar.gz' => {
     'md5' => '31f07fad8fadaa17ea7f192c7868017c',
     'md5-ungz' => '47709fde38e65c270b20e23ee65c8f8c',
@@ -1615,7 +1657,7 @@ __END__
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQFHlQJ+Mo2oZ0UPiewRAjeHAJ0RWOQMS81bJT7/uJ0tdStPKHIPgwCbB5RY
-eB8PottSFbrHgkyxwrckO7U=
-=gnXq
+iD8DBQFH4+KtMo2oZ0UPiewRAiKiAJ4u8njzLDbv71tSSaUaQ1Oc3hITbgCfZV0Q
+WsyfqpekobmZLNiq/fqreFg=
+=rzeH
 -----END PGP SIGNATURE-----

@@ -1,0 +1,31 @@
+# CHECKSUMS file written on Mon Jul  7 21:27:59 2008 GMT by CPAN::Checksums (v1.064)
+$cksum = {
+  'Text-DHCPLeases-v0.5' => {
+    'isdir' => 1
+  },
+  'Text-DHCPLeases-v0.5.tar.gz' => {
+    'md5' => 'db3e06c366814bdc79acdcf9081fab91',
+    'md5-ungz' => '824f1c445854172f2dc9cb3e20ae726e',
+    'mtime' => '2008-06-05',
+    'sha256' => 'df7cea8b25e1ff1c45690bd6656dea4f225667e66ec83a1e2bab8b6b3c4a6d3b',
+    'sha256-ungz' => '067c38005a0a9f4540210ee85cfe1d6021dd5343475c5b67b0e8001851f38f40',
+    'size' => '7782'
+  },
+  'Text-DHCPLeases-v0.6' => {
+    'isdir' => 1
+  },
+  'Text-DHCPLeases-v0.6.tar.gz' => {
+    'md5' => '5ceee66bf148508c64df891056b3599e',
+    'md5-ungz' => 'dc1bdec65f47788b059c634919961d9f',
+    'mtime' => '2008-07-07',
+    'sha256' => '2ff43365705fb421ef17d1c460e8033c2ffe6c6b7c730e8cd6f6d8b42123ecb6',
+    'sha256-ungz' => 'ca41b28dc506fbd7b5d8c0341b1ed2fa5f5874a06656160ed29b8ec14170bc4b',
+    'size' => '7773'
+  },
+  'dhcpleases_object.patch' => {
+    'md5' => '3adb40daa95de6672b8f3e1c47d5242a',
+    'mtime' => '2008-07-01',
+    'sha256' => '844ecec6dc3eba55d9f88af41f914ae627033263bfc1ab4d9c980a050fd80ef8',
+    'size' => '453'
+  }
+};
