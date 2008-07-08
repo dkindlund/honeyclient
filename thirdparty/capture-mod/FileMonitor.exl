@@ -348,3 +348,6 @@
 
 # System Log Files - IE7
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\Debug\\UserMode\\userenv\.log
+
+# IE6 Crashing
++	Write	C:\\WINDOWS\\system32\\drwtsn32\.exe	C:\\Documents and Settings\\All Users\\Application Data\\Microsoft\\Dr Watson\\.*

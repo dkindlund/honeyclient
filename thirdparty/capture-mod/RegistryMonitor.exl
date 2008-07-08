@@ -407,3 +407,7 @@
 # IE - Random Crashing Due To Poor Application Coding
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting\\.*
 +	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting\\.*
+
+# IE - Dr Watson IE 6 Crashing
++	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\DrWatson.*
