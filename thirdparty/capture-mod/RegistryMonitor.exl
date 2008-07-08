@@ -406,3 +406,4 @@
 
 # IE - Random Crashing Due To Poor Application Coding
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting\\.*
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting\\.*
