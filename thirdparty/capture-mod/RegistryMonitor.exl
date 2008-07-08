@@ -411,3 +411,7 @@
 # IE - Dr Watson IE 6 Crashing
 +	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 +	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\DrWatson.*
+
+# Benign Explorer Activity
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Toolbar.*
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings.*
