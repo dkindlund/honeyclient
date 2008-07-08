@@ -1,7 +1,112 @@
-# CHECKSUMS file written on Mon Jul  7 21:27:59 2008 GMT by CPAN::Checksums (v1.064)
+0&&<<''; # this PGP-signed message is also valid perl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+# CHECKSUMS file written on Fri Jul  4 00:02:30 2008 GMT by CPAN::Checksums (v2.00)
 $cksum = {
-  'Text-DHCPLeases-v0.5' => {
-    'isdir' => 1
+  'Net-IPTrie-v0.1.meta' => {
+    'md5' => '482c33c6fa7bc635bc07d1517e7e9b05',
+    'mtime' => '2007-10-08',
+    'sha256' => '25a679c8da6c8de2dc5087f3d175ff2bfb65a699dcb52a8f4be3dee7dc5da865',
+    'size' => '598'
+  },
+  'Net-IPTrie-v0.1.tar.gz' => {
+    'md5' => '060d83c8f0f3e5436991c988be56383e',
+    'md5-ungz' => 'e2ff10c04d745f1e557cd409739949fa',
+    'mtime' => '2007-10-08',
+    'sha256' => '7dcc84a749eee7cf333e8056894d6214407eafc34dfbe4f9520964f91d777097',
+    'sha256-ungz' => '610e9d7fd07c973a155a3b5c6bfd06c0f70286f93b08492679d29682b90a7df8',
+    'size' => '6255'
+  },
+  'Net-IPTrie-v0.2.meta' => {
+    'md5' => '1ffdc1df4ef2809fe520b5942733bc21',
+    'mtime' => '2007-10-10',
+    'sha256' => '7a4c05c47056237a745a45e3ee19f834269872afb4c6656af65f2bbd2b6bb2d7',
+    'size' => '598'
+  },
+  'Net-IPTrie-v0.2.tar.gz' => {
+    'md5' => 'c2aa0ba83450a3c0b42d24180a44d8fd',
+    'md5-ungz' => '0c8c38c8084852798640ece6a802e62e',
+    'mtime' => '2007-10-10',
+    'sha256' => 'd0cf38b388a47e3a59e38b878ca2141ddcc69d38025036883a6e4262bb186cba',
+    'sha256-ungz' => 'e61ed36c3a84430aea1520c43a5bc6638240d59d66f1df3d5804eaf5d6098b86',
+    'size' => '6254'
+  },
+  'Net-IPTrie-v0.3.meta' => {
+    'md5' => '136ec3fffb607b16386f6bedec4dd05b',
+    'mtime' => '2007-11-26',
+    'sha256' => 'e41b074c2657c6165c79b1b5faaede4622529190a7004f9ecf6eef8e3b4aad3b',
+    'size' => '592'
+  },
+  'Net-IPTrie-v0.3.tar.gz' => {
+    'md5' => '8fd4e5fbbf97ccef6b5ad5c719f9f151',
+    'md5-ungz' => 'e1e4e4895a04036eeca0b6c54e136c41',
+    'mtime' => '2007-11-26',
+    'sha256' => '01724dc2d143f9bc20fff49015c12d543dc72541b40669be5902a9657fd3a4a1',
+    'sha256-ungz' => 'cc03412713ab6982d09fbe6c20f31e9e73343c57179e0dbda7a4aa558a2de752',
+    'size' => '6317'
+  },
+  'Text-DHCPLeases-v0.1.meta' => {
+    'md5' => '05cc6bc79fd45bc44316372d88e153a9',
+    'mtime' => '2007-09-24',
+    'sha256' => '76576d52594e4a868b78d6a4edb1f992a4e34ef8dd529c836d715046d19b1182',
+    'size' => '750'
+  },
+  'Text-DHCPLeases-v0.1.tar.gz' => {
+    'md5' => '18d4f053899f1c969096e1571b4c363c',
+    'md5-ungz' => 'b8a72a2e6bc163c04669a927e7ffa41f',
+    'mtime' => '2007-09-24',
+    'sha256' => 'fc20a5d42a8a77ffbf74e0e32b4d00f5eef0e9f7d64a99af8b86dc03cf9a54e2',
+    'sha256-ungz' => '61d21510a0a70032723de5341199e5f1888db85e3f7dca3c9a18349e96272634',
+    'size' => '7637'
+  },
+  'Text-DHCPLeases-v0.2.meta' => {
+    'md5' => '652326f6e5015be7b740f296d94ac89f',
+    'mtime' => '2007-12-20',
+    'sha256' => '07f2c61b2b7a85b7af04a43ca18dd53523627b469f49d6ee22aa5149bbbe43b3',
+    'size' => '674'
+  },
+  'Text-DHCPLeases-v0.2.tar.gz' => {
+    'md5' => '7931e2a035c19fdf9ca1cc231ab202c0',
+    'md5-ungz' => 'a084a77147f20098bbb3588bc9488606',
+    'mtime' => '2007-12-20',
+    'sha256' => 'cc84d389c3316c03fd15fb12b23bdc7e48c8c2d8808342bf3cae506b06d682d1',
+    'sha256-ungz' => '563c09626db03b325e3fb0700d8bc0903cad5365b36967c24804fa7401302458',
+    'size' => '7917'
+  },
+  'Text-DHCPLeases-v0.3.meta' => {
+    'md5' => 'a4c6abf623baa2c9fde0a605b38ee5f1',
+    'mtime' => '2008-03-13',
+    'sha256' => 'c402ca71a09dafca9d19a49f313a4865fdd1144b1c5629490f49158b338fef8a',
+    'size' => '687'
+  },
+  'Text-DHCPLeases-v0.3.tar.gz' => {
+    'md5' => 'fcfe94849f2322d0f636157dca1244a9',
+    'md5-ungz' => '124c0a1f82cd0400bfb194808bab19f4',
+    'mtime' => '2008-03-13',
+    'sha256' => '0753520eff34c5339c6c2b6b00e02d923478e4af2a0b93a489ccfd13c78671d2',
+    'sha256-ungz' => '25a0b03c96746928b8a45a37f2f0778a93902bcf3b9b437eef907d3d10690b37',
+    'size' => '8038'
+  },
+  'Text-DHCPLeases-v0.4.meta' => {
+    'md5' => '6371bc303ef10e3cf12b5cadd1bd4155',
+    'mtime' => '2008-03-26',
+    'sha256' => 'ccfdf5a749967d3c24fa155f583b5015328596371c946a2ac24ca1a18b289607',
+    'size' => '687'
+  },
+  'Text-DHCPLeases-v0.4.tar.gz' => {
+    'md5' => 'e5978a1b503192affd673fbbf4774641',
+    'md5-ungz' => '33fd1321bce509f608a583730c40eec5',
+    'mtime' => '2008-03-26',
+    'sha256' => '60ef059bd72cb69523d682942bf1cc5b4bd4455e4dbe1fd5b8bea2eee022bd02',
+    'sha256-ungz' => '2878bf729c15467d4085bb06bef8a8f7d3340326e8f583f960b1f13aa62f0e82',
+    'size' => '8065'
+  },
+  'Text-DHCPLeases-v0.5.meta' => {
+    'md5' => '5ddc48943d540bf0e48d450a42f9bb24',
+    'mtime' => '2008-06-05',
+    'sha256' => '0ade5c3d0100c76f836b5d978ee3e00017dd7645023a45a98ca9f316d6ac87d6',
+    'size' => '687'
   },
   'Text-DHCPLeases-v0.5.tar.gz' => {
     'md5' => 'db3e06c366814bdc79acdcf9081fab91',
@@ -11,21 +116,26 @@ $cksum = {
     'sha256-ungz' => '067c38005a0a9f4540210ee85cfe1d6021dd5343475c5b67b0e8001851f38f40',
     'size' => '7782'
   },
-  'Text-DHCPLeases-v0.6' => {
-    'isdir' => 1
+  'Text-DHCPLeases-v0.6.meta' => {
+    'md5' => '9384e7172d9abfdb3de7bb5ddf6fd847',
+    'mtime' => '2008-07-03',
+    'sha256' => 'e1754a206e701d0833b77be8a3ba8db7e8531005505f4bcb272702bd5eebe714',
+    'size' => '687'
   },
   'Text-DHCPLeases-v0.6.tar.gz' => {
-    'md5' => '5ceee66bf148508c64df891056b3599e',
-    'md5-ungz' => 'dc1bdec65f47788b059c634919961d9f',
-    'mtime' => '2008-07-07',
-    'sha256' => '2ff43365705fb421ef17d1c460e8033c2ffe6c6b7c730e8cd6f6d8b42123ecb6',
-    'sha256-ungz' => 'ca41b28dc506fbd7b5d8c0341b1ed2fa5f5874a06656160ed29b8ec14170bc4b',
-    'size' => '7773'
-  },
-  'dhcpleases_object.patch' => {
-    'md5' => '3adb40daa95de6672b8f3e1c47d5242a',
-    'mtime' => '2008-07-01',
-    'sha256' => '844ecec6dc3eba55d9f88af41f914ae627033263bfc1ab4d9c980a050fd80ef8',
-    'size' => '453'
+    'md5' => '5fca6c2efd2ca99aa9b49aba956581be',
+    'md5-ungz' => '5194ba175d28fbe192800e1626ea049a',
+    'mtime' => '2008-07-04',
+    'sha256' => 'dc480cb9535f6f23028f6ad334ff4e5fdbcda28f6a25241ab7f4ff33f7f9f04d',
+    'sha256-ungz' => 'b77ca66291915db3f84ee74adfa977555e63a11cf2a7e95a0ba6cee6af6da4ee',
+    'size' => '7811'
   }
 };
+__END__
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIbWiWMo2oZ0UPiewRAiZ6AJ9gh1TlJ6NlQvSEQ/3Lp0f2drrLxACfYeL+
+mPfCKm1SaDJfHnK9iXEv5QU=
+=6R5d
+-----END PGP SIGNATURE-----
