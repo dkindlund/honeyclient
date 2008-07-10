@@ -53,3 +53,6 @@
 
 # IE - Random Crashing Due To Poor Application Coding
 +	drwtsn32.exe	.*	C:\\WINDOWS\\system32\\drwtsn32\.exe
+
+# IE - MSN Messenger Autostart 
++	msmsgs.exe	.*	C:\\Program Files\\Messenger\\msmsgs\.exe

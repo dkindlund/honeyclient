@@ -96,6 +96,7 @@
 # msg activeX
 +	Write	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT.LOG
 +	Delete	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT.LOG
++	Write	C:\\Program Files\\Messenger\\msmsgs\.exe	C:\\Documents and Settings\\.+\\NTUSER.DAT
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$LogFile
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$Directory
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	E:\\\$Mft
