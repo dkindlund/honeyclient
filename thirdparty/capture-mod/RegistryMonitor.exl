@@ -185,7 +185,7 @@
 +	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\AppEvents\\EventLabels\\MSMsgs.+
 +	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\MSMSGS
 +	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
-+	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.+
++	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.*
 +	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
 +	SetValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKLM\\SOFTWARE\\Microsoft\\EventSystem\\.+\\Subscriptions\\.+
 +	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Scrunch\\.+
@@ -201,7 +201,7 @@
 +	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\AppEvents\\Schemes\\Apps\\MSMSGS.*
 +	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\MSMSGS
 +	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
-+	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.+
++	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.*
 +	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKLM\\SOFTWARE\\Microsoft\\EventSystem\\.+\\Subscriptions\\.+
 
