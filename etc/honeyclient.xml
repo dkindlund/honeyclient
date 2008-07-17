@@ -212,7 +212,7 @@ Keep in mind, though, that some variables should remain module-specific
             </enable>
             <!-- TODO: Update this. -->
             <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
-                http://172.16.164.1/hc_database/api
+                http://drone/hc_database/api
             </url>
             <max_retry_count description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry up to the specified number of times before giving up." default="1800">
                 1800
