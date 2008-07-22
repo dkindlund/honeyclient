@@ -1543,6 +1543,7 @@ sub suspend {
     }
 
     if ($args{'perform_archive'}) {
+        $LOG->info("Thread ID (" . threads->tid() . "): Archiving clone VM (" . $vmConfig . ").");
         if ($argsExist &&
             exists($args{'snapshot_file'}) &&
             defined($args{'snapshot_file'})) {
