@@ -416,3 +416,6 @@
 # Benign Explorer Activity
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Toolbar.*
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings.*
+
+# Benign DirectX Activity
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Multimedia\\msacm.msgsm610.*
