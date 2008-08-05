@@ -3424,6 +3424,10 @@ sub answerVM {
         # Bad suspended image (vmss); go ahead and discard.
         /A file encapsulating the state of a virtual machine was discovered/ &&
             do { $choice = 0; last; }; # Choice 0: Discard.
+       
+	    # Error reading image (vmdk); go ahead and retry.
+		/Operation on file \".*\" failed/ &&
+            do { $choice = 0; last; }; # Choice 0: Retry.
 
         $LOG->warn("Encountered unknown question for VM ($args{'config'}). " .
                    "(" . $question->get_id() . ": " . $question_text . ")");
