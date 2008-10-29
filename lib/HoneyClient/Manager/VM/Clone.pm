@@ -1536,7 +1536,7 @@ sub suspend {
     my $som = $self->{'_vm_handle'}->suspendVM(config => $vmConfig);
 
     if (!defined($som)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'config'} . ").");
+        $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $vmConfig . ").");
         $self->_changeStatus(status => "error");
     } else {
         $self->_changeStatus(status => "suspended");
