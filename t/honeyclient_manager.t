@@ -67,6 +67,11 @@ BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClien
 require_ok('HoneyClient::Manager::VM::Clone');
 use HoneyClient::Manager::VM::Clone;
 
+# Make sure HonyClient::Manager::ESX::Clone loads.
+BEGIN { use_ok('HoneyClient::Manager::ESX::Clone') or diag("Can't load HoneyClient::Manager::ESX::Clone package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::ESX::Clone');
+use HoneyClient::Manager::ESX::Clone;
+
 # Make sure HoneyClient::Util::SOAP loads.
 BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Util::SOAP');
