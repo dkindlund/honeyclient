@@ -212,7 +212,7 @@ Keep in mind, though, that some variables should remain module-specific
             </enable>
             <!-- TODO: Update this. -->
             <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
-                http://drone/hc_database/api
+                http://172.16.164.102:3000/hc_database/api
             </url>
             <max_retry_count description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry up to the specified number of times before giving up." default="1800">
                 1800
@@ -315,10 +315,71 @@ Keep in mind, though, that some variables should remain module-specific
                 etc/honeyclient_log.conf
             </config_file>
         </FW>
+        <!-- HoneyClient::Manager::ESX Options -->
+        <ESX>
+            <service_url description="The full URL to the VIM service running on the VMware ESX Server." default="https://localhost/sdk/vimService">
+                https://172.16.164.115/sdk/vimService
+            </service_url>
+            <session_timeout description="The amount of time (in seconds) a VIM session remains active, before automatically expiring due to inactivity.  The default time is 15 minutes, since the default VMware ESX Server expires inactive sessions older than 30 mintues." default="900">
+                900
+            </session_timeout>
+            <user_name description="The username used to login to the VIM service running on the ESX server." default="root">
+                root
+            </user_name>
+            <password description="The password used to login to the VIM service running on the ESX server.">
+                passw0rd
+            </password>
+            <vm_id_length description="The length of each corresponding VM identifier (VMID).  This value can be any integer between 1 and 32, inclusive.  The VMID is a hexadecimal string that represents the VM's name.  It is designed to be generated once per clone and remain for the life of the VM (regardless of where it runs).  The VMID is used externally by HoneyClient::Manager and HoneyClient::Manager::FW.  The HoneyClient::Manager::FW package uses IPTables and binds each rule to a specific VMID.  However, IPTable's firewall rule labels can only be a maximum of 30 characters in length.  Thus, 26 is specified here, to account for 'VMID-OUT' as a possible chain name." default="26">
+                26
+            </vm_id_length>
+            <default_quick_clone_snapshot_name description="When performing a quick clone, this value is the name of the initial snapshot that is created on the clone VM." default="Initial Snapshot - DO NOT ALTER OR RENAME THIS SNAPSHOT">
+                Initial Snapshot - DO NOT ALTER OR RENAME THIS SNAPSHOT
+            </default_quick_clone_snapshot_name>
+            <default_quick_clone_snapshot_description description="When performing a quick clone, this value is the description of the initial snapshot that is created on the clone VM." default="">
+State: Initialized - This snapshot marks the initial state of this clone VM, that is then used by all subsequent snapshots.  WARNING: If you alter delete this snapshot (or any dependent snapshots), then all dependent snapshots will become corrupted as well.
+            </default_quick_clone_snapshot_description>
+            <default_quick_clone_master_annotation description="When performing a quick clone, we annotate the source VM in order to inform the user to NEVER alter the source VM ever again." default="">
+Type: Master VM
+WARNING: DO NOT ALTER THIS VM FURTHER
+OTHERWISE, ALL SUBSEQUENT CLONES WILL BE CORRUPTED
+            </default_quick_clone_master_annotation>
+            <operational_quick_clone_snapshot_description description="When initializing a new clone, this value is the description of the operational snapshot that is created on the clone VM." default="">
+State: Operational - This snapshot marks the operational state of this clone VM.  At this point, the clone VM has a valid MAC and IP address, as well as a fully-started Agent running inside the VM.
+            </operational_quick_clone_snapshot_description>
+            <compromised_quick_clone_snapshot_description description="When initializing a new clone, this value is the description of a compromised snapshot that is created on the clone VM." default="">
+State: Compromised - This snapshot marks a compromised state of this clone VM.  At this point, the clone VM has failed an integrity check after peforming some type of work.
+            </compromised_quick_clone_snapshot_description>
+            <master_vm_name description="The name of the master VM on the VMware ESX system that will be used by all subsequent cloned VMs.">
+                Agent.Master-44-IE6
+            </master_vm_name>
+            <min_space_free description="The minimum amount of disk space (in GB) that must remain free in the primary datastore in order for the Manager to continue processing.  If the free disk space drops below this threshold, then the Manager will gracefully terminate." default="2">
+                2
+            </min_space_free>
+            <!-- HoneyClient::Manager::ESX::Clone Options -->
+            <Clone>
+                <snapshot_upon_suspend description="If set to 1, then everytime a cloned VM is suspended, a snapshot of the VM will be saved upon suspend.  Set this option to 0, if you discover errors during cloning operations, where the hard disk on the VMware ESX System is overworked by slow disk operations." default="1">
+                    1
+                </snapshot_upon_suspend>
+                <work_unit_limit description="An integer, indicating how many work units (e.g., URLs) the clone VM should process before destroying the VM and regenerating a new clone VM.  This option is useful to set, when trying to drive an application that appears to create slow memory leaks within the VM's OS.  For example, after processing X work units, the VM's OS runs out of memory altogether.  To deal with this issue, we preemptively destroy and regenerate a new clone VM at (X-1) work units, so that the leak no longer affects our operations.  To completely disable this functionality, specify -1." default="2000">
+                    1000
+                </work_unit_limit>
+            </Clone>
+            <!-- HoneyClient::Manager::ESX::Test Options -->
+            <Test>
+                <!--
+                    Note: you should *never* need to change *any* values
+                    within this section of the configuration.  All contents
+                    are *only* used for unit testing.
+                -->
+                <test_vm_name description="The name of the test VM on the ESX server, that's used during unit testing." default="Test_VM">
+                    Ubuntu_Test_VM
+                </test_vm_name>
+            </Test>
+        </ESX>
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/Agent.Master-46-IE6/winXPPro.cfg
+                /vm/masters/Agent.Master-44-IE6/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
                 7627
@@ -353,7 +414,7 @@ Keep in mind, though, that some variables should remain module-specific
                     1
                 </archive_upon_suspend>
                 <work_unit_limit description="An integer, indicating how many work units (e.g., URLs) the clone VM should process before destroying the VM and regenerating a new clone VM.  This option is useful to set, when trying to drive an application that appears to create slow memory leaks within the VM's OS.  For example, after processing X work units, the VM's OS runs out of memory altogether.  To deal with this issue, we preemptively destroy and regenerate a new clone VM at (X-1) work units, so that the leak no longer affects our operations.  To completely disable this functionality, specify -1." default="2000">
-                    1000
+                    2000
                 </work_unit_limit>
             </Clone>
             <!-- HoneyClient::Manager::VM::Test Options -->

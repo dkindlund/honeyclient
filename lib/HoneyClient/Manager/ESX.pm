@@ -51,7 +51,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   my $testVM = "Test VM";
 
   # See if a particular VM is registered.
-  my $result = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
+  my $result = undef;
+  ($session, $result) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
   if ($result) {
       print "Yes, the VM is registered.";
   } else {
@@ -60,15 +61,15 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
 
   # Register a particular VM.
   my $config = "[datastore] Test_VM/Test_VM.vmx";
-  $result = HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
   }
 
   # Unregister a particular VM.
-  $result = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
+  ($session, $result) = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
   if ($result) {
       print "Success!\n";
   } else {
@@ -76,36 +77,37 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
 
   # Get the state of a particular VM.
-  my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+  my $state = undef;
+  ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
   print "VM State: " . $state . "\n";
 
   # Start a particular VM.
-  $result = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
   }
   
   # Stop a particular VM.
-  $result = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
   }
   
   # Reboot a particular VM.
-  $result = HoneyClient::Manager::ESX->resetVM(session => $session, name => $testVM);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->resetVM(session => $session, name => $testVM);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
   }
   
   # Suspend a particular VM.
-  $result = HoneyClient::Manager::ESX->suspendVM(session => $session, name => $testVM);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->suspendVM(session => $session, name => $testVM);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
@@ -119,8 +121,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   # Note: In most cases, this call doesn't need to
   # be made, since startVM/stopVM/resetVM will try this call
   # automatically, if needed.
-  $result = HoneyClient::Manager::ESX->answerVM(session => $session, name => $testVM);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->answerVM(session => $session, name => $testVM);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
@@ -129,7 +131,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   # Create a new full clone from a particular VM 
   # and put the clone in the "Clone_VM" directory.
   my $cloneVM = "Clone_VM";
-  my $cloneConfig = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM, dst_name => $cloneVM);
+  my $cloneConfig = undef;
+  ($session, $cloneConfig) = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM, dst_name => $cloneVM);
   if ($cloneConfig) {
       print "Successfully created clone VM at ($cloneConfig)!\n";
   } else {
@@ -139,7 +142,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   # Create a new quick clone from a particular VM
   # and put the clone in the "Clone_VM" directory.
   my $cloneVM = "Clone_VM";
-  my $cloneConfig = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM, dst_name => $cloneVM);
+  my $cloneConfig = undef;
+  ($session, $cloneConfig) = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM, dst_name => $cloneVM);
   if ($cloneConfig) {
       print "Successfully created clone VM at ($cloneConfig)!\n";
   } else {
@@ -147,7 +151,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
 
   # Check to see if a particular VM is a quick clone.
-  my $result = HoneyClient::Manager::ESX->isQuickCloneVM(session => $session, name => $testVM);
+  my $result = undef;
+  ($session, $result) = HoneyClient::Manager::ESX->isQuickCloneVM(session => $session, name => $testVM);
   if ($result) {
       print "VM is a quick clone.\n";
   } else {
@@ -155,19 +160,23 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
   
   # Check to see how much free space (in bytes) is left on the VM's backing datastore.
-  my $space_free = HoneyClient::Manager::ESX->getDatastoreSpaceAvailableESX(session => $session, name => $testVM);
+  my $space_free = undef;
+  ($session, $space_free) = HoneyClient::Manager::ESX->getDatastoreSpaceAvailableESX(session => $session, name => $testVM);
   print "VM's datastore free space is: " . $space_free . ".\n";
   
   # Get the hostname of the ESX server.
-  my $hostname = HoneyClient::Manager::ESX->getHostnameESX(session => $session);
+  my $hostname = undef;
+  ($session, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $session);
   print "ESX hostname is: " . $hostname . ".\n";
   
   # Get the IP of the ESX server.
-  my $ip = HoneyClient::Manager::ESX->getIPaddrESX(session => $session);
+  my $ip = undef;
+  ($session, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $session);
   print "ESX IP is: " . $ip . ".\n";
   
   # Get the MAC address of a particular VM's first NIC.
-  my $mac_address = HoneyClient::Manager::ESX->getMACaddrVM(session => $session, name => $testVM);
+  my $mac_address = undef;
+  ($session, $mac_address) = HoneyClient::Manager::ESX->getMACaddrVM(session => $session, name => $testVM);
   if ($mac_address) {
       print "VM MAC Address: \"$mac_address\"\n";
   } else {
@@ -175,7 +184,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
   
   # Get the IP address of a particular VM's first NIC.
-  my $ip_address = HoneyClient::Manager::ESX->getIPaddrVM(session => $session, name => $testVM);
+  my $ip_address = undef;
+  ($session, $ip_address) = HoneyClient::Manager::ESX->getIPaddrVM(session => $session, name => $testVM);
   if ($ip_address) {
       print "VM IP Address: \"$ip_address\"\n";
   } else {
@@ -183,7 +193,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
 
   # Get the configuration filename of a particular VM.
-  my $config = HoneyClient::Manager::ESX->getConfigVM(session => $session, name => $testVM);
+  my $config = undef;
+  ($session, $config) = HoneyClient::Manager::ESX->getConfigVM(session => $session, name => $testVM);
   if ($config) {
       print "VM Config: \"$config\"\n";
   } else {
@@ -191,8 +202,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
 
   # Destroy a particular VM.
-  $result = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $testVM);
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $testVM);
+  if ($session) {
       print "Success!\n";
   } else {
       print "Failed!\n";
@@ -200,7 +211,7 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
 
   # Save a snapshot of a particular VM, saving the
   # snapshot using the name of "Snapshot".
-  $result = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
+  ($session, $result) = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
   if ($result) {
       print "Successfully snapshotted VM using snapshot name: ($result)!\n";
   } else {
@@ -208,15 +219,15 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
 
   # Revert a particular VM back to a previous snapshot.
-  $result = HoneyClient::Manager::ESX->revertVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->revertVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
+  if ($session) {
       print "Successfully reverted VM!\n";
   } else {
       print "Failed to revert VM!\n";
   }
 
   # Rename "Snapshot" to "Snapshot2" on a particular VM.
-  $result = HoneyClient::Manager::ESX->renameSnapshotVM(session => $session, name => $testVM, old_snapshot_name => "Snapshot", new_snapshot_name => "Snapshot2");
+  ($session, $result) = HoneyClient::Manager::ESX->renameSnapshotVM(session => $session, name => $testVM, old_snapshot_name => "Snapshot", new_snapshot_name => "Snapshot2");
   if ($result) {
       print "Successfully renamed snapshot on VM to: ($result)!\n";
   } else {
@@ -224,8 +235,8 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   }
   
   # Remove "Snapshot2" on a particular VM.
-  $result = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $testVM, snapshot_name => "Snapshot2");
-  if ($result) {
+  $session = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $testVM, snapshot_name => "Snapshot2");
+  if ($session) {
       print "Successfully removed snapshot on VM!\n";
   } else {
       print "Failed to removed snapshot on VM!\n";
@@ -370,6 +381,16 @@ require_ok('Digest::MD5');
 can_ok('Digest::MD5', 'md5_hex');
 use Digest::MD5 qw(md5_hex);
 
+# Make sure DateTime::HiRes loads.
+BEGIN { use_ok('DateTime::HiRes') or diag("Can't load DateTime::HiRes package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::HiRes');
+use DateTime::HiRes;
+
+# Make sure DateTime::Duration loads.
+BEGIN { use_ok('DateTime::Duration') or diag("Can't load DateTime::Duration package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Duration');
+use DateTime::Duration;
+
 # Make sure VMware::VIRuntime loads.
 BEGIN { use_ok('VMware::VIRuntime') or diag("Can't load VMware::VIRuntime package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('VMware::VIRuntime');
@@ -429,6 +450,10 @@ use VMware::VIRuntime;
 # Include MD5 Libraries
 use Digest::MD5 qw(md5_hex);
 
+# Include ISO8601 Date/Time Libraries
+use DateTime::HiRes;
+use DateTime::Duration;
+
 # The maximum length of any VMID generated.
 our $VM_ID_LENGTH = getVar(name => "vm_id_length");
 
@@ -466,7 +491,7 @@ sub _generateVMID {
 #     session - the VIM session object (required)
 #     name    - name of the view object (required if type is 'VirtualMachine')
 #     type    - type of the view object (required)
-# Output: the view object
+# Output: (the session object, the view object)
 sub _getViewObject {
 
     # Extract arguments.
@@ -485,9 +510,20 @@ sub _getViewObject {
         $LOG->fatal("Unable to retrieve view - no type specified.");
         Carp::croak "Unable to retrieve view - no type specified.";
     }
-    
+   
+    # Validate current session, if older than the given threshold.
+    if ((DateTime::HiRes->now() - DateTime::Duration->new(seconds => getVar(name => "session_timeout"))) > $args{'session'}->{'_updated_at'}) {
+        if (!_isSessionValid(%args)) {
+            # Relogin, if session is invalid.
+            $args{'session'} = login();
+        } else {
+            # Session remains valid; update timestamp.
+            $args{'session'}->{'_updated_at'} = DateTime::HiRes->now();
+        }
+    }
+ 
     my $view;
-    
+
     # Retrieve the view object after doing any necessary checks.
     if ($args{'type'} eq 'VirtualMachine') {
 
@@ -503,7 +539,7 @@ sub _getViewObject {
         $view = $args{'session'}->find_entity_view(view_type => $args{'type'});
     }
 
-    return $view;
+    return ($args{'session'}, $view);
 }
 
 # Helper function that handles retrieval of a VM view object from the
@@ -514,7 +550,7 @@ sub _getViewObject {
 # Inputs:
 #     session - the VIM session object (required)
 #     name    - name of the view object (required)
-# Output: the view object if found; croaks otherwise.
+# Output: (the session object, the view object) if found; croaks otherwise.
 sub _getViewVM {
 
     # Extract arguments.
@@ -522,13 +558,13 @@ sub _getViewVM {
 
     # Get the VM object.
     $args{'type'} = "VirtualMachine";
-    my $vm_view = _getViewObject(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewObject(%args);
     if (!defined($vm_view)) {
         $LOG->error("Unable to locate VM (" . $args{'name'} . ").");
         Carp::croak "Unable to locate VM (" . $args{'name'} . ").";
     }
-
-    return $vm_view;
+    return ($args{'session'}, $vm_view);
 }
 
 # Helper function that returns a list of all VirtualMachineSnapshotTree views
@@ -618,11 +654,13 @@ sub _fullCopyVM {
     
     # Get the datacenter view object.
     $args{'type'} = "Datacenter";
-    my $datacenter_view = _getViewObject(%args);
+    my $datacenter_view = undef;
+    ($args{'session'}, $datacenter_view) = _getViewObject(%args);
     
     # Get a view object for the source VM.
     $args{'type'} = "VirtualMachine";
-    my $vm_view = _getViewObject(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewObject(%args);
     
     # Get the name of the datastore that holds the source VM
     # XXX: We assume the source VM is located on only one datastore.
@@ -813,11 +851,13 @@ sub _quickCopyVM {
     
     # Get the datacenter view object.
     $args{'type'} = "Datacenter";
-    my $datacenter_view = _getViewObject(%args);
+    my $datacenter_view = undef;
+    ($args{'session'}, $datacenter_view) = _getViewObject(%args);
     
     # Get a view object for the source VM.
     $args{'type'} = "VirtualMachine";
-    my $vm_view = _getViewObject(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewObject(%args);
     
     # Get the name of the datastore that holds the source VM
     # XXX: We assume the source VM is located on only one datastore.
@@ -940,10 +980,12 @@ sub _deleteFilesVM {
     my (%args) = @_;
 
     # Get the VM's view.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Now, unregister the VM.
-    unregisterVM(undef, %args);
+    my $config = undef;
+    ($args{'session'}, $config) = unregisterVM(undef, %args);
 
     # Get the service content.
     my $service_content = $args{'session'}->get_service_content();
@@ -953,7 +995,8 @@ sub _deleteFilesVM {
     
     # Get the datacenter view object.
     $args{'type'} = "Datacenter";
-    my $datacenter_view = _getViewObject(%args);
+    my $datacenter_view = undef;
+    ($args{'session'}, $datacenter_view) = _getViewObject(%args);
 
 
     foreach my $datastore (@{$vm_view->datastore}) {
@@ -1006,12 +1049,13 @@ sub _deleteFilesVM {
     return (1);
 }
 
-# Helper function to return the current time on the VMware ESX Server.
+# Helper function to check if the current session on the VMware
+# ESX Server is valid or not.
 #
 # Inputs:
 #   session  - the VIM session object
-# TODO: Add more to this.
-sub _getCurrentTime {
+# Output: true if session is valid; false if invalid
+sub _isSessionValid {
     # Extract arguments.
     my (%args) = @_;
     
@@ -1025,21 +1069,22 @@ sub _getCurrentTime {
     };
     if ($@) {
         my $detail = $@;
-$Data::Dumper::Indent = 1;
-$Data::Dumper::Terse = 0;
-print Dumper($detail) . "\n";
         if (ref($detail) eq 'SoapFault') {
-            # Relogin, in case session timed out.
             if ($detail->name eq 'NotAuthenticatedFault') {
-                $args{'session'} = login();
-                return _getCurrentTime(%args); 
+                # Then session is invalid.
+                return (0);
             }
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error getting current time on server: " . $detail);
-        Carp::croak "Error getting current time on server: " . $detail;
+        $LOG->fatal("Unable to validate current session: " . $detail);
+        Carp::croak "Unable to validate current session: " . $detail;
     }
-    return $ret;
+    if (!defined($ret)) {
+        $LOG->fatal("Unable to validate current session.");
+        Carp::croak "Unable to validate current session.";
+    }
+    # Then session is valid.
+    return (1);
 }
 
 #######################################################################
@@ -1101,8 +1146,11 @@ sub login {
 
     # Create a connection to the ESX server
     my $session = Vim->new(service_url => getVar(name => "service_url"));
+    # Record when this object was updated.
+    $session->{'_updated_at'} = DateTime::HiRes->now();
     $session->login(user_name => getVar(name => "user_name"),
                     password  => getVar(name => "password"));
+
     return $session;
 }
 
@@ -1188,7 +1236,7 @@ I<Inputs>:
  B<$dst_name> is an optional argument, specifying the
 name of the cloned VM.
 
-I<Output>: The name of the cloned VM, if successful; croaks otherwise.
+I<Output>: (The Vim session, The name of the cloned VM), if successful; croaks otherwise.
 
 I<Notes>:
 If B<$dst_name> is not specified, then the cloned VM 
@@ -1225,23 +1273,25 @@ eval {
     HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
     ok($cloneVM, "fullCloneVM(src_name => '$testVM')") or diag("The fullCloneVM() call failed.");
 
     # Get the power state of the clone VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $cloneVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $cloneVM);
 
     # The clone VM should be powered on.
     is($state, "poweredon", "fullCloneVM(name => '$testVM')") or diag("The fullCloneVM() call failed.");
    
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
     
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -1277,6 +1327,7 @@ sub fullCloneVM {
     }
 
     # Figure out if the destination was specified.
+    my $isRegisteredVM = undef;
     if (!exists($args{'dst_name'}) ||
         !defined($args{'dst_name'})) {
         # If it wasn't specified, then generate a new destination VM name,
@@ -1284,14 +1335,16 @@ sub fullCloneVM {
         do {
             $args{'dst_name'} = _generateVMID();
             $args{'name'} = $args{'dst_name'};
-        } while (isRegisteredVM($class, %args) ||
+            ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        } while ($isRegisteredVM ||
                  # Make sure our newly generated name doesn't conflict
                  # with any existing snapshot names.
                  defined(_findSnapshot($args{'name'}, _getViewVMSnapshotTrees(%args))));
     } else {
         # The destination was specified, so make sure that name does not already exist.
         $args{'name'} = $args{'dst_name'};
-        if (isRegisteredVM($class, %args)) {
+        ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        if ($isRegisteredVM) {
             $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.";
         }
@@ -1303,17 +1356,18 @@ sub fullCloneVM {
 
     # Check to make sure source VM is either off or suspended.
     $args{'name'} = $args{'src_name'};
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Only clone source VMs that are powered off or suspended.
     if (($powerState ne 'poweredoff') &&
         ($powerState ne 'suspended')) {
 
         # If the VM is not powered off, then try suspending it.
-        suspendVM($class, %args);
+        $args{'session'} = suspendVM($class, %args);
 
         # Refresh the power state.
-        $powerState = getStateVM($class, %args);
+        ($args{'session'}, $powerState) = getStateVM($class, %args);
 
         # Check of the source VM is powered off or suspended.
         if (($powerState ne 'poweredoff') &&
@@ -1331,19 +1385,19 @@ sub fullCloneVM {
 
     # Register clone VM.
     $args{'name'} = $args{'dst_name'};
-    registerVM($class, %args);
+    $args{'session'} = registerVM($class, %args);
 
     # Power on clone VM.
-    startVM($class, %args);
+    $args{'session'} = startVM($class, %args);
 
     # If the source VM was suspended, then this clone will awake
     # from a suspended state.  We'll still need to issue a full reboot,
     # in order for the clone to get assigned a new network MAC address.
     if ($powerState eq 'suspended') {
-        resetVM($class, %args);
+        $args{'session'} = resetVM($class, %args);
     }
 
-    return $args{'dst_name'};
+    return ($args{'session'}, $args{'dst_name'});
 }
 
 =pod
@@ -1358,7 +1412,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if power on was successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 =back
 
@@ -1372,17 +1426,18 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
     
     # Start the test VM.
-    my $result = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
-    ok($result, "startVM(name => '$testVM')") or diag("The startVM() call failed.");
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    ok($session, "startVM(name => '$testVM')") or diag("The startVM() call failed.");
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # The test VM should be on.
     is($state, "poweredon", "startVM(name => '$testVM')") or diag("The startVM() call failed.");
 
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -1410,23 +1465,25 @@ sub startVM {
     });
    
     # Only start VMs that are powered off or suspended.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Check to see if the VM is stuck, first...
     if ($powerState eq 'pendingquestion') {
         # If so, try answering the question...
-        answerVM($class, %args);
+        $args{'session'} = answerVM($class, %args);
         # Refresh the power state.
-        $powerState = getStateVM($class, %args);
+        ($args{'session'}, $powerState) = getStateVM($class, %args);
     }
 
     if ($powerState eq 'poweredon') {
         # The VM is already powered on.
-        return (1);
+        return $args{'session'};
     } elsif (($powerState eq 'poweredoff') ||
              ($powerState eq 'suspended')) {
 
-        my $vm_view = _getViewVM(%args);
+        my $vm_view = undef;
+        ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
             $LOG->info("Starting VM (" . $args{'name'} . ").");
 
@@ -1441,19 +1498,19 @@ sub startVM {
                     sleep(2);
                 }
               
-                $powerState = getStateVM($class, %args);
+                ($args{'session'}, $powerState) = getStateVM($class, %args);
                 # Check to see if the VM is stuck at all.
                 if ($powerState eq 'pendingquestion') {
                     # If so, try answering the question...
-                    answerVM($class, %args);
+                    $args{'session'} = answerVM($class, %args);
                     # Refresh the power state.
-                    $powerState = getStateVM($class, %args);
+                    ($args{'session'}, $powerState) = getStateVM($class, %args);
                 }
             };
             $vm_view->waitForTask($vm_view->PowerOnVM_Task(), $checkForStuckVM);
 
             # Okay, now make sure the VM is powered on.
-            $powerState = getStateVM($class, %args);
+            ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'poweredon') {
                 $LOG->fatal("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
@@ -1473,7 +1530,7 @@ sub startVM {
         Carp::croak "Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -1488,7 +1545,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if power off was successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 =back
 
@@ -1502,14 +1559,15 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Stop the test VM.
-    my $result = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
-    ok($result, "stopVM(name => '$testVM')") or diag("The stopVM() call failed.");
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    ok($session, "stopVM(name => '$testVM')") or diag("The stopVM() call failed.");
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # The test VM should be off.
     is($state, "poweredoff", "stopVM(name => '$testVM')") or diag("The stopVM() call failed.");
@@ -1540,24 +1598,26 @@ sub stopVM {
     });
    
     # Only stop VMs that are powered on or stuck.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Check to see if the VM is stuck, first...
     if ($powerState eq 'pendingquestion') {
         # If so, try answering the question...
-        answerVM($class, %args);
+        $args{'session'} = answerVM($class, %args);
         # Refresh the power state.
-        $powerState = getStateVM($class, %args);
+        ($args{'session'}, $powerState) = getStateVM($class, %args);
     }
     
     if (($powerState eq 'poweredoff') ||
         ($powerState eq 'suspended')) {
         # The VM is already powered off or suspended.
         # We consider suspended VMs to already be 'off'.
-        return (1);
+        return $args{'session'};
     } elsif ($powerState eq 'poweredon') {
 
-        my $vm_view = _getViewVM(%args);
+        my $vm_view = undef;
+        ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
             $LOG->info("Stopping VM (" . $args{'name'} . ").");
 
@@ -1572,19 +1632,19 @@ sub stopVM {
                     sleep(2);
                 }
                 
-                $powerState = getStateVM($class, %args);
+                ($args{'session'}, $powerState) = getStateVM($class, %args);
                 # Check to see if the VM is stuck at all.
                 if ($powerState eq 'pendingquestion') {
                     # If so, try answering the question...
-                    answerVM($class, %args);
+                    $args{'session'} = answerVM($class, %args);
                     # Refresh the power state.
-                    $powerState = getStateVM($class, %args);
+                    ($args{'session'}, $powerState) = getStateVM($class, %args);
                 }
             };
             $vm_view->waitForTask($vm_view->PowerOffVM_Task(), $checkForStuckVM);
 
             # Okay, now make sure the VM is powered off.
-            $powerState = getStateVM($class, %args);
+            ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'poweredoff') {
                 $LOG->fatal("Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
@@ -1604,7 +1664,7 @@ sub stopVM {
         Carp::croak "Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -1619,7 +1679,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 =back
 
@@ -1633,20 +1693,21 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
     
     # Suspend the test VM.
-    my $result = HoneyClient::Manager::ESX->resetVM(session => $session, name => $testVM);
-    ok($result, "resetVM(name => '$testVM')") or diag("The resetVM() call failed.");
+    $session= HoneyClient::Manager::ESX->resetVM(session => $session, name => $testVM);
+    ok($session, "resetVM(name => '$testVM')") or diag("The resetVM() call failed.");
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # The test VM should be powered on.
     is($state, "poweredon", "resetVM(name => '$testVM')") or diag("The resetVM() call failed.");
     
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -1674,19 +1735,21 @@ sub resetVM {
     });
    
     # Only reset VMs that are powered on or stuck.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Check to see if the VM is stuck, first...
     if ($powerState eq 'pendingquestion') {
         # If so, try answering the question...
-        answerVM($class, %args);
+        $args{'session'} = answerVM($class, %args);
         # Refresh the power state.
-        $powerState = getStateVM($class, %args);
+        ($args{'session'}, $powerState) = getStateVM($class, %args);
     }
     
     if ($powerState eq 'poweredon') {
 
-        my $vm_view = _getViewVM(%args);
+        my $vm_view = undef;
+        ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
             $LOG->info("Resetting VM (" . $args{'name'} . ").");
 
@@ -1701,19 +1764,19 @@ sub resetVM {
                     sleep(2);
                 }
 
-                $powerState = getStateVM($class, %args);
+                ($args{'session'}, $powerState) = getStateVM($class, %args);
                 # Check to see if the VM is stuck at all.
                 if ($powerState eq 'pendingquestion') {
                     # If so, try answering the question...
-                    answerVM($class, %args);
+                    $args{'session'} = answerVM($class, %args);
                     # Refresh the power state.
-                    $powerState = getStateVM($class, %args);
+                    ($args{'session'}, $powerState) = getStateVM($class, %args);
                 }
             };
             $vm_view->waitForTask($vm_view->ResetVM_Task(), $checkForStuckVM);
 
             # Okay, now make sure the VM is powered on.
-            $powerState = getStateVM($class, %args);
+            ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'poweredon') {
                 $LOG->fatal("Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
@@ -1733,7 +1796,7 @@ sub resetVM {
         Carp::croak "Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -1748,7 +1811,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 =back
 
@@ -1762,23 +1825,24 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
     
     # Suspend the test VM.
-    my $result = HoneyClient::Manager::ESX->suspendVM(session => $session, name => $testVM);
-    ok($result, "suspendVM(name => '$testVM')") or diag("The suspendVM() call failed.");
+    $session = HoneyClient::Manager::ESX->suspendVM(session => $session, name => $testVM);
+    ok($session, "suspendVM(name => '$testVM')") or diag("The suspendVM() call failed.");
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # The test VM should be suspended.
     is($state, "suspended", "suspendVM(name => '$testVM')") or diag("The suspendVM() call failed.");
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -1806,24 +1870,26 @@ sub suspendVM {
     });
    
     # Only suspend VMs that are powered on or stuck.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Check to see if the VM is stuck, first...
     if ($powerState eq 'pendingquestion') {
         # If so, try answering the question...
-        answerVM($class, %args);
+        $args{'session'} = answerVM($class, %args);
         # Refresh the power state.
-        $powerState = getStateVM($class, %args);
+        ($args{'session'}, $powerState) = getStateVM($class, %args);
     }
     
     if (($powerState eq 'poweredoff') ||
         ($powerState eq 'suspended')) {
         # The VM is already powered off or suspended.
         # We consider powered off VMs to already be 'suspended'.
-        return (1);
+        return $args{'session'};
     } elsif ($powerState eq 'poweredon') {
 
-        my $vm_view = _getViewVM(%args);
+        my $vm_view = undef;
+        ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
             $LOG->info("Suspending VM (" . $args{'name'} . ").");
 
@@ -1838,19 +1904,19 @@ sub suspendVM {
                     sleep(2);
                 }
 
-                $powerState = getStateVM($class, %args);
+                ($args{'session'}, $powerState) = getStateVM($class, %args);
                 # Check to see if the VM is stuck at all.
                 if ($powerState eq 'pendingquestion') {
                     # If so, try answering the question...
-                    answerVM($class, %args);
+                    $args{'session'} = answerVM($class, %args);
                     # Refresh the power state.
-                    $powerState = getStateVM($class, %args);
+                    ($args{'session'}, $powerState) = getStateVM($class, %args);
                 }
             };
             $vm_view->waitForTask($vm_view->SuspendVM_Task(), $checkForStuckVM);
 
             # Okay, now make sure the VM is suspended.
-            $powerState = getStateVM($class, %args);
+            ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'suspended') {
                 $LOG->fatal("Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
@@ -1870,7 +1936,7 @@ sub suspendVM {
         Carp::croak "Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -1885,7 +1951,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 =back
 
@@ -1899,14 +1965,17 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
    
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
 
     # Destroy the clone VM. 
-    my $result = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
-    ok($result, "destroyVM(name => '$cloneVM')") or diag("The destroyVM() call failed.");
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    ok($session, "destroyVM(name => '$cloneVM')") or diag("The destroyVM() call failed.");
    
     # The clone VM should no longer be registered.
-    ok(!HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $cloneVM), "destroyVM(name => '$cloneVM')") or diag ("The destroyVM() call failed.");
+    my $isRegisteredVM = undef;
+    ($session, $isRegisteredVM) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $cloneVM);
+    ok(!$isRegisteredVM, "destroyVM(name => '$cloneVM')") or diag ("The destroyVM() call failed.");
  
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -1934,25 +2003,29 @@ sub destroyVM {
     });
 
     # Only destroy VMs that are powered off or suspended.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Check to see if the VM is on, first.
     if (($powerState ne 'suspended') ||
         ($powerState ne 'poweredoff')) {
         # If so, then power it off.
-        stopVM($class, %args);
+        $args{'session'} = stopVM($class, %args);
     }
 
     # Figure out if the VM is a quick clone.
-    if (isQuickCloneVM($class, %args)) {
+    my $isQuickCloneVM = undef;
+    ($args{'session'}, $isQuickCloneVM) = isQuickCloneVM($class, %args);
+    if ($isQuickCloneVM) {
         $LOG->info("Destroying VM (" . $args{'name'} . ").");
         _deleteFilesVM(%args);
-        return (1);
+        return $args{'session'};
     }
 
     # Okay, so this VM is not a quick clone; go ahead and destroy it
     # like normal.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
     eval {
         $LOG->info("Destroying VM (" . $args{'name'} . ").");
         # This call is asynchronous, since we never use this VM again after destroying it.
@@ -1966,7 +2039,7 @@ sub destroyVM {
         $LOG->fatal("Error destroying VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error destroying VM (" . $args{'name'} . "): " . $detail;
     }
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -1981,7 +2054,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: One of the following string constants:
+I<Output>: (The Vim session object, One of the following string constants:)
  poweredon
  poweredoff
  suspended
@@ -2000,7 +2073,8 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # The test VM should be off.
     is($state, "poweredoff", "getStateVM(name => '$testVM')") or diag("The getStateVM() call failed.");
@@ -2030,7 +2104,8 @@ sub getStateVM {
         Dumper(\%args);
     });
 
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
     my $state = "unknown";
 
     # Check to see if there is a pending question.
@@ -2043,7 +2118,7 @@ sub getStateVM {
         Carp::croak "Could not get execution state of VM (" . $args{'name'} . ").";
     }
 
-    return lc($state);
+    return ($args{'session'}, lc($state));
 }
 
 =pod
@@ -2058,7 +2133,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if the VM is a quick clone; false otherwise.
+I<Output>: (The Vim session object, True if the VM is a quick clone; false otherwise)
 
 =back
 
@@ -2072,23 +2147,25 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
    
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
 
     # Verify that the clone VM is a quick clone.
-    my $isQuickClone = HoneyClient::Manager::ESX->isQuickCloneVM(session => $session, name => $cloneVM);
-    ok($isQuickClone, "isQuickCloneVM(name => '$cloneVM')") or diag("The isQuickCloneVM() call failed.");
+    my $isQuickCloneVM = undef;
+    ($session, $isQuickCloneVM) = HoneyClient::Manager::ESX->isQuickCloneVM(session => $session, name => $cloneVM);
+    ok($isQuickCloneVM, "isQuickCloneVM(name => '$cloneVM')") or diag("The isQuickCloneVM() call failed.");
 
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
     
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -2115,7 +2192,8 @@ sub isQuickCloneVM {
         Dumper(\%args);
     });
 
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Helper function that searches all the backing files of each virtual
     # disk and determines if any of them are located outside the VM's main
@@ -2156,7 +2234,7 @@ sub isQuickCloneVM {
 
     # Check the current VM's configuration.
     if (_isBackingQuickClone($vm_view->config)) {
-        return (1);
+        return ($args{'session'}, 1);
     }
 
     # Helper function that searches all the snapshots of a VM and determines
@@ -2191,11 +2269,11 @@ sub isQuickCloneVM {
     if (defined($vm_view->snapshot) &&
         defined($vm_view->snapshot->rootSnapshotList) &&
         _findQuickCloneSnapshots($args{'session'}, $vm_view->snapshot->rootSnapshotList)) {
-        return (1);
+        return ($args{'session'}, 1);
     }
 
     # If we get to here, then the VM is not a quick clone.
-    return (0);
+    return ($args{'session'}, 0);
 }
 
 =pod
@@ -2210,7 +2288,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 I<Notes>: This function attempts to answer (sanely) most of the 
 normal questions that a VMware ESX Server usually asks
@@ -2246,14 +2324,14 @@ eval {
     );
 
     # Register the new VM.
-    HoneyClient::Manager::ESX->registerVM(session => $session, name => $newVM, config => $new_config);
+    $session = HoneyClient::Manager::ESX->registerVM(session => $session, name => $newVM, config => $new_config);
 
     # Start the new VM and indirectly test the answerVM() method.
-    my $result = HoneyClient::Manager::ESX->startVM(session => $session, name => $newVM);
-    ok($result, "answerVM(name => '$newVM')") or diag("The answerVM() call failed.");
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $newVM);
+    ok($session, "answerVM(name => '$newVM')") or diag("The answerVM() call failed.");
 
     # Destroy the new VM.
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $newVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $newVM);
     
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -2281,13 +2359,15 @@ sub answerVM {
     });
 
     # Make sure the VM is stuck.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'} , $powerState) = getStateVM($class, %args);
     if ($powerState ne 'pendingquestion') {
-        return (1);
+        return $args{'session'};
     }
     
     # Okay, get the pending question...
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
     my $question = $vm_view->runtime->question;
     my $question_text = $question->text;
     $question_text =~ s/\n/ /g;
@@ -2330,7 +2410,7 @@ sub answerVM {
     # Wait 2 seconds before return, so that the answer operation completes.
     sleep (2);
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -2345,7 +2425,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: The MAC address of the VM, if successful.  Returns undef otherwise.
+I<Output>: (The Vim session object, The MAC address of the VM, if successful.  Returns undef otherwise.)
 
 I<Notes>:
 This function will only return the MAC address of the VM's first 
@@ -2363,21 +2443,22 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # Wait until the test VM is on.
     while ($state ne 'poweredon') {
         sleep (1);
-        $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+        ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
     }
     
     # Get the MAC address of the test VM.
     my $mac_address = undef;
     for (my $counter = 0; $counter < 240; $counter++) {
-        $mac_address = HoneyClient::Manager::ESX->getMACaddrVM(session => $session, name => $testVM);
+        ($session, $mac_address) = HoneyClient::Manager::ESX->getMACaddrVM(session => $session, name => $testVM);
         if (defined($mac_address)) {
             last;
         } else {
@@ -2390,7 +2471,7 @@ eval {
     like($mac_address, "/[0-9a-f][0-9a-f]\:[0-9a-f][0-9a-f]\:[0-9a-f][0-9a-f]\:[0-9a-f][0-9a-f]\:[0-9a-f][0-9a-f]\:[0-9a-f][0-9a-f]/", "getMACaddrVM(name => '$testVM')") or diag("The getMACaddrVM() call failed.  Attempted to retrieve the MAC address of test VM ($testVM).");
 
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -2418,18 +2499,20 @@ sub getMACaddrVM {
     });
 
     # Check if the VM is powered on.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
     if ($powerState ne 'poweredon') {
         # VM is not powered on, so return undef.
-        return undef;
+        return ($args{'session'}, undef);
     }
 
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Check to see if VMware Tools is installed inside the VM.
     if (!defined($vm_view->guest->toolsVersion)) {
         # VMware Tools is not installed, so return undef.
-        return undef;
+        return ($args{'session'}, undef);
     }
 
     # Check if the MAC address exists and is defined.
@@ -2438,11 +2521,11 @@ sub getMACaddrVM {
         exists($vm_view->guest->net->[0]) &&
         exists($vm_view->guest->net->[0]->{'macAddress'}) &&
         defined($vm_view->guest->net->[0]->macAddress)) {
-        return $vm_view->guest->net->[0]->macAddress;
+        return ($args{'session'}, $vm_view->guest->net->[0]->macAddress);
     }
 
     # The address wasn't defined, so return undef.
-    return undef;
+    return ($args{'session'}, undef);
 }
 
 =pod
@@ -2457,7 +2540,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: The IP address of the VM, if successful.  Returns undef otherwise.
+I<Output>: (The Vim session object, The IP address of the VM, if successful.  Returns undef otherwise.)
 
 I<Notes>:
 This function will only return the IP address of the VM's first 
@@ -2475,21 +2558,22 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Get the power state of the test VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
 
     # Wait until the test VM is on.
     while ($state ne 'poweredon') {
         sleep (1);
-        $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
+        ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $testVM);
     }
     
     # Get the IP address of the test VM.
     my $ip_address = undef;
     for (my $counter = 0; $counter < 240; $counter++) {
-        $ip_address = HoneyClient::Manager::ESX->getIPaddrVM(session => $session, name => $testVM);
+        ($session, $ip_address) = HoneyClient::Manager::ESX->getIPaddrVM(session => $session, name => $testVM);
         if (defined($ip_address)) {
             last;
         } else {
@@ -2502,7 +2586,7 @@ eval {
     like($ip_address, "/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/", "getIPaddrVM(name => '$testVM')") or diag("The getIPaddrVM() call failed.  Attempted to retrieve the IP address of test VM ($testVM).");
 
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -2530,30 +2614,32 @@ sub getIPaddrVM {
     });
 
     # Check if the VM is powered on.
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
     if ($powerState ne 'poweredon') {
         # VM is not powered on, so return undef.
-        return undef;
+        return ($args{'session'}, undef);
     }
 
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Check to see if VMware Tools is installed inside the VM.
     if (!exists($vm_view->{'guest'}) ||
         !exists($vm_view->guest->{'toolsVersion'}) || 
         !defined($vm_view->guest->toolsVersion)) {
         # VMware Tools is not installed, so return undef.
-        return undef;
+        return ($args{'session'}, undef);
     }
 
     # Check if the IP address exists and is defined.
     if (exists($vm_view->guest->{'ipAddress'}) &&
         defined($vm_view->guest->ipAddress)) {
-        return $vm_view->guest->ipAddress;
+        return ($args{'session'}, $vm_view->guest->ipAddress);
     }
 
     # The address wasn't defined, so return undef.
-    return undef;
+    return ($args{'session'}, undef);
 }
 
 =pod
@@ -2568,8 +2654,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: The path of the VM's configuration file, if successful. 
-Returns undef otherwise.
+I<Output>: (The Vim session object, The path of the VM's configuration file, if successful. Returns undef otherwise.)
 
 I<Notes>:
 The format of the output is:
@@ -2587,7 +2672,8 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Get the VM's configuration file.    
-    my $config = HoneyClient::Manager::ESX->getConfigVM(session => $session, name => $testVM);
+    my $config = undef;
+    ($session, $config) = HoneyClient::Manager::ESX->getConfigVM(session => $session, name => $testVM);
     ok($config, "getConfigVM(name => '$testVM')") or diag("The getConfigVM() call failed.");
 
     # Destroy the session.
@@ -2615,16 +2701,17 @@ sub getConfigVM {
         Dumper(\%args);
     });
 
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Check if the VM configuration file exists and is defined.
     if (exists($vm_view->config->files->{'vmPathName'}) &&
         defined($vm_view->config->files->vmPathName)) {
-        return $vm_view->config->files->vmPathName;
+        return ($args{'session'}, $vm_view->config->files->vmPathName);
     }
 
     # The configuration file wasn't defined, so return undef.
-    return undef;
+    return ($args{'session'}, undef);
 }
 
 =pod
@@ -2639,7 +2726,7 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: True if registered, false otherwise.
+I<Output>: (The Vim session object, True if registered, false otherwise.)
 
 =back
 
@@ -2653,25 +2740,27 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Check to see if the test VM is registered (should return true).
-    my $result = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
+    my $result = undef;
+    ($session, $result) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
     
     # The test VM should be registered.
     ok($result, "isRegisteredVM(name => '$testVM')") or diag("The isRegisteredVM() call failed.");
 
     # Unregister the test VM.
-    my $config = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
+    my $config = undef;
+    ($session, $config) = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
     
     # Check to see if the test VM is registered (should return false).
-    $result = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
+    ($session, $result) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
 
     # The test VM should not be registered.
     ok(!$result, "isRegisteredVM(name => '$testVM')") or diag("The isRegisteredVM() call failed.");
     
     # Reregister the test VM.
-    HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
+    $session = HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
     
     # Check to see if the test VM is registered (should return true).
-    $result = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
+    ($session, $result) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
     
     # The test VM should be registered.
     ok($result, "isRegisteredVM(name => '$testVM')") or diag("The isRegisteredVM() call failed.");
@@ -2704,11 +2793,12 @@ sub isRegisteredVM {
     # We try to retrieve a generic object, since it's possible
     # we may not find a view object.    
     $args{'type'} = "VirtualMachine";
-    my $vm_view = _getViewObject(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewObject(%args);
 
     # If there is a VM view object corresponding to the name provided,
     # then the VM is registered.
-    return defined($vm_view) ? 1 : 0;
+    return ($args{'session'}, defined($vm_view) ? 1 : 0);
 }
 
 =pod
@@ -2725,8 +2815,8 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: Free space (in bytes) of the VM's backing datastore 
-if successful; croaks otherwise.
+I<Output>: (The Vim session object, Free space (in bytes) of the VM's backing datastore 
+if successful; croaks otherwise.)
 
 I<Notes>:
 If the specified VM has virtual disks spread across multiple datastores,
@@ -2745,7 +2835,8 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Check the size of the backing datastore.
-    my $result = HoneyClient::Manager::ESX->getDatastoreSpaceAvailableESX(session => $session, name => $testVM);
+    my $result = undef;
+    ($session, $result) = HoneyClient::Manager::ESX->getDatastoreSpaceAvailableESX(session => $session, name => $testVM);
     
     # The size returned should be a number.
     like($result, "/[0-9]+/", "getDatastoreSpaceAvailableESX(name => '$testVM')") or diag("The getDatastoreSpaceAvailableESX() call failed.");
@@ -2776,7 +2867,8 @@ sub getDatastoreSpaceAvailableESX {
     });
 
     # Sanity check all arguments.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Get the name of the datastore that holds the source VM
     # XXX: We assume the source VM is located on only one datastore.
@@ -2788,7 +2880,7 @@ sub getDatastoreSpaceAvailableESX {
     }
 
     # Return the number of bytes free.
-    return $datastore_view->summary->freeSpace;
+    return ($args{'session'}, $datastore_view->summary->freeSpace);
 }
 
 =pod
@@ -2799,7 +2891,7 @@ sub getDatastoreSpaceAvailableESX {
 
 Returns the fully qualified hostname of the connected VMware ESX Server.
 
-I<Output>: The VMware ESX Server's hostname if successful; croaks otherwise.
+I<Output>: (The Vim session object, The VMware ESX Server's hostname if successful; croaks otherwise.)
 
 =back
 
@@ -2810,7 +2902,8 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Check the size of the backing datastore.
-    my $result = HoneyClient::Manager::ESX->getHostnameESX(session => $session);
+    my $result = undef;
+    ($session, $result) = HoneyClient::Manager::ESX->getHostnameESX(session => $session);
     
     # The result should be a string.
     ok($result, "getHostnameESX()") or diag("The getHostnameESX() call failed.");
@@ -2842,7 +2935,8 @@ sub getHostnameESX {
 
     # Get the host system view object.
     $args{'type'} = "HostSystem";
-    my $host_system_view = _getViewObject(%args);
+    my $host_system_view = undef;
+    ($args{'session'}, $host_system_view) = _getViewObject(%args);
 
     if (!defined($host_system_view)) {
         $LOG->error("Unable to retrieve hostname of VMware ESX Server.");
@@ -2850,7 +2944,7 @@ sub getHostnameESX {
     }
 
     # Return the hostname of the VMware ESX Server.
-    return $host_system_view->summary->config->name;
+    return ($args{'session'}, $host_system_view->summary->config->name);
 }
 
 =pod
@@ -2862,8 +2956,8 @@ sub getHostnameESX {
 Returns the IP address of the first management network interface (type: VMKernel) of
 the VMware ESX Server.
 
-I<Output>: The VMware ESX Server's management IP address if successful;
-croaks otherwise.
+I<Output>: (The Vim session object, The VMware ESX Server's management IP address if successful;
+croaks otherwise.)
 
 =back
 
@@ -2874,7 +2968,8 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Check the size of the backing datastore.
-    my $result = HoneyClient::Manager::ESX->getIPaddrESX(session => $session);
+    my $result = undef;
+    ($session, $result) = HoneyClient::Manager::ESX->getIPaddrESX(session => $session);
     
     # The result should be a real IP address.
     like($result, "/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/", "getIPaddrESX()") or diag("The getIPaddrESX() call failed.");
@@ -2906,7 +3001,8 @@ sub getIPaddrESX {
 
     # Get the host system view object.
     $args{'type'} = "HostSystem";
-    my $host_system_view = _getViewObject(%args);
+    my $host_system_view = undef;
+    ($args{'session'}, $host_system_view) = _getViewObject(%args);
 
     if (!defined($host_system_view) ||
         !exists($host_system_view->config->network->vnic->[0])) {
@@ -2915,7 +3011,7 @@ sub getIPaddrESX {
     }
 
     # Return the IP address of the VMware ESX Server.
-    return $host_system_view->config->network->vnic->[0]->spec->ip->ipAddress;
+    return ($args{'session'}, $host_system_view->config->network->vnic->[0]->spec->ip->ipAddress);
 }
 
 =pod
@@ -2932,7 +3028,7 @@ I<Inputs>:
  B<$config> is the relative path of the VM's configuration file (.vmx),
 as it sits on any of the host VMware ESX Server's datastores.
 
-I<Output>: True if successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 I<Notes>:
 The format of $config is:
@@ -2950,16 +3046,18 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Unregister the test VM.
-    my $config = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
+    my $config = undef;
+    ($session, $config) = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
     
     # Reregister the test VM.
-    my $result = HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
+    $session = HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
     
     # The test VM should be registered.
-    ok($result, "registerVM(name => '$testVM', config => '$config')") or diag("The registerVM() call failed.");
+    ok($session, "registerVM(name => '$testVM', config => '$config')") or diag("The registerVM() call failed.");
     
     # Check to see if the test VM is registered (should return true).
-    $result = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
+    my $result = undef;
+    ($session, $result) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $testVM);
     
     # The test VM should be registered.
     ok($result, "registerVM(name => '$testVM', config => '$config')") or diag("The registerVM() call failed.");
@@ -3005,7 +3103,8 @@ sub registerVM {
 
     # Get the datacenter view.
     $args{'type'} = "Datacenter";
-    my $datacenter_view = _getViewObject(%args);
+    my $datacenter_view = undef;
+    ($args{'session'}, $datacenter_view) = _getViewObject(%args);
     if (!defined($datacenter_view)) {
         $LOG->fatal("Error registering VM (" . $args{'name'} . "): No datacenter found.");
         Carp::croak "Error registering VM (" . $args{'name'} . "): No datacenter found.";
@@ -3053,7 +3152,7 @@ sub registerVM {
         Carp::croak "Error registering VM (" . $args{'name'} . "): " . $detail;
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -3068,8 +3167,8 @@ I<Inputs>:
  B<$session> is the Vim current session object.
  B<$name> is the name of the virtual machine.
 
-I<Output>: Relative path of the configuration file if successful,
-croaks otherwise.
+I<Output>: (The Vim session object, Relative path of the configuration file if successful,
+croaks otherwise.)
 
 I<Notes>:
 The format of the output is:
@@ -3087,13 +3186,14 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Unregister the test VM.
-    my $config = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
+    my $config = undef;
+    ($session, $config) = HoneyClient::Manager::ESX->unregisterVM(session => $session, name => $testVM);
     
     # The test VM should not be registered.
     ok($config, "unregisterVM(name => '$testVM')") or diag("The unregisterVM() call failed.");
     
     # Reregister the test VM.
-    HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
+    $session = HoneyClient::Manager::ESX->registerVM(session => $session, name => $testVM, config => $config);
     
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -3123,12 +3223,13 @@ sub unregisterVM {
     # We try to retrieve a generic object, since it's possible
     # we may not find a view object.    
     $args{'type'} = "VirtualMachine";
-    my $vm_view = _getViewObject(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewObject(%args);
 
     # If we weren't able to find the VM view, then the VM specified
     # is already unregistered.  Return true.
     if (!defined($vm_view)) {
-        return (1);
+        return ($args{'session'}, undef);
     }
 
     # Unregister the VM.
@@ -3145,7 +3246,7 @@ sub unregisterVM {
         Carp::croak "Error unregistering VM (" . $args{'name'} . "): " . $detail;
     }
 
-    return $vm_view->config->files->vmPathName;
+    return ($args{'session'}, $vm_view->config->files->vmPathName);
 }
 
 
@@ -3170,7 +3271,7 @@ that function should ignore any collisions found between
 the specified $snapshot_name and any other VM names as well
 as between any other snapshot names on any VMs.
 
-I<Output>: The name of the snapshot, if successful; croaks otherwise.
+I<Output>: (The Vim session object, The name of the snapshot, if successful; croaks otherwise.)
 
 I<Notes>:
 If B<$snapshot_name> is not specified, then the snapshot name
@@ -3195,14 +3296,16 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
    
     # Snapshot the clone VM.
-    my $snapshot_name = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
+    my $snapshot_name = undef;
+    ($session, $snapshot_name) = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
     ok($snapshot_name, "snapshotVM(name => '$cloneVM')") or diag("The snapshotVM() call failed.");
 
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -3230,10 +3333,12 @@ sub snapshotVM {
     });
 
     # Sanity check all arguments.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Figure out if the snapshot name was specified.
     $args{'target_name'} = $args{'name'};
+    my $isRegisteredVM = undef;
     if (!exists($args{'snapshot_name'}) ||
         !defined($args{'snapshot_name'})) {
         # If it wasn't specified, then generate a new snapshot name,
@@ -3241,7 +3346,8 @@ sub snapshotVM {
         do {
             $args{'snapshot_name'} = _generateVMID();
             $args{'name'} = $args{'snapshot_name'};
-        } while (isRegisteredVM($class, %args) ||
+            ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        } while ($isRegisteredVM ||
                  # Make sure our newly generated name doesn't conflict
                  # with any existing snapshot names.
                  defined(_findSnapshot($args{'name'}, _getViewVMSnapshotTrees(%args))));
@@ -3250,7 +3356,8 @@ sub snapshotVM {
              !$args{'ignore_collisions'}) {
         # The destination was specified, so make sure that name does not already exist.
         $args{'name'} = $args{'snapshot_name'};
-        if (isRegisteredVM($class, %args)) {
+        ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        if ($isRegisteredVM) {
             $LOG->fatal("Error creating snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'snapshot_name'} . ") already exists.");
             Carp::croak "Error creating snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'snapshot_name'} . ") already exists.";
         }
@@ -3280,7 +3387,7 @@ sub snapshotVM {
         Carp::croak "Error creating snapshot on VM (" . $args{'name'} . "): " . $detail;
     }
 
-    return $args{'snapshot_name'};
+    return ($args{'session'}, $args{'snapshot_name'});
 }
 
 =pod
@@ -3296,7 +3403,7 @@ I<Inputs>:
  B<$name> is the name of the virtual machine.
  B<$snapshot_name> is the name of the snapshot to which to revert to.
 
-I<Output>: True if successful, croaks otherwise.
+I<Output>: The Vim session object if successful, croaks otherwise.
 
 I<Notes>:
 If the VM has B<multiple snapshots of the same name>, then this function will
@@ -3314,20 +3421,22 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->fullCloneVM(session => $session, src_name => $testVM);
    
     # Snapshot the clone VM.
-    my $snapshot_name = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
+    my $snapshot_name = undef;
+    ($session, $snapshot_name) = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
 
     # Wait 2 seconds.
     sleep (2);
 
     # Revert the clone VM.
-    my $result = HoneyClient::Manager::ESX->revertVM(session => $session, name => $cloneVM, snapshot_name => $snapshot_name);
-    ok($result, "revertVM(name => '$cloneVM', snapshot_name => '$snapshot_name')") or diag("The revertVM() call failed.");
+    $session = HoneyClient::Manager::ESX->revertVM(session => $session, name => $cloneVM, snapshot_name => $snapshot_name);
+    ok($session, "revertVM(name => '$cloneVM', snapshot_name => '$snapshot_name')") or diag("The revertVM() call failed.");
 
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -3355,7 +3464,8 @@ sub revertVM {
     });
 
     # Sanity check all arguments.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Figure out if the snapshot name was specified.
     if (!exists($args{'snapshot_name'}) ||
@@ -3393,7 +3503,7 @@ sub revertVM {
         Carp::croak "Error reverting VM (" . $args{'name'} . "): " . $detail;
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -3416,7 +3526,7 @@ that function should ignore any collisions found between
 the specified $new_snapshot_name and any other VM names as well
 as between any other snapshot names on any VMs.
 
-I<Output>: The new name of this snapshot, if successful; croaks otherwise.
+I<Output>: (The Vim session object, The new name of this snapshot, if successful; croaks otherwise.)
 
 I<Notes>:
 If the VM has B<multiple snapshots of the same name>, then this function will
@@ -3444,20 +3554,23 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
    
     # Snapshot the clone VM.
-    my $snapshot_name = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
+    my $snapshot_name = undef;
+    ($session, $snapshot_name) = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
 
     # Wait 2 seconds.
     sleep (2);
 
     # Rename this snapshot on the clone VM.
-    my $result = HoneyClient::Manager::ESX->renameSnapshotVM(session => $session, name => $cloneVM, old_snapshot_name => $snapshot_name);
+    my $result = undef;
+    ($session, $result) = HoneyClient::Manager::ESX->renameSnapshotVM(session => $session, name => $cloneVM, old_snapshot_name => $snapshot_name);
     ok($result, "renameSnapshotVM(name => '$cloneVM', old_snapshot_name => '$snapshot_name')") or diag("The renameSnapshotVM() call failed.");
 
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -3485,7 +3598,8 @@ sub renameSnapshotVM {
     });
 
     # Sanity check all arguments.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Figure out if the old snapshot name was specified.
     if (!exists($args{'old_snapshot_name'}) ||
@@ -3497,6 +3611,7 @@ sub renameSnapshotVM {
 
     # Figure out if the new_snapshot_name was specified.
     $args{'target_name'} = $args{'name'};
+    my $isRegisteredVM = undef;
     if (!exists($args{'new_snapshot_name'}) ||
         !defined($args{'new_snapshot_name'})) {
         # If it wasn't specified, then generate a new snapshot name,
@@ -3504,7 +3619,8 @@ sub renameSnapshotVM {
         do {
             $args{'new_snapshot_name'} = _generateVMID();
             $args{'name'} = $args{'new_snapshot_name'};
-        } while (isRegisteredVM($class, %args) ||
+            ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        } while ($isRegisteredVM ||
                  # Make sure our newly generated name doesn't conflict
                  # with any existing snapshot names.
                  defined(_findSnapshot($args{'name'}, _getViewVMSnapshotTrees(%args))));
@@ -3513,7 +3629,8 @@ sub renameSnapshotVM {
              !$args{'ignore_collisions'}) {
         # The destination was specified, so make sure that name does not already exist.
         $args{'name'} = $args{'new_snapshot_name'};
-        if (isRegisteredVM($class, %args)) {
+        ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        if ($isRegisteredVM) {
             $LOG->fatal("Error renaming snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'new_snapshot_name'} . ") already exists.");
             Carp::croak "Error renaming snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'new_snapshot_name'} . ") already exists.";
         }
@@ -3561,7 +3678,7 @@ sub renameSnapshotVM {
         Carp::croak "Error renaming snapshot on VM (" . $args{'name'} . "): " . $detail;
     }
 
-    return $args{'new_snapshot_name'};
+    return ($args{'session'}, $args{'new_snapshot_name'});
 }
 
 =pod
@@ -3579,7 +3696,7 @@ I<Inputs>:
  B<$remove_all_children> is an (optional) argument, specifying that all
 child snapshots be removed as well.
 
-I<Output>: True if successful; croaks otherwise.
+I<Output>: The Vim session object if successful; croaks otherwise.
 
 I<Notes>:
 If the VM has B<multiple snapshots of the same name>, then this function will
@@ -3600,20 +3717,22 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
    
     # Snapshot the clone VM.
-    my $snapshot_name = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
+    my $snapshot_name = undef;
+    ($session, $snapshot_name) = HoneyClient::Manager::ESX->snapshotVM(session => $session, name => $cloneVM);
 
     # Wait 2 seconds.
     sleep (2);
 
     # Remove this snapshot on the clone VM.
-    my $result = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $cloneVM, snapshot_name => $snapshot_name);
-    ok($result, "removeSnapshotVM(name => '$cloneVM', snapshot_name => '$snapshot_name')") or diag("The removeSnapshotVM() call failed.");
+    $session = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $cloneVM, snapshot_name => $snapshot_name);
+    ok($session, "removeSnapshotVM(name => '$cloneVM', snapshot_name => '$snapshot_name')") or diag("The removeSnapshotVM() call failed.");
 
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -3641,7 +3760,8 @@ sub removeSnapshotVM {
     });
 
     # Sanity check all arguments.
-    my $vm_view = _getViewVM(%args);
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
 
     # Figure out if the snapshot name was specified.
     if (!exists($args{'snapshot_name'}) ||
@@ -3687,7 +3807,7 @@ sub removeSnapshotVM {
         Carp::croak "Error removing snapshot on VM (" . $args{'name'} . "): " . $detail;
     }
 
-    return (1);
+    return $args{'session'};
 }
 
 =pod
@@ -3704,7 +3824,7 @@ I<Inputs>:
  B<$dst_name> is an optional argument, specifying the
 name of the cloned VM.
 
-I<Output>: The name of the cloned VM, if successful; croaks otherwise.
+I<Output>: (The Vim session object, The name of the cloned VM, if successful; croaks otherwise.)
 
 I<Notes>:
 The source VM must not have any snapshots; otherwise this
@@ -3737,30 +3857,33 @@ eval {
     my $session = HoneyClient::Manager::ESX->login();
    
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
 
     # Clone the test VM.
-    my $cloneVM = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
+    my $cloneVM = undef;
+    ($session, $cloneVM) = HoneyClient::Manager::ESX->quickCloneVM(session => $session, src_name => $testVM);
     ok($cloneVM, "quickCloneVM(src_name => '$testVM')") or diag("The quickCloneVM() call failed.");
 
     # Verify that the clone VM is a quick clone.
-    my $isQuickClone = HoneyClient::Manager::ESX->isQuickCloneVM(session => $session, name => $cloneVM);
+    my $isQuickClone = undef;
+    ($session, $isQuickClone) = HoneyClient::Manager::ESX->isQuickCloneVM(session => $session, name => $cloneVM);
     ok($isQuickClone, "quickCloneVM(src_name => '$testVM')") or diag("The quickCloneVM() call failed.");
 
     # Get the power state of the clone VM.
-    my $state = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $cloneVM);
+    my $state = undef;
+    ($session, $state) = HoneyClient::Manager::ESX->getStateVM(session => $session, name => $cloneVM);
 
     # The clone VM should be powered on.
     is($state, "poweredon", "quickCloneVM(name => '$testVM')") or diag("The quickCloneVM() call failed.");
    
     # Destroy the clone VM. 
-    HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
+    $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     
     # Start the test VM.
-    HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
     
     # Stop the test VM.
-    HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
+    $session = HoneyClient::Manager::ESX->stopVM(session => $session, name => $testVM);
 
     # Destroy the session.
     HoneyClient::Manager::ESX->logout(session => $session);
@@ -3796,6 +3919,7 @@ sub quickCloneVM {
     }
 
     # Figure out if the destination was specified.
+    my $isRegisteredVM = undef;
     if (!exists($args{'dst_name'}) ||
         !defined($args{'dst_name'})) {
         # If it wasn't specified, then generate a new destination VM name,
@@ -3803,14 +3927,16 @@ sub quickCloneVM {
         do {
             $args{'dst_name'} = _generateVMID();
             $args{'name'} = $args{'dst_name'};
-        } while (isRegisteredVM($class, %args) ||
+            ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        } while ($isRegisteredVM ||
                  # Make sure our newly generated name doesn't conflict
                  # with any existing snapshot names.
                  defined(_findSnapshot($args{'name'}, _getViewVMSnapshotTrees(%args))));
     } else {
         # The destination was specified, so make sure that name does not already exist.
         $args{'name'} = $args{'dst_name'};
-        if (isRegisteredVM($class, %args)) {
+        ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
+        if ($isRegisteredVM) {
             $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.";
         }
@@ -3822,17 +3948,18 @@ sub quickCloneVM {
 
     # Check to make sure source VM is either off or suspended.
     $args{'name'} = $args{'src_name'};
-    my $powerState = getStateVM($class, %args);
+    my $powerState = undef;
+    ($args{'session'}, $powerState) = getStateVM($class, %args);
 
     # Only clone source VMs that are powered off or suspended.
     if (($powerState ne 'poweredoff') &&
         ($powerState ne 'suspended')) {
 
         # If the VM is not powered off, then try suspending it.
-        suspendVM($class, %args);
+        $args{'session'} = suspendVM($class, %args);
 
         # Refresh the power state.
-        $powerState = getStateVM($class, %args);
+        ($args{'session'}, $powerState) = getStateVM($class, %args);
 
         # Check of the source VM is powered off or suspended.
         if (($powerState ne 'poweredoff') &&
@@ -3844,7 +3971,8 @@ sub quickCloneVM {
     }
 
     # Make sure the source VM has no snapshots.
-    my $src_vm_view = _getViewVM(%args);
+    my $src_vm_view = undef;
+    ($args{'session'}, $src_vm_view) = _getViewVM(%args);
     if (defined($src_vm_view->snapshot)) {
         $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM has snapshots - delete all snapshots and try again.");
         Carp::croak "Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM has snapshots - delete all snapshots and try again.";
@@ -3876,10 +4004,11 @@ sub quickCloneVM {
 
     # Register clone VM.
     $args{'name'} = $args{'dst_name'};
-    registerVM($class, %args);
+    $args{'session'} = registerVM($class, %args);
 
     # Reconfigure the clone VM's virtual disk paths, so that they all point to absolute directories of the source VM.
-    my $dst_vm_view = _getViewVM(%args);
+    my $dst_vm_view = undef;
+    ($args{'session'}, $dst_vm_view) = _getViewVM(%args);
 
     # Iterate through each virtual disk associated with the source VM and
     # update the corresponding virtual disk on the destination VM.
@@ -3945,20 +4074,21 @@ sub quickCloneVM {
     $args{'snapshot_name'} = getVar(name => "default_quick_clone_snapshot_name");
     $args{'snapshot_description'} = getVar(name => "default_quick_clone_snapshot_description");
     $args{'ignore_collisions'} = 1;
-    snapshotVM($class, %args);
+    my $snapshot_name = undef;
+    ($args{'session'}, $snapshot_name) = snapshotVM($class, %args);
 
     # Power on clone VM.
-    startVM($class, %args);
+    $args{'session'} = startVM($class, %args);
 
     # If the Master VM was suspended, then this clone
     # will awake from a suspended state.  We'll still
     # need to issue a full reboot, in order for the
     # clone to get assigned a new network MAC address.
     if ($powerState eq 'suspended') {
-        resetVM($class, %args);
+        $args{'session'} = resetVM($class, %args);
     }
 
-    return $args{'dst_name'};
+    return ($args{'session'}, $args{'dst_name'});
 }
 
 1;
