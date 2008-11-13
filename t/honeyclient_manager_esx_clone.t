@@ -175,7 +175,7 @@ eval {
     
         # Destroy the clone VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
@@ -234,7 +234,7 @@ eval {
 
         # Now, destroy the backing cloned VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
@@ -290,7 +290,7 @@ eval {
 
         # Now, destroy the backing cloned VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
@@ -337,7 +337,7 @@ eval {
 
         # Now, destroy the backing cloned VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };

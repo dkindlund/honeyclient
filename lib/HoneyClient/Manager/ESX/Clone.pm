@@ -581,6 +581,7 @@ sub DESTROY {
             $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
             $self->_changeStatus(status => "error");
         } else {
+            $self->{'_vm_session'} = $som;
             $self->_changeStatus(status => "suspended");
         }
 
@@ -691,7 +692,7 @@ sub _init {
         # and initialize it completely.
 
         $LOG->info("Thread ID (" . threads->tid() . "): Quick cloning master VM (" . $self->{'master_vm_name'} . ").");
-        $ret = HoneyClient::Manager::ESX->quickCloneVM(session => $self->{'_vm_session'}, src_name => $self->{'master_vm_name'});
+        ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->quickCloneVM(session => $self->{'_vm_session'}, src_name => $self->{'master_vm_name'});
         if (!defined($ret)) {
             $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").");
             Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").";
@@ -704,7 +705,7 @@ sub _init {
         $LOG->debug("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is registered.");
         $ret = undef;
         while (!defined($ret) or !$ret) {
-            $ret = HoneyClient::Manager::ESX->isRegisteredVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->isRegisteredVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
             # If the VM isn't registered yet, wait before trying again.
             if (!defined($ret) or !$ret) {
@@ -713,14 +714,14 @@ sub _init {
         }
         # Now, get the VM's configuration.
         $LOG->debug("Thread ID (" . threads->tid() . "): Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-        $self->{'config'} = HoneyClient::Manager::ESX->getConfigVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+        ($self->{'_vm_session'}, $self->{'config'}) = HoneyClient::Manager::ESX->getConfigVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         $self->_changeStatus(status => "registered");
 
         # Once registered, check if the VM is ON yet.
         $LOG->debug("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
         $ret = undef;
         while (!defined($ret) or ($ret ne 'poweredon')) {
-            $ret = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
             # If the VM isn't ON yet, wait before trying again.
             if (!defined($ret) or ($ret ne 'poweredon')) {
@@ -737,8 +738,8 @@ sub _init {
         while (!defined($self->{'ip_address'}) or 
                !defined($self->{'mac_address'}) or
                !defined($ret)) {
-            $self->{'mac_address'} = HoneyClient::Manager::ESX->getMACaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
-            $self->{'ip_address'} = HoneyClient::Manager::ESX->getIPaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            ($self->{'_vm_session'}, $self->{'mac_address'}) = HoneyClient::Manager::ESX->getMACaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            ($self->{'_vm_session'}, $self->{'ip_address'}) = HoneyClient::Manager::ESX->getIPaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
             # If the VM isn't booted yet, wait before trying again.
             if (!defined($self->{'ip_address'}) or !defined($self->{'mac_address'})) {
@@ -778,9 +779,9 @@ sub _init {
 
                 # Generate a new Operational snapshot.
                 $LOG->info("Thread ID (" . threads->tid() . "): Creating a new operational snapshot of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-                $self->{'name'} = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
-                                                                        name                 => $self->{'quick_clone_vm_name'},
-                                                                        snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
+                ($self->{'_vm_session'}, $self->{'name'}) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
+                                                                                                  name                 => $self->{'quick_clone_vm_name'},
+                                                                                                  snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
                 $LOG->info("Thread ID (" . threads->tid() . "): Created operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
 
                 # Register the cloned VM with the Drone database.
@@ -794,13 +795,17 @@ sub _init {
                 #      for cleanup purposes.
 
                 # Construct the 'Client' object.
+                my $hostname = undef;
+                ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
+                my $ip = undef;
+                ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
                 my $client = {
                     cid => $self->{'name'},
                     status => $self->{'status'},
                     host => {
                         org => getVar(name => "organization"),
-                        hostname => HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'}),
-                        ip => HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'}),
+                        hostname => $hostname,
+                        ip => $ip,
                     },
                     os => $ret,
                     start => $dt->ymd('-').'T'.$dt->hms(':'),
@@ -828,12 +833,13 @@ sub _init {
             $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.";
         }
+        $self->{'_vm_session'} = $ret;
 
         # Rename operational snapshot to reflect a new VMID.
-        $self->{'name'} = HoneyClient::Manager::ESX->renameSnapshotVM(session => $self->{'_vm_session'},
-                                                                      name    => $self->{'quick_clone_vm_name'},
-                                                                      old_snapshot_name        => $self->{'name'},
-                                                                      new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
+        ($self->{'_vm_session'}, $self->{'name'}) = HoneyClient::Manager::ESX->renameSnapshotVM(session => $self->{'_vm_session'},
+                                                                                                name    => $self->{'quick_clone_vm_name'},
+                                                                                                old_snapshot_name        => $self->{'name'},
+                                                                                                new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
         if (!defined($self->{'name'})) {
             $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.";
@@ -848,6 +854,7 @@ sub _init {
 #            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . ").");
 #            Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . ").";
 #        }
+#        $self->{'_vm_session'} = $ret;
         $self->_changeStatus(status => "running");
 
         $ret = undef;
@@ -885,13 +892,17 @@ sub _init {
                 #      for cleanup purposes.
 
                 # Construct the 'Client' object.
+                my $hostname = undef;
+                ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
+                my $ip = undef;
+                ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
                 my $client = {
                     cid => $self->{'name'},
                     status => $self->{'status'},
                     host => {
                         org => getVar(name => "organization"),
-                        hostname => HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'}),
-                        ip => HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'}),
+                        hostname => $hostname,
+                        ip => $ip,
                     },
                     os => $ret,
                     start => $dt->ymd('-').'T'.$dt->hms(':'),
@@ -1145,7 +1156,8 @@ sub _checkSpaceAvailable {
     # Extract arguments.
     my ($self, %args) = @_;
 
-    my $datastore_free = HoneyClient::Manager::ESX->getDatastoreSpaceAvailableESX(session => $self->{'_vm_session'}, name => $self->{'master_vm_name'});
+    my $datastore_free = undef;
+    ($self->{'_vm_session'}, $datastore_free) = HoneyClient::Manager::ESX->getDatastoreSpaceAvailableESX(session => $self->{'_vm_session'}, name => $self->{'master_vm_name'});
 
     my $min_space_free = getVar(name      => "min_space_free",
                                 namespace => "HoneyClient::Manager::ESX");
@@ -1233,7 +1245,7 @@ eval {
     
         # Destroy the clone VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
@@ -1460,7 +1472,7 @@ eval {
 
         # Now, destroy the backing cloned VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
@@ -1516,11 +1528,12 @@ sub suspend {
     # Snapshot the VM.
     if ($args{'perform_snapshot'}) {
         $LOG->info("Thread ID (" . threads->tid() . "): Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-        my $som = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
-                                                     name                 => $self->{'quick_clone_vm_name'},
-                                                     snapshot_name        => $self->{'name'},
-                                                     snapshot_description => getVar(name => "compromised_quick_clone_snapshot_description"),
-                                                     ignore_collisions    => 1);
+        my $som = undef;
+        ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
+                                                                               name                 => $self->{'quick_clone_vm_name'},
+                                                                               snapshot_name        => $self->{'name'},
+                                                                               snapshot_description => getVar(name => "compromised_quick_clone_snapshot_description"),
+                                                                               ignore_collisions    => 1);
 
         if (!defined($som)) {
             $LOG->error("Thread ID (" . threads->tid() . "): Unable to save operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
@@ -1539,6 +1552,7 @@ sub suspend {
     #    $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
     #    $self->_changeStatus(status => "error");
     #} else {
+    #    $self->{'_vm_session'} = $som;
     #    $self->_changeStatus(status => "suspended");
     #}
 
@@ -1607,7 +1621,7 @@ eval {
 
         # Now, destroy the backing cloned VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
@@ -1647,12 +1661,13 @@ sub destroy {
 
     # Remove the clone VM's underlying snapshot.
     $LOG->info("Thread ID (" . threads->tid() . "): Destroying snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-    my $som = HoneyClient::Manager::ESX->renameSnapshotVM(session                  => $self->{'_vm_session'},
-                                                          name                     => $self->{'quick_clone_vm_name'},
-                                                          old_snapshot_name        => $self->{'name'},
-                                                          new_snapshot_name        => "Deleted Snapshot",
-                                                          new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"),
-                                                          ignore_collisions        => 1);
+    my $som = undef;
+    ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->renameSnapshotVM(session                  => $self->{'_vm_session'},
+                                                                                 name                     => $self->{'quick_clone_vm_name'},
+                                                                                 old_snapshot_name        => $self->{'name'},
+                                                                                 new_snapshot_name        => "Deleted Snapshot",
+                                                                                 new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"),
+                                                                                 ignore_collisions        => 1);
 
     if (!defined($som)) {
         $LOG->error("Thread ID (" . threads->tid() . "): Unable to remove snapshot (" . $self->{'name'} .  ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
@@ -1735,7 +1750,7 @@ eval {
 
         # Now, destroy the backing cloned VM.
         my $session = HoneyClient::Manager::ESX->login();
-        HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
+        $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
 };
