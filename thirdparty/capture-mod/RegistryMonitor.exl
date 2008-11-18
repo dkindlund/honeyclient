@@ -419,3 +419,6 @@
 
 # Benign DirectX Activity
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Multimedia\\msacm.msgsm610.*
+
+# VMware ESX - VM Resume From Suspend Auto IP Renewal Script
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMip\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
