@@ -202,6 +202,11 @@ BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClien
 require_ok('HoneyClient::Manager::VM::Clone');
 use HoneyClient::Manager::VM::Clone;
 
+# Make sure HonyClient::Manager::ESX::Clone loads.
+BEGIN { use_ok('HoneyClient::Manager::ESX::Clone') or diag("Can't load HoneyClient::Manager::ESX::Clone package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::ESX::Clone');
+use HoneyClient::Manager::ESX::Clone;
+
 # Make sure HoneyClient::Util::SOAP loads.
 BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Util::SOAP');
@@ -269,7 +274,9 @@ use Thread::Queue;
 use HoneyClient::Util::Config qw(getVar);
 
 # Include the VM Utility Libraries
-use HoneyClient::Manager::VM::Clone;
+# TODO: Fix this, eventually.
+#use HoneyClient::Manager::VM::Clone;
+use HoneyClient::Manager::ESX::Clone;
 
 # Include Database Libraries
 use HoneyClient::Manager::Database;
@@ -438,7 +445,8 @@ END {
         $LOG->info("Resetting firewall.");
         my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
                                      fault_handler => \&_handleFault);
-        $stubFW->installDefaultRules();
+# TODO: Uncomment this, eventually.
+#        $stubFW->installDefaultRules();
     };
 
     # Verify all sub threads are finished, prior to shutting down.
@@ -611,13 +619,15 @@ sub _worker {
     # Yield processing to parent thread.
     threads->yield();
 
+    # Variable to hold our work.
+    my $work = undef;
+    my $data = undef;
+
     eval {
         # Create a new cloned VM.
-        my $vm = HoneyClient::Manager::VM::Clone->new(%{$args});
-
-        # Variable to hold our work.
-        my $work = undef;
-        my $data = undef;
+# TODO: Make this more configurable.
+        #my $vm = HoneyClient::Manager::VM::Clone->new(%{$args});
+        my $vm = HoneyClient::Manager::ESX::Clone->new(%{$args});
 
         # If there's no work on the queue, signal that we need more work.
         if (!$WORK_QUEUE->pending) {
@@ -656,6 +666,9 @@ sub _worker {
                 sleep(2);
             }
             $work = thaw($data);
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): Got more work: " . Dumper($work));
+
         }
     };
     # Report when a fault occurs.
@@ -663,6 +676,10 @@ sub _worker {
         $LOG->warn("Thread ID (" . threads->tid() . "): Encountered an error. Shutting down worker. " . $@);
     } else {
         $LOG->info("Thread ID (" . threads->tid() . "): Received empty work. Shutting down worker.");
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): Status: " . Dumper($@));
+$LOG->info("Thread ID (" . threads->tid() . "): Work: " . Dumper($work));
+$LOG->info("Thread ID (" . threads->tid() . "): Data: " . Dumper($data));
     }
 
     # Signal to the parent that we're shutting down.
@@ -748,7 +765,8 @@ sub run {
                                  fault_handler => \&_handleFaultAndCleanup);
 
     $LOG->info("Installing default firewall rules.");
-    $stubFW->installDefaultRules();
+# TODO: Uncomment this, eventually.
+#    $stubFW->installDefaultRules();
 
     # If these parameters weren't defined, delete them
     # from the specified arg hash.
@@ -925,6 +943,12 @@ set of issues.  As such, see the following sections:
 =item *
 
 L<HoneyClient::Manager::VM::Clone/"BUGS & ASSUMPTIONS">
+
+=back
+
+=item *
+
+L<HoneyClient::Manager::ESX::Clone/"BUGS & ASSUMPTIONS">
 
 =back
 
