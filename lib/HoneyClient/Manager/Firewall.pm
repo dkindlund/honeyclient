@@ -45,215 +45,28 @@ This documentation refers to HoneyClient::Manager::Firewall version 1.02.
 
 # TODO: Fix this.
 
-  # Create a new session to interact with the Firewall server.
-  my $session = HoneyClient::Manager::Firewall->login();
-
-  # Assume we have a particular VM registered on
-  # the Firewall server.  We assume each VM has a UNIQUE name.
-  my $testVM = "Test VM";
-
-  # See if a particular VM is registered.
-  my $result = undef;
-  ($session, $result) = HoneyClient::Manager::Firewall->isRegisteredVM(session => $session, name => $testVM);
-  if ($result) {
-      print "Yes, the VM is registered.";
-  } else {
-      print "No, the VM is not registered.";
-  }
-
-  # Register a particular VM.
-  my $config = "[datastore] Test_VM/Test_VM.vmx";
-  $session = HoneyClient::Manager::Firewall->registerVM(session => $session, name => $testVM, config => $config);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-
-  # Unregister a particular VM.
-  ($session, $result) = HoneyClient::Manager::Firewall->unregisterVM(session => $session, name => $testVM);
-  if ($result) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-
-  # Get the state of a particular VM.
-  my $state = undef;
-  ($session, $state) = HoneyClient::Manager::Firewall->getStateVM(session => $session, name => $testVM);
-  print "VM State: " . $state . "\n";
-
-  # Start a particular VM.
-  $session = HoneyClient::Manager::Firewall->startVM(session => $session, name => $testVM);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-  
-  # Stop a particular VM.
-  $session = HoneyClient::Manager::Firewall->stopVM(session => $session, name => $testVM);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-  
-  # Reboot a particular VM.
-  $session = HoneyClient::Manager::Firewall->resetVM(session => $session, name => $testVM);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-  
-  # Suspend a particular VM.
-  $session = HoneyClient::Manager::Firewall->suspendVM(session => $session, name => $testVM);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-
-  # After starting a particular VM, if the VM's
-  # state is STUCK, we can try automatically answering
-  # any pending questions that the VMware Firewall Server
-  # is waiting for.
-  #
-  # Note: In most cases, this call doesn't need to
-  # be made, since startVM/stopVM/resetVM will try this call
-  # automatically, if needed.
-  $session = HoneyClient::Manager::Firewall->answerVM(session => $session, name => $testVM);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-
-  # Create a new full clone from a particular VM 
-  # and put the clone in the "Clone_VM" directory.
-  my $cloneVM = "Clone_VM";
-  my $cloneConfig = undef;
-  ($session, $cloneConfig) = HoneyClient::Manager::Firewall->fullCloneVM(session => $session, src_name => $testVM, dst_name => $cloneVM);
-  if ($cloneConfig) {
-      print "Successfully created clone VM at ($cloneConfig)!\n";
-  } else {
-      print "Failed to create clone!\n";
-  }
-  
-  # Create a new quick clone from a particular VM
-  # and put the clone in the "Clone_VM" directory.
-  my $cloneVM = "Clone_VM";
-  my $cloneConfig = undef;
-  ($session, $cloneConfig) = HoneyClient::Manager::Firewall->quickCloneVM(session => $session, src_name => $testVM, dst_name => $cloneVM);
-  if ($cloneConfig) {
-      print "Successfully created clone VM at ($cloneConfig)!\n";
-  } else {
-      print "Failed to create clone!\n";
-  }
-
-  # Check to see if a particular VM is a quick clone.
-  my $result = undef;
-  ($session, $result) = HoneyClient::Manager::Firewall->isQuickCloneVM(session => $session, name => $testVM);
-  if ($result) {
-      print "VM is a quick clone.\n";
-  } else {
-      print "VM is NOT a quick clone.\n";
-  }
-  
-  # Check to see how much free space (in bytes) is left on the VM's backing datastore.
-  my $space_free = undef;
-  ($session, $space_free) = HoneyClient::Manager::Firewall->getDatastoreSpaceAvailableFirewall(session => $session, name => $testVM);
-  print "VM's datastore free space is: " . $space_free . ".\n";
-  
-  # Get the hostname of the Firewall server.
-  my $hostname = undef;
-  ($session, $hostname) = HoneyClient::Manager::Firewall->getHostnameFirewall(session => $session);
-  print "Firewall hostname is: " . $hostname . ".\n";
-  
-  # Get the IP of the Firewall server.
-  my $ip = undef;
-  ($session, $ip) = HoneyClient::Manager::Firewall->getIPaddrFirewall(session => $session);
-  print "Firewall IP is: " . $ip . ".\n";
-  
-  # Get the MAC address of a particular VM's first NIC.
-  my $mac_address = undef;
-  ($session, $mac_address) = HoneyClient::Manager::Firewall->getMACaddrVM(session => $session, name => $testVM);
-  if ($mac_address) {
-      print "VM MAC Address: \"$mac_address\"\n";
-  } else {
-      print "Failed to get VM MAC address!\n";
-  }
-  
-  # Get the IP address of a particular VM's first NIC.
-  my $ip_address = undef;
-  ($session, $ip_address) = HoneyClient::Manager::Firewall->getIPaddrVM(session => $session, name => $testVM);
-  if ($ip_address) {
-      print "VM IP Address: \"$ip_address\"\n";
-  } else {
-      print "Failed to get VM IP address!\n";
-  }
-
-  # Get the configuration filename of a particular VM.
-  my $config = undef;
-  ($session, $config) = HoneyClient::Manager::Firewall->getConfigVM(session => $session, name => $testVM);
-  if ($config) {
-      print "VM Config: \"$config\"\n";
-  } else {
-      print "Failed to get VM config!\n";
-  }
-
-  # Destroy a particular VM.
-  $session = HoneyClient::Manager::Firewall->destroyVM(session => $session, name => $testVM);
-  if ($session) {
-      print "Success!\n";
-  } else {
-      print "Failed!\n";
-  }
-
-  # Save a snapshot of a particular VM, saving the
-  # snapshot using the name of "Snapshot".
-  ($session, $result) = HoneyClient::Manager::Firewall->snapshotVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
-  if ($result) {
-      print "Successfully snapshotted VM using snapshot name: ($result)!\n";
-  } else {
-      print "Failed to snapshot VM!\n";
-  }
-
-  # Revert a particular VM back to a previous snapshot.
-  $session = HoneyClient::Manager::Firewall->revertVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
-  if ($session) {
-      print "Successfully reverted VM!\n";
-  } else {
-      print "Failed to revert VM!\n";
-  }
-
-  # Rename "Snapshot" to "Snapshot2" on a particular VM.
-  ($session, $result) = HoneyClient::Manager::Firewall->renameSnapshotVM(session => $session, name => $testVM, old_snapshot_name => "Snapshot", new_snapshot_name => "Snapshot2");
-  if ($result) {
-      print "Successfully renamed snapshot on VM to: ($result)!\n";
-  } else {
-      print "Failed to rename snapshot on VM!\n";
-  }
-  
-  # Remove "Snapshot2" on a particular VM.
-  $session = HoneyClient::Manager::Firewall->removeSnapshotVM(session => $session, name => $testVM, snapshot_name => "Snapshot2");
-  if ($session) {
-      print "Successfully removed snapshot on VM!\n";
-  } else {
-      print "Failed to removed snapshot on VM!\n";
-  }
-
-  # End the session.
-  HoneyClient::Manager::Firewall->logout(session => $session);
 
 =head1 DESCRIPTION
 
-This library provides static calls to control a remote VMware Firewall
-server remotely via web services (SOAP).  Each call reuses existing 
-sessions with the VMware Firewall server (in order to remain thread-safe)
-and provides direct manipulation of VMs running on this VMware Firewall
-server.
+This library provides static calls to control the IPTables interface on the 
+local system.  This library only alters the existing firewall ruleset on the
+host system; it does not create or delete any base rules defined by the
+host system.
+
+Specifically, this library assumes that the host system already has all
+the necessary static firewall rules in place to 'deny all' VM traffic.
+As such, the library saves this firewall state of the 'filter' table,
+using the '/sbin/iptables-save' command.
+
+Then, upon exit or reset, the library restores this state of the 'filter'
+table back to this 'deny all' mode, using the '/sbin/iptables-restore'
+command.
+
+Note: This code assumes that the IPTables 'filter' table on the host system was 
+configured using the standared Uncomplicated Firewall (UFW) framework that is
+packaged with the Ubuntu Linux distribution.  As such, the code relies
+on UFW to have setup and established the basic 'ufw-*' chain names
+within the 'filter' table.
 
 =cut
 
@@ -272,7 +85,7 @@ use Carp ();
 BEGIN {
     # Defines which functions can be called externally.
     require Exporter;
-    our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
+    our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION, $INIT_FILTER_RULES);
 
     # Set our package version.
     $VERSION = 1.02;
@@ -298,8 +111,32 @@ BEGIN {
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
+
+    # Sanity check: Make sure we have authorization to access the IPTables
+    # interface.
+    require IPTables::ChainMgr;
+    my $chain_mgr = new IPTables::ChainMgr() or
+        Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
+    my $ret = 0;
+    my $out_ar = [];
+    my $err_ar = [];
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -L');
+    if (!$ret) {
+        Carp::croak "Error: Unable to access the IPTables interface - " . join(' ', @{$err_ar});
+    }
+
+    # Now, we record the current state of the 'filter' table and we assume
+    # this state is 'deny all'.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables-save -t filter');
+    if (!$ret) {
+        Carp::croak "Error: Unable to access the IPTables 'filter' table - " . join(' ', @{$err_ar});
+    }
+    # Collapse all output.
+    $INIT_FILTER_RULES = join('', @{$out_ar});
+    # Escape all double quotes.
+    $INIT_FILTER_RULES =~ s/"/\\"/g;
 }
-our (@EXPORT_OK, $VERSION);
+our (@EXPORT_OK, $VERSION, $INIT_FILTER_RULES);
 
 =pod
 
@@ -353,21 +190,39 @@ Log::Log4perl->init({
     "log4perl.appender.Buffer.layout.ConversionPattern" => "%d{yyyy-MM-dd HH:mm:ss} %5p [%M] (%F:%L) - %m%n",
 });
 
-# Make sure the module loads properly, with the exportable
-# functions shared.
-BEGIN { use_ok('HoneyClient::Manager::Firewall') or diag("Can't load HoneyClient::Manager::Firewall package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Firewall');
-use HoneyClient::Manager::Firewall;
-
 # Make sure Data::Dumper loads.
 BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
 
+# Make sure threads loads.
+BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('threads');
+use threads;
+
+# Make sure threads::shared loads.
+BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('threads::shared');
+use threads::shared;
+
 # Make sure IPTables::ChainMgr loads.
 BEGIN { use_ok('IPTables::ChainMgr') or diag("Can't load IPTables::ChainMgr package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('IPTables::ChainMgr');
 use IPTables::ChainMgr;
+
+diag("About to run extended tests.");
+diag("Warning: These tests may alter the host system's firewall.");
+diag("As such, Running these tests via a remote session is NOT advised.");
+diag("");
+
+my $question = prompt("# Do you want to run extended tests?", "yes");
+if ($question !~ /^y.*/i) { exit; }
+
+# Make sure the module loads properly, with the exportable
+# functions shared.
+BEGIN { use_ok('HoneyClient::Manager::Firewall') or diag("Can't load HoneyClient::Manager::Firewall package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Firewall');
+use HoneyClient::Manager::Firewall;
 
 =end testing
 
@@ -395,12 +250,60 @@ $Data::Dumper::Indent = 0;
 
 #######################################################################
 
+# Include Thread Libraries
+use threads;
+use threads::shared;
+
 # Include IPTables Libraries
 use IPTables::ChainMgr;
+
+# Globally shared variable, containing the 'filter'
+# table ruleset to 'deny all'.
+our $DENY_ALL_RULES : shared;
+$DENY_ALL_RULES = $INIT_FILTER_RULES;
+
+# TODO: Delete this, eventually.
+#print $DENY_ALL_RULES . "\n";
+
+END {
+    # Upon any shutdown, restore the 'filter' table ruleset back to the
+    # 'deny all' default.
+    require IPTables::ChainMgr;
+    my $chain_mgr = new IPTables::ChainMgr() or
+        Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
+    my $ret = 0;
+    my $out_ar = [];
+    my $err_ar = [];
+
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/bin/echo "' . $DENY_ALL_RULES . '" | /sbin/iptables-restore');
+    if (!$ret) {
+        Carp::croak "Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar});
+    }
+}
 
 #######################################################################
 # Private Functions                                                   #
 #######################################################################
+
+# Helper function designed to 'reset' the 'filter' table to the default
+# 'deny all' state.
+#
+# Inputs: None.
+# Outputs: Returns true if successful; croaks otherwise.
+sub _clear {
+    my $chain_mgr = new IPTables::ChainMgr() or
+        Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
+    my $ret = 0;
+    my $out_ar = [];
+    my $err_ar = [];
+
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/bin/echo "' . $DENY_ALL_RULES . '" | /sbin/iptables-restore');
+    if (!$ret) {
+        Carp::croak "Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar});
+    }
+    return $ret;
+}
+
 
 #######################################################################
 # Public Functions                                                    #
@@ -428,14 +331,11 @@ I<Output>: Returns true if successful; croaks otherwise.
 # TODO: Fix this.
 
 eval {
-    # Create a new session.
-    my $session = HoneyClient::Manager::Firewall->login();
+    # Deny all traffic.
+    my $result = HoneyClient::Manager::Firewall->denyAllTraffic();
 
-    # Validate the session.
-    ok((ref($session) eq 'Vim'), "login()") or diag("The login() call failed.");
-
-    # Destroy the session.
-    HoneyClient::Manager::Firewall->logout(session => $session);
+    # Validate the result.
+    ok($result, "denyAllTraffic()") or diag("The denyAllTraffic() call failed.");
 };
 
 # Report any failure found.
@@ -456,16 +356,7 @@ sub denyAllTraffic {
         Dumper();
     });
 
-# TODO: Fix this.
-
-    # Create a connection to the Firewall server
-    my $session = Vim->new(service_url => getVar(name => "service_url"));
-    # Record when this object was updated.
-    $session->{'_updated_at'} = DateTime::HiRes->now();
-    $session->login(user_name => getVar(name => "user_name"),
-                    password  => getVar(name => "password"));
-
-    return $session;
+    return _clear();
 }
 
 =pod
@@ -483,7 +374,7 @@ I<Output>: Returns true, if successful; croaks otherwise.
 
 =back
 
-=begin testing
+#=begin testing
 
 # TODO: Fix this.
 
@@ -501,7 +392,7 @@ if ($@) {
     fail($@);
 }
 
-=end testing
+#=end testing
 
 =cut
 
@@ -516,36 +407,22 @@ sub allowAllTraffic {
 
 # TODO: Fix this.
 
-    # Sanity check.
-    if (!scalar(%args) ||
-        !exists($args{'session'}) ||
-        !defined($args{'session'})) {
-        $LOG->fatal("Unable to logout - no session specified.");
-        Carp::croak "Unable to logout - no session specified.";
-    }
-    if (ref($args{'session'}) ne 'Vim') {
-        $LOG->fatal("Unable to logout - invalid session specified.");
-        Carp::croak "Unable to logout - invalid session specified.";
-    }
- 
-    $args{'session'}->logout();
-    $args{'session'} = undef;
-
-    return (1);
+    return 1;
 }
 
 =pod
 
-=head2 allowVM(chain_name => $chain_name, mac_address => $mac_address, protocol => $protocol, ports => $ports)
+=head2 allowVM(chain_name => $chain_name, mac_address => $mac_address, ip_address => $ip_address, protocol => $protocol, ports => $ports)
 
 =over 4
 
-Updates the firewall to allow the specified client's MAC address to
+Updates the firewall to allow the specified client's MAC/IP address to
 have limited network connectivity.
 
 I<Inputs>:
  B<$chain_name> is the name of the IPTables chain name to use for this access.
  B<$mac_address> is the client's MAC address.
+ B<$ip_address> is the client's IP address.
  B<$protocol> is the allowed protocol for this client.
  B<$ports> is an array reference, containing the list of ports to be allowed.
 
@@ -557,7 +434,7 @@ with this chain will be purged.
 
 =back
 
-=begin testing
+#=begin testing
 
 # TODO: Fix this.
 
@@ -598,7 +475,7 @@ if ($@) {
     fail($@);
 }
 
-=end testing
+#=end testing
 
 =cut
 
@@ -714,7 +591,7 @@ I<Output>: Returns true, if successful; croaks otherwise.
 
 =back
 
-=begin testing
+#=begin testing
 
 # TODO: Fix this.
 
@@ -745,7 +622,7 @@ if ($@) {
     fail($@);
 }
 
-=end testing
+#=end testing
 
 =cut
 
@@ -840,9 +717,43 @@ sub denyVM {
 
 __END__
 
+=head1 TODO
+
+Develop a 'monitor' capability, in order to detect suspicious network
+activity eminating from any of the allowed VMs.  The assumption is that
+while malware inside a VM could change the VM's MAC address, VMware will
+only allow packets through the network if they match the MAC address
+assigned to that VM.  Therefore, all packets coming from the honeyclient
+network should correlate with any of the active VMs.
+
+Thus, we need to develop a new call:
+checkVM(mac_address => ...), which would
+
+1) check the logs for any suspicious activity
+2) if activity is found, then figure out if that VM is responsible
+3) if the VM is responsible, return 1; otherwise, return 0
+
+This will require updating the syslog-ng.conf file, in order to
+create dedicated logs for 1) IP-to-MAC mappings and 2) Forward block
+entries.
+
 =head1 BUGS & ASSUMPTIONS
 
-TODO: Add here.
+Upon package inclusion (via 'use' or 'require'), this library assumes
+that the host system already has all the necessary static firewall rules
+in place in order to 'deny all' VM traffic.  As such, the library saves
+the firewall state of the 'filter' table, using the '/sbin/iptables-save'
+command.
+
+Then, upon exit or reset, the library restores this state of the 'filter'
+table back to the original 'deny all' mode, by using the '/sbin/iptables-restore'
+command.
+
+This code assumes that the IPTables 'filter' table on the host system was 
+configured using the standared Uncomplicated Firewall (UFW) framework that is
+packaged with the Ubuntu Linux distribution.  As such, the code relies
+on UFW to have setup and established the basic 'ufw-*' chain names
+within the 'filter' table.
 
 =head1 SEE ALSO
 
