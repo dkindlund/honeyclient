@@ -5,7 +5,7 @@
 # Description: A module that provides programmatic access to VMware
 #              ESX Server virtual machines.
 #
-# CVS: $Id: ESX.pm 1866 2008-11-03 16:40:57Z kindlund $
+# CVS: $Id$
 #
 # @author jpuchalski, kindlund
 #

@@ -5,7 +5,7 @@
 # Description: XML-RPC client interface to access HoneyClient data within
 #              the Hive web service.
 #
-# CVS: $Id: Database.pm 994 2007-11-08 20:30:12Z kindlund $
+# CVS: $Id$
 #
 # @author mbriggs, kindlund
 #

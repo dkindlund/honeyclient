@@ -5,7 +5,7 @@
 # Description: Generic object model for handling a single HoneyClient
 #              cloned VM on the VMware ESX system.
 #
-# CVS: $Id: Clone.pm 1866 2008-11-03 16:40:57Z kindlund $
+# CVS: $Id$
 #
 # @author kindlund, jpuchalski
 #
@@ -699,6 +699,7 @@ sub _init {
         }
         # Set the name of the cloned VM.
         $self->{'quick_clone_vm_name'} = $ret;
+        $self->{'_num_snapshots'}++;
         $self->_changeStatus(status => "initialized");
 
         # Wait until the VM gets registered, before proceeding.
@@ -782,6 +783,7 @@ sub _init {
                 ($self->{'_vm_session'}, $self->{'name'}) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
                                                                                                   name                 => $self->{'quick_clone_vm_name'},
                                                                                                   snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
+                $self->{'_num_snapshots'}++;
                 $LOG->info("Thread ID (" . threads->tid() . "): Created operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
 
                 # Register the cloned VM with the Drone database.
@@ -799,8 +801,9 @@ sub _init {
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
+# TODO: Need to record: $self->{'name'}, eventually.
                 my $client = {
-                    cid => $self->{'name'},
+                    cid => $self->{'quick_clone_vm_name'},
                     status => $self->{'status'},
                     host => {
                         org => getVar(name => "organization"),
@@ -896,8 +899,9 @@ sub _init {
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
+# TODO: Need to record: $self->{'name'}, eventually.
                 my $client = {
-                    cid => $self->{'name'},
+                    cid => $self->{'quick_clone_vm_name'},
                     status => $self->{'status'},
                     host => {
                         org => getVar(name => "organization"),
@@ -1350,6 +1354,10 @@ sub new {
         # A variable indicating if the cloned VM has been granted
         # network access.
         _has_network_access => 0,
+
+        # A variable indicating the number of snapshots currently
+        # associated with this cloned VM.
+        _num_snapshots => 0,
     );
 
     @{$self}{keys %params} = values %params;
@@ -1388,6 +1396,30 @@ sub new {
         # XXX: Currently, faults get propagated -- is this okay?
         # TODO: Uncomment this line, eventually.
         #$self->{'_fw_handle'}->allowAllTraffic();
+    }
+
+# TODO: Snapshot MAX Limit Detection!
+    # Check to see if this quick clone VM already has reached the
+    # maximum number of snapshots.
+    if ($self->{'_num_snapshots'} >= getVar(name => "max_num_snapshots")) {
+
+        # If so, then suspend the existing quick clone.
+        $LOG->info("Thread ID (" . threads->tid() . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ") - reached maximum number of snapshots (" . $self->{'_num_snapshots'} . ").");
+        my $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+        
+        if (!defined($som)) {
+            $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+        } else {
+            $self->{'_vm_session'} = $som;
+        }
+
+        # And then clear out the quick_clone_vm_name, name, mac_address, and ip_address,
+        # in order for a new quick clone VM to be created upon calling _init().
+        $self->{'quick_clone_vm_name'} = undef;
+        $self->{'name'}                = undef;
+        $self->{'mac_address'}         = undef;
+        $self->{'ip_address'}          = undef;
+        $self->{'_num_snapshots'}      = 0;
     }
 
     # Finally, return the blessed object, with a fully initialized
@@ -1525,6 +1557,9 @@ sub suspend {
     # avoid potential object DESTROY() calls.
     $self->{'config'} = undef;
 
+# TODO: Delete this, eventually.
+$LOG->info("NUM SNAPSHOTS BEFORE: " . $self->{'_num_snapshots'});
+
     # Snapshot the VM.
     if ($args{'perform_snapshot'}) {
         $LOG->info("Thread ID (" . threads->tid() . "): Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
@@ -1539,9 +1574,12 @@ sub suspend {
             $LOG->error("Thread ID (" . threads->tid() . "): Unable to save operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
             $self->_changeStatus(status => "error");
         } else {
+            $self->{'_num_snapshots'}++;
             $self->_changeStatus(status => "suspended");
         }
     }
+# TODO: Delete this, eventually.
+$LOG->info("NUM SNAPSHOTS AFTER: " . $self->{'_num_snapshots'});
 
 # TODO: This shouldn't be needed?
     # Suspend the quick clone VM.
@@ -1831,6 +1869,7 @@ sub drive {
                         name                  => $self->{'name'},
                         mac_address           => $self->{'mac_address'},
                         ip_address            => $self->{'ip_address'},
+                        _num_snapshots        => $self->{'_num_snapshots'},
                     );
         }
 
@@ -1918,6 +1957,7 @@ sub drive {
                         name                  => $self->{'name'},
                         mac_address           => $self->{'mac_address'},
                         ip_address            => $self->{'ip_address'},
+                        _num_snapshots        => $self->{'_num_snapshots'},
                     );
         }
     }

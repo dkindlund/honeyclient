@@ -355,6 +355,9 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
             <min_space_free description="The minimum amount of disk space (in GB) that must remain free in the primary datastore in order for the Manager to continue processing.  If the free disk space drops below this threshold, then the Manager will gracefully terminate." default="2">
                 2
             </min_space_free>
+            <max_num_snapshots description="The maximum number of snapshots that VMware ESX should store per VM created.  The default is 32 snapshots per VM.  Unless VMware ESX's snapshotting implementation changes drastically in newer versions, it is recommended that this value remain 32.  Otherwise, all snapshot-related operations will slow down SIGNIFICANTLY after reaching the 32 limit." default="32">
+                32
+            </max_num_snapshots>
             <!-- HoneyClient::Manager::ESX::Clone Options -->
             <Clone>
                 <snapshot_upon_suspend description="If set to 1, then everytime a cloned VM is suspended, a snapshot of the VM will be saved upon suspend.  Set this option to 0, if you discover errors during cloning operations, where the hard disk on the VMware ESX System is overworked by slow disk operations." default="1">
