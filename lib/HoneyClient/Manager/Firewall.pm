@@ -302,8 +302,6 @@ use IPTables::ChainMgr;
 our $DENY_ALL_RULES : shared;
 $DENY_ALL_RULES = $INIT_FILTER_RULES;
 
-# TODO: Catch CTRL-C in order to restore rules!
-
 END {
     # Upon any shutdown, restore the 'filter' table ruleset back to the
     # 'deny all' default.
@@ -343,6 +341,12 @@ sub _clear {
     return $ret;
 }
 
+# Make sure we reset the 'filter' table before exiting -- even on a
+# CTRL-C.
+$SIG{INT} = sub {
+    _clear();
+    exit;
+};
 
 #######################################################################
 # Public Functions                                                    #
