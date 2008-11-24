@@ -43,8 +43,47 @@ This documentation refers to HoneyClient::Manager::Firewall version 1.02.
 
   use HoneyClient::Manager::Firewall;
 
-# TODO: Fix this.
+  # To deny all VM-specific traffic.
+  if (HoneyClient::Manager::Firewall->denyAllTraffic()) {
+      print "Success!\n";
+  } else {
+      print "Fail!\n";
+  }
 
+  # To allow all VM-specific traffic.
+  if (HoneyClient::Manager::Firewall->allowAllTraffic()) {
+      print "Success!\n";
+  } else {
+      print "Fail!\n";
+  }
+
+  # To allow specific VM traffic.
+  my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+  my $mac_address = "00:0c:29:c5:11:c7";
+  my $ip_address = "10.0.0.254";
+  my $protocol = "tcp";
+  my $ports = [ 80, 443 ];
+
+  my $result = HoneyClient::Manager::Firewall->allowVM(
+      chain_name => $chain_name,
+      mac_address => $mac_address,
+      ip_address => $ip_address,
+      protocol => $protocol,
+      ports => $ports,
+  );
+  if ($result) {
+      print "Success!\n";
+  } else {
+      print "Fail!\n";
+  }
+
+  # Then, to deny specific VM traffic.
+  $result = HoneyClient::Manager::Firewall->denyVM(chain_name => $chain_name);
+  if ($result) {
+      print "Success!\n";
+  } else {
+      print "Fail!\n";
+  }
 
 =head1 DESCRIPTION
 
@@ -212,6 +251,7 @@ use IPTables::ChainMgr;
 
 diag("About to run extended tests.");
 diag("Warning: These tests may alter the host system's firewall.");
+diag("NOTE: The UFW service MUST already be running; if unsure, type '/etc/init.d/ufw restart' as root.");
 diag("As such, Running these tests via a remote session is NOT advised.");
 diag("");
 
@@ -262,8 +302,7 @@ use IPTables::ChainMgr;
 our $DENY_ALL_RULES : shared;
 $DENY_ALL_RULES = $INIT_FILTER_RULES;
 
-# TODO: Delete this, eventually.
-#print $DENY_ALL_RULES . "\n";
+# TODO: Catch CTRL-C in order to restore rules!
 
 END {
     # Upon any shutdown, restore the 'filter' table ruleset back to the
@@ -328,14 +367,15 @@ I<Output>: Returns true if successful; croaks otherwise.
 
 =begin testing
 
-# TODO: Fix this.
-
 eval {
     # Deny all traffic.
     my $result = HoneyClient::Manager::Firewall->denyAllTraffic();
 
     # Validate the result.
     ok($result, "denyAllTraffic()") or diag("The denyAllTraffic() call failed.");
+
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
 };
 
 # Report any failure found.
@@ -374,17 +414,17 @@ I<Output>: Returns true, if successful; croaks otherwise.
 
 =back
 
-#=begin testing
-
-# TODO: Fix this.
+=begin testing
 
 eval {
-    # Create a new session.
-    my $session = HoneyClient::Manager::Firewall->login();
+    # Allow all traffic.
+    my $result = HoneyClient::Manager::Firewall->allowAllTraffic();
 
-    # Destroy the session.
-    my $result = HoneyClient::Manager::Firewall->logout(session => $session);
-    ok($result, "logout()") or diag("The logout() call failed.");
+    # Validate the result.
+    ok($result, "allowAllTraffic()") or diag("The allowAllTraffic() call failed.");
+    
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
 };
 
 # Report any failure found.
@@ -392,7 +432,7 @@ if ($@) {
     fail($@);
 }
 
-#=end testing
+=end testing
 
 =cut
 
@@ -405,9 +445,42 @@ sub allowAllTraffic {
         Dumper();
     });
 
-# TODO: Fix this.
+    my $chain_mgr = new IPTables::ChainMgr() or
+        Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
+    my $ret = 0;
+    my $out_ar = [];
+    my $err_ar = [];
 
-    return 1;
+    # Flush all rules in the 'filter' table.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -F');
+    if (!$ret) {
+        Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
+    }
+
+    # Delete all custom chains in the 'filter' table.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -X');
+    if (!$ret) {
+        Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
+    }
+
+    # Make sure the default policy in the INPUT chain in the 'filter' table is ACCEPT.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -P INPUT ACCEPT');
+    if (!$ret) {
+        Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
+    }
+
+    # Make sure the default policy in the OUTPUT chain in the 'filter' table is ACCEPT.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -P OUTPUT ACCEPT');
+    if (!$ret) {
+        Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
+    }
+    
+    # Make sure the default policy in the FORWARD chain in the 'filter' table is ACCEPT.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -P FORWARD ACCEPT');
+    if (!$ret) {
+        Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
+    }
+    return $ret;
 }
 
 =pod
@@ -434,40 +507,31 @@ with this chain will be purged.
 
 =back
 
-#=begin testing
-
-# TODO: Fix this.
+=begin testing
 
 eval {
-    # Create a new session.
-    my $session = HoneyClient::Manager::Firewall->login();
-   
-    # Start the test VM.
-    HoneyClient::Manager::Firewall->startVM(session => $session, name => $testVM);
+    # Allow VM traffic.
+    my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+    my $mac_address = "00:0c:29:c5:11:c7";
+    my $ip_address = "10.0.0.254";
+    my $protocol = "tcp";
+    my $ports = [ 80, 443 ];
 
-    # Clone the test VM.
-    my $cloneVM = undef;
-    ($session, $cloneVM) = HoneyClient::Manager::Firewall->fullCloneVM(session => $session, src_name => $testVM);
-    ok($cloneVM, "fullCloneVM(src_name => '$testVM')") or diag("The fullCloneVM() call failed.");
+    my $result = HoneyClient::Manager::Firewall->allowVM(
+        chain_name => $chain_name,
+        mac_address => $mac_address,
+        ip_address => $ip_address,
+        protocol => $protocol,
+        ports => $ports,
+    );
 
-    # Get the power state of the clone VM.
-    my $state = undef;
-    ($session, $state) = HoneyClient::Manager::Firewall->getStateVM(session => $session, name => $cloneVM);
-
-    # The clone VM should be powered on.
-    is($state, "poweredon", "fullCloneVM(name => '$testVM')") or diag("The fullCloneVM() call failed.");
-   
-    # Destroy the clone VM. 
-    $session = HoneyClient::Manager::Firewall->destroyVM(session => $session, name => $cloneVM);
+    # Validate the result.
+    $Data::Dumper::Terse = 1;
+    $Data::Dumper::Indent = 0;
+    ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', ports => '" . Dumper($ports) . "')") or diag("The allowVM() call failed.");
     
-    # Start the test VM.
-    $session = HoneyClient::Manager::Firewall->startVM(session => $session, name => $testVM);
-    
-    # Stop the test VM.
-    $session = HoneyClient::Manager::Firewall->stopVM(session => $session, name => $testVM);
-
-    # Destroy the session.
-    HoneyClient::Manager::Firewall->logout(session => $session);
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
 };
 
 # Report any failure found.
@@ -475,7 +539,7 @@ if ($@) {
     fail($@);
 }
 
-#=end testing
+=end testing
 
 =cut
 
@@ -491,88 +555,132 @@ sub allowVM {
         Dumper(\%args);
     });
 
-# TODO: Fix this.
-
     # Sanity check the arguments.
     if (!scalar(%args) ||
-        !exists($args{'src_name'}) ||
-        !defined($args{'src_name'})) {
-        $LOG->fatal("Error cloning VM - no source VM name specified.");
-        Carp::croak "Error cloning VM - no source VM name specified.";
+        !exists($args{'chain_name'}) ||
+        !defined($args{'chain_name'})) {
+        $LOG->fatal("Error allowing VM network - no chain name specified.");
+        Carp::croak "Error allowing VM network - no chain name specified.";
     }
 
-    # Figure out if the destination was specified.
-    my $isRegisteredVM = undef;
-    if (!exists($args{'dst_name'}) ||
-        !defined($args{'dst_name'})) {
-        # If it wasn't specified, then generate a new destination VM name,
-        # and make sure it isn't already used.
-        do {
-            $args{'dst_name'} = _generateVMID();
-            $args{'name'} = $args{'dst_name'};
-            ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
-        } while ($isRegisteredVM ||
-                 # Make sure our newly generated name doesn't conflict
-                 # with any existing snapshot names.
-                 defined(_findSnapshot($args{'name'}, _getViewVMSnapshotTrees(%args))));
+    if (!exists($args{'mac_address'}) ||
+        !defined($args{'mac_address'})) {
+        $LOG->fatal("Error allowing VM network - no MAC address specified.");
+        Carp::croak "Error allowing VM network - no MAC address specified.";
+    }
+
+    if (!exists($args{'ip_address'}) ||
+        !defined($args{'ip_address'})) {
+        $LOG->fatal("Error allowing VM network - no IP address specified.");
+        Carp::croak "Error allowing VM network - no IP address specified.";
+    }
+
+    if (!exists($args{'protocol'}) ||
+        !defined($args{'protocol'})) {
+        $LOG->fatal("Error allowing VM network - no protocol specified.");
+        Carp::croak "Error allowing VM network - no protocol specified.";
+    }
+
+    if (!exists($args{'ports'}) ||
+        !defined($args{'ports'})) {
+        $LOG->fatal("Error allowing VM network - no ports specified.");
+        Carp::croak "Error allowing VM network - no ports specified.";
+    }
+
+    my $chain_mgr = new IPTables::ChainMgr() or
+        Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
+    my $ret = 0;
+    my $out_ar = [];
+    my $err_ar = [];
+    my $rule_num = 0;
+    my $num_rules_in_chain = 0;
+
+    # Check to see if the custom chain already exists.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->chain_exists('filter', $args{'chain_name'});
+    if ($ret) {
+        # Delete the JUMP rule in our FORWARD chain, so that there's no interruption
+        # in connectivity for other traffic.
+        ($rule_num, $num_rules_in_chain) = $chain_mgr->find_ip_rule("0.0.0.0/0",
+                                                                    "0.0.0.0/0",
+                                                                    'filter',
+                                                                    'FORWARD',
+                                                                    $args{'chain_name'},
+                                                                    {});
+        # If our JUMP rule already exists, then delete it.
+        if ($rule_num) {
+            ($ret, $out_ar, $err_ar) = $chain_mgr->delete_ip_rule("0.0.0.0/0",
+                                                                  "0.0.0.0/0",
+                                                                  'filter',
+                                                                  'FORWARD',
+                                                                  $args{'chain_name'},
+                                                                  {});
+            if (!$ret) {
+                Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+            }
+        }
+
+        # Chain exists, so flush it.
+        ($ret, $out_ar, $err_ar) = $chain_mgr->flush_chain('filter', $args{'chain_name'});
+        if (!$ret) {
+            Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+        }
     } else {
-        # The destination was specified, so make sure that name does not already exist.
-        $args{'name'} = $args{'dst_name'};
-        ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
-        if ($isRegisteredVM) {
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
-            Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.";
-        }
-        if (defined(_findSnapshot($args{'dst_name'}, _getViewVMSnapshotTrees(%args)))) {
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.");
-            Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.";
+        # Chain doesn't exist, so create it.
+        ($ret, $out_ar, $err_ar) = $chain_mgr->create_chain('filter', $args{'chain_name'});
+        if (!$ret) {
+            Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     }
 
-    # Check to make sure source VM is either off or suspended.
-    $args{'name'} = $args{'src_name'};
-    my $powerState = undef;
-    ($args{'session'}, $powerState) = getStateVM($class, %args);
+    # Create a single incoming rule in this chain.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule("0.0.0.0/0",
+                                                          $args{'ip_address'},
+                                                          'filter',
+                                                          $args{'chain_name'},
+                                                          "ACCEPT",
+                                                          { 'protocol'   => $args{'protocol'}, });
+    if (!$ret) {
+        Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+    }
 
-    # Only clone source VMs that are powered off or suspended.
-    if (($powerState ne 'poweredoff') &&
-        ($powerState ne 'suspended')) {
+    # For each port number listed...
+    foreach my $port (@{$args{'ports'}}) {
 
-        # If the VM is not powered off, then try suspending it.
-        $args{'session'} = suspendVM($class, %args);
-
-        # Refresh the power state.
-        ($args{'session'}, $powerState) = getStateVM($class, %args);
-
-        # Check of the source VM is powered off or suspended.
-        if (($powerState ne 'poweredoff') &&
-            ($powerState ne 'suspended')) {
-
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'");
-            Carp::croak "Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'";
+        # Create a new outgoing rule in the chain.
+        ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule($args{'ip_address'},
+                                                              "0.0.0.0/0",
+                                                               'filter',
+                                                               $args{'chain_name'},
+                                                               "ACCEPT",
+                                                                { 'protocol'   => $args{'protocol'},
+                                                                  'd_port'     => $port, 
+                                                                  'mac_source' => $args{'mac_address'}, }
+        );
+        if (!$ret) {
+            Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     }
 
-    $LOG->info("Full cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . ").");
+    # Once the chain has been created, then link the chain to our standard FORWARD chain.
+    ($rule_num, $num_rules_in_chain) = $chain_mgr->find_ip_rule("0.0.0.0/0",
+                                                                "0.0.0.0/0",
+                                                                'filter',
+                                                                'FORWARD',
+                                                                $args{'chain_name'},
+                                                                {});
 
-    # Clone the source VM.
-    $args{'config'} = _fullCopyVM(%args);
-
-    # Register clone VM.
-    $args{'name'} = $args{'dst_name'};
-    $args{'session'} = registerVM($class, %args);
-
-    # Power on clone VM.
-    $args{'session'} = startVM($class, %args);
-
-    # If the source VM was suspended, then this clone will awake
-    # from a suspended state.  We'll still need to issue a full reboot,
-    # in order for the clone to get assigned a new network MAC address.
-    if ($powerState eq 'suspended') {
-        $args{'session'} = resetVM($class, %args);
+    # If our JUMP rule does not already exist, then add it to the second position of the FORWARD chain (UFW-specific).
+    if (!$rule_num) {
+        ($ret, $out_ar, $err_ar) = $chain_mgr->add_jump_rule('filter',
+                                                             'FORWARD',
+                                                             2,
+                                                             $args{'chain_name'});
+        if (!$ret) {
+            Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+        }
     }
 
-    return ($args{'session'}, $args{'dst_name'});
+    return (1);
 }
 
 =pod
@@ -591,30 +699,34 @@ I<Output>: Returns true, if successful; croaks otherwise.
 
 =back
 
-#=begin testing
-
-# TODO: Fix this.
+=begin testing
 
 eval {
-    # Create a new session.
-    my $session = HoneyClient::Manager::Firewall->login();
+    # Allow VM traffic.
+    my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+    my $mac_address = "00:0c:29:c5:11:c7";
+    my $ip_address = "10.0.0.254";
+    my $protocol = "tcp";
+    my $ports = [ 80, 443 ];
+
+    HoneyClient::Manager::Firewall->allowVM(
+        chain_name => $chain_name,
+        mac_address => $mac_address,
+        ip_address => $ip_address,
+        protocol => $protocol,
+        ports => $ports,
+    );
+
+    # Then, deny VM traffic.
+    my $result = HoneyClient::Manager::Firewall->denyVM(chain_name => $chain_name);
+
+    # Validate the result.
+    $Data::Dumper::Terse = 1;
+    $Data::Dumper::Indent = 0;
+    ok($result, "denyVM(chain_name => '$chain_name')") or diag("The denyVM() call failed.");
     
-    # Start the test VM.
-    $session = HoneyClient::Manager::Firewall->startVM(session => $session, name => $testVM);
-    ok($session, "startVM(name => '$testVM')") or diag("The startVM() call failed.");
-
-    # Get the power state of the test VM.
-    my $state = undef;
-    ($session, $state) = HoneyClient::Manager::Firewall->getStateVM(session => $session, name => $testVM);
-
-    # The test VM should be on.
-    is($state, "poweredon", "startVM(name => '$testVM')") or diag("The startVM() call failed.");
-
-    # Stop the test VM.
-    $session = HoneyClient::Manager::Firewall->stopVM(session => $session, name => $testVM);
-
-    # Destroy the session.
-    HoneyClient::Manager::Firewall->logout(session => $session);
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
 };
 
 # Report any failure found.
@@ -622,7 +734,7 @@ if ($@) {
     fail($@);
 }
 
-#=end testing
+=end testing
 
 =cut
 
@@ -638,75 +750,53 @@ sub denyVM {
         Dumper(\%args);
     });
 
-# TODO: Fix this.
-   
-    # Only start VMs that are powered off or suspended.
-    my $powerState = undef;
-    ($args{'session'}, $powerState) = getStateVM($class, %args);
-
-    # Check to see if the VM is stuck, first...
-    if ($powerState eq 'pendingquestion') {
-        # If so, try answering the question...
-        $args{'session'} = answerVM($class, %args);
-        # Refresh the power state.
-        ($args{'session'}, $powerState) = getStateVM($class, %args);
+    # Sanity check the arguments.
+    if (!scalar(%args) ||
+        !exists($args{'chain_name'}) ||
+        !defined($args{'chain_name'})) {
+        $LOG->fatal("Error denying VM network - no chain name specified.");
+        Carp::croak "Error denying VM network - no chain name specified.";
     }
 
-    if ($powerState eq 'poweredon') {
-        # The VM is already powered on.
-        return $args{'session'};
-    } elsif (($powerState eq 'poweredoff') ||
-             ($powerState eq 'suspended')) {
+    my $chain_mgr = new IPTables::ChainMgr() or
+        Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
+    my $ret = 0;
+    my $out_ar = [];
+    my $err_ar = [];
+    my $rule_num = 0;
+    my $num_rules_in_chain = 0;
 
-        my $vm_view = undef;
-        ($args{'session'}, $vm_view) = _getViewVM(%args);
-        eval {
-            $LOG->info("Starting VM (" . $args{'name'} . ").");
-
-# TODO: May need to create an async thread to monitor for stuck state.
-
-            # Helper callback function to check for a stuck VM.
-            my $checkForStuckVM = sub {
-                my $percent_complete = shift;
- 
-                # Make sure we don't check the state too soon. 
-                if ($percent_complete > 75) {
-                    sleep(2);
-                }
-              
-                ($args{'session'}, $powerState) = getStateVM($class, %args);
-                # Check to see if the VM is stuck at all.
-                if ($powerState eq 'pendingquestion') {
-                    # If so, try answering the question...
-                    $args{'session'} = answerVM($class, %args);
-                    # Refresh the power state.
-                    ($args{'session'}, $powerState) = getStateVM($class, %args);
-                }
-            };
-            $vm_view->waitForTask($vm_view->PowerOnVM_Task(), $checkForStuckVM);
-
-            # Okay, now make sure the VM is powered on.
-            ($args{'session'}, $powerState) = getStateVM($class, %args);
-            if ($powerState ne 'poweredon') {
-                $LOG->fatal("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
-                Carp::croak "Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
+    # Check to see if the custom chain already exists and delete only if it exists.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->chain_exists('filter', $args{'chain_name'});
+    if ($ret) {
+        # Delete the JUMP rule in our FORWARD chain, so that there's no interruption
+        # in connectivity for other traffic.
+        ($rule_num, $num_rules_in_chain) = $chain_mgr->find_ip_rule("0.0.0.0/0",
+                                                                    "0.0.0.0/0",
+                                                                    'filter',
+                                                                    'FORWARD',
+                                                                    $args{'chain_name'},
+                                                                    {});
+        # If our JUMP rule already exists, then delete it.
+        if ($rule_num) {
+            ($ret, $out_ar, $err_ar) = $chain_mgr->delete_ip_rule("0.0.0.0/0",
+                                                                  "0.0.0.0/0",
+                                                                  'filter',
+                                                                  'FORWARD',
+                                                                  $args{'chain_name'},
+                                                                  {});
+            if (!$ret) {
+                Carp::croak "Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
             }
-        };
-        if ($@) {
-            my $detail = $@;
-            if (ref($detail) eq 'SoapFault') {
-                $detail = $detail->fault_string;
-            }
-            $LOG->fatal("Error starting VM (" . $args{'name'} . "): " . $detail);
-            Carp::croak "Error starting VM (" . $args{'name'} . "): " . $detail;
         }
-    } else {
-        # The VM is in a state that cannot be powered on.
-        $LOG->fatal("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
-        Carp::croak "Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
-    }
 
-    return $args{'session'};
+        # Chain exists, so flush it and then delete it.
+        ($ret, $out_ar, $err_ar) = $chain_mgr->flush_chain('filter', $args{'chain_name'});
+        if (!$ret) {
+            Carp::croak "Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+        }
+    }
+    return (1);  
 }
 
 1;

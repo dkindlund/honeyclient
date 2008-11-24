@@ -78,6 +78,7 @@ use IPTables::ChainMgr;
 
 diag("About to run extended tests.");
 diag("Warning: These tests may alter the host system's firewall.");
+diag("NOTE: The UFW service MUST already be running; if unsure, type '/etc/init.d/ufw restart' as root.");
 diag("As such, Running these tests via a remote session is NOT advised.");
 diag("");
 
@@ -95,14 +96,109 @@ use HoneyClient::Manager::Firewall;
 
 # =begin testing
 {
-# TODO: Fix this.
-
 eval {
     # Deny all traffic.
     my $result = HoneyClient::Manager::Firewall->denyAllTraffic();
 
     # Validate the result.
     ok($result, "denyAllTraffic()") or diag("The denyAllTraffic() call failed.");
+
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+eval {
+    # Allow all traffic.
+    my $result = HoneyClient::Manager::Firewall->allowAllTraffic();
+
+    # Validate the result.
+    ok($result, "allowAllTraffic()") or diag("The allowAllTraffic() call failed.");
+    
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+eval {
+    # Allow VM traffic.
+    my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+    my $mac_address = "00:0c:29:c5:11:c7";
+    my $ip_address = "10.0.0.254";
+    my $protocol = "tcp";
+    my $ports = [ 80, 443 ];
+
+    my $result = HoneyClient::Manager::Firewall->allowVM(
+        chain_name => $chain_name,
+        mac_address => $mac_address,
+        ip_address => $ip_address,
+        protocol => $protocol,
+        ports => $ports,
+    );
+
+    # Validate the result.
+    $Data::Dumper::Terse = 1;
+    $Data::Dumper::Indent = 0;
+    ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', ports => '" . Dumper($ports) . "')") or diag("The allowVM() call failed.");
+    
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+eval {
+    # Allow VM traffic.
+    my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+    my $mac_address = "00:0c:29:c5:11:c7";
+    my $ip_address = "10.0.0.254";
+    my $protocol = "tcp";
+    my $ports = [ 80, 443 ];
+
+    HoneyClient::Manager::Firewall->allowVM(
+        chain_name => $chain_name,
+        mac_address => $mac_address,
+        ip_address => $ip_address,
+        protocol => $protocol,
+        ports => $ports,
+    );
+
+    # Then, deny VM traffic.
+    my $result = HoneyClient::Manager::Firewall->denyVM(chain_name => $chain_name);
+
+    # Validate the result.
+    $Data::Dumper::Terse = 1;
+    $Data::Dumper::Indent = 0;
+    ok($result, "denyVM(chain_name => '$chain_name')") or diag("The denyVM() call failed.");
+    
+    # Restore the default ruleset.
+    HoneyClient::Manager::Firewall->_clear();
 };
 
 # Report any failure found.
