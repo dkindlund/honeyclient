@@ -60,3 +60,6 @@
 # VMware ESX - VM Resume From Suspend Auto IP Renewal Script
 +	cmd.exe	.*	C:\\WINDOWS\\system32\\cmd\.exe
 +	VMip.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMip\.exe
+
+# IE - Dr. Watson Crash Reporter
++	iedw.exe	.*	C:\\Program Files\\Internet Explorer\\iedw\.exe
