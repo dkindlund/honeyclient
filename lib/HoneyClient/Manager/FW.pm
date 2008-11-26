@@ -38,6 +38,8 @@ which will provide network connectivity for the honeyclients during crawling.  A
 it will provide protection when the honeyclients become compromised by enabling static rate limiting(tcp/udp/icmp)
 and MAC address filtering.
 
+NOTE: This package has been DEPRECATED.
+
 =head1 VERSION
 
 This documentation refers to HoneyClient::Manager::FW version 1.02.
