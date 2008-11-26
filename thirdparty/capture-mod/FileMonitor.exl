@@ -43,6 +43,7 @@
 #Windows update
 +	Write	C:\\WINDOWS\\system32\\wuauclt\.exe	C:\\WINDOWS\\WindowsUpdate\.log
 +	Write	C:\\WINDOWS\\system32\\wuauclt\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\Logs\\.+
++	Delete	C:\\WINDOWS\\system32\\wuauclt\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\Logs\\.+
 +	Write	C:\\WINDOWS\\system32\\wuauclt\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\DataStore\.edb
 +	Write	C:\\WINDOWS\\system32\\wuauclt\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\DataStore\.edb
 #System Events
