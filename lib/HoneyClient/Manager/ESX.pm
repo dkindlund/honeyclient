@@ -4055,6 +4055,9 @@ sub quickCloneVM {
     $vm_config_spec->annotation("Type: Quick Cloned VM\n" .
                                 "Master VM: " . $args{'src_name'});
 
+    # Make sure the new clone always generates a new, unique UUID.
+    $vm_config_spec->extraConfig([ OptionValue->new(key => "uuid.action", value => "create"), ]);
+
     # Now, reconfigure the destination VM's configuration accordingly.
     eval {
         $dst_vm_view->waitForTask($dst_vm_view->ReconfigVM_Task(

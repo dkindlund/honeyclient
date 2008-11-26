@@ -62,15 +62,15 @@ BEGIN { use_ok('HoneyClient::Manager') or diag("Can't load HoneyClient::Manager 
 require_ok('HoneyClient::Manager');
 use HoneyClient::Manager;
 
-# Make sure HonyClient::Manager::VM::Clone loads.
-BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::VM::Clone');
-use HoneyClient::Manager::VM::Clone;
+# Make sure HonyClient::Manager::VM::Clone or HoneyClient::Manager::ESX::Clone loads.
+my $VM_MODE = getVar(name => "virtualization_mode", namespace => "HoneyClient::Manager") . "::Clone";
+require_ok($VM_MODE);
+eval "require $VM_MODE";
 
-# Make sure HonyClient::Manager::ESX::Clone loads.
-BEGIN { use_ok('HoneyClient::Manager::ESX::Clone') or diag("Can't load HoneyClient::Manager::ESX::Clone package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::ESX::Clone');
-use HoneyClient::Manager::ESX::Clone;
+# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall loads.
+if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
+    require_ok('HoneyClient::Manager::Firewall');
+}
 
 # Make sure HoneyClient::Util::SOAP loads.
 BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
@@ -119,24 +119,6 @@ use Sys::Hostname;
 BEGIN { use_ok('Sys::HostIP') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Sys::HostIP');
 use Sys::HostIP;
-}
-
-
-
-# =begin testing
-{
-SKIP: {
-    skip "HoneyClient::Manager->init() is not implemented, yet.", 1;
-}
-}
-
-
-
-# =begin testing
-{
-SKIP: {
-    skip "HoneyClient::Manager->destroy() is not implemented, yet.", 1;
-}
 }
 
 

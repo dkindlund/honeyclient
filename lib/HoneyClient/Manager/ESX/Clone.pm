@@ -251,6 +251,11 @@ BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient
 require_ok('HoneyClient::Manager::Database');
 use HoneyClient::Manager::Database;
 
+# Make sure HoneyClient::Manager::Firewall loads.
+BEGIN { use_ok('HoneyClient::Manager::Firewall') or diag("Can't load HoneyClient::Manager::Firewall package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Firewall');
+use HoneyClient::Manager::Firewall;
+
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Manager::ESX::Clone') or diag("Can't load HoneyClient::Manager::ESX::Clone package.  Check to make sure the package library is correctly listed within the path."); }
@@ -358,6 +363,9 @@ use DateTime::HiRes;
 
 # Include Database Libraries
 use HoneyClient::Manager::Database;
+
+# Include Firewall Libraries
+use HoneyClient::Manager::Firewall;
 
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
@@ -543,8 +551,6 @@ sub DESTROY {
         # Signal firewall to deny traffic from this clone.
         # Ignore errors.
         eval {
-            $self->{'_fw_handle'} = getClientHandle(namespace     => "HoneyClient::Manager::FW",
-                                                    fault_handler => \&_handleFWFault);
             $self->_denyNetwork();
         };
        
@@ -588,32 +594,6 @@ sub DESTROY {
         # Upon termination, close our session.
         $LOG->info("Thread ID (" . threads->tid() . "): Closing ESX session.");
         HoneyClient::Manager::ESX->logout(session => $self->{'_vm_session'});
-    }
-}
-
-# Handle FW SOAP faults.
-#
-# During VM Clone object destruction, it's possible that the
-# firewall will be reset by the Manager's END logic before the chains
-# have been properly flushed by the DESTROY logic.  As such,
-# we suppress error during chain deletion.
-sub _handleFWFault {
-
-    # Extract arguments.
-    my ($class, $res) = @_;
-
-    # Construct error message.
-    # Figure out if the error occurred in transport or over
-    # on the other side.
-    my $errMsg = $class->transport->status; # Assume transport error.
-
-    if (ref $res) {
-        $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
-    }
-    
-    if ($errMsg !~ /Unable to flush entries in chain/) {
-        $LOG->warn("Thread ID (" . threads->tid() . "): Error occurred during processing. " . $errMsg);
-        Carp::carp __PACKAGE__ . "->_handleFWFault(): Error occurred during processing.\n" . $errMsg;
     }
 }
 
@@ -1077,33 +1057,18 @@ sub _allowNetwork {
         return;
     }
 
-    # Mark that the VM has been granted network access.
-    $self->{'_has_network_access'} = 1;
-
-    # Build our VM's network connection table.
-    # Note: We assume our VM has a single MAC address
-    # and a single IP address.
-    my $netTable = {};
-
-    # XXX: This code is a hack and needs to be fixed.
-    $netTable->{$self->{'quick_clone_vm_name'}}->{'sources'}->{$self->{'mac_address'}}->{$self->{'ip_address'}} = {
-        # Allow all TCP traffic from this VM through on ports 80, 443, and 3690.
-        tcp => [ 80, ], #443, 3690 ],
-    };
-
-    # XXX: This is a defect.  The current FW code requires we set a target, but
-    # doesn't care what hostname we provide -- as long as it's resolvable.
-    # However, it *does* care about the target ports, which are hardcoded.
-    $netTable->{$self->{'quick_clone_vm_name'}}->{'targets'} = {
-        'www.cnn.com' => {
-            tcp => [ 80, 443, 3690 ],
-        },
-    };
-
     $LOG->info("Thread ID (" . threads->tid() . "): Allowing VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
-    # XXX: Currently, faults get propagated -- is this okay?
-    $self->{'_fw_handle'}->addChain($netTable);
-    $self->{'_fw_handle'}->addRules($netTable);
+    if (HoneyClient::Manager::Firewall->allowVM(
+            chain_name  => $self->{'quick_clone_vm_name'},
+            mac_address => $self->{'mac_address'},
+            ip_address  => $self->{'ip_address'},
+# TODO: Need to make this more configurable.
+            protocol    => "tcp",
+            ports       => [ 80, 443, 3690 ],)) {
+
+        # Mark that the VM has been granted network access.
+        $self->{'_has_network_access'} = 1;
+    }
 }
 
 # Denies the specified VM use of the network.
@@ -1122,34 +1087,12 @@ sub _denyNetwork {
     if (!$self->{'_has_network_access'}) {
         return;
     }
-    
-    # Mark that the VM has been denied network access.
-    $self->{'_has_network_access'} = 0;
-
-    # Build our VM's network connection table.
-    # Note: We assume our VM has a single MAC address
-    # and a single IP address.
-    my $netTable = {};
-    
-    # XXX: This code is a hack and needs to be fixed.
-    $netTable->{$self->{'quick_clone_vm_name'}}->{'sources'}->{$self->{'mac_address'}}->{$self->{'ip_address'}} = {
-        # Deny all TCP traffic from this VM.
-        tcp => [ 80, ], #443, 3690 ],
-    };
-
-    # XXX: This is a defect.  The current FW code requires we set a target, but
-    # doesn't care what hostname we provide -- as long as it's resolvable.
-    # However, it *does* care about the target ports, which are hardcoded.
-    $netTable->{$self->{'quick_clone_vm_name'}}->{'targets'} = {
-        'www.cnn.com' => {
-            tcp => [ 80, 443, 3690 ],
-        },
-    };
 
     $LOG->info("Thread ID (" . threads->tid() . "): Denying VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
-    # XXX: Currently, faults get propagated -- is this okay?
-    $self->{'_fw_handle'}->deleteRules($netTable);
-    $self->{'_fw_handle'}->deleteChain($netTable);
+    if (HoneyClient::Manager::Firewall->denyVM(chain_name => $self->{'quick_clone_vm_name'})) {
+        # Mark that the VM has been denied network access.
+        $self->{'_has_network_access'} = 0;
+    }
 }
 
 # Helper function to check if the VMware ESX system has enough disk
@@ -1336,10 +1279,6 @@ sub new {
         # should never be modified externally.)
         _agent_handle => undef,
 
-        # A SOAP handle to the FW daemon.  (This internal variable
-        # should never be modified externally.)
-        _fw_handle => undef,
-
         # A variable indicated how long the object should wait for
         # between subsequent retries to any SOAP server
         # daemon (in seconds).  (This internal variable should never
@@ -1348,8 +1287,7 @@ sub new {
 
         # A variable indicating if the firewall should be bypassed.
         # (For testing use only.)
-        # TODO: Change this back to 0.
-        _bypass_firewall => 1,
+        _bypass_firewall => 0,
 
         # A variable indicating if the cloned VM has been granted
         # network access.
@@ -1378,27 +1316,19 @@ sub new {
     # Sanity check: Make sure there is enough disk space available. 
     $self->_checkSpaceAvailable();
     
-    # Set a valid handle for the FW daemon.
-    $self->{'_fw_handle'} = getClientHandle(namespace => "HoneyClient::Manager::FW");
-
     # Install the default firewall rules only if we're being called by code
     # other than HoneyClient::Manager or by ourselves.
     my $caller = caller();
     if (($caller ne __PACKAGE__) && ($caller ne "HoneyClient::Manager")) {
         $LOG->info("Thread ID (" . threads->tid() . "): Installing default firewall rules.");
-        # XXX: Currently, faults get propagated -- is this okay?
-        # TODO: Uncomment this line, eventually.
-        #$self->{'_fw_handle'}->installDefaultRules();
+        HoneyClient::Manager::Firewall->denyAllTraffic();
     }
 
     # Determine if the firewall needs to be bypassed.
     if ($self->{'_bypass_firewall'}) {
-        # XXX: Currently, faults get propagated -- is this okay?
-        # TODO: Uncomment this line, eventually.
-        #$self->{'_fw_handle'}->allowAllTraffic();
+        HoneyClient::Manager::Firewall->allowAllTraffic();
     }
 
-# TODO: Snapshot MAX Limit Detection!
     # Check to see if this quick clone VM already has reached the
     # maximum number of snapshots.
     if ($self->{'_num_snapshots'} >= getVar(name => "max_num_snapshots")) {

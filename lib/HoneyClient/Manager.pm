@@ -197,15 +197,15 @@ BEGIN { use_ok('HoneyClient::Manager') or diag("Can't load HoneyClient::Manager 
 require_ok('HoneyClient::Manager');
 use HoneyClient::Manager;
 
-# Make sure HonyClient::Manager::VM::Clone loads.
-BEGIN { use_ok('HoneyClient::Manager::VM::Clone') or diag("Can't load HoneyClient::Manager::VM::Clone package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::VM::Clone');
-use HoneyClient::Manager::VM::Clone;
+# Make sure HonyClient::Manager::VM::Clone or HoneyClient::Manager::ESX::Clone loads.
+my $VM_MODE = getVar(name => "virtualization_mode", namespace => "HoneyClient::Manager") . "::Clone";
+require_ok($VM_MODE);
+eval "require $VM_MODE";
 
-# Make sure HonyClient::Manager::ESX::Clone loads.
-BEGIN { use_ok('HoneyClient::Manager::ESX::Clone') or diag("Can't load HoneyClient::Manager::ESX::Clone package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::ESX::Clone');
-use HoneyClient::Manager::ESX::Clone;
+# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall loads.
+if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
+    require_ok('HoneyClient::Manager::Firewall');
+}
 
 # Make sure HoneyClient::Util::SOAP loads.
 BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
@@ -274,9 +274,13 @@ use Thread::Queue;
 use HoneyClient::Util::Config qw(getVar);
 
 # Include the VM Utility Libraries
-# TODO: Fix this, eventually.
-#use HoneyClient::Manager::VM::Clone;
-use HoneyClient::Manager::ESX::Clone;
+my $VM_MODE = getVar(name => "virtualization_mode") . "::Clone";
+eval "require $VM_MODE";
+
+# If VMware ESX is specified, then load HoneyClient::Manager::Firewall.
+if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
+    require HoneyClient::Manager::Firewall;
+}
 
 # Include Database Libraries
 use HoneyClient::Manager::Database;
@@ -316,88 +320,6 @@ our $WORK_QUEUE : shared = undef;
 # The global wait queue.  Each entry represents
 # a thread ID waiting for more work.
 our $WAIT_QUEUE : shared = undef;
-
-#######################################################################
-# Daemon Initialization / Destruction                                 #
-#######################################################################
-
-=pod
-
-=head1 EXPORTED FUNCTIONS
-
-The following init() and destroy() functions are the only direct
-calls required to startup and shutdown the SOAP server.
-
-All other interactions with this daemon should be performed as
-C<SOAP::Lite> function calls, in order to ensure consistency across
-client sessions.  See the L<"EXTERNAL SOAP FUNCTIONS"> section, for
-more details.
-
-=head2 HoneyClient::Manager->init()
-
-=over 4
-
-Starts a new SOAP server, within a child process.
-
-I<Inputs>:
-
-# XXX: Finish this.
-
-I<Output>: 
-
-# XXX: Finish this.
-
-=back
-
-=begin testing
-
-SKIP: {
-    skip "HoneyClient::Manager->init() is not implemented, yet.", 1;
-}
-
-=end testing
-
-=cut
-
-#sub init {
-#    # Extract arguments.
-#    # Hash-based arguments are used, since HoneyClient::Util::SOAP is unable to handle
-#    # hash references directly.  Thus, flat hashtables are used throughout the code
-#    # for consistency.
-#    my ($class, %args) = @_;
-#    
-#    # XXX: Finish this.
-#}
-
-=pod
-
-=head2 HoneyClient::Manager->destroy()
-
-=over 4
-
-Terminates the SOAP server within the child process.
-
-I<Output>: True if successful, false otherwise.
-
-=back
-
-=begin testing
-
-SKIP: {
-    skip "HoneyClient::Manager->destroy() is not implemented, yet.", 1;
-}
-
-=end testing
-
-=cut
-
-#sub destroy {
-#    my $ret = undef;
-#   
-#    # XXX: Finish this.
-#    
-#    return $ret;
-#}
 
 #######################################################################
 # Private Methods Implemented                                         #
@@ -443,10 +365,15 @@ END {
     # Reset the firewall.
     eval {
         $LOG->info("Resetting firewall.");
-        my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
-                                     fault_handler => \&_handleFault);
-# TODO: Uncomment this, eventually.
-#        $stubFW->installDefaultRules();
+# TODO: Test this.
+        my $VM_MODE = getVar(name => "virtualization_mode");
+        if ($VM_MODE eq "HoneyClient::Manager::VM") {
+            my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
+                                         fault_handler => \&_handleFault);
+            $stubFW->installDefaultRules();
+        } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
+            HoneyClient::Manager::Firewall->denyAllTraffic();
+        }
     };
 
     # Verify all sub threads are finished, prior to shutting down.
@@ -476,8 +403,15 @@ END {
     # process of asynchronously archiving a VM, then the async archive
     # process will fail.
 
-    # Make sure all processes in our process group our dead.
-    kill("KILL", -$$);
+    my $package = undef;
+    my $filename = undef;
+    my $line = undef;
+    ($package, $filename, $line) = caller();
+    # Only kill our process group when we're not in a unit test.
+    if ($filename ne 't/honeyclient_manager.t') {
+        # Make sure all processes in our process group our dead.
+        kill("KILL", -$$);
+    }
 }
 
 # Helper function designed to "pop" a (key, value) pair off a given hashtable.
@@ -625,9 +559,9 @@ sub _worker {
 
     eval {
         # Create a new cloned VM.
-# TODO: Make this more configurable.
-        #my $vm = HoneyClient::Manager::VM::Clone->new(%{$args});
-        my $vm = HoneyClient::Manager::ESX::Clone->new(%{$args});
+# TODO: Test this.
+        my $VM_MODE = getVar(name => "virtualization_mode") . "::Clone";
+        my $vm = $VM_MODE->new(%{$args});
 
         # If there's no work on the queue, signal that we need more work.
         if (!$WORK_QUEUE->pending) {
@@ -760,13 +694,18 @@ sub run {
     # Temporary variable to hold each cloned VM.
     my $vm        = undef;
 
-    # Get a stub connection to the firewall.
-    my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
-                                 fault_handler => \&_handleFaultAndCleanup);
-
     $LOG->info("Installing default firewall rules.");
-# TODO: Uncomment this, eventually.
-#    $stubFW->installDefaultRules();
+
+# TODO: Test this.
+    my $VM_MODE = getVar(name => "virtualization_mode");
+    if ($VM_MODE eq "HoneyClient::Manager::VM") {
+        # Get a stub connection to the firewall.
+        my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
+                                     fault_handler => \&_handleFaultAndCleanup);
+        $stubFW->installDefaultRules();
+    } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
+        HoneyClient::Manager::Firewall->denyAllTraffic();
+    }
 
     # If these parameters weren't defined, delete them
     # from the specified arg hash.
