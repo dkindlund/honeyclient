@@ -224,6 +224,20 @@ Keep in mind, though, that some variables should remain module-specific
                 2
             </delay_between_retries>
         </Database>
+        <!-- HoneyClient::Manager::Firewall Options -->
+        <Firewall>
+            <!--
+                Note: Once a clone VM establishes a connection to a remote server on one of the allowable ports,
+                then the firewall will track the session and allow all incoming traffic from that server to back
+                to the clone VM.
+            -->
+            <allowed_outbound_ports description="By default, when a clone VM is started, the firewall will allow the VM to connect to any remote server on that server's following ports. Note: Only TCP communication is supported.">
+                <tcp>80</tcp>
+                <tcp>443</tcp>
+                <!-- Optional: Supports dynamic SVN updates of the Agent code. -->
+                <tcp>3690</tcp>
+            </allowed_outbound_ports>
+        </Firewall>
         <!-- HoneyClient::Manager::FW Options -->
         <FW>
             <vmnet_nat_router_address description="The IP address assigned to the VMware NAT interface (usually called vmnet8)." default="192.168.0.1">

@@ -1058,13 +1058,16 @@ sub _allowNetwork {
     }
 
     $LOG->info("Thread ID (" . threads->tid() . "): Allowing VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
+
+    my $allowed_outbound_ports = getVar(name      => "allowed_outbound_ports",
+                                        namespace => "HoneyClient::Manager::Firewall");
     if (HoneyClient::Manager::Firewall->allowVM(
             chain_name  => $self->{'quick_clone_vm_name'},
             mac_address => $self->{'mac_address'},
             ip_address  => $self->{'ip_address'},
-# TODO: Need to make this more configurable.
+            # XXX: Need to make this more configurable, by supporting other protocols.
             protocol    => "tcp",
-            ports       => [ 80, 443, 3690 ],)) {
+            ports       => $allowed_outbound_ports->{'tcp'},)) {
 
         # Mark that the VM has been granted network access.
         $self->{'_has_network_access'} = 1;
