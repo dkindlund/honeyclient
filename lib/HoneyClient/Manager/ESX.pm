@@ -42,6 +42,7 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
 =head1 SYNOPSIS
 
   use HoneyClient::Manager::ESX;
+  use Data::Dumper;
 
   # Create a new session to interact with the ESX server.
   my $session = HoneyClient::Manager::ESX->login();
@@ -58,6 +59,12 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   } else {
       print "No, the VM is not registered.";
   }
+
+  # Get all the VMs registered on the ESX server.
+  my $results = [];
+  ($session, $results) = HoneyClient::Manager::ESX->getAllVM(session => $session);
+  print "List of Registered VM Names:\n";
+  print Dumper($results) . "\n";
 
   # Register a particular VM.
   my $config = "[datastore] Test_VM/Test_VM.vmx";
@@ -2799,6 +2806,91 @@ sub isRegisteredVM {
     # If there is a VM view object corresponding to the name provided,
     # then the VM is registered.
     return ($args{'session'}, defined($vm_view) ? 1 : 0);
+}
+
+=pod
+
+=head2 getAllVM(session => $session)
+
+=over 4
+
+Returns list of all registered VMs.
+
+I<Inputs>:
+ B<$session> is the Vim current session object.
+
+I<Output>: (The Vim session object, An arrayref containing the names of
+all registered VMs on the VMware ESX Server.)
+
+=back
+
+=begin testing
+
+my $testVM = getVar(name      => "test_vm_name",
+                    namespace => "HoneyClient::Manager::ESX::Test");
+eval {
+    # Create a new session.
+    my $session = HoneyClient::Manager::ESX->login();
+
+    # Test the getAllVM() method.
+    my $results = [];
+    ($session, $results) = HoneyClient::Manager::ESX->getAllVM(session => $session);
+
+    # The test VM should be listed in the output.
+    like(join(' ', @{$results}), "/$testVM/", "getAllVM()") or diag("The getAllVM() call failed.  Expected test VM ($testVM) to be listed, but the VM was not listed in the output of getAllVM().");
+    
+    # Destroy the session.
+    HoneyClient::Manager::ESX->logout(session => $session);
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub getAllVM {
+    # Extract arguments.    
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Sanity check the arguments.
+    if (!scalar(%args) ||
+        !exists($args{'session'}) ||
+        !defined($args{'session'})) {
+        $LOG->fatal("Unable to retrieve view - no session specified.");
+        Carp::croak "Unable to retrieve view - no session specified.";
+    }
+    $args{'type'} = 'VirtualMachine';
+    
+    # Validate current session, if older than the given threshold.
+    if ((DateTime::HiRes->now() - DateTime::Duration->new(seconds => getVar(name => "session_timeout"))) > $args{'session'}->{'_updated_at'}) {
+        if (!_isSessionValid(%args)) {
+            # Relogin, if session is invalid.
+            $args{'session'} = login();
+        } else {
+            # Session remains valid; update timestamp.
+            $args{'session'}->{'_updated_at'} = DateTime::HiRes->now();
+        }
+    }
+
+    my $list = []; 
+    my $views = $args{'session'}->find_entity_views(view_type => $args{'type'});
+    foreach my $view (@{$views}) {
+        push (@{$list}, $view->{'name'});
+    }
+
+    return ($args{'session'}, $list);
 }
 
 =pod

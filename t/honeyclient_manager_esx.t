@@ -697,6 +697,33 @@ if ($@) {
 {
 my $testVM = getVar(name      => "test_vm_name",
                     namespace => "HoneyClient::Manager::ESX::Test");
+eval {
+    # Create a new session.
+    my $session = HoneyClient::Manager::ESX->login();
+
+    # Test the getAllVM() method.
+    my $results = [];
+    ($session, $results) = HoneyClient::Manager::ESX->getAllVM(session => $session);
+
+    # The test VM should be listed in the output.
+    like(join(' ', @{$results}), "/$testVM/", "getAllVM()") or diag("The getAllVM() call failed.  Expected test VM ($testVM) to be listed, but the VM was not listed in the output of getAllVM().");
+    
+    # Destroy the session.
+    HoneyClient::Manager::ESX->logout(session => $session);
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+my $testVM = getVar(name      => "test_vm_name",
+                    namespace => "HoneyClient::Manager::ESX::Test");
 
 eval {
     # Create a new session.
