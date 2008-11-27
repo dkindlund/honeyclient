@@ -382,6 +382,9 @@ a getVar(name => "foo") on the following XML:
           <bar>456</bar>
           <yok>789</yok>
           <yok>xxx</yok>
+          <zim a="1" b="2">great</zim>
+          <zim c="3" d="4">bad</zim>
+          <zim>plain</zim>
       </foo>
   </HoneyClient>
 
@@ -390,6 +393,21 @@ Then the following $hashref will be returned:
   $hashref = {
       'bar' => [ '123', '456' ],
       'yok' => [ '789', 'xxx' ],
+      'zim' => [
+          {
+              'great' => {
+                  'a' => 1,
+                  'b' => 2,
+              },
+          },
+          {
+              'bad'   => {
+                  'c' => 3,
+                  'd' => 4,     
+              },
+          },
+          'plain',
+      ],
   }
 
 I<Inputs>:
@@ -418,6 +436,9 @@ For example, if we perform a getVar(name => "foo") on the following XML:
           <yok>789</yok>
           <yok>xxx</yok>
           <yok><CHILD>zzz</CHILD></yok>
+          <zim a="1" b="2">great</zim>
+          <zim c="3" d="4">bad</zim>
+          <zim>plain</zim>
       </foo>
   </HoneyClient>
 
@@ -426,6 +447,21 @@ Then the following $hashref will be returned:
   $hashref = {
       'bar' => [ '123', '456' ],
       'yok' => [ '789', 'xxx', 'zzz' ],
+      'zim' => [
+          {
+              'great' => {
+                  'a' => 1,
+                  'b' => 2,
+              },
+          },
+          {
+              'bad'   => {
+                  'c' => 3,
+                  'd' => 4,     
+              },
+          },
+          'plain',
+      ],
   }
 
 Notice how the B<THIS_TEXT_WILL_BE_LOST> string got dropped and that
@@ -463,6 +499,28 @@ my $expectedValue = {
 };
 is_deeply($value, $expectedValue, "getVar(name => 'Yok', namespace => 'HoneyClient::Util::Config::Test')") 
     or diag("The getVar() call failed.  Attempted to get variable 'Yok' using namespace 'HoneyClient::Util::Config::Test' within the global configuration file.");
+
+# This check tests to make sure getVar() returns the expected hashref
+# when getting data from a target element that contains child sub-elements with attributes in some of the children.
+$value = getVar(name => "Zim", namespace => "HoneyClient::Util::Config::Test");
+my $expectedValue = {
+    'entry' => [ 
+        {
+            '8769305' => {
+                'name' => 'jenny',
+            },
+        },
+        {
+            '0769305' => {
+                'name'    => 'wierd',
+                'invalid' => 1,
+            },
+        },
+        '0069305',
+    ],
+};
+is_deeply($value, $expectedValue, "getVar(name => 'Zim', namespace => 'HoneyClient::Util::Config::Test')") 
+    or diag("The getVar() call failed.  Attempted to get variable 'Zim' using namespace 'HoneyClient::Util::Config::Test' within the global configuration file.");
 
 =end testing
 
@@ -541,7 +599,21 @@ sub getVar {
         # Now, build the hashtable of array references.
         $val = {};
         foreach my $child (@children) {
-            push  (@{$val->{$child->getName()}}, $child->string_value());
+           
+            # Check to see if the child has any attributes. 
+            my @attributes = $child->getAttributes();
+            if (scalar(@attributes) > 0) {
+                # At least one attribute found, so push a sub hashref onto the arrayref.
+                my $attribute_hash = {};
+                $attribute_hash->{$child->string_value()} = {};
+                foreach my $attribute (@attributes) {
+                    $attribute_hash->{$child->string_value()}->{$attribute->getName()} = $attribute->getNodeValue();
+                }
+                push  (@{$val->{$child->getName()}}, $attribute_hash);
+            } else {
+                # No attributes found, so just push the value onto the arrayref.
+                push  (@{$val->{$child->getName()}}, $child->string_value());
+            }
         }
     }
 

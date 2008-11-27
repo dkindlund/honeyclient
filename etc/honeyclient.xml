@@ -463,6 +463,11 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                     <childB>09876543</childB>
                     <childB>ZYXVTUWG</childB>
                 </Yok>
+                <Zim>
+                    <entry name="jenny">8769305</entry>
+                    <entry name="wierd" invalid="1">0769305</entry>
+                    <entry>0069305</entry>
+                </Zim>
             </Test>
         </Config>
     </Util>

@@ -104,6 +104,28 @@ my $expectedValue = {
 };
 is_deeply($value, $expectedValue, "getVar(name => 'Yok', namespace => 'HoneyClient::Util::Config::Test')") 
     or diag("The getVar() call failed.  Attempted to get variable 'Yok' using namespace 'HoneyClient::Util::Config::Test' within the global configuration file.");
+
+# This check tests to make sure getVar() returns the expected hashref
+# when getting data from a target element that contains child sub-elements with attributes in some of the children.
+$value = getVar(name => "Zim", namespace => "HoneyClient::Util::Config::Test");
+my $expectedValue = {
+    'entry' => [ 
+        {
+            '8769305' => {
+                'name' => 'jenny',
+            },
+        },
+        {
+            '0769305' => {
+                'name'    => 'wierd',
+                'invalid' => 1,
+            },
+        },
+        '0069305',
+    ],
+};
+is_deeply($value, $expectedValue, "getVar(name => 'Zim', namespace => 'HoneyClient::Util::Config::Test')") 
+    or diag("The getVar() call failed.  Attempted to get variable 'Zim' using namespace 'HoneyClient::Util::Config::Test' within the global configuration file.");
 }
 
 
