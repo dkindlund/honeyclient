@@ -184,7 +184,7 @@ Keep in mind, though, that some variables should remain module-specific
             1
         </num_simultaneous_clones>
         <virtualization_mode description="This value dictates whether VMware Server (HoneyClient::Manager::VM) or VMware ESX Server (HoneyClient::Manager::ESX) is used as the primary virtualization mode." default="HoneyClient::Manager::VM">
-            HoneyClient::Manager::VM
+            HoneyClient::Manager::ESX
         </virtualization_mode>
         <worker_startup_delay description="The amount of time (in seconds) that the Manager should wait between starting up successive clone VMs, so that the host system is not initially overwhelmed by too much activity." default="300">
             300
