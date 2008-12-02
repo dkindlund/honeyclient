@@ -2895,6 +2895,94 @@ sub getAllVM {
 
 =pod
 
+=head2 getAllSnapshotsVM(session => $session, name => $name)
+
+=over 4
+
+Returns list of all snapshots corresponding to the specified VM.
+
+I<Inputs>:
+ B<$session> is the Vim current session object.
+ B<$name> is the name of the virtual machine.
+
+I<Output>: (The Vim session object, An arrayref containing the names of
+all snapshots associated with the specified VM.)
+
+=back
+
+=begin testing
+
+my $testVM = getVar(name      => "test_vm_name",
+                    namespace => "HoneyClient::Manager::ESX::Test");
+eval {
+    # Create a new session.
+    my $session = HoneyClient::Manager::ESX->login();
+
+    # Test the getAllSnapshotsVM() method.
+    my $results = [];
+    ($session, $results) = HoneyClient::Manager::ESX->getAllSnapshotsVM(session => $session, name => $testVM);
+
+    # The test VM should have no snapshots.
+    is(scalar(@{$results}), 0, "getAllSnapshotsVM()") or diag("The getAllSnapshotsVM() call failed.  Expected test VM ($testVM) to have no snapshots, but the VM appears to have snapshots according to the output of getAllSnapshotsVM().");
+    
+    # Destroy the session.
+    HoneyClient::Manager::ESX->logout(session => $session);
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub getAllSnapshotsVM {
+    # Extract arguments.    
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    my $snapshot_name_list = [];
+    my $vm_view = undef;
+    ($args{'session'}, $vm_view) = _getViewVM(%args);
+
+    # Define a helper function, to recursively search for all snapshots
+    # in a given tree.
+    sub _findSnapshots {
+        my $snapshot_list = shift;
+        my $ret = [];
+        foreach my $snapshot_tree (@{$snapshot_list}) {
+            # Add the current child's name to the list.
+            push (@{$ret}, $snapshot_tree->name);
+
+            # Check the child's children.
+            if (defined($snapshot_tree->childSnapshotList) &&
+                (scalar(@{$snapshot_tree->childSnapshotList}) > 0)) {
+                push (@{$ret}, @{_findSnapshots($snapshot_tree->childSnapshotList)});
+            }
+        }
+        return $ret;
+    }
+
+    # Check if the VM has any snapshots.
+    if (defined($vm_view->snapshot) &&
+        defined($vm_view->snapshot->rootSnapshotList)) {
+        $snapshot_name_list = _findSnapshots($vm_view->snapshot->rootSnapshotList);
+    }
+
+    return ($args{'session'}, $snapshot_name_list);
+}
+
+=pod
+
 =head2 getDatastoreSpaceAvailableESX(session => $session, name => $name)
 
 =over 4

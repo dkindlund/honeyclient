@@ -724,6 +724,33 @@ if ($@) {
 {
 my $testVM = getVar(name      => "test_vm_name",
                     namespace => "HoneyClient::Manager::ESX::Test");
+eval {
+    # Create a new session.
+    my $session = HoneyClient::Manager::ESX->login();
+
+    # Test the getAllSnapshotsVM() method.
+    my $results = [];
+    ($session, $results) = HoneyClient::Manager::ESX->getAllSnapshotsVM(session => $session, name => $testVM);
+
+    # The test VM should have no snapshots.
+    is(scalar(@{$results}), 0, "getAllSnapshotsVM()") or diag("The getAllSnapshotsVM() call failed.  Expected test VM ($testVM) to have no snapshots, but the VM appears to have snapshots according to the output of getAllSnapshotsVM().");
+    
+    # Destroy the session.
+    HoneyClient::Manager::ESX->logout(session => $session);
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+my $testVM = getVar(name      => "test_vm_name",
+                    namespace => "HoneyClient::Manager::ESX::Test");
 
 eval {
     # Create a new session.

@@ -784,6 +784,7 @@ sub _init {
 # TODO: Need to record: $self->{'name'}, eventually.
                 my $client = {
                     cid => $self->{'quick_clone_vm_name'},
+                    snapshot_name => $self->{'name'},
                     status => $self->{'status'},
                     host => {
                         org => getVar(name => "organization"),
@@ -882,6 +883,7 @@ sub _init {
 # TODO: Need to record: $self->{'name'}, eventually.
                 my $client = {
                     cid => $self->{'quick_clone_vm_name'},
+                    snapshot_name => $self->{'name'},
                     status => $self->{'status'},
                     host => {
                         org => getVar(name => "organization"),
