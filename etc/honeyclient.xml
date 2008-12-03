@@ -181,7 +181,7 @@ Keep in mind, though, that some variables should remain module-specific
     </Crawler>
     <Manager>
         <num_simultaneous_clones description="Upon startup, the Manager will attempt to spawn the specified number of cloned VMs simultaneously.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this specified number (e.g., 4 simultaneous VMs x 256MB = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM the host system can provision.  Allow the host system at least 512MB of RAM for normal operations." default="1">
-            1
+            3
         </num_simultaneous_clones>
         <virtualization_mode description="This value dictates whether VMware Server (HoneyClient::Manager::VM) or VMware ESX Server (HoneyClient::Manager::ESX) is used as the primary virtualization mode." default="HoneyClient::Manager::VM">
             HoneyClient::Manager::VM
@@ -399,7 +399,7 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/Agent.Master-44-IE6/winXPPro.cfg
+                /vm/masters/Agent.Master-46-IE6/winXPPro.cfg
             </master_vm_config>
             <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
                 7627
