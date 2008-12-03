@@ -958,10 +958,11 @@ sub _changeStatus {
     }
 
     # Don't change the status field for any VM that has been marked
-    # as suspicious, compromised, error, or deleted.
+    # as suspicious, compromised, error, bug, or deleted.
     if (($self->{'status'} eq "suspicious") ||
         ($self->{'status'} eq "compromised") ||
         ($self->{'status'} eq "error") ||
+        ($self->{'status'} eq "bug") ||
         ($self->{'status'} eq "deleted")) {
         return $self;
     }
@@ -1015,6 +1016,8 @@ sub _changeStatus {
                 HoneyClient::Manager::Database::set_client_deleted($self->{'database_id'});
             } elsif (/error/) {
                 HoneyClient::Manager::Database::set_client_error($self->{'database_id'});
+            } elsif (/bug/) {
+                HoneyClient::Manager::Database::set_client_bug($self->{'database_id'});
             }
         }
     }
@@ -1840,8 +1843,8 @@ sub drive {
                 $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
             }
 
-            # Mark the VM as suspicious.
-            $self->_changeStatus(status => "suspicious");
+            # Mark the VM as bug.
+            $self->_changeStatus(status => "bug");
 
         # Figure out if there was a compromise found.
         } elsif (scalar(@{$result->{'fingerprint'}->{os_processes}})) {
