@@ -1385,7 +1385,7 @@ sub fullCloneVM {
         }
     }
 
-    $LOG->info("Full cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . ").");
+    $LOG->debug("Full cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . ").");
 
     # Clone the source VM.
     $args{'config'} = _fullCopyVM(%args);
@@ -1492,9 +1492,7 @@ sub startVM {
         my $vm_view = undef;
         ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
-            $LOG->info("Starting VM (" . $args{'name'} . ").");
-
-# TODO: May need to create an async thread to monitor for stuck state.
+            $LOG->debug("Starting VM (" . $args{'name'} . ").");
 
             # Helper callback function to check for a stuck VM.
             my $checkForStuckVM = sub {
@@ -1626,9 +1624,7 @@ sub stopVM {
         my $vm_view = undef;
         ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
-            $LOG->info("Stopping VM (" . $args{'name'} . ").");
-
-# TODO: May need to create an async thread to monitor for stuck state.
+            $LOG->debug("Stopping VM (" . $args{'name'} . ").");
 
             # Helper callback function to check for a stuck VM.
             my $checkForStuckVM = sub {
@@ -1758,9 +1754,7 @@ sub resetVM {
         my $vm_view = undef;
         ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
-            $LOG->info("Resetting VM (" . $args{'name'} . ").");
-
-# TODO: May need to create an async thread to monitor for stuck state.
+            $LOG->debug("Resetting VM (" . $args{'name'} . ").");
 
             # Helper callback function to check for a stuck VM.
             my $checkForStuckVM = sub {
@@ -1898,9 +1892,7 @@ sub suspendVM {
         my $vm_view = undef;
         ($args{'session'}, $vm_view) = _getViewVM(%args);
         eval {
-            $LOG->info("Suspending VM (" . $args{'name'} . ").");
-
-# TODO: May need to create an async thread to monitor for stuck state.
+            $LOG->debug("Suspending VM (" . $args{'name'} . ").");
 
             # Helper callback function to check for a stuck VM.
             my $checkForStuckVM = sub {
@@ -2024,7 +2016,7 @@ sub destroyVM {
     my $isQuickCloneVM = undef;
     ($args{'session'}, $isQuickCloneVM) = isQuickCloneVM($class, %args);
     if ($isQuickCloneVM) {
-        $LOG->info("Destroying VM (" . $args{'name'} . ").");
+        $LOG->debug("Destroying VM (" . $args{'name'} . ").");
         _deleteFilesVM(%args);
         return $args{'session'};
     }
@@ -2034,7 +2026,7 @@ sub destroyVM {
     my $vm_view = undef;
     ($args{'session'}, $vm_view) = _getViewVM(%args);
     eval {
-        $LOG->info("Destroying VM (" . $args{'name'} . ").");
+        $LOG->debug("Destroying VM (" . $args{'name'} . ").");
         # This call is asynchronous, since we never use this VM again after destroying it.
         $vm_view->Destroy_Task();
     };
@@ -3315,7 +3307,7 @@ sub registerVM {
     }
 
     eval {
-        $LOG->info("Registering VM (" . $args{'name'} . ").");
+        $LOG->debug("Registering VM (" . $args{'name'} . ").");
         $folder_view->RegisterVM(
             path => $args{'config'},
             name => $args{'name'},
@@ -3414,7 +3406,7 @@ sub unregisterVM {
 
     # Unregister the VM.
     eval {
-        $LOG->info("Unregistering VM (" . $args{'name'} . ").");
+        $LOG->debug("Unregistering VM (" . $args{'name'} . ").");
         $vm_view->UnregisterVM();
     };
     if ($@) {
@@ -3555,7 +3547,7 @@ sub snapshotVM {
     }
 
     eval {
-        $LOG->info("Creating snapshot (" . $args{'snapshot_name'}  . ") on VM (" . $args{'name'} . ").");
+        $LOG->debug("Creating snapshot (" . $args{'snapshot_name'}  . ") on VM (" . $args{'name'} . ").");
         $vm_view->CreateSnapshot(name => $args{'snapshot_name'}, description => $args{'snapshot_description'}, memory => 1, quiesce => 1);
     };
     if ($@) {
@@ -3671,7 +3663,7 @@ sub revertVM {
     # Get the VirtualMachineSnapshot object.
     my $snapshot = $args{'session'}->get_view(mo_ref => $snapshot_tree->snapshot);
     eval {
-        $LOG->info("Reverting to snapshot (" . $args{'snapshot_name'}  . ") on VM (" . $args{'name'} . ").");
+        $LOG->debug("Reverting to snapshot (" . $args{'snapshot_name'}  . ") on VM (" . $args{'name'} . ").");
         $snapshot->RevertToSnapshot();
     };
     if ($@) {
@@ -3843,7 +3835,7 @@ sub renameSnapshotVM {
     # Get the VirtualMachineSnapshot object.
     my $snapshot = $args{'session'}->get_view(mo_ref => $snapshot_tree->snapshot);
     eval {
-        $LOG->info("Renaming snapshot (" . $args{'old_snapshot_name'}  . ") to (" . $args{'new_snapshot_name'} . ") on VM (" . $args{'name'} . ").");
+        $LOG->debug("Renaming snapshot (" . $args{'old_snapshot_name'}  . ") to (" . $args{'new_snapshot_name'} . ") on VM (" . $args{'name'} . ").");
         $snapshot->RenameSnapshot(
             name        => $args{'new_snapshot_name'},
             description => $args{'new_snapshot_description'},
@@ -3973,7 +3965,7 @@ sub removeSnapshotVM {
     # Get the VirtualMachineSnapshot object.
     my $snapshot = $args{'session'}->get_view(mo_ref => $snapshot_tree->snapshot);
     eval {
-        $LOG->info("Removing snapshot (" . $args{'snapshot_name'}  . ") on VM (" . $args{'name'} . ").");
+        $LOG->debug("Removing snapshot (" . $args{'snapshot_name'}  . ") on VM (" . $args{'name'} . ").");
         $snapshot->waitForTask($snapshot->RemoveSnapshot_Task(
             removeChildren => $args{'remove_all_children'},
         ));
@@ -4158,7 +4150,7 @@ sub quickCloneVM {
         Carp::croak "Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM has snapshots - delete all snapshots and try again.";
     }
 
-    $LOG->info("Quick cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . ").");
+    $LOG->debug("Quick cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . ").");
 
     # Clone the source VM.
     $args{'config'} = _quickCopyVM(%args);

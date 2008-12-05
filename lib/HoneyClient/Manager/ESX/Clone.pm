@@ -533,15 +533,9 @@ sub AUTOLOAD {
 # Since none of our state data ever contains circular references,
 # we can simply leave the garbage collection up to Perl's internal
 # mechanism.
-# TODO: Fix this.
 sub DESTROY {
     # Get the object.
     my $self = shift;
-
-# TODO: What about clones that were newly created but not initialized, yet?
-# There is a window of time after the suspend() call is made and a new object
-# is created.  During this time, it's possible for the old object's quick_clone_vm
-# to still be running, even though we report it as "suspended" or "suspicious".
 
     if (defined($self->{'quick_clone_vm_name'}) &&
         (($self->{'status'} eq 'running') ||
@@ -563,25 +557,6 @@ sub DESTROY {
         eval {
             $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         };
-
-        #unless(defined($som)) {
-        #    # XXX: There may be an issue with multiple threads attempting
-        #    # to all run DESTROY simultaneously.  Worst case scenario should
-        #    # be a warning indicating that the VM daemon bound address is
-        #    # already in use.
-        #
-        #    # Make sure the VM daemon was properly destroyed.
-        #    HoneyClient::Manager::ESX->destroy();
-        #    
-        #    # Reinitialize VM daemon.
-        #    HoneyClient::Manager::ESX->init();
-        #
-        #    # Reinitialize handler, with errors not suppressed.
-        #    $self->{'_vm_handle'} = getClientHandle(namespace => "HoneyClient::Manager::ESX");
-        #
-        #    # Call suspendVM one more time...
-        #    $som = $self->{'_vm_handle'}->suspendVM(config => $self->{'config'});
-        #}
 
         if (!defined($som)) {
             $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
@@ -781,7 +756,6 @@ sub _init {
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
-# TODO: Need to record: $self->{'name'}, eventually.
                 my $client = {
                     cid => $self->{'quick_clone_vm_name'},
                     snapshot_name => $self->{'name'},
@@ -810,7 +784,7 @@ sub _init {
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.";
         }
 
-        # Revert to operational snapshot.
+        # Revert to operational snapshot; upon revert, the VM will already be running.
         $LOG->info("Thread ID (" . threads->tid() . "): Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to operational snapshot (" . $self->{'name'} . ").");
         $ret = HoneyClient::Manager::ESX->revertVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'}, snapshot_name => $self->{'name'});
         if (!$ret) {
@@ -829,16 +803,6 @@ sub _init {
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.";
         }
         $LOG->info("Thread ID (" . threads->tid() . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
-
-        # TODO: Change to debug.
-# TODO: This shouldn't be needed?
-#        $LOG->info("Thread ID (" . threads->tid() . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-#        $ret = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
-#        if (!$ret) {
-#            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-#            Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . ").";
-#        }
-#        $self->{'_vm_session'} = $ret;
         $self->_changeStatus(status => "running");
 
         $ret = undef;
@@ -880,7 +844,6 @@ sub _init {
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
-# TODO: Need to record: $self->{'name'}, eventually.
                 my $client = {
                     cid => $self->{'quick_clone_vm_name'},
                     snapshot_name => $self->{'name'},
@@ -964,8 +927,14 @@ sub _changeStatus {
         ($self->{'status'} eq "error") ||
         ($self->{'status'} eq "bug") ||
         ($self->{'status'} eq "deleted")) {
+# TODO: Delete this, eventually.
+$LOG->warn("Returning out of _changeStatus early; status already: " . $self->{'status'});
         return $self;
-    }
+    #}
+# TODO: Delete this, eventually.
+} else {
+$LOG->warn("Evaluating _changeStatus; status: " . $self->{'status'} . " -> " . $args{'status'} . "  - db_id: " . $self->{'database_id'});
+}
 
     # Change the status field.
     $self->{'status'} = $args{'status'};
@@ -983,8 +952,8 @@ sub _changeStatus {
                     !defined($args{'fingerprint'})) {
 
                     # Warn if no valid fingerprint is supplied.
-                    $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - No valid fingerprint found.");
-                    Carp::carp __PACKAGE__ . "->_changeStatus(): (" . $self->{'name'} . ") - No valid fingerprint found.";
+                    $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - No valid fingerprint found.");
+                    Carp::carp __PACKAGE__ . "->_changeStatus(): (" . $self->{'quick_clone_vm_name'} . ") - No valid fingerprint found.";
 
                     # Mark the VM as suspicious, manually.
                     my $dt = DateTime::HiRes->now(time_zone => "local");
@@ -997,7 +966,7 @@ sub _changeStatus {
 
                     # Mark the VM as suspicious indirectly, by inserting the fingerprint.
 
-                    $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Inserting Fingerprint Into Database.");
+                    $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Inserting Fingerprint Into Database.");
                     # Make sure the fingerprint contains a client_id.
                     $args{'fingerprint'}->{'client_id'} = $self->{'database_id'};
                     my $fingerprint_id = undef;
@@ -1005,9 +974,9 @@ sub _changeStatus {
                         $fingerprint_id = HoneyClient::Manager::Database::insert_fingerprint($args{'fingerprint'});
                     };
                     if ($@ || ($fingerprint_id == 0) || !defined($fingerprint_id)) {
-                        $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Failure Inserting Fingerprint: " . $@);
+                        $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Failure Inserting Fingerprint: " . $@);
                     } else {
-                        $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Database Insert Successful.");
+                        $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Database Insert Successful.");
                     }
                 }
             } elsif (/compromised/) {
@@ -1495,9 +1464,6 @@ sub suspend {
     # avoid potential object DESTROY() calls.
     $self->{'config'} = undef;
 
-# TODO: Delete this, eventually.
-$LOG->info("NUM SNAPSHOTS BEFORE: " . $self->{'_num_snapshots'});
-
     # Snapshot the VM.
     if ($args{'perform_snapshot'}) {
         $LOG->info("Thread ID (" . threads->tid() . "): Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
@@ -1516,21 +1482,10 @@ $LOG->info("NUM SNAPSHOTS BEFORE: " . $self->{'_num_snapshots'});
             $self->_changeStatus(status => "suspended");
         }
     }
-# TODO: Delete this, eventually.
-$LOG->info("NUM SNAPSHOTS AFTER: " . $self->{'_num_snapshots'});
 
-# TODO: This shouldn't be needed?
-    # Suspend the quick clone VM.
-    #$LOG->info("Thread ID (" . threads->tid() . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
-    #my $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
-    #
-    #if (!defined($som)) {
-    #    $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
-    #    $self->_changeStatus(status => "error");
-    #} else {
-    #    $self->{'_vm_session'} = $som;
-    #    $self->_changeStatus(status => "suspended");
-    #}
+    # Even though the VM is technically not "suspended" at this point, the expectation is that
+    # the VM will be reverted shortly after this call completes.  As such, we forgo any actual
+    # suspend calls, as they can be wasteful since the VM will be reverted anyway.
 
     return $self;
 }
@@ -1636,6 +1591,9 @@ sub destroy {
     $self->_denyNetwork();
 
     # Remove the clone VM's underlying snapshot.
+    # We don't actually delete the snapshot, instead we just obliterate the operational snapshot's
+    # original name; that way, it's equivalent to deletion.  We assume the operational snapshot
+    # will then be reverted and renamed to the next valid operational snapshot name.
     $LOG->info("Thread ID (" . threads->tid() . "): Destroying snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
     my $som = undef;
     ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->renameSnapshotVM(session                  => $self->{'_vm_session'},
@@ -1791,7 +1749,7 @@ sub drive {
         if ((getVar(name => "work_unit_limit") > 0) &&
             ($self->{'work_units_processed'} >= getVar(name => "work_unit_limit"))) {
 
-            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
+            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
             $self->destroy();
         }
 
@@ -1819,7 +1777,7 @@ sub drive {
 
         # Drive the Agent.
         eval {
-            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
+            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
             $self->{'work_units_processed'}++;
             $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
                                                    parameters  => encode_base64($currentWork));
@@ -1828,7 +1786,7 @@ sub drive {
         if ($@) {
             # We lost communications with the Agent; assume the worst
             # and mark the VM as suspicious.
-            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED");
+            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED");
 
             # Suspend the cloned VM.
             $self->suspend();
@@ -1848,7 +1806,7 @@ sub drive {
 
         # Figure out if there was a compromise found.
         } elsif (scalar(@{$result->{'fingerprint'}->{os_processes}})) {
-            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
+            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
 
             # Dump the fingerprint to a file, if need be.
             $self->_dumpFingerprint($result->{'fingerprint'});
@@ -1867,7 +1825,7 @@ sub drive {
             $self->_changeStatus(status => "suspicious", fingerprint => $result->{'fingerprint'});
 
         } else {
-            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
+            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
             # If possibile, insert work history.
             $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
             if (defined($self->{'database_id'})) {
