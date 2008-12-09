@@ -366,7 +366,8 @@ END {
     eval {
         $LOG->info("Resetting firewall.");
 # TODO: Test this.
-        my $VM_MODE = getVar(name => "virtualization_mode");
+        require HoneyClient::Util::Config;
+        my $VM_MODE = HoneyClient::Util::Config::getVar(name => "virtualization_mode");
         if ($VM_MODE eq "HoneyClient::Manager::VM") {
             my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
                                          fault_handler => \&_handleFault);
@@ -697,15 +698,36 @@ sub run {
     $LOG->info("Installing default firewall rules.");
 
 # TODO: Test this.
+    # Identify virtualization mode used.
     my $VM_MODE = getVar(name => "virtualization_mode");
+    my $TOTAL_NUM_SIMULTANEOUS_CLONES : shared = 0;
     if ($VM_MODE eq "HoneyClient::Manager::VM") {
         # Get a stub connection to the firewall.
         my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
                                      fault_handler => \&_handleFaultAndCleanup);
         $stubFW->installDefaultRules();
+        # Figure out how many simultaneously running clones there will be on the host system.
+        $TOTAL_NUM_SIMULTANEOUS_CLONES = getVar(name => "num_simultaneous_clones", namespace => $VM_MODE);
     } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
         HoneyClient::Manager::Firewall->denyAllTraffic();
+
+        # Check to see how many hosts are specified in the configuration file.
+        my $hosts = getVar(name => "hosts", namespace => $VM_MODE);
+
+        # Iterate through each host and figure out how many simultaneously running clones there will be
+        # across all VMware ESX Servers.
+        foreach my $host (@{$hosts->{'host'}}) {
+            # Each host entry will have only one child entry, with that key being
+            # the service_url.
+            my @host_keys = keys(%{$host});
+            my $service_url = $host_keys[0];
+            $TOTAL_NUM_SIMULTANEOUS_CLONES += $host->{$service_url}->{'max_num_clones'};
+        } 
     }
+
+# XXX: DELETE THIS.
+print "TOTAL_NUM_SIM_CLONES:\n";
+print Dumper($TOTAL_NUM_SIMULTANEOUS_CLONES) . "\n";
 
     # If these parameters weren't defined, delete them
     # from the specified arg hash.
@@ -729,19 +751,52 @@ sub run {
     my $startup_thread = async {
         threads->detach();
 
+# TODO: This logic needs to be updated!
         # Create the cloned VMs.
-        for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
-            my $thread = threads->create(\&_worker, \%args);
-            if (!defined($thread)) {
-                $LOG->error("Unable to create worker thread! Shutting down.");
-                Carp::croak "Unable to create worker thread! Shutting down.";
+        if ($VM_MODE eq "HoneyClient::Manager::VM") {
+            for (my $counter = 0; $counter < $TOTAL_NUM_SIMULTANEOUS_CLONES; $counter++) {
+                my $thread = threads->create(\&_worker, \%args);
+                if (!defined($thread)) {
+                    $LOG->error("Unable to create worker thread! Shutting down.");
+                    Carp::croak "Unable to create worker thread! Shutting down.";
+                }
+
+                # Push thread onto thread pool.
+                push(@THREAD_POOL, $thread);
+
+                # Sleep for a fixed amount of time, before starting up another worker.
+                sleep(getVar(name => "worker_startup_delay"));
             }
+        } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
 
-            # Push thread onto thread pool.
-            push(@THREAD_POOL, $thread);
+            # Check to see how many hosts are specified in the configuration file.
+            my $hosts = getVar(name => "hosts", namespace => $VM_MODE);
 
-            # Sleep for a fixed amount of time, before starting up another worker.
-            sleep(getVar(name => "worker_startup_delay"));
+            # Iterate through each host.
+            foreach my $host (@{$hosts->{'host'}}) {
+# TODO: We should start up each host simultaneously (using async threading).
+                # Extract the service_url, user_name, and password from each entry.
+                # Each host entry will have only one child entry, with that key being
+                # the service_url.
+                my @host_keys = keys(%{$host});
+                $args{'service_url'} = $host_keys[0];
+                $args{'user_name'} = $host->{$args{'service_url'}}->{'user_name'};
+                $args{'password'}  = $host->{$args{'service_url'}}->{'password'};
+                my $num_simultaneous_clones = $host->{$args{'service_url'}}->{'max_num_clones'};
+                for (my $counter = 0; $counter < $num_simultaneous_clones; $counter++) {
+                    my $thread = threads->create(\&_worker, \%args);
+                    if (!defined($thread)) {
+                        $LOG->error("Unable to create worker thread! Shutting down.");
+                        Carp::croak "Unable to create worker thread! Shutting down.";
+                    }
+
+                    # Push thread onto thread pool.
+                    push(@THREAD_POOL, $thread);
+
+                    # Sleep for a fixed amount of time, before starting up another worker.
+                    sleep(getVar(name => "worker_startup_delay"));
+                }
+            } 
         }
     };
 
@@ -790,7 +845,8 @@ sub run {
         _divide_work(work_queue              => $WORK_QUEUE,
                      wait_queue              => $WAIT_QUEUE,
                      work                    => $args{'work'},
-                     num_simultaneous_clones => getVar(name => "num_simultaneous_clones"));
+# TODO: FIX THIS.
+                     num_simultaneous_clones => $TOTAL_NUM_SIMULTANEOUS_CLONES);
 
         # Wait until the VMs need more work.
         while (!$WAIT_QUEUE->pending) {
@@ -800,7 +856,8 @@ sub run {
             sleep(2);
 
             # Make sure all worker threads are still alive.
-            for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
+# TODO: FIX THIS.
+            for (my $counter = 0; $counter < $TOTAL_NUM_SIMULTANEOUS_CLONES; $counter++) {
                 my $thread = $THREAD_POOL[$counter];
                 if (defined($thread) && !$thread->is_running()) {
                     $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
@@ -827,12 +884,14 @@ sub run {
         _divide_work(work_queue              => $WORK_QUEUE,
                      wait_queue              => $WAIT_QUEUE,
                      work                    => $args{'work'},
-                     num_simultaneous_clones => getVar(name => "num_simultaneous_clones"));
+# TODO: FIX THIS.
+                     num_simultaneous_clones => $TOTAL_NUM_SIMULTANEOUS_CLONES);
 
         # Wait until all VMs are finished.
         # We wait for each worker to signal that they are waiting for more work, before shutting down
         # the application.
-        for (my $i = 0; $i < getVar(name => "num_simultaneous_clones"); $i++) {
+# TODO: FIX THIS.
+        for (my $i = 0; $i < $TOTAL_NUM_SIMULTANEOUS_CLONES; $i++) {
             my $tid = undef;
             # This is a little hackish, since calling Thread::Queue->dequeue
             # doesn't properly handle signals.
@@ -843,7 +902,8 @@ sub run {
                 sleep(2);
 
                 # Make sure all worker threads are still alive.
-                for (my $counter = 0; $counter < getVar(name => "num_simultaneous_clones"); $counter++) {
+# TODO: FIX THIS.
+                for (my $counter = 0; $counter < $TOTAL_NUM_SIMULTANEOUS_CLONES; $counter++) {
                     my $thread = $THREAD_POOL[$counter];
                     if (defined($thread) && !$thread->is_running()) {
                         $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");

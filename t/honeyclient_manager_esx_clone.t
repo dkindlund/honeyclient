@@ -154,8 +154,23 @@ diag("Note: These tests *expect* VMware ESX Server to be accessible and running 
 eval {
 
     # Create a generic empty clone object, with test state data.
-    my $clone = HoneyClient::Manager::ESX::Clone->new(test => 1, master_vm_name => $testVM, _dont_init => 1, _bypass_firewall => 1);
-    is($clone->{test}, 1, "new(test => 1, master_vm_name => '$testVM', _dont_init => 1, _bypass_firewall => 1)") or diag("The new() call failed.");
+    my $clone = HoneyClient::Manager::ESX::Clone->new(
+                    service_url      => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                    user_name        => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                    password         => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                    test             => 1, 
+                    master_vm_name   => $testVM,
+                    _dont_init       => 1,
+                    _bypass_firewall => 1,
+                );
+    is($clone->{test}, 1, "new(" .
+                            "service_url => '" . getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test") . "', " .
+                            "user_name => '" . getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test") . "', " .
+                            "password => '" . getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test") . "', " .
+                            "test => 1, " .
+                            "master_vm_name => '$testVM', " .
+                            "_dont_init => 1, " .
+                            "_bypass_firewall => 1)") or diag("The new() call failed.");
     isa_ok($clone, 'HoneyClient::Manager::ESX::Clone', "new(test => 1, master_vm_name => '$testVM', _dont_init => 1, _bypass_firewall => 1)") or diag("The new() call failed.");
     $clone = undef;
 
@@ -172,14 +187,23 @@ eval {
                        "#\n" .
                        "# Do you want to test cloning this master VM?", "no");
     if ($question =~ /^y.*/i) {
-        $clone = HoneyClient::Manager::ESX::Clone->new(test => 1);
+        $clone = HoneyClient::Manager::ESX::Clone->new(
+                     service_url    => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                     user_name      => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                     password       => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                     test           => 1
+                 );
         is($clone->{test}, 1, "new(test => 1)") or diag("The new() call failed.");
         isa_ok($clone, 'HoneyClient::Manager::ESX::Clone', "new(test => 1)") or diag("The new() call failed.");
         my $quick_clone_vm_name = $clone->{quick_clone_vm_name};
         $clone = undef;
     
         # Destroy the clone VM.
-        my $session = HoneyClient::Manager::ESX->login();
+        my $session = HoneyClient::Manager::ESX->login(
+                          service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                          user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                          password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                      );
         $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
@@ -218,7 +242,12 @@ eval {
     if ($question =~ /^y.*/i) {
 
         # Create a generic empty clone, with test state data.
-        my $clone = HoneyClient::Manager::ESX::Clone->new(_bypass_firewall => 1);
+        my $clone = HoneyClient::Manager::ESX::Clone->new(
+                        service_url      => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                        user_name        => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                        password         => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                        _bypass_firewall => 1,
+                    );
         my $quick_clone_vm_name = $clone->{quick_clone_vm_name};
         my $name = $clone->{name};
 
@@ -233,12 +262,16 @@ eval {
 
         # Test if the operations worked.
         my $result = HoneyClient::Manager::ESX::_findSnapshot($name, HoneyClient::Manager::ESX::_getViewVMSnapshotTrees(session => $clone->{_vm_session}));
-        is(defined($result), 1, "suspend()") or diag("The suspend() call failed.");
+        is(defined($result), 1, "suspend(perform_snapshot => 1)") or diag("The suspend() call failed.");
    
         $clone = undef;
 
         # Now, destroy the backing cloned VM.
-        my $session = HoneyClient::Manager::ESX->login();
+        my $session = HoneyClient::Manager::ESX->login(
+                          service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                          user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                          password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                      );
         $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
@@ -277,7 +310,12 @@ eval {
     if ($question =~ /^y.*/i) {
 
         # Create a generic empty clone, with test state data.
-        my $clone = HoneyClient::Manager::ESX::Clone->new(_bypass_firewall => 1);
+        my $clone = HoneyClient::Manager::ESX::Clone->new(
+                        service_url      => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                        user_name        => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                        password         => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                        _bypass_firewall => 1,
+                    );
         my $quick_clone_vm_name = $clone->{quick_clone_vm_name};
         my $name = $clone->{name};
 
@@ -294,7 +332,11 @@ eval {
         $clone = undef;
 
         # Now, destroy the backing cloned VM.
-        my $session = HoneyClient::Manager::ESX->login();
+        my $session = HoneyClient::Manager::ESX->login(
+                          service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                          user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                          password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                      );
         $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }
@@ -333,7 +375,12 @@ eval {
     if ($question =~ /^y.*/i) {
 
         # Create a generic empty clone, with test state data.
-        my $clone = HoneyClient::Manager::ESX::Clone->new(_bypass_firewall => 1);
+        my $clone = HoneyClient::Manager::ESX::Clone->new(
+                        service_url      => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                        user_name        => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                        password         => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                        _bypass_firewall => 1,
+                    );
         my $quick_clone_vm_name = $clone->{quick_clone_vm_name};
 
         $clone = $clone->drive(work => { 'http://www.google.com/' => 1 });
@@ -341,7 +388,11 @@ eval {
         $clone = undef;
 
         # Now, destroy the backing cloned VM.
-        my $session = HoneyClient::Manager::ESX->login();
+        my $session = HoneyClient::Manager::ESX->login(
+                          service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+                          user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+                          password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+                      );
         $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $quick_clone_vm_name);
         HoneyClient::Manager::ESX->logout(session => $session);
     }

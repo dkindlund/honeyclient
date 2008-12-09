@@ -180,11 +180,8 @@ Keep in mind, though, that some variables should remain module-specific
         </Browser>
     </Crawler>
     <Manager>
-        <num_simultaneous_clones description="Upon startup, the Manager will attempt to spawn the specified number of cloned VMs simultaneously.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this specified number (e.g., 4 simultaneous VMs x 256MB = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM the host system can provision.  Allow the host system at least 512MB of RAM for normal operations." default="1">
-            3
-        </num_simultaneous_clones>
         <virtualization_mode description="This value dictates whether VMware Server (HoneyClient::Manager::VM) or VMware ESX Server (HoneyClient::Manager::ESX) is used as the primary virtualization mode." default="HoneyClient::Manager::VM">
-            HoneyClient::Manager::VM
+            HoneyClient::Manager::ESX
         </virtualization_mode>
         <worker_startup_delay description="The amount of time (in seconds) that the Manager should wait between starting up successive clone VMs, so that the host system is not initially overwhelmed by too much activity." default="300">
             300
@@ -334,18 +331,24 @@ Keep in mind, though, that some variables should remain module-specific
         </FW>
         <!-- HoneyClient::Manager::ESX Options -->
         <ESX>
-            <service_url description="The full URL to the VIM service running on the VMware ESX Server." default="https://localhost/sdk/vimService">
-                https://172.16.164.115/sdk/vimService
-            </service_url>
+            <hosts description="This element contains a list of VMware ESX Servers along with corresponding authentication credentials for each server.">
+                <!--
+                 The format of each <host> entry is as follows:
+                 <host      user_name="The name of the user account to login to the VMware ESX Server (must have Administrator priviledges)."
+                             password="The password of the user account to use for authenticating to the VMware ESX Server."
+                       max_num_clones="An integer representing the maximum number of simultaneous clones that should be run on this VMware ESX Server.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this number (e.g., 4 simultaneous VMs x 256 = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM that the VMware ESX Server can provision.  Allow VMware ESX Server at least 512 MB of RAM for normal operations.">
+
+                     The element value is the service URL for accessing the VIM webservice on the VMware ESX Server, usually in the format of:
+                     https://esx_server_hostname_or_ip/sdk/vimService
+
+                 </host>
+                --> 
+                <host user_name="root" password="passw0rd" max_num_clones="1">https://172.16.164.103/sdk/vimService</host>
+                <host user_name="root" password="passw0rd" max_num_clones="1">https://172.16.164.115/sdk/vimService</host>
+            </hosts>
             <session_timeout description="The amount of time (in seconds) a VIM session remains active, before automatically expiring due to inactivity.  The default time is 15 minutes, since the default VMware ESX Server expires inactive sessions older than 30 mintues." default="900">
                 900
             </session_timeout>
-            <user_name description="The username used to login to the VIM service running on the ESX server." default="root">
-                root
-            </user_name>
-            <password description="The password used to login to the VIM service running on the ESX server.">
-                passw0rd
-            </password>
             <vm_id_length description="The length of each corresponding VM identifier (VMID).  This value can be any integer between 1 and 32, inclusive.  The VMID is a hexadecimal string that represents the VM's name.  It is designed to be generated once per clone and remain for the life of the VM (regardless of where it runs).  The VMID is used externally by HoneyClient::Manager and HoneyClient::Manager::FW.  The HoneyClient::Manager::FW package uses IPTables and binds each rule to a specific VMID.  However, IPTable's firewall rule labels can only be a maximum of 30 characters in length.  Thus, 26 is specified here, to account for 'VMID-OUT' as a possible chain name." default="26">
                 26
             </vm_id_length>
@@ -387,6 +390,19 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
             <!-- HoneyClient::Manager::ESX::Test Options -->
             <Test>
                 <!--
+                    Note: The next 3 values need to be updated with a valid URL and credentials, in order
+                    to perform proper unit testing.
+                -->
+                <service_url description="The full URL to the VIM service running on the VMware ESX Server." default="https://localhost/sdk/vimService">
+                    https://172.16.164.115/sdk/vimService
+                </service_url>
+                <user_name description="The username used to login to the VIM service running on the ESX server." default="root">
+                    root
+                </user_name>
+                <password description="The password used to login to the VIM service running on the ESX server.">
+                    passw0rd
+                </password>
+                <!--
                     Note: you should *never* need to change *any* values
                     within this section of the configuration.  All contents
                     are *only* used for unit testing.
@@ -398,6 +414,9 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
         </ESX>
         <!-- HoneyClient::Manager::VM Options -->
         <VM>
+            <num_simultaneous_clones description="Upon startup, the Manager will attempt to spawn the specified number of cloned VMs simultaneously.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this specified number (e.g., 4 simultaneous VMs x 256MB = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM that the host system can provision.  Allow the host system at least 512MB of RAM for normal operations." default="1">
+                1
+            </num_simultaneous_clones>
             <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
                 /vm/masters/Agent.Master-46-IE6/winXPPro.cfg
             </master_vm_config>

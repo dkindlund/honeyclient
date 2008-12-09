@@ -45,7 +45,11 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   use Data::Dumper;
 
   # Create a new session to interact with the ESX server.
-  my $session = HoneyClient::Manager::ESX->login();
+  my $session = HoneyClient::Manager::ESX->login(
+    service_url => "https://esx_server/sdk/vimService",
+    user_name   => "root",
+    password    => "password",
+  );
 
   # Assume we have a particular VM registered on
   # the ESX server.  We assume each VM has a UNIQUE name.
@@ -224,6 +228,12 @@ This documentation refers to HoneyClient::Manager::ESX version 1.02.
   } else {
       print "Failed to snapshot VM!\n";
   }
+
+  # Get all the snapshots associated with the VM.
+  $results = [];
+  ($session, $results) = HoneyClient::Manager::ESX->getAllSnapshotsVM(session => $session, name => $testVM);
+  print "List of snapshots on VM:\n";
+  print Dumper($results) . "\n";
 
   # Revert a particular VM back to a previous snapshot.
   $session = HoneyClient::Manager::ESX->revertVM(session => $session, name => $testVM, snapshot_name => "Snapshot");
@@ -408,9 +418,12 @@ diag("Warning: These tests will take significant time to complete (10-20 minutes
 diag("");
 diag("Note: These tests expect VMware ESX Server to be accessible at the following location,");
 diag("using the following credentials:");
-diag("   service_url: " . getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX"));
-diag("   username:    " . getVar(name => "user_name", namespace => "HoneyClient::Manager::ESX"));
-diag("   password:    " . getVar(name => "password", namespace => "HoneyClient::Manager::ESX"));
+diag("   service_url: " . getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"));
+diag("   username:    " . getVar(name => "user_name", namespace => "HoneyClient::Manager::ESX::Test"));
+diag("   password:    " . getVar(name => "password", namespace => "HoneyClient::Manager::ESX::Test"));
+diag("");
+diag("If this location and/or credentials need to be updated, then edit them in the etc/honeyclient.xml");
+diag("file in the <HoneyClient/><Manager/><ESX/><Test/> section.");
 diag("");
 diag("Also, these tests expect the following test VM to be registered and powered off on the VMware ESX");
 diag("Server:");
@@ -522,7 +535,11 @@ sub _getViewObject {
     if ((DateTime::HiRes->now() - DateTime::Duration->new(seconds => getVar(name => "session_timeout"))) > $args{'session'}->{'_updated_at'}) {
         if (!_isSessionValid(%args)) {
             # Relogin, if session is invalid.
-            $args{'session'} = login();
+            $args{'session'} = HoneyClient::Manager::ESX->login(
+                                   service_url => $args{'session'}->{'service_url'},
+                                   user_name   => $args{'session'}->{'user_name'},
+                                   password    => $args{'session'}->{'password'},
+                               );
         } else {
             # Session remains valid; update timestamp.
             $args{'session'}->{'_updated_at'} = DateTime::HiRes->now();
@@ -1102,15 +1119,16 @@ sub _isSessionValid {
 
 =head1 LOCAL FUNCTIONS
 
-=head2 login()
+=head2 login(service_url => $service_url, user_name => $user_name, password => $password)
 
 =over 4
 
-Logs into the VMware ESX Server using the credentials specified in
-the <HoneyClient/><Manager/><ESX/> section of the etc/honeyclient.xml
-configuration file.
+Logs into the VMware ESX Server using the credentials specified.
 
-I<Inputs>: None.
+I<Inputs>:
+ B<$service_url> is the URL of the VIM webservice running on the VMware ESX Server.
+ B<$user_name> is the user name used to authenticate to the VMware ESX Server (must have Administrator rights).
+ B<$password> is the password used to authenticate to the VMware ESX Server.
 
 I<Output>: Returns a valid Vim session object upon successful login;
 croaks otherwise.
@@ -1124,7 +1142,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Validate the session.
     ok((ref($session) eq 'Vim'), "login()") or diag("The login() call failed.");
@@ -1143,20 +1165,55 @@ if ($@) {
 =cut
 
 sub login {
+    my ($class, %args) = @_;
+
     # Log resolved arguments.
     $LOG->debug(sub {
         # Make Dumper format more terse.
         $Data::Dumper::Terse = 1;
         $Data::Dumper::Indent = 0;
-        Dumper();
+        Dumper(\%args);
     });
 
+    # Sanity check.
+    if (!scalar(%args) ||
+        !exists($args{'service_url'}) ||
+        !defined($args{'service_url'})) {
+        $LOG->fatal("Unable to login - no service_url specified.");
+        Carp::croak "Unable to login - no service_url specified.";
+    }
+    if (!exists($args{'user_name'}) ||
+        !defined($args{'user_name'})) {
+        $LOG->fatal("Unable to login - no user_name specified.");
+        Carp::croak "Unable to login - no user_name specified.";
+    }
+    if (!exists($args{'password'}) ||
+        !defined($args{'password'})) {
+        $LOG->fatal("Unable to login - no password specified.");
+        Carp::croak "Unable to login - no password specified.";
+    }
+
     # Create a connection to the ESX server
-    my $session = Vim->new(service_url => getVar(name => "service_url"));
+    my $session = Vim->new(service_url => $args{'service_url'});
     # Record when this object was updated.
     $session->{'_updated_at'} = DateTime::HiRes->now();
-    $session->login(user_name => getVar(name => "user_name"),
-                    password  => getVar(name => "password"));
+    $session->login(user_name => $args{'user_name'},
+                    password  => $args{'password'});
+
+    # If we didn't croak at this point, then the credentials worked.
+    # In that case, store the credentials used within the session
+    # object.  This allows us to easily re-use the credentials
+    # if our session times out at some later point.
+    #
+    # This technique is not ideal (since we're essentially storing
+    # user credentials in the clear and keeping them around for
+    # as long as possible); however, the credentials are already
+    # stored in the clear within the configuration file, so there's
+    # a low bar established already.
+
+    $session->{'service_url'} = $args{'service_url'};
+    $session->{'user_name'}   = $args{'user_name'};
+    $session->{'password'}    = $args{'password'};
 
     return $session;
 }
@@ -1184,7 +1241,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Destroy the session.
     my $result = HoneyClient::Manager::ESX->logout(session => $session);
@@ -1274,7 +1335,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
    
     # Start the test VM.
     HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -1430,7 +1495,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
     
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -1561,7 +1630,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
     
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -1693,7 +1766,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
     
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -1823,7 +1900,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
     
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -1961,7 +2042,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
    
     # Clone the test VM.
     my $cloneVM = undef;
@@ -2069,7 +2154,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Get the power state of the test VM.
     my $state = undef;
@@ -2143,7 +2232,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
    
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -2302,7 +2395,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # We assume the test VM is stopped and unregistered.
 
@@ -2439,7 +2536,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
     
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -2554,7 +2655,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
     
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
@@ -2668,7 +2773,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Get the VM's configuration file.    
     my $config = undef;
@@ -2736,7 +2845,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Check to see if the test VM is registered (should return true).
     my $result = undef;
@@ -2822,7 +2935,11 @@ my $testVM = getVar(name      => "test_vm_name",
                     namespace => "HoneyClient::Manager::ESX::Test");
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Test the getAllVM() method.
     my $results = [];
@@ -2869,7 +2986,11 @@ sub getAllVM {
     if ((DateTime::HiRes->now() - DateTime::Duration->new(seconds => getVar(name => "session_timeout"))) > $args{'session'}->{'_updated_at'}) {
         if (!_isSessionValid(%args)) {
             # Relogin, if session is invalid.
-            $args{'session'} = login();
+            $args{'session'} = HoneyClient::Manager::ESX->login(
+                                   service_url => $args{'session'}->{'service_url'},
+                                   user_name   => $args{'session'}->{'user_name'},
+                                   password    => $args{'session'}->{'password'},
+                               );
         } else {
             # Session remains valid; update timestamp.
             $args{'session'}->{'_updated_at'} = DateTime::HiRes->now();
@@ -2908,7 +3029,11 @@ my $testVM = getVar(name      => "test_vm_name",
                     namespace => "HoneyClient::Manager::ESX::Test");
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Test the getAllSnapshotsVM() method.
     my $results = [];
@@ -3004,7 +3129,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Check the size of the backing datastore.
     my $result = undef;
@@ -3071,7 +3200,11 @@ I<Output>: (The Vim session object, The VMware ESX Server's hostname if successf
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Check the size of the backing datastore.
     my $result = undef;
@@ -3137,7 +3270,11 @@ croaks otherwise.)
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Check the size of the backing datastore.
     my $result = undef;
@@ -3215,7 +3352,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Unregister the test VM.
     my $config = undef;
@@ -3355,7 +3496,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Unregister the test VM.
     my $config = undef;
@@ -3465,7 +3610,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Clone the test VM.
     my $cloneVM = undef;
@@ -3590,7 +3739,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Clone the test VM.
     my $cloneVM = undef;
@@ -3723,7 +3876,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Clone the test VM.
     my $cloneVM = undef;
@@ -3886,7 +4043,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
 
     # Clone the test VM.
     my $cloneVM = undef;
@@ -4026,7 +4187,11 @@ my $testVM = getVar(name      => "test_vm_name",
 
 eval {
     # Create a new session.
-    my $session = HoneyClient::Manager::ESX->login();
+    my $session = HoneyClient::Manager::ESX->login(
+        service_url => getVar(name => "service_url", namespace => "HoneyClient::Manager::ESX::Test"),
+        user_name   => getVar(name => "user_name",   namespace => "HoneyClient::Manager::ESX::Test"),
+        password    => getVar(name => "password",    namespace => "HoneyClient::Manager::ESX::Test"),
+    );
    
     # Start the test VM.
     $session = HoneyClient::Manager::ESX->startVM(session => $session, name => $testVM);
