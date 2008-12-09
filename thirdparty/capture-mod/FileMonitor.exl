@@ -353,3 +353,7 @@
 
 # IE6 Crashing
 +	Write	C:\\WINDOWS\\system32\\drwtsn32\.exe	C:\\Documents and Settings\\All Users\\Application Data\\Microsoft\\Dr Watson\\.*
+
+# IE6 - Benign Activity
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\VMware\\VMware Tools
