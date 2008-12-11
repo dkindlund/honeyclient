@@ -724,6 +724,9 @@ sub _init {
             ($self->{'_vm_session'}, $self->{'mac_address'}) = HoneyClient::Manager::ESX->getMACaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
             ($self->{'_vm_session'}, $self->{'ip_address'}) = HoneyClient::Manager::ESX->getIPaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
+# XXX: What if the VM goes into BSOD at this point?
+#      We essentially retry forever -- may not be a great idea.
+
             # If the VM isn't booted yet, wait before trying again.
             if (!defined($self->{'ip_address'}) or !defined($self->{'mac_address'})) {
                 sleep ($self->{'_retry_period'});
@@ -832,8 +835,14 @@ sub _init {
         $LOG->info("Thread ID (" . threads->tid() . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
         $self->_changeStatus(status => "running");
 
+        # Signal firewall to allow traffic from this clone through.
+        $self->_allowNetwork();
+
         $ret = undef;
         while (!defined($ret)) {
+
+# XXX: What if the VM goes into BSOD at this point?
+#      We essentially retry forever -- may not be a great idea.
 
             # Try contacting the Agent.
             $self->{'_agent_handle'} = getClientHandle(namespace     => "HoneyClient::Agent",
@@ -954,14 +963,8 @@ sub _changeStatus {
         ($self->{'status'} eq "error") ||
         ($self->{'status'} eq "bug") ||
         ($self->{'status'} eq "deleted")) {
-# TODO: Delete this, eventually.
-$LOG->warn("Returning out of _changeStatus early; status already: " . $self->{'status'});
         return $self;
-    #}
-# TODO: Delete this, eventually.
-} else {
-$LOG->warn("Evaluating _changeStatus; status: " . $self->{'status'} . " -> " . $args{'status'} . "  - db_id: " . $self->{'database_id'});
-}
+    }
 
     # Change the status field.
     $self->{'status'} = $args{'status'};

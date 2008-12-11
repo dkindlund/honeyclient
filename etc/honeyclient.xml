@@ -343,8 +343,8 @@ Keep in mind, though, that some variables should remain module-specific
 
                  </host>
                 --> 
-                <host user_name="root" password="passw0rd" max_num_clones="1">https://172.16.164.103/sdk/vimService</host>
-                <host user_name="root" password="passw0rd" max_num_clones="1">https://172.16.164.115/sdk/vimService</host>
+                <host user_name="root" password="passw0rd" max_num_clones="4">https://172.16.164.103/sdk/vimService</host>
+                <host user_name="root" password="passw0rd" max_num_clones="3">https://172.16.164.115/sdk/vimService</host>
             </hosts>
             <session_timeout description="The amount of time (in seconds) a VIM session remains active, before automatically expiring due to inactivity.  The default time is 15 minutes, since the default VMware ESX Server expires inactive sessions older than 30 mintues." default="900">
                 900
