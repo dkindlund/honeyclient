@@ -117,15 +117,23 @@ foreach my $host (@{$hosts->{'host'}}) {
             } else {
                 # The VM has snapshots, so iterate through all of them.
                 foreach my $snapshot_name (@{$snapshot_list_arr}) {
-                    if (($snapshot_name ne getVar(name => "default_quick_clone_snapshot_name", namespace => "HoneyClient::Manager::ESX")) &&
-                        !HoneyClient::Manager::Database::client_exists({client_id => $quick_clone_vm_name, snapshot_name => $snapshot_name})) {
-                        # If the registered VM's snapshot has no references in the database,
-                        # Then prompt for deletion.
-                        $LOG->info("VM (" . $quick_clone_vm_name . ") has snapshot (" . $snapshot_name . "), but it is not referenced in the database.");
-                        my $question = prompt("Do you want to remove snapshot (" . $snapshot_name . ")?", "yes");
-                        if ($question =~ /^y.*/i) {
-                            $LOG->info("Removing snapshot (" . $snapshot_name . ") on VM (" . $quick_clone_vm_name . ").");
-                            $session = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $quick_clone_vm_name, snapshot_name => $snapshot_name);
+                    if ($snapshot_name ne getVar(name => "default_quick_clone_snapshot_name", namespace => "HoneyClient::Manager::ESX")) {
+                        if (!HoneyClient::Manager::Database::client_exists({client_id => $quick_clone_vm_name, snapshot_name => $snapshot_name})) {
+                            # If the registered VM's snapshot has no references in the database,
+                            # Then prompt for deletion.
+                            $LOG->info("VM (" . $quick_clone_vm_name . ") has snapshot (" . $snapshot_name . "), but it is not referenced in the database.");
+                            my $question = prompt("Do you want to remove snapshot (" . $snapshot_name . ")?", "yes");
+                            if ($question =~ /^y.*/i) {
+                                $LOG->info("Removing snapshot (" . $snapshot_name . ") on VM (" . $quick_clone_vm_name . ").");
+                                $session = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $quick_clone_vm_name, snapshot_name => $snapshot_name);
+                            }
+                        } else {
+                            # Cross-reference existing VMs with clients that are already marked as deleted. (Do not do this while Manager is operational.)
+                            my $status = HoneyClient::Manager::Database::client_status({client_id => $quick_clone_vm_name, snapshot_name => $snapshot_name});
+                            if ($status eq "deleted") {
+                                $LOG->info("Removing snapshot (" . $snapshot_name . ") on VM (" . $quick_clone_vm_name . ").");
+                                $session = HoneyClient::Manager::ESX->removeSnapshotVM(session => $session, name => $quick_clone_vm_name, snapshot_name => $snapshot_name);
+                            }
                         }
                     }
                 }

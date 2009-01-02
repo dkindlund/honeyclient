@@ -860,6 +860,9 @@ sub _init {
 
             # If the Agent daemon isn't responding yet, wait before trying again.
             if (!defined($ret)) {
+
+                # TODO: Sanity check to make sure the VM is powered on and not in a suspended state.
+
                 sleep ($self->{'_retry_period'});
 
             } elsif (getVar(name      => "enable",
