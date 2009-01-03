@@ -519,6 +519,7 @@ sub _get_urls {
     if ($args{'first_attempt'}) {
         $ret = HoneyClient::Manager::Database::get_queue_urls_by_hostname(Sys::Hostname::Long::hostname_long);
     } else {
+        # XXX: Need to specify num_urls_to_process per worker thread.
         $ret = HoneyClient::Manager::Database::get_new_queue_urls(Sys::Hostname::Long::hostname_long, getVar(name => "num_urls_to_process"));
     }
     return $ret;
@@ -589,7 +590,7 @@ sub _worker {
             sleep(2);
         }
         $work = thaw($data);
-        
+
         while (scalar(%{$work})) {
             $vm = $vm->drive(work => $work);
 
@@ -617,12 +618,15 @@ $LOG->info("Thread ID (" . threads->tid() . "): Got more work: " . Dumper($work)
     # Report when a fault occurs.
     if ($@) {
         $LOG->warn("Thread ID (" . threads->tid() . "): Encountered an error. Shutting down worker. " . $@);
+    } elsif (scalar(%{$work}) > 0) {
+        $LOG->error("Thread ID (" . threads->tid() . "): Encountered unknown error - still have work, yet managed to exit out of main loop!");
+# TODO: Delete this, eventually? - this is really hackish.
+$LOG->info("Thread ID (" . threads->tid() . "): Work: " . Dumper($work));
     } else {
         $LOG->info("Thread ID (" . threads->tid() . "): Received empty work. Shutting down worker.");
 # TODO: Delete this, eventually.
 $LOG->info("Thread ID (" . threads->tid() . "): Status: " . Dumper($@));
 $LOG->info("Thread ID (" . threads->tid() . "): Work: " . Dumper($work));
-$LOG->info("Thread ID (" . threads->tid() . "): Data: " . Dumper($data));
     }
 
     # Signal to the parent that we're shutting down.

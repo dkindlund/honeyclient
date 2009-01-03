@@ -833,11 +833,27 @@ sub _init {
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.";
         }
         $LOG->info("Thread ID (" . threads->tid() . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
+# TODO: Sanity check to make sure the VM is powered on and not in a suspended state.
+        $LOG->info("Thread ID (" . threads->tid() . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $self->{'_vm_session'} = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+        # Sanity check: Make sure the VM is powered ON.
+        $ret = undef;
+        while (!defined($ret) or ($ret ne 'poweredon')) {
+            $LOG->info("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
+            ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+
+            # If the VM isn't ON yet, wait before trying again.
+            if (!defined($ret) or ($ret ne 'poweredon')) {
+                sleep ($self->{'_retry_period'});
+            }
+        }
         $self->_changeStatus(status => "running");
 
         # Signal firewall to allow traffic from this clone through.
         $self->_allowNetwork();
 
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [1] - Entering Agent Loop.");
         $ret = undef;
         while (!defined($ret)) {
 
@@ -849,27 +865,39 @@ sub _init {
                                                        address       => $self->{'ip_address'},
                                                        fault_handler => \&_handleAgentFault);
 
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [2] - Got client handle.");
+
             eval {
                 $som = $self->{'_agent_handle'}->getProperties(driver_name => $self->{'driver_name'});
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [3] - Got properties.");
                 $ret = $som->result();
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [4] - Extracting result.");
             };
             # Clear returned state, if any fault occurs.
             if ($@) {
                 $ret = undef;
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [4a] - Encountered fault; retrying to get properties.");
             }
 
             # If the Agent daemon isn't responding yet, wait before trying again.
             if (!defined($ret)) {
 
-                # TODO: Sanity check to make sure the VM is powered on and not in a suspended state.
-
+                # TODO: ??? - Sanity check to make sure the VM is powered on and not in a suspended state.
                 sleep ($self->{'_retry_period'});
 
             } elsif (getVar(name      => "enable",
                             namespace => "HoneyClient::Manager::Database")) {
 
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [5] - Entering database logic.");
                 # Register the cloned VM with the Drone database.
                 my $dt = DateTime::HiRes->now(time_zone => "local");
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [6] - Extracting local time.");
    
                 # XXX: We need to separate this call into 2 smaller ones.
                 #      1) Register basic client information.
@@ -879,10 +907,16 @@ sub _init {
                 #      for cleanup purposes.
 
                 # Construct the 'Client' object.
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [7] - Extracting ESX hostname.");
                 my $hostname = undef;
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [8] - Extracting ESX IP address.");
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [10] - Constructing client object.");
                 my $client = {
                     cid => $self->{'quick_clone_vm_name'},
                     snapshot_name => $self->{'name'},
@@ -895,7 +929,11 @@ sub _init {
                     os => $ret,
                     start => $dt->ymd('-').'T'.$dt->hms(':'),
                 };
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [11] - Inserting client into database.");
                 $self->{'database_id'} = HoneyClient::Manager::Database::insert_client($client);
+# TODO: Delete this, eventually.
+$LOG->info("Thread ID (" . threads->tid() . "): [12] - Client insert successful.");
             }
         }
     }

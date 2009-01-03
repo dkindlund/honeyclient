@@ -754,6 +754,37 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [10] - Appending rule to chain."
     }
 
 # TODO: Delete this, eventually.
+$LOG->warn("Thread ID (" . threads->tid() . "): [10.5] - Appending default ICMP rules to chain.");
+    # Allow the VM to ping any remote host, in order to signify to the VM that it has network connectivity.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule($args{'ip_address'},
+                                                          "0.0.0.0/0",
+                                                           'filter',
+                                                           $args{'chain_name'},
+                                                           "ACCEPT",
+                                                            { 'protocol'   => "icmp",
+                                                              'mac_source' => $args{'mac_address'}, }
+    );
+    if (!$ret) {
+        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
+        $maxThreadSemaphore->up();
+        Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+    }
+    
+    # Allow any host to reply to VM pings, in order to signify to the VM that it has network connectivity.
+    ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule("0.0.0.0/0",
+                                                          $args{'ip_address'},
+                                                           'filter',
+                                                           $args{'chain_name'},
+                                                           "ACCEPT",
+                                                            { 'protocol'   => "icmp", }
+    );
+    if (!$ret) {
+        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
+        $maxThreadSemaphore->up();
+        Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+    }
+
+# TODO: Delete this, eventually.
 $LOG->warn("Thread ID (" . threads->tid() . "): [11] - Finding rule in chain.");
     # Once the chain has been created, then link the chain to our standard FORWARD chain.
     ($rule_num, $num_rules_in_chain) = $chain_mgr->find_ip_rule("0.0.0.0/0",
