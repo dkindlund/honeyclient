@@ -23,8 +23,16 @@ while [ $IP = "0.0.0.0" ] ; do
     sleep 1 
 done
 
-# Ping a remote site, to test for connectivity (optional).
-/cygdrive/c/windows/system32/ping.exe pingu.honeyclient.org
+# Wait until the firewall has allowed network connectivity to this VM.
+FIREWALL_STATUS=`(/cygdrive/c/windows/system32/ping.exe -n 1 -w 100 pingu.honeyclient.org > /dev/null 2>&1 && echo "ENABLED") || echo "DISABLED"`
+
+while [ $FIREWALL_STATUS = "DISABLED" ] ; do
+    echo "FIREWALL STATUS = $FIREWALL_STATUS"
+    echo "Waiting for firewall to allow network connectivity to this VM."
+    sleep 1 
+    FIREWALL_STATUS=`(/cygdrive/c/windows/system32/ping.exe -n 1 -w 100 pingu.honeyclient.org > /dev/null 2>&1 && echo "ENABLED") || echo "DISABLED"`
+done
+echo "FIREWALL STATUS = $FIREWALL_STATUS"
 
 # Change to the honeyclient directory.
 cd ~/honeyclient 
