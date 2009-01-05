@@ -384,7 +384,7 @@ END {
         if ($thread->tid() && !$thread->equal(threads->self())) {
             # Join the child thread.
             if (!$thread->is_detached()) {
-                $LOG->debug("Joining Thread ID (" . $thread->tid() . ").");
+                $LOG->info("Joining Thread ID (" . $thread->tid() . ").");
                 $thread->join();
             }
         }
@@ -756,6 +756,29 @@ sub run {
 
     # Start up workers slowly, in order to not overwhelm the host system.
     my $startup_thread = async {
+
+        # Make sure the thread can only kill itself and not the entire application.
+        threads->set_thread_exit_only(1);
+
+        # Register interrupt/kill signal handlers.
+        # These handlers are designed to kill this thread upon overall module
+        # destruction.  These handlers should never be used for normal program
+        # operations, since they will NOT release any locks/semaphores properly.
+        local $SIG{USR1} = sub {
+            my $LOG = get_logger();
+            $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down startup thread.");
+            # Yield processing to parent thread.
+            threads->yield();
+            threads->exit();
+        };
+
+        local $SIG{INT} = sub { 
+            my $LOG = get_logger();
+            $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down startup thread.");
+            # Yield processing to parent thread.
+            threads->yield();
+            threads->exit();
+        };
         threads->detach();
 
         # Create the cloned VMs.
@@ -782,6 +805,28 @@ sub run {
             foreach my $host (@{$hosts->{'host'}}) {
                 # Start up each host simultaneously (using async threading).
                 my $startup_host_thread = async {
+                    # Make sure the thread can only kill itself and not the entire application.
+                    threads->set_thread_exit_only(1);
+
+                    # Register interrupt/kill signal handlers.
+                    # These handlers are designed to kill this thread upon overall module
+                    # destruction.  These handlers should never be used for normal program
+                    # operations, since they will NOT release any locks/semaphores properly.
+                    local $SIG{USR1} = sub {
+                        my $LOG = get_logger();
+                        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down host-specific startup thread.");
+                        # Yield processing to parent thread.
+                        threads->yield();
+                        threads->exit();
+                    };
+
+                    local $SIG{INT} = sub { 
+                        my $LOG = get_logger();
+                        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down host-specific startup thread.");
+                        # Yield processing to parent thread.
+                        threads->yield();
+                        threads->exit();
+                    };
                     threads->detach();
                     # Extract the service_url, user_name, and password from each entry.
                     # Each host entry will have only one child entry, with that key being
