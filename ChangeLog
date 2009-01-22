@@ -1,0 +1,7 @@
+Revision history for HoneyClient.
+
+1.2.0 Jan 22 09:43:33 EST 2009
+ - Added support for managing VMs across multiple VMware ESX Servers.
+
+1.1.0 Apr 22 02:10:05 EST 2008
+ - Added support for managing multiple VMs using separate threads.
