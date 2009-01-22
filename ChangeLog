@@ -1,5 +1,13 @@
 Revision history for HoneyClient.
 
+Trunk:
+ - Deprecated FW.pm implementation.
+ - Added an AMQP-aware client/server architecture for the new Firewall.pm
+   codebase.
+ - Removed thread support from old Firewall.pm codebase.
+ - Created a HoneyClient::MessageFirewall::Command protobuf type for
+   structured messages to/from the new firewall daemon.
+
 1.2.0 Jan 22 09:43:33 EST 2009
  - Added support for managing VMs across multiple VMware ESX Servers.
 
