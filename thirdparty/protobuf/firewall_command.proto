@@ -1,0 +1,29 @@
+package HoneyClient.Message.Firewall;
+
+message Command {
+
+    enum ActionType {
+        UNKNOWN   = 1;
+        DENY_ALL  = 2;
+        DENY_VM   = 3;
+        ALLOW_VM  = 4;
+        ALLOW_ALL = 5;
+    }
+
+    enum ResponseType {
+        ERROR     = 1;
+        OK        = 2;
+    }
+
+    required ActionType action     = 1 [default = UNKNOWN];
+    optional ResponseType response = 2 [default = ERROR];
+    optional string err_message    = 3;
+    optional string chain_name     = 4;
+    optional string mac_address    = 5;
+    optional string ip_address     = 6;
+    optional string protocol       = 7;
+    repeated uint32 port           = 8;
+}
+
+option optimize_for = SPEED;
+option java_package = "org.honeyclient.Message.Firewall.Command";

@@ -1,0 +1,39 @@
+#!/usr/bin/perl -w -Ilib -I/opt/honeyclient/lib -I/opt/honeyclient/blib/lib -I/opt/honeyclient/blib/arch/auto/HoneyClient/Message/Firewall/Command
+
+# Firewall Daemon
+
+# $Id$
+
+use strict;
+use warnings;
+# Include Global Configuration Processing Library
+use HoneyClient::Util::Config qw(getVar);
+
+# Include Data Dumper API
+use Data::Dumper;
+
+# Include Logging Library
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
+
+# Make Dumper format more terse.
+$Data::Dumper::Terse = 1;
+$Data::Dumper::Indent = 0;
+
+# Include Firewall Server Daemon Library
+use HoneyClient::Manager::Firewall::Server;
+
+# Create a shutdown handler.
+sub shutdown {
+    $LOG->info("Stopping HoneyClient Firewall Daemon [PID: " . $$ . "]");
+    exit;
+}
+$SIG{INT}  = \&shutdown;
+$SIG{QUIT} = \&shutdown;
+$SIG{ABRT} = \&shutdown;
+$SIG{TERM} = \&shutdown;
+
+$LOG->info("Starting HoneyClient Firewall Daemon [PID: " . $$ . "]");
+HoneyClient::Manager::Firewall::Server->run();

@@ -59,6 +59,21 @@ Keep in mind, though, that some variables should remain module-specific
     <syslog_address description="The IP address of the syslog server that all logging messages will be sent to by both Agent and Manager processes over UDP port 514." default="10.0.0.1">
         10.0.0.1
     </syslog_address>
+    <stomp_address description="The IP address of the STOMP server that will send/receive all messages to/from various HoneyClient components.">
+        172.16.164.204
+    </stomp_address>
+    <stomp_port description="The TCP port number used to communicate with the STOMP server." default="61613">
+        61613
+    </stomp_port>
+    <stomp_user_name description="The user name used to authenticate to the STOMP server." default="honeyclient">
+        honeyclient
+    </stomp_user_name>
+    <stomp_password description="The password used to authenticate to the STOMP server." default="passw0rd">
+        passw0rd
+    </stomp_password>
+    <stomp_virtual_host description="The virtual host used to authenticate to the STOMP server." default="/honeyclient.org">
+        /honeyclient.org
+    </stomp_virtual_host>
     <!-- HoneyClient::Agent Options -->
     <Agent>
         <address description="The IP or hostname that all Agent modules should use, when accepting SOAP requests." default="0.0.0.0">
@@ -234,101 +249,16 @@ Keep in mind, though, that some variables should remain module-specific
                 <!-- Optional: Supports dynamic SVN updates of the Agent code. -->
                 <tcp>3690</tcp>
             </allowed_outbound_ports>
+            <exchange_name description="The name of the STOMP exchange used to send messages to this component." default="commands">
+                commands
+            </exchange_name>
+            <queue_name description="The name of the STOMP queue used to receive messages sent to this component." default="manager.firewall">
+                manager.firewall
+            </queue_name>
+            <routing_key description="The routing key used on all STOMP messages sent to this component." default="firewall">
+                firewall
+            </routing_key>
         </Firewall>
-        <!-- HoneyClient::Manager::FW Options -->
-        <FW>
-            <vmnet_nat_router_address description="The IP address assigned to the VMware NAT interface (usually called vmnet8)." default="192.168.0.1">
-                192.168.0.1
-            </vmnet_nat_router_address>
-            <!-- TODO: Update this. -->
-            <address description="eth0 interface static IP">
-                192.168.0.128
-            </address>
-            <!-- TODO: Update this to 7627, eventually. -->
-            <port description="Default FW port number" default="8083">
-                8083
-            </port>
-            <!-- TODO: Update this. -->
-            <primaryDns description="Primary DNS IP Address">
-                128.29.154.150
-            </primaryDns>
-            <!-- TODO: Update this. -->
-            <secondaryDns description="Secondary DNS IP address">
-                128.29.40.1
-            </secondaryDns>
-            <!-- TODO: Update this. -->
-            <gsx_gateway description="IP address of VMware Server">
-                10.0.0.1/32
-            </gsx_gateway>
-            <!-- TODO: Update this. -->
-            <fwGateway description="Gateway IP address of the Firewall">
-                10.0.0.254/32
-            </fwGateway>
-            <!-- TODO: Update this. -->
-            <honeyclientnet description="CIDR notation for honeyclient netblock">
-                10.0.0.0/24
-            </honeyclientnet>
-            <!-- TODO: Update this. -->
-            <fwconfig description="Location of Firewall VM configuration file">
-                /vm/honeywall-test/honeywall.vmx
-            </fwconfig>
-            <!-- TODO: Update this. -->
-            <outputdir description="Output directory where logs will go on Firewall">
-                fw-output
-            </outputdir>
-            <!-- TODO: Update this. -->
-            <argus description="Argus binary location">
-                /usr/local/sbin/argus
-            </argus>
-            <!-- TODO: Update this. -->
-            <argusconfig description="Argus configuration file.">
-                /etc/argus.conf
-            </argusconfig>
-            <!-- TODO: Update this. -->
-            <argusoutput description="Argus logging directory">
-                /var/log/argus
-            </argusoutput>
-            <!-- TODO: Update this. -->
-            <arguspid description="Argus Process ID">
-                /var/run/argus.pid
-            </arguspid>
-            <!-- TODO: Update this. -->
-            <tcpdumplog description="Tcpdump log location directory">
-                /var/log/tcpdump
-            </tcpdumplog>
-            <!-- TODO: Update this. -->
-            <tcpdump description="Tcpdump binary">
-                /usr/sbin/tcpdump
-            </tcpdump>
-            <!-- TODO: Update this. -->
-            <dnspath description="DNS nameserver file">
-                /etc/resolv.conf
-            </dnspath>
-            <!-- TODO: Update this. -->
-            <dnsport description="DNS port number">
-                53
-            </dnsport>
-            <!-- TODO: Update this. -->
-            <LOCALHOST description="localhost address">
-                127.0.0.1
-            </LOCALHOST>
-            <!-- TODO: Update this. -->
-            <sshport description="SSH port number listening on">
-                22
-            </sshport>
-            <!-- TODO: Update this. -->
-            <debug description="Debug value (0 for no debugging, 1 for debugging output)">
-                0
-            </debug>
-            <!-- TODO: Update this. -->
-            <fwprocess description="Name of external SOAP listener.">
-                startFWListener.pl
-            </fwprocess>
-            <!-- TODO: Update this. -->
-            <config_file description="Location of config_file">
-                etc/honeyclient_log.conf
-            </config_file>
-        </FW>
         <!-- HoneyClient::Manager::ESX Options -->
         <ESX>
             <hosts description="This element contains a list of VMware ESX Servers along with corresponding authentication credentials for each server.">
