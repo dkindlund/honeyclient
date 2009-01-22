@@ -9,7 +9,7 @@
 #
 # @author kindlund
 #
-# Copyright (C) 2008 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -62,14 +62,14 @@ This documentation refers to HoneyClient::Manager::Firewall version 1.02.
   my $mac_address = "00:0c:29:c5:11:c7";
   my $ip_address = "10.0.0.254";
   my $protocol = "tcp";
-  my $ports = [ 80, 443 ];
+  my $port = [ 80, 443 ];
 
   my $result = HoneyClient::Manager::Firewall->allowVM(
       chain_name => $chain_name,
       mac_address => $mac_address,
       ip_address => $ip_address,
       protocol => $protocol,
-      ports => $ports,
+      port => $port,
   );
   if ($result) {
       print "Success!\n";
@@ -234,21 +234,6 @@ BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check 
 require_ok('Data::Dumper');
 use Data::Dumper;
 
-# Make sure threads loads.
-BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads');
-use threads;
-
-# Make sure threads::shared loads.
-BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads::shared');
-use threads::shared;
-
-# Make sure Thread::Semaphore loads.
-BEGIN { use_ok('Thread::Semaphore') or diag("Can't load Thread::Semaphore package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Thread::Semaphore');
-use Thread::Semaphore;
-
 # Make sure IPTables::ChainMgr loads.
 BEGIN { use_ok('IPTables::ChainMgr') or diag("Can't load IPTables::ChainMgr package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('IPTables::ChainMgr');
@@ -295,28 +280,12 @@ $Data::Dumper::Indent = 0;
 
 #######################################################################
 
-# Include Thread Libraries
-use threads;
-use threads::shared;
-use Thread::Semaphore;
-
-# Global semaphore, designed to limit the maximum
-# number of child threads that can run iptables
-# commands simultaneously.
-#
-# By default, we limit the number of calls to 1.
-# If more than 1 child thread simultaneously calls
-# this code, then all subsequent ones will block, until
-# the one running thread finishes.
-our $maxThreadSemaphore = Thread::Semaphore->new(1);
-
 # Include IPTables Libraries
 use IPTables::ChainMgr;
 
 # Globally shared variable, containing the 'filter'
 # table ruleset to 'deny all'.
-our $DENY_ALL_RULES : shared;
-$DENY_ALL_RULES = $INIT_FILTER_RULES;
+our $DENY_ALL_RULES = $INIT_FILTER_RULES;
 
 END {
     # Upon any shutdown, restore the 'filter' table ruleset back to the
@@ -324,7 +293,7 @@ END {
     require IPTables::ChainMgr;
     my $chain_mgr = new IPTables::ChainMgr();
     if (!defined($chain_mgr)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to create an IPTables::ChainMgr object.");
+        $LOG->error("Error: Unable to create an IPTables::ChainMgr object.");
         Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
     }
     my $ret = 0;
@@ -333,7 +302,7 @@ END {
 
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/bin/echo "' . $DENY_ALL_RULES . '" | /sbin/iptables-restore');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar}));
+        $LOG->error("Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar});
     }
 }
@@ -349,11 +318,9 @@ END {
 # Outputs: Returns true if successful; croaks otherwise.
 sub _clear {
 
-    $maxThreadSemaphore->down();
     my $chain_mgr = new IPTables::ChainMgr();
     if (!defined($chain_mgr)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to create an IPTables::ChainMgr object.");
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to create an IPTables::ChainMgr object.");
         Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
     }
     my $ret = 0;
@@ -362,11 +329,9 @@ sub _clear {
 
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/bin/echo "' . $DENY_ALL_RULES . '" | /sbin/iptables-restore');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to restore the original the IPTables 'filter' table ruleset - " . join(' ', @{$err_ar});
     }
-    $maxThreadSemaphore->up();
     return $ret;
 }
 
@@ -422,7 +387,7 @@ if ($@) {
 
 sub denyAllTraffic {
     # Log resolved arguments.
-    $LOG->debug(sub {
+    $LOG->info(sub {
         # Make Dumper format more terse.
         $Data::Dumper::Terse = 1;
         $Data::Dumper::Indent = 0;
@@ -471,18 +436,16 @@ if ($@) {
 
 sub allowAllTraffic {
     # Log resolved arguments.
-    $LOG->debug(sub {
+    $LOG->info(sub {
         # Make Dumper format more terse.
         $Data::Dumper::Terse = 1;
         $Data::Dumper::Indent = 0;
         Dumper();
     });
     
-    $maxThreadSemaphore->down();
     my $chain_mgr = new IPTables::ChainMgr();
     if (!defined($chain_mgr)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to create an IPTables::ChainMgr object.");
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to create an IPTables::ChainMgr object.");
         Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
     }
     my $ret = 0;
@@ -492,49 +455,43 @@ sub allowAllTraffic {
     # Flush all rules in the 'filter' table.
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -F');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
     }
 
     # Delete all custom chains in the 'filter' table.
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -X');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
     }
 
     # Make sure the default policy in the INPUT chain in the 'filter' table is ACCEPT.
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -P INPUT ACCEPT');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
     }
 
     # Make sure the default policy in the OUTPUT chain in the 'filter' table is ACCEPT.
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -P OUTPUT ACCEPT');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
     }
     
     # Make sure the default policy in the FORWARD chain in the 'filter' table is ACCEPT.
     ($ret, $out_ar, $err_ar) = $chain_mgr->run_ipt_cmd('/sbin/iptables -t filter -P FORWARD ACCEPT');
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow all traffic - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow all traffic - " . join(' ', @{$err_ar});
     }
-    $maxThreadSemaphore->up();
     return $ret;
 }
 
 =pod
 
-=head2 allowVM(chain_name => $chain_name, mac_address => $mac_address, ip_address => $ip_address, protocol => $protocol, ports => $ports)
+=head2 allowVM(chain_name => $chain_name, mac_address => $mac_address, ip_address => $ip_address, protocol => $protocol, port => $port)
 
 =over 4
 
@@ -545,8 +502,8 @@ I<Inputs>:
  B<$chain_name> is the name of the IPTables chain name to use for this access.
  B<$mac_address> is the client's MAC address.
  B<$ip_address> is the client's IP address.
- B<$protocol> is the allowed protocol for this client.
- B<$ports> is an array reference, containing the list of ports to be allowed.
+ B<$protocol> is the protocol to be allowed.
+ B<$port> is an array reference, containing the list of ports to be allowed.
 
 I<Output>: Returns true, if successful; croaks otherwise.
 
@@ -564,21 +521,21 @@ eval {
     my $mac_address = "00:0c:29:c5:11:c7";
     my $ip_address = "10.0.0.254";
     my $protocol = "tcp";
-    my $ports = [ 80, 443 ];
+    my $port = [ 80, 443 ];
 
     my $result = HoneyClient::Manager::Firewall->allowVM(
         chain_name => $chain_name,
         mac_address => $mac_address,
         ip_address => $ip_address,
         protocol => $protocol,
-        ports => $ports,
+        port => $port,
     );
 
     # Validate the result.
     $Data::Dumper::Terse = 1;
     $Data::Dumper::Indent = 0;
-    ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', ports => '" . Dumper($ports) . "')") or diag("The allowVM() call failed.");
-    
+    ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', port => '" . Dumper($port) . "')") or diag("The allowVM() call failed.");
+
     # Restore the default ruleset.
     HoneyClient::Manager::Firewall->_clear();
 };
@@ -597,7 +554,7 @@ sub allowVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    $LOG->debug(sub {
+    $LOG->info(sub {
         # Make Dumper format more terse.
         $Data::Dumper::Terse = 1;
         $Data::Dumper::Indent = 0;
@@ -608,48 +565,40 @@ sub allowVM {
     if (!scalar(%args) ||
         !exists($args{'chain_name'}) ||
         !defined($args{'chain_name'})) {
-        $LOG->fatal("Thread ID (" . threads->tid() . "): Error allowing VM network - no chain name specified.");
+        $LOG->error("Error allowing VM network - no chain name specified.");
         Carp::croak "Error allowing VM network - no chain name specified.";
     }
 
     if (!exists($args{'mac_address'}) ||
         !defined($args{'mac_address'})) {
-        $LOG->fatal("Thread ID (" . threads->tid() . "): Error allowing VM network - no MAC address specified.");
+        $LOG->error("Error allowing VM network - no MAC address specified.");
         Carp::croak "Error allowing VM network - no MAC address specified.";
     }
 
     if (!exists($args{'ip_address'}) ||
         !defined($args{'ip_address'})) {
-        $LOG->fatal("Thread ID (" . threads->tid() . "): Error allowing VM network - no IP address specified.");
+        $LOG->error("Error allowing VM network - no IP address specified.");
         Carp::croak "Error allowing VM network - no IP address specified.";
     }
 
     if (!exists($args{'protocol'}) ||
         !defined($args{'protocol'})) {
-        $LOG->fatal("Thread ID (" . threads->tid() . "): Error allowing VM network - no protocol specified.");
+        $LOG->error("Error allowing VM network - no protocol specified.");
         Carp::croak "Error allowing VM network - no protocol specified.";
     }
 
-    if (!exists($args{'ports'}) ||
-        !defined($args{'ports'})) {
-        $LOG->fatal("Thread ID (" . threads->tid() . "): Error allowing VM network - no ports specified.");
+    if (!exists($args{'port'}) ||
+        !defined($args{'port'})) {
+        $LOG->error("Error allowing VM network - no port specified.");
         Carp::croak "Error allowing VM network - no ports specified.";
     }
 
-    $maxThreadSemaphore->down();
-
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [1] - Sanity checked arguments.");
 
     my $chain_mgr = new IPTables::ChainMgr();
     if (!defined($chain_mgr)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to create an IPTables::ChainMgr object.");
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to create an IPTables::ChainMgr object.");
         Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
     }
-
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [2] - Created new IPTables::ChainMgr object.");
 
     my $ret = 0;
     my $out_ar = [];
@@ -657,15 +606,9 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [2] - Created new IPTables::Chai
     my $rule_num = 0;
     my $num_rules_in_chain = 0;
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [3] - Checking for existing chain.");
-
     # Check to see if the custom chain already exists.
     ($ret, $out_ar, $err_ar) = $chain_mgr->chain_exists('filter', $args{'chain_name'});
     if ($ret) {
-
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [4] - Finding existing JUMP rule in FORWARD chain.");
 
         # Delete the JUMP rule in our FORWARD chain, so that there's no interruption
         # in connectivity for other traffic.
@@ -677,8 +620,6 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [4] - Finding existing JUMP rule
                                                                     {});
         # If our JUMP rule already exists, then delete it.
         if ($rule_num) {
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [5] - Deleting existing JUMP rule in FORWARD chain.");
             ($ret, $out_ar, $err_ar) = $chain_mgr->delete_ip_rule("0.0.0.0/0",
                                                                   "0.0.0.0/0",
                                                                   'filter',
@@ -686,36 +627,26 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [5] - Deleting existing JUMP rul
                                                                   $args{'chain_name'},
                                                                   {});
             if (!$ret) {
-                $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-                $maxThreadSemaphore->up();
+                $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
                 Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
             }
         }
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [6] - Flushing chain.");
-
         # Chain exists, so flush it.
         ($ret, $out_ar, $err_ar) = $chain_mgr->flush_chain('filter', $args{'chain_name'});
         if (!$ret) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-            $maxThreadSemaphore->up();
+            $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
             Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     } else {
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [7] - Creating chain.");
         # Chain doesn't exist, so create it.
         ($ret, $out_ar, $err_ar) = $chain_mgr->create_chain('filter', $args{'chain_name'});
         if (!$ret) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-            $maxThreadSemaphore->up();
+            $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
             Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     }
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [8] - Appending rule to chain.");
     # Create a single incoming rule in this chain.
     ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule("0.0.0.0/0",
                                                           $args{'ip_address'},
@@ -724,37 +655,29 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [8] - Appending rule to chain.")
                                                           "ACCEPT",
                                                           { 'protocol'   => $args{'protocol'}, });
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
     }
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [9] - About to loop through ports.");
     # For each port number listed...
-    foreach my $port (@{$args{'ports'}}) {
+    foreach my $port (@{$args{'port'}}) {
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [10] - Appending rule to chain.");
         # Create a new outgoing rule in the chain.
         ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule($args{'ip_address'},
                                                               "0.0.0.0/0",
-                                                               'filter',
-                                                               $args{'chain_name'},
-                                                               "ACCEPT",
-                                                                { 'protocol'   => $args{'protocol'},
-                                                                  'd_port'     => $port, 
-                                                                  'mac_source' => $args{'mac_address'}, }
+                                                              'filter',
+                                                              $args{'chain_name'},
+                                                              "ACCEPT",
+                                                              { 'protocol'   => $args{'protocol'},
+                                                                'd_port'     => $port, 
+                                                                'mac_source' => $args{'mac_address'}, }
         );
         if (!$ret) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-            $maxThreadSemaphore->up();
+            $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
             Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     }
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [10.5] - Appending default ICMP rules to chain.");
     # Allow the VM to ping any remote host, in order to signify to the VM that it has network connectivity.
     ($ret, $out_ar, $err_ar) = $chain_mgr->append_ip_rule($args{'ip_address'},
                                                           "0.0.0.0/0",
@@ -765,8 +688,7 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [10.5] - Appending default ICMP 
                                                               'mac_source' => $args{'mac_address'}, }
     );
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
     }
     
@@ -779,13 +701,10 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [10.5] - Appending default ICMP 
                                                             { 'protocol'   => "icmp", }
     );
     if (!$ret) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
         Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
     }
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [11] - Finding rule in chain.");
     # Once the chain has been created, then link the chain to our standard FORWARD chain.
     ($rule_num, $num_rules_in_chain) = $chain_mgr->find_ip_rule("0.0.0.0/0",
                                                                 "0.0.0.0/0",
@@ -796,22 +715,16 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [11] - Finding rule in chain.");
 
     # If our JUMP rule does not already exist, then add it to the second position of the FORWARD chain (UFW-specific).
     if (!$rule_num) {
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [12] - Adding JUMP rule in chain.");
         ($ret, $out_ar, $err_ar) = $chain_mgr->add_jump_rule('filter',
                                                              'FORWARD',
                                                              2,
                                                              $args{'chain_name'});
         if (!$ret) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-            $maxThreadSemaphore->up();
+            $LOG->error("Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
             Carp::croak "Error: Unable to allow VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     }
 
-# TODO: Delete this, eventually.
-$LOG->warn("Thread ID (" . threads->tid() . "): [13] - Returning out of allowVM().");
-    $maxThreadSemaphore->up();
     return (1);
 }
 
@@ -839,14 +752,14 @@ eval {
     my $mac_address = "00:0c:29:c5:11:c7";
     my $ip_address = "10.0.0.254";
     my $protocol = "tcp";
-    my $ports = [ 80, 443 ];
+    my $port = [ 80, 443 ];
 
     HoneyClient::Manager::Firewall->allowVM(
         chain_name => $chain_name,
         mac_address => $mac_address,
         ip_address => $ip_address,
         protocol => $protocol,
-        ports => $ports,
+        port => $port,
     );
 
     # Then, deny VM traffic.
@@ -875,7 +788,7 @@ sub denyVM {
     my ($class, %args) = @_;
 
     # Log resolved arguments.
-    $LOG->debug(sub {
+    $LOG->info(sub {
         # Make Dumper format more terse.
         $Data::Dumper::Terse = 1;
         $Data::Dumper::Indent = 0;
@@ -886,16 +799,14 @@ sub denyVM {
     if (!scalar(%args) ||
         !exists($args{'chain_name'}) ||
         !defined($args{'chain_name'})) {
-        $LOG->fatal("Thread ID (" . threads->tid() . "): Error denying VM network - no chain name specified.");
+        $LOG->error("Error denying VM network - no chain name specified.");
         Carp::croak "Error denying VM network - no chain name specified.";
     }
 
-    $maxThreadSemaphore->down();
 
     my $chain_mgr = new IPTables::ChainMgr();
     if (!defined($chain_mgr)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to create an IPTables::ChainMgr object.");
-        $maxThreadSemaphore->up();
+        $LOG->error("Error: Unable to create an IPTables::ChainMgr object.");
         Carp::croak "Error: Unable to create an IPTables::ChainMgr object.\n";
     }
     my $ret = 0;
@@ -915,10 +826,6 @@ sub denyVM {
                                                                     'FORWARD',
                                                                     $args{'chain_name'},
                                                                     {});
-# TODO: Delete this, eventually.
-$Data::Dumper::Indent = 0;
-$Data::Dumper::Terse = 1;
-$LOG->warn("Thread ID (" . threads->tid() . "): [1] - Found JUMP rule in chain: " . Dumper($rule_num));
 
         # If our JUMP rule already exists, then delete it.
         if ($rule_num) {
@@ -929,8 +836,7 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [1] - Found JUMP rule in chain: 
                                                                   $args{'chain_name'},
                                                                   {});
             if (!$ret) {
-                $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-                $maxThreadSemaphore->up();
+                $LOG->error("Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
                 Carp::croak "Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
             }
         }
@@ -938,12 +844,15 @@ $LOG->warn("Thread ID (" . threads->tid() . "): [1] - Found JUMP rule in chain: 
         # Chain exists, so flush it and then delete it.
         ($ret, $out_ar, $err_ar) = $chain_mgr->flush_chain('filter', $args{'chain_name'});
         if (!$ret) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
-            $maxThreadSemaphore->up();
+            $LOG->error("Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
+            Carp::croak "Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
+        }
+        ($ret, $out_ar, $err_ar) = $chain_mgr->delete_chain('filter', 'FORWARD', $args{'chain_name'});
+        if (!$ret) {
+            $LOG->error("Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar}));
             Carp::croak "Error: Unable to deny VM traffic for chain (" . $args{'chain_name'} . ") - " . join(' ', @{$err_ar});
         }
     }
-    $maxThreadSemaphore->up();
     return (1);  
 }
 
@@ -1016,7 +925,7 @@ Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

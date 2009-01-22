@@ -61,16 +61,6 @@ BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check 
 require_ok('Data::Dumper');
 use Data::Dumper;
 
-# Make sure threads loads.
-BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads');
-use threads;
-
-# Make sure threads::shared loads.
-BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads::shared');
-use threads::shared;
-
 # Make sure IPTables::ChainMgr loads.
 BEGIN { use_ok('IPTables::ChainMgr') or diag("Can't load IPTables::ChainMgr package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('IPTables::ChainMgr');
@@ -144,21 +134,21 @@ eval {
     my $mac_address = "00:0c:29:c5:11:c7";
     my $ip_address = "10.0.0.254";
     my $protocol = "tcp";
-    my $ports = [ 80, 443 ];
+    my $port = [ 80, 443 ];
 
     my $result = HoneyClient::Manager::Firewall->allowVM(
         chain_name => $chain_name,
         mac_address => $mac_address,
         ip_address => $ip_address,
         protocol => $protocol,
-        ports => $ports,
+        port => $port,
     );
 
     # Validate the result.
     $Data::Dumper::Terse = 1;
     $Data::Dumper::Indent = 0;
-    ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', ports => '" . Dumper($ports) . "')") or diag("The allowVM() call failed.");
-    
+    ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', port => '" . Dumper($port) . "')") or diag("The allowVM() call failed.");
+
     # Restore the default ruleset.
     HoneyClient::Manager::Firewall->_clear();
 };
@@ -179,14 +169,14 @@ eval {
     my $mac_address = "00:0c:29:c5:11:c7";
     my $ip_address = "10.0.0.254";
     my $protocol = "tcp";
-    my $ports = [ 80, 443 ];
+    my $port = [ 80, 443 ];
 
     HoneyClient::Manager::Firewall->allowVM(
         chain_name => $chain_name,
         mac_address => $mac_address,
         ip_address => $ip_address,
         protocol => $protocol,
-        ports => $ports,
+        port => $port,
     );
 
     # Then, deny VM traffic.

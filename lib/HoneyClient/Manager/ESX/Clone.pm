@@ -9,7 +9,7 @@
 #
 # @author kindlund, jpuchalski
 #
-# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -255,10 +255,10 @@ BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient
 require_ok('HoneyClient::Manager::Database');
 use HoneyClient::Manager::Database;
 
-# Make sure HoneyClient::Manager::Firewall loads.
-BEGIN { use_ok('HoneyClient::Manager::Firewall') or diag("Can't load HoneyClient::Manager::Firewall package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Firewall');
-use HoneyClient::Manager::Firewall;
+# Make sure HoneyClient::Manager::Firewall::Client loads.
+BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Firewall::Client');
+use HoneyClient::Manager::Firewall::Client;
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
@@ -369,7 +369,7 @@ use DateTime::HiRes;
 use HoneyClient::Manager::Database;
 
 # Include Firewall Libraries
-use HoneyClient::Manager::Firewall;
+use HoneyClient::Manager::Firewall::Client;
 
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
@@ -1106,13 +1106,13 @@ sub _allowNetwork {
 
     my $allowed_outbound_ports = getVar(name      => "allowed_outbound_ports",
                                         namespace => "HoneyClient::Manager::Firewall");
-    if (HoneyClient::Manager::Firewall->allowVM(
+    if (HoneyClient::Manager::Firewall::Client->allowVM(
             chain_name  => $self->{'quick_clone_vm_name'},
             mac_address => $self->{'mac_address'},
             ip_address  => $self->{'ip_address'},
             # XXX: Need to make this more configurable, by supporting other protocols.
             protocol    => "tcp",
-            ports       => $allowed_outbound_ports->{'tcp'},)) {
+            port        => $allowed_outbound_ports->{'tcp'},)) {
 
         # Mark that the VM has been granted network access.
         $self->{'_has_network_access'} = 1;
@@ -1137,7 +1137,7 @@ sub _denyNetwork {
     }
 
     $LOG->info("Thread ID (" . threads->tid() . "): Denying VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
-    if (HoneyClient::Manager::Firewall->denyVM(chain_name => $self->{'quick_clone_vm_name'})) {
+    if (HoneyClient::Manager::Firewall::Client->denyVM(chain_name => $self->{'quick_clone_vm_name'})) {
         # Mark that the VM has been denied network access.
         $self->{'_has_network_access'} = 0;
     }
@@ -1406,12 +1406,12 @@ sub new {
     my $caller = caller();
     if (($caller ne __PACKAGE__) && ($caller ne "HoneyClient::Manager")) {
         $LOG->info("Thread ID (" . threads->tid() . "): Installing default firewall rules.");
-        HoneyClient::Manager::Firewall->denyAllTraffic();
+        HoneyClient::Manager::Firewall::Client->denyAllTraffic();
     }
 
     # Determine if the firewall needs to be bypassed.
     if ($self->{'_bypass_firewall'}) {
-        HoneyClient::Manager::Firewall->allowAllTraffic();
+        HoneyClient::Manager::Firewall::Client->allowAllTraffic();
     }
 
     # Check to see if this quick clone VM already has reached the
@@ -2041,7 +2041,7 @@ Darien Kindlund, E<lt>kindlund@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

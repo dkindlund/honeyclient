@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # $Id$
 
@@ -14,7 +14,7 @@ fi
 OLD_VERSION=$(echo $1 | sed -e 's/\./\\./g')
 NEW_VERSION=$(echo $2 | sed -e 's/\./\\./g')
 
-FILES=$(grep -r -P $OLD_VERSION lib/* | grep -v .svn | sed -e 's/:.*//g' | uniq)
+FILES=$(grep -r $OLD_VERSION lib/* | grep -v .svn | sed -e 's/:.*//g' | uniq)
 
 echo "Updating copyrights in the following files:"
 echo ""

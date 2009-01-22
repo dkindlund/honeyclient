@@ -8,7 +8,7 @@
 #
 # @author knwang, kindlund
 #
-# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -202,9 +202,9 @@ my $VM_MODE = getVar(name => "virtualization_mode", namespace => "HoneyClient::M
 require_ok($VM_MODE);
 eval "require $VM_MODE";
 
-# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall loads.
+# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall::Client loads.
 if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
-    require_ok('HoneyClient::Manager::Firewall');
+    require_ok('HoneyClient::Manager::Firewall::Client');
 }
 
 # Make sure HoneyClient::Util::SOAP loads.
@@ -277,9 +277,9 @@ use HoneyClient::Util::Config qw(getVar);
 my $VM_MODE = getVar(name => "virtualization_mode") . "::Clone";
 eval "require $VM_MODE";
 
-# If VMware ESX is specified, then load HoneyClient::Manager::Firewall.
+# If VMware ESX is specified, then load HoneyClient::Manager::Firewall::Client.
 if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
-    require HoneyClient::Manager::Firewall;
+    require HoneyClient::Manager::Firewall::Client;
 }
 
 # Include Database Libraries
@@ -400,7 +400,7 @@ END {
                                          fault_handler => \&_handleFault);
             $stubFW->installDefaultRules();
         } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
-            HoneyClient::Manager::Firewall->denyAllTraffic();
+            HoneyClient::Manager::Firewall::Client->denyAllTraffic();
         }
     };
 
@@ -720,7 +720,7 @@ sub run {
         # Figure out how many simultaneously running clones there will be on the host system.
         $TOTAL_NUM_SIMULTANEOUS_CLONES = getVar(name => "num_simultaneous_clones", namespace => $VM_MODE);
     } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
-        HoneyClient::Manager::Firewall->denyAllTraffic();
+        HoneyClient::Manager::Firewall::Client->denyAllTraffic();
 
         # Check to see how many hosts are specified in the configuration file.
         my $hosts = getVar(name => "hosts", namespace => $VM_MODE);
@@ -1020,7 +1020,7 @@ Kathy Wang, E<lt>knwang@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

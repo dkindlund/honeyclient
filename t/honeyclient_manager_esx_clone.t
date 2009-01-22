@@ -64,10 +64,10 @@ BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient
 require_ok('HoneyClient::Manager::Database');
 use HoneyClient::Manager::Database;
 
-# Make sure HoneyClient::Manager::Firewall loads.
-BEGIN { use_ok('HoneyClient::Manager::Firewall') or diag("Can't load HoneyClient::Manager::Firewall package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Firewall');
-use HoneyClient::Manager::Firewall;
+# Make sure HoneyClient::Manager::Firewall::Client loads.
+BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Firewall::Client');
+use HoneyClient::Manager::Firewall::Client;
 
 # Make sure the module loads properly, with the exportable
 # functions shared.

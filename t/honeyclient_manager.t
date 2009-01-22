@@ -67,9 +67,9 @@ my $VM_MODE = getVar(name => "virtualization_mode", namespace => "HoneyClient::M
 require_ok($VM_MODE);
 eval "require $VM_MODE";
 
-# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall loads.
+# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall::Client loads.
 if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
-    require_ok('HoneyClient::Manager::Firewall');
+    require_ok('HoneyClient::Manager::Firewall::Client');
 }
 
 # Make sure HoneyClient::Util::SOAP loads.

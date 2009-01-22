@@ -8,7 +8,7 @@
 #
 # @author knwang, ttruong, kindlund
 #
-# Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+# Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1650,7 +1650,7 @@ Kathy Wang, E<lt>knwang@mitre.orgE<gt>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2007-2008 The MITRE Corporation.  All rights reserved.
+Copyright (C) 2007-2009 The MITRE Corporation.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
