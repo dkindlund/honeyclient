@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -Ilib -I/opt/honeyclient/lib -I/opt/honeyclient/blib/lib -I/opt/honeyclient/blib/arch/auto/HoneyClient/Message/Firewall/Command
+#!/usr/bin/perl -w -I/opt/honeyclient/lib -I/opt/honeyclient/blib/lib -I/opt/honeyclient/blib/arch/auto/HoneyClient/Message
 
 # Firewall Daemon
 

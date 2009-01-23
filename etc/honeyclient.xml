@@ -57,7 +57,7 @@ Keep in mind, though, that some variables should remain module-specific
         3600
     </timeout>
     <log_config description="The global Log4perl configuration file, used throughout all modules.  This setting should not need to be changed." default="etc/honeyclient_log.conf">
-        etc/honeyclient_log.conf
+        /etc/honeyclient_log.conf
     </log_config>
     <syslog_address description="The IP address of the syslog server that all logging messages will be sent to by both Agent and Manager processes over UDP port 514." default="10.0.0.1">
         10.0.0.1
