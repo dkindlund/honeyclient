@@ -1,4 +1,4 @@
-# This Makefile is for the HoneyClient::Message::Firewall::Command extension to perl.
+# This Makefile is for the HoneyClient::Message extension to perl.
 #
 # It was generated automatically by MakeMaker version
 # 6.30_01 (Revision: Revision: 4535 ) from the contents of
@@ -6,7 +6,7 @@
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
 #
-#   MakeMaker ARGV: (q[firewall_command.Makefile])
+#   MakeMaker ARGV: ()
 #
 #   MakeMaker Parameters:
 
@@ -15,13 +15,13 @@
 #     INC => q[ -I/usr/local/include]
 #     LD => q[$(CC)]
 #     LIBS => [q[-L/usr/local/lib -lprotobuf]]
-#     NAME => q[HoneyClient::Message::Firewall::Command]
-#     OBJECT => q[firewall_command.pb.o Command.o]
+#     NAME => q[HoneyClient::Message]
+#     OBJECT => q[message.pb.o Message.o]
 #     OPTIMIZE => q[-O2 -Wall]
-#     TYPEMAPS => [q[Command.typemap]]
-#     VERSION_FROM => q[Command.pm]
+#     TYPEMAPS => [q[Message.typemap]]
+#     VERSION_FROM => q[Message.pm]
 #     XSOPT => q[-C++]
-#     clean => { FILES=>q[Command.* firewall_command.pb.* lib] }
+#     clean => { FILES=>q[Message.* message.pb.* lib] }
 
 # --- MakeMaker post_initialize section:
 
@@ -59,8 +59,8 @@ VENDORLIBEXP = /usr/share/perl5
 AR_STATIC_ARGS = cr
 DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
-NAME = HoneyClient::Message::Firewall::Command
-NAME_SYM = HoneyClient_Message_Firewall_Command
+NAME = HoneyClient::Message
+NAME_SYM = HoneyClient_Message
 VERSION = 1.0
 VERSION_MACRO = VERSION
 VERSION_SYM = 1_0
@@ -147,33 +147,33 @@ MM_REVISION = Revision: 4535
 # BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
 # PARENT_NAME = NAME without BASEEXT and no trailing :: (eg Foo::Bar)
 # DLBASE  = Basename part of dynamic library. May be just equal BASEEXT.
-FULLEXT = HoneyClient/Message/Firewall/Command
-BASEEXT = Command
-PARENT_NAME = HoneyClient::Message::Firewall
+FULLEXT = HoneyClient/Message
+BASEEXT = Message
+PARENT_NAME = HoneyClient
 DLBASE = $(BASEEXT)
-VERSION_FROM = Command.pm
+VERSION_FROM = Message.pm
 INC =  -I/usr/local/include
-OBJECT = firewall_command.pb$(OBJ_EXT) Command$(OBJ_EXT)
+OBJECT = message.pb$(OBJ_EXT) Message$(OBJ_EXT)
 LDFROM = $(OBJECT)
 LINKTYPE = dynamic
 BOOTDEP = 
 
 # Handy lists of source code files:
-XS_FILES = Command.xs
-C_FILES  = Command.c \
-	firewall_command.pb.cc
-O_FILES  = Command.o \
-	firewall_command.pb.o
-H_FILES  = firewall_command.pb.h
+XS_FILES = Message.xs
+C_FILES  = Message.c \
+	message.pb.cc
+O_FILES  = Message.o \
+	message.pb.o
+H_FILES  = message.pb.h
 MAN1PODS = 
-MAN3PODS = Command.pm
+MAN3PODS = Message.pm
 
 # Where is the Config information that we are using/depend on
 CONFIGDEP = $(PERL_ARCHLIB)$(DFSEP)Config.pm $(PERL_INC)$(DFSEP)config.h
 
 # Where to build things
-INST_LIBDIR      = $(INST_LIB)/HoneyClient/Message/Firewall
-INST_ARCHLIBDIR  = $(INST_ARCHLIB)/HoneyClient/Message/Firewall
+INST_LIBDIR      = $(INST_LIB)/HoneyClient
+INST_ARCHLIBDIR  = $(INST_ARCHLIB)/HoneyClient
 
 INST_AUTODIR     = $(INST_LIB)/auto/$(FULLEXT)
 INST_ARCHAUTODIR = $(INST_ARCHLIB)/auto/$(FULLEXT)
@@ -188,10 +188,10 @@ PERL_ARCHIVE       =
 PERL_ARCHIVE_AFTER = 
 
 
-TO_INST_PM = Command.pm
+TO_INST_PM = Message.pm
 
-PM_TO_BLIB = Command.pm \
-	$(INST_LIB)/HoneyClient/Message/Firewall/Command.pm
+PM_TO_BLIB = Message.pm \
+	$(INST_LIB)/HoneyClient/Message.pm
 
 
 # --- MakeMaker platform_constants section:
@@ -211,8 +211,8 @@ XSUBPPDIR = /usr/share/perl/5.8/ExtUtils
 XSUBPP = $(XSUBPPDIR)$(DFSEP)xsubpp
 XSUBPPRUN = $(PERLRUN) $(XSUBPP)
 XSPROTOARG = 
-XSUBPPDEPS = /usr/share/perl/5.8/ExtUtils/typemap Command.typemap $(XSUBPP)
-XSUBPPARGS = -C++ -typemap /usr/share/perl/5.8/ExtUtils/typemap -typemap Command.typemap
+XSUBPPDEPS = /usr/share/perl/5.8/ExtUtils/typemap Message.typemap $(XSUBPP)
+XSUBPPARGS = -C++ -typemap /usr/share/perl/5.8/ExtUtils/typemap -typemap Message.typemap
 XSUBPP_EXTRA_ARGS = 
 
 
@@ -265,8 +265,8 @@ CI = ci -u
 RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
-DISTNAME = HoneyClient-Message-Firewall-Command
-DISTVNAME = HoneyClient-Message-Firewall-Command-1.0
+DISTNAME = HoneyClient-Message
+DISTVNAME = HoneyClient-Message-1.0
 
 
 # --- MakeMaker macro section:
@@ -285,7 +285,7 @@ MPOLLUTE =
 
 # --- MakeMaker const_loadlibs section:
 
-# HoneyClient::Message::Firewall::Command might depend on some other libraries:
+# HoneyClient::Message might depend on some other libraries:
 # See ExtUtils::Liblist for details
 #
 EXTRALIBS = -L/usr/local/lib -lprotobuf
@@ -505,21 +505,15 @@ POD2MAN = $(POD2MAN_EXE)
 
 
 manifypods : pure_all  \
-	Command.pm \
-	Command.pm
+	Message.pm \
+	Message.pm
 	$(NOECHO) $(POD2MAN) --section=$(MAN3EXT) --perm_rw=$(PERM_RW) \
-	  Command.pm $(INST_MAN3DIR)/HoneyClient::Message::Firewall::Command.$(MAN3EXT) 
+	  Message.pm $(INST_MAN3DIR)/HoneyClient::Message.$(MAN3EXT) 
 
 
 
 
 # --- MakeMaker processPL section:
-
-all :: firewall_command.Makefile
-	$(NOECHO) $(NOOP)
-
-firewall_command.Makefile :: firewall_command.Makefile.PL pm_to_blib
-	$(PERLRUNINST) firewall_command.Makefile.PL firewall_command.Makefile
 
 
 # --- MakeMaker installbin section:
@@ -544,7 +538,7 @@ clean :: clean_subdirs
 	  *$(LIB_EXT) core \
 	  core.[0-9] $(INST_ARCHAUTODIR)/extralibs.all \
 	  core.[0-9][0-9] $(BASEEXT).bso \
-	  pm_to_blib.ts Command.c \
+	  pm_to_blib.ts Message.c \
 	  core.[0-9][0-9][0-9][0-9] $(BASEEXT).x \
 	  $(BOOTSTRAP) perl$(EXE_EXT) \
 	  tmon.out *$(OBJ_EXT) \
@@ -557,8 +551,8 @@ clean :: clean_subdirs
 	  perlmain.c perl.exe \
 	  so_locations $(BASEEXT).exp 
 	- $(RM_RF) \
-	  firewall_command.pb.* lib \
-	  Command.* blib 
+	  message.pb.* Message.* \
+	  lib blib 
 	- $(MV) $(FIRST_MAKEFILE) $(MAKEFILE_OLD) $(DEV_NULL)
 
 
@@ -582,9 +576,9 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '# http://module-build.sourceforge.net/META-spec.html' > META_new.yml
 	$(NOECHO) $(ECHO) '#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#' >> META_new.yml
-	$(NOECHO) $(ECHO) 'name:         HoneyClient-Message-Firewall-Command' >> META_new.yml
+	$(NOECHO) $(ECHO) 'name:         HoneyClient-Message' >> META_new.yml
 	$(NOECHO) $(ECHO) 'version:      1.0' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version_from: Command.pm' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version_from: Message.pm' >> META_new.yml
 	$(NOECHO) $(ECHO) 'installdirs:  site' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META_new.yml
 	$(NOECHO) $(ECHO) '' >> META_new.yml
@@ -665,7 +659,7 @@ distdir : create_distdir distmeta
 
 # --- MakeMaker dist_test section:
 disttest : distdir
-	cd $(DISTVNAME) && $(ABSPERLRUN) Makefile.PL "firewall_command.Makefile"
+	cd $(DISTVNAME) && $(ABSPERLRUN) Makefile.PL 
 	cd $(DISTVNAME) && $(MAKE) $(PASTHRU)
 	cd $(DISTVNAME) && $(MAKE) test $(PASTHRU)
 
@@ -838,7 +832,7 @@ PERL_HDRS = \
 
 $(OBJECT) : $(PERL_HDRS)
 
-Command.c : $(XSUBPPDEPS)
+Message.c : $(XSUBPPDEPS)
 
 
 # --- MakeMaker makefile section:
@@ -853,7 +847,7 @@ $(FIRST_MAKEFILE) : Makefile.PL $(CONFIGDEP)
 	-$(NOECHO) $(RM_F) $(MAKEFILE_OLD)
 	-$(NOECHO) $(MV)   $(FIRST_MAKEFILE) $(MAKEFILE_OLD)
 	- $(MAKE) $(USEMAKEFILE) $(MAKEFILE_OLD) clean $(DEV_NULL)
-	$(PERLRUN) Makefile.PL "firewall_command.Makefile"
+	$(PERLRUN) Makefile.PL 
 	$(NOECHO) $(ECHO) "==> Your Makefile has been rebuilt. <=="
 	$(NOECHO) $(ECHO) "==> Please rerun the $(MAKE) command.  <=="
 	false
@@ -874,8 +868,7 @@ $(MAKE_APERL_FILE) : $(FIRST_MAKEFILE) pm_to_blib
 	$(NOECHO) $(PERLRUNINST) \
 		Makefile.PL DIR= \
 		MAKEFILE=$(MAKE_APERL_FILE) LINKTYPE=static \
-		MAKEAPERL=1 NORECURS=1 CCCDLFLAGS= \
-		firewall_command.Makefile
+		MAKEAPERL=1 NORECURS=1 CCCDLFLAGS=
 
 
 # --- MakeMaker test section:
@@ -924,7 +917,7 @@ ppd:
 
 pm_to_blib : $(TO_INST_PM)
 	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', '\''$(PM_FILTER)'\'')' \
-	  Command.pm $(INST_LIB)/HoneyClient/Message/Firewall/Command.pm 
+	  Message.pm $(INST_LIB)/HoneyClient/Message.pm 
 	$(NOECHO) $(TOUCH) pm_to_blib
 
 

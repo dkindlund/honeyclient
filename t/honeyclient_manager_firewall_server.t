@@ -73,11 +73,11 @@ BEGIN { use_ok('Net::Stomp') or diag("Can't load Net::Stomp package.  Check to m
 require_ok('Net::Stomp');
 use Net::Stomp;
 
-# Make sure HoneyClient::Message::Firewall::Command loads.
-use lib qw(blib/lib blib/arch/auto/HoneyClient/Message/Firewall/Command);
-BEGIN { use_ok('HoneyClient::Message::Firewall::Command') or diag("Can't load HoneyClient::Message::Firewall::Command package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Message::Firewall::Command');
-use HoneyClient::Message::Firewall::Command;
+# Make sure HoneyClient::Message loads.
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Message');
+use HoneyClient::Message;
 
 # Make sure HoneyClient::Manager::Firewall loads.
 BEGIN { use_ok('HoneyClient::Manager::Firewall') or diag("Can't load HoneyClient::Manager::Firewall package.  Check to make sure the package library is correctly listed within the path."); }

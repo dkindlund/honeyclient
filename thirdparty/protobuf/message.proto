@@ -1,0 +1,109 @@
+package HoneyClient;
+
+message Message {
+
+    message Client {
+
+        required string vm_name       = 1;
+        required string snapshot_name = 2;
+        optional string status        = 3;
+        optional string start_at      = 4;
+        optional string compromise_at = 5;
+    }
+
+    message File {
+
+        message Content {
+
+            required uint64 size      = 1;
+            required string md5       = 2;
+            required string sha1      = 3;
+            required string mime_type = 4; 
+        }
+
+        required string time_at  = 1;
+        required string name     = 2;
+        required string event    = 3;
+        required Content content = 4;
+    }
+
+    message Registry {
+
+        required string time_at    = 1;
+        required string name       = 2;
+        required string event      = 3;
+        optional string value      = 5;
+        optional string value_name = 6;
+        optional string value_type = 7;
+    }
+
+    message Process {
+
+        required string           name     = 1;
+        required uint64           pid      = 2;
+        repeated Message.File     file     = 3;
+        repeated Message.Registry registry = 4;
+    }
+
+    message Fingerprint {
+
+        repeated Process process = 1;
+    }
+
+    message Url {
+
+        enum Status {
+            NOT_VISITED = 1;
+            VISITED     = 2;
+            IGNORED     = 3;
+            TIMED_OUT   = 4;
+            ERROR       = 5;
+            SUSPICIOUS  = 6;
+        }
+
+        required string              name        = 1;
+        required Status              status      = 2 [default = NOT_VISITED];
+        optional Message.Client      client      = 3;
+        optional Message.Fingerprint fingerprint = 4;
+    }
+
+    message Job {
+
+        required string uuid           = 1;
+        optional string created_at     = 2;
+        optional string completed_at   = 3;
+        optional uint64 total_num_urls = 4;
+        repeated Message.Url url       = 5;
+    }
+
+    message Firewall {
+
+        message Command {
+
+            enum ActionType {
+                UNKNOWN   = 1;
+                DENY_ALL  = 2;
+                DENY_VM   = 3;
+                ALLOW_VM  = 4;
+                ALLOW_ALL = 5;
+            }
+
+            enum ResponseType {
+                ERROR     = 1;
+                OK        = 2;
+            }
+
+            required ActionType action     = 1 [default = UNKNOWN];
+            optional ResponseType response = 2 [default = ERROR];
+            optional string err_message    = 3;
+            optional string chain_name     = 4;
+            optional string mac_address    = 5;
+            optional string ip_address     = 6;
+            optional string protocol       = 7;
+            repeated uint32 port           = 8;
+        }
+    }
+}
+
+option optimize_for = SPEED;
+option java_package = "org.honeyclient.Message";

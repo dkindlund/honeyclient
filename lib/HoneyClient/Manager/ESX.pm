@@ -276,9 +276,7 @@ package HoneyClient::Manager::ESX;
 
 use strict;
 use warnings;
-use Config;
 use Carp ();
-
 
 #######################################################################
 # Module Initialization                                               #

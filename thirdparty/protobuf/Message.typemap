@@ -1,0 +1,139 @@
+TYPEMAP
+
+::HoneyClient::Message_Client *  T_HONEYCLIENT_MESSAGE_CLIENT
+::HoneyClient::Message_File_Content *  T_HONEYCLIENT_MESSAGE_FILE_CONTENT
+::HoneyClient::Message_File *  T_HONEYCLIENT_MESSAGE_FILE
+::HoneyClient::Message_Registry *  T_HONEYCLIENT_MESSAGE_REGISTRY
+::HoneyClient::Message_Process *  T_HONEYCLIENT_MESSAGE_PROCESS
+::HoneyClient::Message_Fingerprint *  T_HONEYCLIENT_MESSAGE_FINGERPRINT
+::HoneyClient::Message_Url *  T_HONEYCLIENT_MESSAGE_URL
+::HoneyClient::Message_Job *  T_HONEYCLIENT_MESSAGE_JOB
+::HoneyClient::Message_Firewall_Command *  T_HONEYCLIENT_MESSAGE_FIREWALL_COMMAND
+::HoneyClient::Message_Firewall *  T_HONEYCLIENT_MESSAGE_FIREWALL
+::HoneyClient::Message *  T_HONEYCLIENT_MESSAGE
+
+
+INPUT
+T_HONEYCLIENT_MESSAGE_CLIENT
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Client\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Client\");
+  }
+
+T_HONEYCLIENT_MESSAGE_FILE_CONTENT
+  if ( sv_derived_from($arg,\"HoneyClient::Message::File::Content\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::File::Content\");
+  }
+
+T_HONEYCLIENT_MESSAGE_FILE
+  if ( sv_derived_from($arg,\"HoneyClient::Message::File\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::File\");
+  }
+
+T_HONEYCLIENT_MESSAGE_REGISTRY
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Registry\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Registry\");
+  }
+
+T_HONEYCLIENT_MESSAGE_PROCESS
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Process\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Process\");
+  }
+
+T_HONEYCLIENT_MESSAGE_FINGERPRINT
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Fingerprint\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Fingerprint\");
+  }
+
+T_HONEYCLIENT_MESSAGE_URL
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Url\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Url\");
+  }
+
+T_HONEYCLIENT_MESSAGE_JOB
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Job\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Job\");
+  }
+
+T_HONEYCLIENT_MESSAGE_FIREWALL_COMMAND
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Firewall::Command\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Firewall::Command\");
+  }
+
+T_HONEYCLIENT_MESSAGE_FIREWALL
+  if ( sv_derived_from($arg,\"HoneyClient::Message::Firewall\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message::Firewall\");
+  }
+
+T_HONEYCLIENT_MESSAGE
+  if ( sv_derived_from($arg,\"HoneyClient::Message\") ) {
+    IV tmp = SvIV((SV *)SvRV($arg));
+    $var = INT2PTR($type, tmp);
+  } else {
+    croak(\"$var is not of type HoneyClient::Message\");
+  }
+
+
+OUTPUT
+T_HONEYCLIENT_MESSAGE_CLIENT
+  sv_setref_pv($arg, \"HoneyClient::Message::Client\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_FILE_CONTENT
+  sv_setref_pv($arg, \"HoneyClient::Message::File::Content\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_FILE
+  sv_setref_pv($arg, \"HoneyClient::Message::File\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_REGISTRY
+  sv_setref_pv($arg, \"HoneyClient::Message::Registry\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_PROCESS
+  sv_setref_pv($arg, \"HoneyClient::Message::Process\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_FINGERPRINT
+  sv_setref_pv($arg, \"HoneyClient::Message::Fingerprint\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_URL
+  sv_setref_pv($arg, \"HoneyClient::Message::Url\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_JOB
+  sv_setref_pv($arg, \"HoneyClient::Message::Job\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_FIREWALL_COMMAND
+  sv_setref_pv($arg, \"HoneyClient::Message::Firewall::Command\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE_FIREWALL
+  sv_setref_pv($arg, \"HoneyClient::Message::Firewall\", (void *)$var);
+
+T_HONEYCLIENT_MESSAGE
+  sv_setref_pv($arg, \"HoneyClient::Message\", (void *)$var);
+

@@ -113,9 +113,7 @@ package HoneyClient::Manager::Firewall;
 
 use strict;
 use warnings;
-use Config;
 use Carp ();
-
 
 #######################################################################
 # Module Initialization                                               #
