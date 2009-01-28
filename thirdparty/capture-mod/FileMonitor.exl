@@ -357,3 +357,4 @@
 # IE6 - Benign Activity
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\VMware\\VMware Tools
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings
