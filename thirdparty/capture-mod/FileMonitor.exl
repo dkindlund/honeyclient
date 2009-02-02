@@ -341,6 +341,7 @@
 # VMware Tools
 +	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
 +	Delete	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
++	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\All Users\\Application Data\\VMware.*
 
 # IE - Active Scripting Printing
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+htm
@@ -359,3 +360,4 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\VMware\\VMware Tools
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Vim\\vim70
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD.?.?\.tmp.*
