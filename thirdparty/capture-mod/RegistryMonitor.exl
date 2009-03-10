@@ -43,6 +43,7 @@
 +	DeleteValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
 +	DeleteValueKey	C:\\WINDOWS\\explorer\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
 +	DeleteValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\.+\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\SysTray
 +	DeleteValueKey	C:\\WINDOWS\\system32\\winlogon\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\State\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	\\REGISTRY\\USER\\.+
 +	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKU\\.+
@@ -241,16 +242,16 @@
 +	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
 +	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*
 +	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKLM\\SOFTWARE\\FullCircle\\TalkBack\\MozillaOrgFirefox2.*
-+	SetValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
-+	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
-+	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
-+	DeleteValueKey	C:\\WINDOWS\\system32\\svchost.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
-+	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
-+	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\WmiApRpl\\Performance.*
-+	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib.*
-+	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
-+	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\WmiApRpl\\Performance.*
-+	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib.*
++	SetValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\WmiApRpl\\Performance.*
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SOFTWARE\\Microsoft\\WBEM.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\WmiApRpl\\Performance.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib.*
 
 #During debugging only
 
@@ -264,7 +265,7 @@
 -	SetValueKey	.*	HLKM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run.*
 -	DeleteValueKey	.*	HLKM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run.*
 -	SetValueKey	.*	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.*
--	DeleteValueKey	.*	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.*
+#-	DeleteValueKey	.*	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.*
 -	SetValueKey	.*	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Run.*
 -	DeleteValueKey	.*	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Run.*
 -	SetValueKey	.*	HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Load.*
@@ -323,7 +324,7 @@
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\DownloadInformation
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\InstalledVersion
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKLM\\SOFTWARE\\Microsoft\\Code Store Database\\Distribution Units\\\{6414512B-B978-451D-A0D8-FCFDF33E833C\}\\Contains\\Files
-+	SetValueKey	C:\\WINDOWS\\system32\\winlogon.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon
++	SetValueKey	C:\\WINDOWS\\system32\\winlogon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing\\B3BB5BBA-E7D5-40AB-A041-A5B1C0B26C8F
@@ -423,4 +424,22 @@
 # VMware ESX - VM Resume From Suspend Auto IP Renewal Script
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMip\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareTray\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareTray\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
+
+# Windows XP - Daylight Savings Time Adjustments
++	DeleteValueKey	C:\\WINDOWS\\system32\\wbem\\wmiprvse\.exe	.*
+
+# Asian Input Helper Programs
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKCU\\Keyboard Layout\\Preload
++	DeleteValueKey	C:\\WINDOWS\\ime\\.*	HKCU\\Keyboard Layout\\Preload
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKLM\\SOFTWARE\\Microsoft\\Windows\\Help
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKLM\\SOFTWARE\\Microsoft\\Windows\\Html Help
+
+# WMI False Positive
++	SetValueKey	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	HKLM\\SYSTEM\\ControlSet001.*
+
+# VMware Time Zone Change
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\TimeZoneInformation

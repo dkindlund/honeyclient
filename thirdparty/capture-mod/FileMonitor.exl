@@ -91,6 +91,8 @@
 # Plug ins (like Flash player)
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Application Data\\.*
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Application Data\\.*
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\\\Documents and Settings\\Administrator\\Application Data\\.*
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\\\Documents and Settings\\Administrator\\Application Data\\.*
 # DRM related stuff
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\DRM\\.+
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\.+\\DRM\\.+
@@ -348,6 +350,7 @@
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+html
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+tmp
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+tmp
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+emf
 
 # System Log Files - IE7
 +	Write	C:\\WINDOWS\\system32\\services\.exe	C:\\WINDOWS\\Debug\\UserMode\\userenv\.log
@@ -361,3 +364,17 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Program Files\\Vim\\vim70
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\ICD.?.?\.tmp.*
+
+# IE7 - Windows Media Player
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\.*
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Application Data\\.*
+
+# IE7 Crashing
++	Write	C:\\Program Files\\Internet Explorer\\iedw\.exe	C:\\WINDOWS\\.+tmp
+
+# Explorer - Temp File
++	Write	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temp.*
++	Delete	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temp.*
+
+# Asian Font Helper
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\ime

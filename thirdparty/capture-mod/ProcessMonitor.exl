@@ -37,6 +37,7 @@
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	setup_wm.exe	.*	C:\\Program Files\\Windows Media Player\\setup_wm\.exe
 +	wmplayer.exe	.*	C:\\Program Files\\Windows Media Player\\wmplayer\.exe
++	wmpnscfg.exe	.*	C:\\Program Files\\Windows Media Player\\wmpnscfg\.exe
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT - Internet Explorer 7 Updates
 +	verclsid.exe	.*	C:\\WINDOWS\\system32\\verclsid\.exe
@@ -61,6 +62,7 @@
 +	cmd.exe	.*	C:\\WINDOWS\\system32\\cmd\.exe
 +	VMip.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMip\.exe
 +	VMwareTray.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMwareTray\.exe
++	VMwareUser.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe
 
 # IE - Dr. Watson Crash Reporter
 +	iedw.exe	.*	C:\\Program Files\\Internet Explorer\\iedw\.exe
