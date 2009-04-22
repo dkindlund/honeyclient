@@ -413,6 +413,8 @@
 # IE - Dr Watson IE 6 Crashing
 +	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 +	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\DrWatson.*
++	SetValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting.*
++	DeleteValueKey	C:\\WINDOWS\\system32\\drwtsn32\.exe	HKLM\\SOFTWARE\\Microsoft\\PCHealth\\ErrorReporting.*
 
 # Benign Explorer Activity
 +	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Toolbar.*
@@ -443,3 +445,6 @@
 
 # VMware Time Zone Change
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\TimeZoneInformation
+
+# IE - Asian Font Support
++	SetValueKey	C:\\WINDOWS\\ime\\imjp8_1\\imjpmig\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*

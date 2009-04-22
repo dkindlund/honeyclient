@@ -273,6 +273,8 @@
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution\\DataStore\\Logs
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\drivers
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\AppPatch
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\repair
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\SoftwareDistribution
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\Documents and Settings\\Administrator\\Cookies

@@ -66,3 +66,6 @@
 
 # IE - Dr. Watson Crash Reporter
 +	iedw.exe	.*	C:\\Program Files\\Internet Explorer\\iedw\.exe
+
+# IE - Asian Font Support
++	imjpmig.exe	.*	C:\\WINDOWS\\ime\\imjp8_1\\imjpmig\.exe
