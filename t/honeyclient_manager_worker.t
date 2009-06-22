@@ -58,19 +58,14 @@ Log::Log4perl->init({
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Manager') or diag("Can't load HoneyClient::Manager package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager');
-use HoneyClient::Manager;
+BEGIN { use_ok('HoneyClient::Manager::Worker') or diag("Can't load HoneyClient::Manager::Worker package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Worker');
+use HoneyClient::Manager::Worker;
 
 # Make sure the Virtualization Library loads.
 my $VM_MODE = getVar(name => "virtualization_mode", namespace => "HoneyClient::Manager") . "::Clone";
 require_ok($VM_MODE);
 eval "require $VM_MODE";
-
-# Make sure HoneyClient::Manager::Firewall::Client loads.
-BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Firewall::Client');
-use HoneyClient::Manager::Firewall::Client;
 
 # Make sure HoneyClient::Util::Config loads.
 BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar)) or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
@@ -78,47 +73,44 @@ require_ok('HoneyClient::Util::Config');
 can_ok('HoneyClient::Util::Config', 'getVar');
 use HoneyClient::Util::Config qw(getVar);
 
-# Make sure HoneyClient::Manager::Database loads.
-BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient::Manager::Database package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Database');
-use HoneyClient::Manager::Database;
-
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
 
-# Make sure Sys::Hostname loads.
-BEGIN { use_ok('Sys::Hostname') or diag("Can't load Sys::Hostname package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Sys::Hostname');
-use Sys::Hostname;
-
-# Make sure Sys::HostIP loads.
-BEGIN { use_ok('Sys::HostIP') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Sys::HostIP');
-use Sys::HostIP;
-
 # Make sure Net::Stomp loads.
 BEGIN { use_ok('Net::Stomp') or diag("Can't load Net::Stomp package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Net::Stomp');
 use Net::Stomp;
 
-# Make sure HoneyClient::Message loads.
-use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
-BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Message');
-use HoneyClient::Message;
+# Make sure HoneyClient::Util::EventEmitter loads.
+BEGIN { use_ok('HoneyClient::Util::EventEmitter') or diag("Can't load HoneyClient::Util::EventEmitter package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::EventEmitter');
+use HoneyClient::Util::EventEmitter;
 
 # Make sure Data::UUID loads.
 BEGIN { use_ok('Data::UUID') or diag("Can't load Data::UUID package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::UUID');
 use Data::UUID;
 
-# Make sure HoneyClient::Util::DateTime loads.
-BEGIN { use_ok('HoneyClient::Util::DateTime') or diag("Can't load HoneyClient::Util::DateTime package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Util::DateTime');
-use HoneyClient::Util::DateTime;
+# Make sure JSON::XS loads.
+BEGIN { use_ok('JSON::XS', qw(encode_json decode_json)) or diag("Can't load JSON::XS package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('JSON::XS');
+can_ok('JSON::XS', 'encode_json decode_json');
+use JSON::XS qw(encode_json decode_json);
+
+# Make sure String::CamelCase loads.
+BEGIN { use_ok('String::CamelCase', qw(camelize)) or diag("Can't load String::CamelCase package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('String::CamelCase');
+can_ok('String::CamelCase', 'camelize');
+use String::CamelCase qw(camelize);
+
+# Make sure HoneyClient::Message loads.
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Message');
+use HoneyClient::Message;
 }
 
 
@@ -126,7 +118,7 @@ use HoneyClient::Util::DateTime;
 # =begin testing
 {
 SKIP: {
-    skip "HoneyClient::Manager->run() can't be easily tested, yet.", 1;
+    skip "HoneyClient::Manager::Worker->run() can't be easily tested, yet.", 1;
 }
 }
 

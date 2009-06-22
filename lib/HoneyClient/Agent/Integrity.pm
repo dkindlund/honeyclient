@@ -108,11 +108,8 @@ use Carp ();
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
 
-# Include the Registry Checking Library
-#use HoneyClient::Agent::Integrity::Registry;
-
-# Include the Filesystem Checking Library
-#use HoneyClient::Agent::Integrity::Filesystem;
+# Include DateTime Library
+use HoneyClient::Util::DateTime;
 
 # Use Storable Library
 use Storable qw(nfreeze thaw dclone);
@@ -126,7 +123,7 @@ use Data::Dumper;
 use Log::Log4perl qw(:easy);
 
 # Use MD5
-use Digest::MD5;
+use Digest::MD5 qw(md5_hex);
 
 # Use SHA
 use Digest::SHA;
@@ -226,17 +223,11 @@ can_ok('Storable', 'thaw');
 can_ok('Storable', 'dclone');
 use Storable qw(nfreeze thaw dclone);
 
-# Make sure HoneyClient::Agent::Integrity::Registry loads
-#BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
-#        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
-#require_ok('HoneyClient::Agent::Integrity::Registry');
-#use HoneyClient::Agent::Integrity::Registry;
-
-# Make sure HoneyClient::Agent::Integrity::Filesystem loads
-#BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
-#        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
-#require_ok('HoneyClient::Agent::Integrity::Filesystem');
-#use HoneyClient::Agent::Integrity::Filesystem;
+# Make sure HoneyClient::Util::DateTime loads
+BEGIN { use_ok('HoneyClient::Util::DateTime')
+        or diag("Can't load HoneyClient::Util::DateTime package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::DateTime');
+use HoneyClient::Util::DateTime;
 
 # Make sure HoneyClient::Agent::Integrity loads.
 BEGIN { use_ok('HoneyClient::Agent::Integrity') or diag("Can't load HoneyClient::Agent::Integrity package.  Check to make sure the package library is correctly listed within the path."); }
@@ -449,17 +440,14 @@ hashtable has the following format:
         #when the realtime checks were started, and was still running when they ended
         
         #OPTIONAL, its existence signifies that we saw this process be created
-        'created' => ISO 8601 Timestamp (yyyy-mm-dd hh24:mi:ss.uuuuuu)
+        'time_at' => HiRes Epoch Timestamp
         
-        #OPTIONAL, its existence signifies that we saw this process be terminated
-        'stopped' => ISO 8601 Timestamp
-
         #A reference to an anonymous array of registry objects
-        regkeys => [ {
+        process_registries => [ {
             # The registry directory name in regedit
             'name' => 'HKEY_LOCAL_MACHINE\Software...',
 
-            'time_at' => ISO 8601 Timestamp, 
+            'time_at' => HiRes Epoch Timestamp, 
 
             #The specific registry event type which took place, as given by it's Windows name
             'event' => { CreateKey | OpenKey | CloseKey | Query Key |
@@ -490,7 +478,7 @@ hashtable has the following format:
 
             'event' => { Deleted | Read | Write }, #TODO: add created & renamed/moved
 
-            'time_at' => ISO 8601 Timestamp, 
+            'time_at' => HiRes Epoch Timestamp, 
             
             #OPTIONAL, this will not exist for deleted files
             'file_content' => {
@@ -595,7 +583,7 @@ sub check {
     #Get the time of the first event from the first entry and used it for compromise_time
     my @tmp_toks = split("\",\"",$capdump[0]);
     $tmp_toks[0] =~ s/^"(.*)/$1/;
-    %changes = ('time_at' => $tmp_toks[0]);
+    %changes = ('time_at' => HoneyClient::Util::DateTime->epoch(time_at => $tmp_toks[0]));
     my $line_num = 0;
 
     foreach my $line (@capdump){
@@ -632,7 +620,7 @@ sub check {
                 #"$toks[$P_EVENT_TYPE]_time" => $toks[$P_TIME],
                 'created' => $toks[$P_TIME],
                 'process_files' => [],
-                'regkeys' => [],
+                'process_registries' => [],
             };
         }
         else{
@@ -647,7 +635,7 @@ sub check {
                 $proc_obj = {
                     'pid' => $toks[$R_PROC_PID],
                     'name' => $toks[$R_PROC_NAME],
-                    'regkeys' => [],
+                    'process_registries' => [],
                     'process_files' => [], 
                 }; 
                 $proc_push = 1;
@@ -667,14 +655,14 @@ sub check {
                     $sanit_key_name = $toks[$R_KEY_NAME];
                 }
                 my $reg_obj = {
-                    'time_at' => $toks[$R_TIME],
+                    'time_at' => HoneyClient::Util::DateTime->epoch(time_at => $toks[$R_TIME]),
                     'event' => $toks[$R_EVENT_TYPE],
                     'name' => $sanit_key_name,
                     'value_name' => $toks[$R_VALUE_NAME],
                     'value_type' => $toks[$R_VALUE_TYPE],
                     'value' => $toks[$R_VALUE],
                 };
-                push @{$proc_obj->{'regkeys'}}, $reg_obj;
+                push @{$proc_obj->{'process_registries'}}, $reg_obj;
             }
             elsif($toks[$ENTRY_TYPE] eq "file"){
 
@@ -686,7 +674,7 @@ sub check {
                     my $file_obj = {
                         'name' => $toks[$F_NAME],
                         'event' => $toks[$F_EVENT_TYPE],
-                        'time_at' => $toks[$F_TIME],
+                        'time_at' => HoneyClient::Util::DateTime->epoch(time_at => $toks[$F_TIME]),
                     };
                     if($toks[$F_EVENT_TYPE] ne "Delete"){
                         #Fill in the default values, incase the file can't be found due to a rename rather than delete
@@ -760,7 +748,7 @@ sub check {
 
 
 #XENO - END REPLACEMENT WITH CAPTURE-READING CODE
- 
+
     # If any changes were found, write them out to the
     # filesystem.
     if (scalar($changes{'os_processes'})){

@@ -276,6 +276,7 @@ package HoneyClient::Manager::ESX;
 
 use strict;
 use warnings;
+use version;
 use Carp ();
 
 #######################################################################
@@ -411,6 +412,11 @@ BEGIN { use_ok('VMware::VIRuntime') or diag("Can't load VMware::VIRuntime packag
 require_ok('VMware::VIRuntime');
 use VMware::VIRuntime;
 
+# Make sure version loads.
+BEGIN { use_ok('version') or diag("Can't load version package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('version');
+use version;
+
 diag("About to run extended tests.");
 diag("Warning: These tests will take significant time to complete (10-20 minutes).");
 diag("");
@@ -519,13 +525,13 @@ sub _getViewObject {
     if (!scalar(%args) ||
         !exists($args{'session'}) ||
         !defined($args{'session'})) {
-        $LOG->fatal("Unable to retrieve view - no session specified.");
+        $LOG->error("Unable to retrieve view - no session specified.");
         Carp::croak "Unable to retrieve view - no session specified.";
     }
     
     if (!exists($args{'type'}) ||
         !defined($args{'type'})) {
-        $LOG->fatal("Unable to retrieve view - no type specified.");
+        $LOG->error("Unable to retrieve view - no type specified.");
         Carp::croak "Unable to retrieve view - no type specified.";
     }
    
@@ -552,7 +558,7 @@ sub _getViewObject {
         # Sanity check.
         # A 'name' argument is required if the type is 'VirtualMachine'
         if (!exists($args{'name'}) || !defined($args{'name'})) {
-            $LOG->fatal("Unable to retrieve view - no name specified.");
+            $LOG->error("Unable to retrieve view - no name specified.");
             Carp::croak "Unable to retrieve view - no name specified.";
         }
         
@@ -701,7 +707,7 @@ sub _fullCopyVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+        $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
         Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
     }
 
@@ -724,7 +730,7 @@ sub _fullCopyVM {
             if (($vdisk_format ne 'VirtualDiskFlatVer1BackingInfo') && 
                 ($vdisk_format ne 'VirtualDiskFlatVer2BackingInfo')) {
 
-                $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Unsupported virtual disk format - " . $vdisk_format);
+                $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Unsupported virtual disk format - " . $vdisk_format);
                 Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Unsupported virtual disk format - " . $vdisk_format;
             }
 
@@ -751,7 +757,11 @@ sub _fullCopyVM {
             # Now that we know the adapter type,
             # create a virtual disk spec using the retrieved adapter type.
             my $vdisk_spec = VirtualDiskSpec->new();
+            # XXX: Hack. See: http://communities.vmware.com/message/1015081
             $vdisk_spec->diskType("");
+            if (version->new($service_content->about->version) ge "4.0.0") {
+                $vdisk_spec->diskType("preallocated");
+            }
             $vdisk_spec->adapterType($adapter_type);
 
             # Now, copy the virtual disk.
@@ -769,7 +779,7 @@ sub _fullCopyVM {
                 if (ref($detail) eq 'SoapFault') {
                     $detail = $detail->fault_string;
                 }
-                $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+                $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
                 Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
             }
         }
@@ -841,7 +851,7 @@ sub _fullCopyVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+        $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
         Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
     }
 
@@ -898,7 +908,7 @@ sub _quickCopyVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+        $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
         Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
     }
 
@@ -968,7 +978,7 @@ sub _quickCopyVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+        $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
         Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
     }
 
@@ -1063,7 +1073,7 @@ sub _deleteFilesVM {
             if (ref($detail) eq 'SoapFault') {
                 $detail = $detail->fault_string;
             }
-            $LOG->fatal("Unable to delete all of VM (" . $args{'name'} . ") datastore files: " . $detail);
+            $LOG->error("Unable to delete all of VM (" . $args{'name'} . ") datastore files: " . $detail);
             Carp::croak "Unable to delete all of VM (" . $args{'name'} . ") datastore files: " . $detail;
         }
     }
@@ -1098,11 +1108,11 @@ sub _isSessionValid {
             }
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Unable to validate current session: " . $detail);
+        $LOG->error("Unable to validate current session: " . $detail);
         Carp::croak "Unable to validate current session: " . $detail;
     }
     if (!defined($ret)) {
-        $LOG->fatal("Unable to validate current session.");
+        $LOG->error("Unable to validate current session.");
         Carp::croak "Unable to validate current session.";
     }
     # Then session is valid.
@@ -1177,26 +1187,30 @@ sub login {
     if (!scalar(%args) ||
         !exists($args{'service_url'}) ||
         !defined($args{'service_url'})) {
-        $LOG->fatal("Unable to login - no service_url specified.");
+        $LOG->error("Unable to login - no service_url specified.");
         Carp::croak "Unable to login - no service_url specified.";
     }
     if (!exists($args{'user_name'}) ||
         !defined($args{'user_name'})) {
-        $LOG->fatal("Unable to login - no user_name specified.");
+        $LOG->error("Unable to login - no user_name specified.");
         Carp::croak "Unable to login - no user_name specified.";
     }
     if (!exists($args{'password'}) ||
         !defined($args{'password'})) {
-        $LOG->fatal("Unable to login - no password specified.");
+        $LOG->error("Unable to login - no password specified.");
         Carp::croak "Unable to login - no password specified.";
     }
 
     # Create a connection to the ESX server
     my $session = Vim->new(service_url => $args{'service_url'});
+
     # Record when this object was updated.
     $session->{'_updated_at'} = DateTime::HiRes->now();
     $session->login(user_name => $args{'user_name'},
                     password  => $args{'password'});
+
+    # Update the SOAP timeout.
+    $session->{'vim_service'}->{'vim_soap'}->{'user_agent'}->timeout(getVar(name => "timeout"));
 
     # If we didn't croak at this point, then the credentials worked.
     # In that case, store the credentials used within the session
@@ -1274,11 +1288,11 @@ sub logout {
     if (!scalar(%args) ||
         !exists($args{'session'}) ||
         !defined($args{'session'})) {
-        $LOG->fatal("Unable to logout - no session specified.");
+        $LOG->error("Unable to logout - no session specified.");
         Carp::croak "Unable to logout - no session specified.";
     }
     if (ref($args{'session'}) ne 'Vim') {
-        $LOG->fatal("Unable to logout - invalid session specified.");
+        $LOG->error("Unable to logout - invalid session specified.");
         Carp::croak "Unable to logout - invalid session specified.";
     }
  
@@ -1392,7 +1406,7 @@ sub fullCloneVM {
     if (!scalar(%args) ||
         !exists($args{'src_name'}) ||
         !defined($args{'src_name'})) {
-        $LOG->fatal("Error cloning VM - no source VM name specified.");
+        $LOG->error("Error cloning VM - no source VM name specified.");
         Carp::croak "Error cloning VM - no source VM name specified.";
     }
 
@@ -1415,11 +1429,11 @@ sub fullCloneVM {
         $args{'name'} = $args{'dst_name'};
         ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
         if ($isRegisteredVM) {
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
+            $LOG->error("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.";
         }
         if (defined(_findSnapshot($args{'dst_name'}, _getViewVMSnapshotTrees(%args)))) {
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.");
+            $LOG->error("Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.";
         }
     }
@@ -1443,7 +1457,7 @@ sub fullCloneVM {
         if (($powerState ne 'poweredoff') &&
             ($powerState ne 'suspended')) {
 
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'");
+            $LOG->error("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'";
         }
     }
@@ -1584,7 +1598,7 @@ sub startVM {
             # Okay, now make sure the VM is powered on.
             ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'poweredon') {
-                $LOG->fatal("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+                $LOG->error("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
             }
         };
@@ -1593,12 +1607,12 @@ sub startVM {
             if (ref($detail) eq 'SoapFault') {
                 $detail = $detail->fault_string;
             }
-            $LOG->fatal("Error starting VM (" . $args{'name'} . "): " . $detail);
+            $LOG->error("Error starting VM (" . $args{'name'} . "): " . $detail);
             Carp::croak "Error starting VM (" . $args{'name'} . "): " . $detail;
         }
     } else {
         # The VM is in a state that cannot be powered on.
-        $LOG->fatal("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+        $LOG->error("Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
         Carp::croak "Error starting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
@@ -1720,7 +1734,7 @@ sub stopVM {
             # Okay, now make sure the VM is powered off.
             ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'poweredoff') {
-                $LOG->fatal("Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+                $LOG->error("Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
             }
         };
@@ -1729,12 +1743,12 @@ sub stopVM {
             if (ref($detail) eq 'SoapFault') {
                 $detail = $detail->fault_string;
             }
-            $LOG->fatal("Error stopping VM (" . $args{'name'} . "): " . $detail);
+            $LOG->error("Error stopping VM (" . $args{'name'} . "): " . $detail);
             Carp::croak "Error stopping VM (" . $args{'name'} . "): " . $detail;
         }
     } else {
         # The VM is in a state that cannot be powered off.
-        $LOG->fatal("Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+        $LOG->error("Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
         Carp::croak "Error stopping VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
@@ -1854,7 +1868,7 @@ sub resetVM {
             # Okay, now make sure the VM is powered on.
             ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'poweredon') {
-                $LOG->fatal("Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+                $LOG->error("Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
             }
         };
@@ -1863,12 +1877,12 @@ sub resetVM {
             if (ref($detail) eq 'SoapFault') {
                 $detail = $detail->fault_string;
             }
-            $LOG->fatal("Error resetting VM (" . $args{'name'} . "): " . $detail);
+            $LOG->error("Error resetting VM (" . $args{'name'} . "): " . $detail);
             Carp::croak "Error resetting VM (" . $args{'name'} . "): " . $detail;
         }
     } else {
         # The VM is in a state that cannot be reset.
-        $LOG->fatal("Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+        $LOG->error("Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
         Carp::croak "Error resetting VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
@@ -1996,7 +2010,7 @@ sub suspendVM {
             # Okay, now make sure the VM is suspended.
             ($args{'session'}, $powerState) = getStateVM($class, %args);
             if ($powerState ne 'suspended') {
-                $LOG->fatal("Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+                $LOG->error("Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
                 Carp::croak "Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
             }
         };
@@ -2005,12 +2019,12 @@ sub suspendVM {
             if (ref($detail) eq 'SoapFault') {
                 $detail = $detail->fault_string;
             }
-            $LOG->fatal("Error suspending VM (" . $args{'name'} . "): " . $detail);
+            $LOG->error("Error suspending VM (" . $args{'name'} . "): " . $detail);
             Carp::croak "Error suspending VM (" . $args{'name'} . "): " . $detail;
         }
     } else {
         # The VM is in a state that cannot be suspended.
-        $LOG->fatal("Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
+        $LOG->error("Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.");
         Carp::croak "Error suspending VM (" . $args{'name'} . "): Power state is '" . $powerState . "'.";
     }
 
@@ -2054,6 +2068,9 @@ eval {
     $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     ok($session, "destroyVM(name => '$cloneVM')") or diag("The destroyVM() call failed.");
    
+    # Wait a little time, for the clone to be destroyed.
+    sleep(30);
+
     # The clone VM should no longer be registered.
     my $isRegisteredVM = undef;
     ($session, $isRegisteredVM) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $cloneVM);
@@ -2118,7 +2135,7 @@ sub destroyVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error destroying VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error destroying VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error destroying VM (" . $args{'name'} . "): " . $detail;
     }
     return $args{'session'};
@@ -2481,7 +2498,7 @@ sub answerVM {
         /msg\.disk\.adapterMismatch/ &&
             do { $choice = 0; last; }; # Choice 0: Yes, change adapter type on affected disk.
 
-        $LOG->fatal("Encountered unknown question for VM (" . $args{'name'} . "). " .
+        $LOG->error("Encountered unknown question for VM (" . $args{'name'} . "). " .
                     "(" . $question_text . ")");
         Carp::croak "Encountered unknown question for VM (" . $args{'name'} . "). " .
                     "(" . $question_text . ")";
@@ -2497,7 +2514,7 @@ sub answerVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error answering question on VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error answering question on VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error answering question on VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -2904,7 +2921,10 @@ sub isRegisteredVM {
     # we may not find a view object.    
     $args{'type'} = "VirtualMachine";
     my $vm_view = undef;
-    ($args{'session'}, $vm_view) = _getViewObject(%args);
+    # Catch and ignore all errors - assume VM is not registered in these cases.
+    eval {
+        ($args{'session'}, $vm_view) = _getViewObject(%args);
+    };
 
     # If there is a VM view object corresponding to the name provided,
     # then the VM is registered.
@@ -2975,7 +2995,7 @@ sub getAllVM {
     if (!scalar(%args) ||
         !exists($args{'session'}) ||
         !defined($args{'session'})) {
-        $LOG->fatal("Unable to retrieve view - no session specified.");
+        $LOG->error("Unable to retrieve view - no session specified.");
         Carp::croak "Unable to retrieve view - no session specified.";
     }
     $args{'type'} = 'VirtualMachine';
@@ -3172,6 +3192,22 @@ sub getDatastoreSpaceAvailableESX {
     # Get the name of the datastore that holds the source VM
     # XXX: We assume the source VM is located on only one datastore.
     my $datastore_view = $args{'session'}->get_view(mo_ref => $vm_view->datastore->[0]);
+
+    eval {
+        $LOG->debug("Refreshing datastore.");
+        $datastore_view->RefreshDatastore();
+    };
+    if ($@) {
+        my $detail = $@;
+        if (ref($detail) eq 'SoapFault') {
+            $detail = $detail->fault_string;
+        }
+        $LOG->error("Error refreshing datastore: " . $detail);
+        Carp::croak "Error refreshing datastore: " . $detail;
+    }
+
+    # Get a copy of the new view, so that the disk space is refreshed.
+    $datastore_view = $args{'session'}->get_view(mo_ref => $vm_view->datastore->[0]);
 
     if (!$datastore_view->summary->accessible) {
         $LOG->error("Unable to retrieve free space of datastore (" . $datastore_view->info->name . "): Datastore currently disconnected.");
@@ -3402,13 +3438,13 @@ sub registerVM {
     if (!scalar(%args) ||
         !exists($args{'name'}) ||
         !defined($args{'name'})) {
-        $LOG->fatal("Error registering VM: No name specified.");
+        $LOG->error("Error registering VM: No name specified.");
         Carp::croak "Error registering VM: No name specified.";
     }
 
     if (!exists($args{'name'}) ||
         !defined($args{'name'})) {
-        $LOG->fatal("Error registering VM: No config specified.");
+        $LOG->error("Error registering VM: No config specified.");
         Carp::croak "Error registering VM: No config specified.";
     }
 
@@ -3417,21 +3453,21 @@ sub registerVM {
     my $datacenter_view = undef;
     ($args{'session'}, $datacenter_view) = _getViewObject(%args);
     if (!defined($datacenter_view)) {
-        $LOG->fatal("Error registering VM (" . $args{'name'} . "): No datacenter found.");
+        $LOG->error("Error registering VM (" . $args{'name'} . "): No datacenter found.");
         Carp::croak "Error registering VM (" . $args{'name'} . "): No datacenter found.";
     }
    
     # Get the folder view. 
     my $folder_view = $args{'session'}->get_view(mo_ref => $datacenter_view->vmFolder);
     if (!defined($folder_view)) {
-        $LOG->fatal("Error registering VM (" . $args{'name'} . "): No folder found.");
+        $LOG->error("Error registering VM (" . $args{'name'} . "): No folder found.");
         Carp::croak "Error registering VM (" . $args{'name'} . "): No folder found.";
     }
 
     # Get the host folder view.
     my $host_folder_view = $args{'session'}->get_view(mo_ref => $datacenter_view->hostFolder);
     if (!defined($host_folder_view)) {
-        $LOG->fatal("Error registering VM (" . $args{'name'} . "): No host folder found.");
+        $LOG->error("Error registering VM (" . $args{'name'} . "): No host folder found.");
         Carp::croak "Error registering VM (" . $args{'name'} . "): No host folder found.";
     }
 
@@ -3459,7 +3495,7 @@ sub registerVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error registering VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error registering VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error registering VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -3557,7 +3593,7 @@ sub unregisterVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error unregistering VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error unregistering VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error unregistering VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -3677,11 +3713,11 @@ sub snapshotVM {
         $args{'name'} = $args{'snapshot_name'};
         ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
         if ($isRegisteredVM) {
-            $LOG->fatal("Error creating snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'snapshot_name'} . ") already exists.");
+            $LOG->error("Error creating snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'snapshot_name'} . ") already exists.");
             Carp::croak "Error creating snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'snapshot_name'} . ") already exists.";
         }
         if (defined(_findSnapshot($args{'snapshot_name'}, _getViewVMSnapshotTrees(%args)))) {
-            $LOG->fatal("Error creating snapshot on VM (" . $args{'target_name'} . ") - another snapshot named (" . $args{'snapshot_name'} . ") already exists.");
+            $LOG->error("Error creating snapshot on VM (" . $args{'target_name'} . ") - another snapshot named (" . $args{'snapshot_name'} . ") already exists.");
             Carp::croak "Error creating snapshot on VM (" . $args{'target_name'} . ") - another snapshot named (" . $args{'snapshot_name'} . ") already exists.";
         }
     }
@@ -3702,7 +3738,7 @@ sub snapshotVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error creating snapshot on VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error creating snapshot on VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error creating snapshot on VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -3794,7 +3830,7 @@ sub revertVM {
     if (!exists($args{'snapshot_name'}) ||
         !defined($args{'snapshot_name'})) {
 
-        $LOG->fatal("Error reverting VM (" . $args{'name'} . ") - no snapshot_name specified.");
+        $LOG->error("Error reverting VM (" . $args{'name'} . ") - no snapshot_name specified.");
         Carp::croak "Error reverting VM (" . $args{'name'} . ") - no snapshot_name specified.";
     }
 
@@ -3807,7 +3843,7 @@ sub revertVM {
 
     # Make sure we found a snapshot.
     if (!defined($snapshot_tree) || !defined($snapshot_tree->snapshot)) {
-        $LOG->fatal("Error reverting VM (" . $args{'name'} . ") - snapshot (" . $args{'snapshot_name'} . ") not found.");
+        $LOG->error("Error reverting VM (" . $args{'name'} . ") - snapshot (" . $args{'snapshot_name'} . ") not found.");
         Carp::croak "Error reverting VM (" . $args{'name'} . ") - snapshot (" . $args{'snapshot_name'} . ") not found.";
     }
 
@@ -3822,7 +3858,7 @@ sub revertVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error reverting VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error reverting VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error reverting VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -3932,7 +3968,7 @@ sub renameSnapshotVM {
     if (!exists($args{'old_snapshot_name'}) ||
         !defined($args{'old_snapshot_name'})) {
 
-        $LOG->fatal("Error renaming snapshot on VM (" . $args{'name'} . ") - no old_snapshot_name specified.");
+        $LOG->error("Error renaming snapshot on VM (" . $args{'name'} . ") - no old_snapshot_name specified.");
         Carp::croak "Error renaming snapshot on VM (" . $args{'name'} . ") - no old_snapshot_name specified.";
     }
 
@@ -3958,11 +3994,11 @@ sub renameSnapshotVM {
         $args{'name'} = $args{'new_snapshot_name'};
         ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
         if ($isRegisteredVM) {
-            $LOG->fatal("Error renaming snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'new_snapshot_name'} . ") already exists.");
+            $LOG->error("Error renaming snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'new_snapshot_name'} . ") already exists.");
             Carp::croak "Error renaming snapshot on VM (" . $args{'target_name'} . ") - another VM named (" . $args{'new_snapshot_name'} . ") already exists.";
         }
         if (defined(_findSnapshot($args{'new_snapshot_name'}, _getViewVMSnapshotTrees(%args)))) {
-            $LOG->fatal("Error renaming snapshot on VM (" . $args{'target_name'} . ") - another snapshot named (" . $args{'new_snapshot_name'} . ") already exists.");
+            $LOG->error("Error renaming snapshot on VM (" . $args{'target_name'} . ") - another snapshot named (" . $args{'new_snapshot_name'} . ") already exists.");
             Carp::croak "Error renaming snapshot on VM (" . $args{'target_name'} . ") - another snapshot named (" . $args{'new_snapshot_name'} . ") already exists.";
         }
     }
@@ -3983,7 +4019,7 @@ sub renameSnapshotVM {
 
     # Make sure we found a snapshot.
     if (!defined($snapshot_tree) || !defined($snapshot_tree->snapshot)) {
-        $LOG->fatal("Error renaming snapshot on VM (" . $args{'name'} . ") - snapshot (" . $args{'old_snapshot_name'} . ") not found.");
+        $LOG->error("Error renaming snapshot on VM (" . $args{'name'} . ") - snapshot (" . $args{'old_snapshot_name'} . ") not found.");
         Carp::croak "Error renaming snapshot on VM (" . $args{'name'} . ") - snapshot (" . $args{'old_snapshot_name'} . ") not found.";
     }
 
@@ -4001,7 +4037,7 @@ sub renameSnapshotVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error renaming snapshot on VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error renaming snapshot on VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error renaming snapshot on VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -4098,7 +4134,7 @@ sub removeSnapshotVM {
     if (!exists($args{'snapshot_name'}) ||
         !defined($args{'snapshot_name'})) {
 
-        $LOG->fatal("Error removing snapshot on VM (" . $args{'name'} . ") - no snapshot_name specified.");
+        $LOG->error("Error removing snapshot on VM (" . $args{'name'} . ") - no snapshot_name specified.");
         Carp::croak "Error removing snapshot on VM (" . $args{'name'} . ") - no snapshot_name specified.";
     }
 
@@ -4117,7 +4153,7 @@ sub removeSnapshotVM {
 
     # Make sure we found a snapshot.
     if (!defined($snapshot_tree) || !defined($snapshot_tree->snapshot)) {
-        $LOG->fatal("Error removing snapshot on VM (" . $args{'name'} . ") - snapshot (" . $args{'snapshot_name'} . ") not found.");
+        $LOG->error("Error removing snapshot on VM (" . $args{'name'} . ") - snapshot (" . $args{'snapshot_name'} . ") not found.");
         Carp::croak "Error removing snapshot on VM (" . $args{'name'} . ") - snapshot (" . $args{'snapshot_name'} . ") not found.";
     }
 
@@ -4134,7 +4170,7 @@ sub removeSnapshotVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error removing snapshot on VM (" . $args{'name'} . "): " . $detail);
+        $LOG->error("Error removing snapshot on VM (" . $args{'name'} . "): " . $detail);
         Carp::croak "Error removing snapshot on VM (" . $args{'name'} . "): " . $detail;
     }
 
@@ -4249,7 +4285,7 @@ sub quickCloneVM {
     if (!scalar(%args) ||
         !exists($args{'src_name'}) ||
         !defined($args{'src_name'})) {
-        $LOG->fatal("Error cloning VM - no source VM name specified.");
+        $LOG->error("Error cloning VM - no source VM name specified.");
         Carp::croak "Error cloning VM - no source VM name specified.";
     }
 
@@ -4272,11 +4308,11 @@ sub quickCloneVM {
         $args{'name'} = $args{'dst_name'};
         ($args{'session'}, $isRegisteredVM) = isRegisteredVM($class, %args);
         if ($isRegisteredVM) {
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
+            $LOG->error("Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - destination VM name (" . $args{'dst_name'} . ") already exists.";
         }
         if (defined(_findSnapshot($args{'dst_name'}, _getViewVMSnapshotTrees(%args)))) {
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.");
+            $LOG->error("Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") - a snapshot named (" . $args{'dst_name'} . ") already exists.";
         }
     }
@@ -4300,7 +4336,7 @@ sub quickCloneVM {
         if (($powerState ne 'poweredoff') &&
             ($powerState ne 'suspended')) {
 
-            $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'");
+            $LOG->error("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'");
             Carp::croak "Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM power state is '" . $powerState . "'";
         }
     }
@@ -4309,7 +4345,7 @@ sub quickCloneVM {
     my $src_vm_view = undef;
     ($args{'session'}, $src_vm_view) = _getViewVM(%args);
     if (defined($src_vm_view->snapshot)) {
-        $LOG->fatal("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM has snapshots - delete all snapshots and try again.");
+        $LOG->error("Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM has snapshots - delete all snapshots and try again.");
         Carp::croak "Error cloning VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Source VM has snapshots - delete all snapshots and try again.";
     }
 
@@ -4333,7 +4369,7 @@ sub quickCloneVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+        $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
         Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
     }
 
@@ -4360,7 +4396,7 @@ sub quickCloneVM {
             if (($vdisk_format ne 'VirtualDiskFlatVer1BackingInfo') && 
                 ($vdisk_format ne 'VirtualDiskFlatVer2BackingInfo')) {
 
-                $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Unsupported virtual disk format - " . $vdisk_format);
+                $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Unsupported virtual disk format - " . $vdisk_format);
                 Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): Unsupported virtual disk format - " . $vdisk_format;
             }
 
@@ -4404,7 +4440,7 @@ sub quickCloneVM {
         if (ref($detail) eq 'SoapFault') {
             $detail = $detail->fault_string;
         }
-        $LOG->fatal("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
+        $LOG->error("Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail);
         Carp::croak "Error copying VM (" . $args{'src_name'} . ") to (" . $args{'dst_name'} . "): " . $detail;
     }
 

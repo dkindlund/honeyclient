@@ -101,6 +101,11 @@ BEGIN { use_ok('VMware::VIRuntime') or diag("Can't load VMware::VIRuntime packag
 require_ok('VMware::VIRuntime');
 use VMware::VIRuntime;
 
+# Make sure version loads.
+BEGIN { use_ok('version') or diag("Can't load version package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('version');
+use version;
+
 diag("About to run extended tests.");
 diag("Warning: These tests will take significant time to complete (10-20 minutes).");
 diag("");
@@ -415,6 +420,9 @@ eval {
     $session = HoneyClient::Manager::ESX->destroyVM(session => $session, name => $cloneVM);
     ok($session, "destroyVM(name => '$cloneVM')") or diag("The destroyVM() call failed.");
    
+    # Wait a little time, for the clone to be destroyed.
+    sleep(30);
+
     # The clone VM should no longer be registered.
     my $isRegisteredVM = undef;
     ($session, $isRegisteredVM) = HoneyClient::Manager::ESX->isRegisteredVM(session => $session, name => $cloneVM);

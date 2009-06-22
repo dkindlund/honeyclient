@@ -1,6 +1,6 @@
 #######################################################################
-# Created on:  Jan 21, 2009
-# Package:     HoneyClient::Manager::Firewall::Client
+# Created on:  June 08, 2009
+# Package:     HoneyClient::Manager::Pcap::Client
 # File:        Client.pm
 # Description: An AMQP-aware client that provides programmatic
 #              access to all VM-specific firewall rules on a
@@ -33,51 +33,30 @@
 
 =head1 NAME
 
-HoneyClient::Manager::Firewall::Client - Perl extension to instantiate
+HoneyClient::Manager::Pcap::Client - Perl extension to instantiate
 an AMQP-aware client that provides programmatic access to all VM-specific
-firewall rules on a remote system.
+packet captures on a remote system.
 
 =head1 VERSION
 
-This documentation refers to HoneyClient::Manager::Firewall::Client version 1.02.
+This documentation refers to HoneyClient::Manager::Pcap::Client version 1.02.
 
 =head1 SYNOPSIS
 
-  use HoneyClient::Manager::Firewall::Client;
+  use HoneyClient::Manager::Pcap::Client;
 
+  my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+  my $mac_address = "00:0c:29:c5:11:c7";
+  my $src_ip_address = "10.0.0.1";
+  my $dst_tcp_port = 80;
   my $result = undef;
   my $session = undef;
 
-  # To deny all VM-specific traffic.
-  ($result, $session) = HoneyClient::Manager::Firewall::Client->denyAllTraffic(session => $session);
-  if ($result) {
-      print "Success!\n";
-  } else {
-      print "Fail!\n";
-  }
-
-  # To allow all VM-specific traffic.
-  ($result, $session) = HoneyClient::Manager::Firewall::Client->allowAllTraffic(session => $session);
-  if ($result) {
-      print "Success!\n";
-  } else {
-      print "Fail!\n";
-  }
-
-  # To allow specific VM traffic.
-  my $chain_name = "1ea37e398a4d1d0314da7bdee8";
-  my $mac_address = "00:0c:29:c5:11:c7";
-  my $ip_address = "10.0.0.254";
-  my $protocol = "tcp";
-  my $port = [ 80, 443 ];
-
-  ($result, $session) = HoneyClient::Manager::Firewall::Client->allowVM(
+  # To start a new packet capture.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
       session => $session,
-      chain_name => $chain_name,
+      quick_clone_name => $quick_clone_name,
       mac_address => $mac_address,
-      ip_address => $ip_address,
-      protocol => $protocol,
-      port => $port,
   );
   if ($result) {
       print "Success!\n";
@@ -85,8 +64,24 @@ This documentation refers to HoneyClient::Manager::Firewall::Client version 1.02
       print "Fail!\n";
   }
 
-  # Then, to deny specific VM traffic.
-  ($result, $session) = HoneyClient::Manager::Firewall::Client->denyVM(session => $session, chain_name => $chain_name);
+  # To stop a packet capture.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->stopCapture(session => $session, quick_clone_name => $quick_clone_name);
+  if ($result) {
+      print "Success!\n";
+  } else {
+      print "Fail!\n";
+  }
+
+  # To get the first server IP a clone VM contacts.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->getFirstIP(session => $session, quick_clone_name => $quick_clone_name, src_ip_address => $src_ip_address, dst_tcp_port => $dst_tcp_port);
+  print "First Server IP: " . Dumper($result) . "\n";
+
+  # To get a relative path to the pcap file.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapFile(session => $session, quick_clone_name => $quick_clone_name);
+  print "PCAP Filename: " . Dumper($result) . "\n";
+
+  # To stop all packet captures.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
   if ($result) {
       print "Success!\n";
   } else {
@@ -95,30 +90,13 @@ This documentation refers to HoneyClient::Manager::Firewall::Client version 1.02
 
 =head1 DESCRIPTION
 
-This library provides static calls to control the IPTables interface on a
-(potentially) remote system that is running the HoneyClient::Manager::Firewall::Server
-daemon.  This library only alters the existing firewall ruleset on the
-remote system; it does not create or delete any base rules defined by the
-remote system.
-
-Specifically, this library assumes that the remote system already has all
-the necessary static firewall rules in place to 'deny all' VM traffic.
-As such, the library saves this firewall state of the 'filter' table,
-using the '/sbin/iptables-save' command on the remote system.
-
-Then, upon exit or reset, the library restores this state of the 'filter'
-table back to this 'deny all' mode, using the '/sbin/iptables-restore'
-command on the remote system.
-
-Note: This code assumes that the IPTables 'filter' table on the remote system was 
-configured using the standared Uncomplicated Firewall (UFW) framework that is
-packaged with the Ubuntu Linux distribution.  As such, the code relies
-on UFW to have setup and established the basic 'ufw-*' chain names
-within the 'filter' table.
+This library provides static calls to control packet capture sessions on a
+(potentially) remote system that is running the HoneyClient::Manager::Pcap::Server
+daemon.
 
 =cut
 
-package HoneyClient::Manager::Firewall::Client;
+package HoneyClient::Manager::Pcap::Client;
 
 use strict;
 use warnings;
@@ -145,7 +123,7 @@ BEGIN {
     # names by default without a very good reason. Use EXPORT_OK instead.
     # Do not simply export all your public functions/methods/constants.
 
-    # This allows declaration use HoneyClient::Manager::Firewall::Client ':all';
+    # This allows declaration use HoneyClient::Manager::Pcap::Client ':all';
     # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
     # will save memory.
 
@@ -219,14 +197,21 @@ use Data::Dumper;
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
-BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Firewall::Client');
-use HoneyClient::Manager::Firewall::Client;
+BEGIN { use_ok('HoneyClient::Manager::Pcap::Client') or diag("Can't load HoneyClient::Manager::Pcap::Client package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Pcap::Client');
+use HoneyClient::Manager::Pcap::Client;
 
 # Make sure Net::Stomp loads.
 BEGIN { use_ok('Net::Stomp') or diag("Can't load Net::Stomp package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Net::Stomp');
 use Net::Stomp;
+
+# Make sure MIME::Base64 loads.
+BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('MIME::Base64');
+can_ok('MIME::Base64', 'encode_base64');
+can_ok('MIME::Base64', 'decode_base64');
+use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Make sure Data::UUID loads.
 BEGIN { use_ok('Data::UUID') or diag("Can't load Data::UUID package.  Check to make sure the package library is correctly listed within the path."); }
@@ -239,15 +224,6 @@ BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message 
 require_ok('HoneyClient::Message');
 use HoneyClient::Message;
 
-diag("About to run extended tests.");
-diag("Warning: These tests may alter the host system's firewall.");
-diag("NOTE: The UFW service MUST already be running; if unsure, type '/etc/init.d/ufw restart' as root.");
-diag("As such, Running these tests via a remote session is NOT advised.");
-diag("");
-
-my $question = prompt("# Do you want to run extended tests?", "yes");
-if ($question !~ /^y.*/i) { exit; }
-
 =end testing
 
 =cut
@@ -258,6 +234,9 @@ if ($question !~ /^y.*/i) { exit; }
 
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
+
+# Include Base64 Library
+use MIME::Base64 qw(decode_base64 encode_base64);
 
 # Include Data Dumper API
 use Data::Dumper;
@@ -297,7 +276,7 @@ use HoneyClient::Message;
 #   connect_args   - the STOMP connect arguments
 #   subscribe_args - the STOMP subscribe arguments
 #   send_args      - the STOMP send arguments
-#   command        - the HoneyClient::Message::Firewall::Command to serialize
+#   command        - the HoneyClient::Message::Pcap::Command to serialize
 # Output: the next frame received, the STOMP object
 sub _receive_retry {
     # Extract arguments.
@@ -331,7 +310,7 @@ sub _receive_retry {
 #   connect_args   - the STOMP connect arguments
 #   subscribe_args - the STOMP subscribe arguments
 #   send_args      - the STOMP send arguments
-#   command        - the HoneyClient::Message::Firewall::Command to serialize
+#   command        - the HoneyClient::Message::Pcap::Command to serialize
 # Output: the STOMP object
 sub _send_retry {
     # Extract arguments.
@@ -352,7 +331,7 @@ sub _send_retry {
             $args{'stomp'}->subscribe($args{'subscribe_args'});
         }
 
-        $args{'send_args'}->{'body'} = $args{'command'}->pack();
+        $args{'send_args'}->{'body'} = encode_base64($args{'command'}->pack());
 
         eval {
             $args{'stomp'}->send($args{'send_args'});
@@ -373,14 +352,14 @@ sub _send_retry {
     return $args{'stomp'};
 }
 
-# Helper function, designed to send HoneyClient::Message::Firewall::Command
-# type of messages to the HoneyClient::Manager::Firewall::Server, and
+# Helper function, designed to send HoneyClient::Message::Pcap::Command
+# type of messages to the HoneyClient::Manager::Pcap::Server, and
 # interpret the corresponding responses.
 #
 # _send(message => $message, session => $session, stomp_address => $stomp_address, stomp_port => $stomp_port, stomp_user_name => $stomp_user_name, stomp_password => $stomp_password, stomp_virtual_host => $stomp_virtual_host, exchange_name => $exchange_name)
 #
 # Inputs:
-#  $message is a required argument, specifying the HoneyClient::Message::Firewall::Command to send.
+#  $message is a required argument, specifying the HoneyClient::Message::Pcap::Command to send.
 #  $session is an optional argument, specifying the existing Net::Stomp session to use for connecting to the STOMP server.
 #  $stomp_address is an optional argument, specifying the IP address of the STOMP server this component should connect to.
 #  $stomp_port is an optional argument, specifying the TCP port of the STOMP server this component should connect to.
@@ -390,7 +369,7 @@ sub _send_retry {
 #  $exchange_name is an optional argument, specifying the exchange name to use when sending messages from this component.
 #
 # Output:
-#  Returns (true, Net::Stomp $session) if successful; croaks otherwise.
+#  Returns (response_message, Net::Stomp $session) if successful; croaks otherwise.
 sub _send {
     # Extract arguments.
     my ($class, %args) = @_;
@@ -471,7 +450,7 @@ sub _send {
     }
 
     # Pack the message.
-    my $command = HoneyClient::Message::Firewall::Command->new($args{'message'});
+    my $command = HoneyClient::Message::Pcap::Command->new($args{'message'});
     my $send_args = {
         'exchange'      =>  $args{'exchange_name'},
         'delivery-mode' =>  2, # Make sure the message is durable.
@@ -481,7 +460,7 @@ sub _send {
 
     my $message = undef;
 
-    while (!defined($message) || ($message->response() == HoneyClient::Message::Firewall::Command::ResponseType::ERROR)) {
+    while (!defined($message) || ($message->response() == HoneyClient::Message::Pcap::Command::ResponseType::ERROR)) {
 
         # Send the message - with retry logic.
         $args{'session'} = _send_retry(stomp          => $args{'session'},
@@ -499,7 +478,7 @@ sub _send {
                                                     subscribe_args => $subscribe_args,
                                                     send_args      => $send_args,
                                                     command        => $command);
-        $message = HoneyClient::Message::Firewall::Command->new($frame->body);
+        $message = HoneyClient::Message::Pcap::Command->new(decode_base64($frame->body));
 
         # Sanity check.
         if (!scalar(%{$message->to_hashref()})) {
@@ -510,14 +489,14 @@ sub _send {
             next;
         }
 
-        if ($message->response() == HoneyClient::Message::Firewall::Command::ResponseType::ERROR) {
-            my $err_message = "Error: Firewall command failed, but no error message was provided.";
+        if ($message->response() == HoneyClient::Message::Pcap::Command::ResponseType::ERROR) {
+            my $err_message = "Error: Pcap command failed, but no error message was provided.";
             if ($message->has_err_message()) {
                 $err_message = $message->err_message();
             }
             $LOG->warn($err_message . " - Retrying operation.");
 
-        } elsif ($message->response() != HoneyClient::Message::Firewall::Command::ResponseType::OK) {
+        } elsif ($message->response() != HoneyClient::Message::Pcap::Command::ResponseType::OK) {
             $LOG->warn("Encoutered unknown response type (" . $message->response() . ") in acknowledgement message.");
         }
     }
@@ -528,7 +507,7 @@ sub _send {
         $args{'session'}->unsubscribe($subscribe_args);
     }
 
-    return (1, $args{'session'});
+    return ($message->response_message(), $args{'session'});
 }
 
 #######################################################################
@@ -539,12 +518,11 @@ sub _send {
 
 =head1 LOCAL FUNCTIONS
 
-=head2 denyAllTraffic(session => $session)
+=head2 shutdown(session => $session)
 
 =over 4
 
-Clears all existing VM-specific chains and denies all future traffic
-through the firewall.
+Shuts down all running packet captures.
 
 I<Inputs>:
  B<$session> an optional argument, specifying the Net::Stomp session to reuse 
@@ -557,8 +535,8 @@ I<Output>: Returns (true, $session) if successful; croaks otherwise.
 
 eval {
 
-    # Create a new HoneyClient::Manager::Firewall::Server daemon.
-    use HoneyClient::Manager::Firewall::Server;
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
 
     my $pid = undef;
     if ($pid = fork()) {
@@ -568,10 +546,10 @@ eval {
         # Deny all traffic.
         my $session = undef;
         my $result = undef;
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->denyAllTraffic(session => $session);
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
 
         # Validate the result.
-        ok($result, "denyAllTraffic()") or diag("The denyAllTraffic() call failed.");
+        ok($result, "shutdown()") or diag("The shutdown() call failed.");
 
         # Cleanup.
         kill("QUIT", $pid);
@@ -579,7 +557,7 @@ eval {
         if (!defined($pid)) {
             die "Unable to fork child process. $!";
         }
-        HoneyClient::Manager::Firewall::Server->run();
+        HoneyClient::Manager::Pcap::Server->run();
     }
 };
 
@@ -592,7 +570,7 @@ if ($@) {
 
 =cut
 
-sub denyAllTraffic {
+sub shutdown {
     # Extract arguments.
     my ($class, %args) = @_;
 
@@ -608,46 +586,64 @@ sub denyAllTraffic {
     if (defined($args{'session'})) {
         $session = delete $args{'session'}; 
     }
-    return HoneyClient::Manager::Firewall::Client->_send(session => $session, message => { action => HoneyClient::Message::Firewall::Command::ActionType::DENY_ALL });
+    return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => { action => HoneyClient::Message::Pcap::Command::ActionType::STOP_ALL });
 }
 
 =pod
 
-=head2 allowAllTraffic(session => $session)
+=head2 getFirstIP(session => $session, quick_clone_name => $quick_clone_name, src_ip_address => $src_ip_address, dst_tcp_port => $dst_tcp_port)
 
 =over 4
 
-Clears all existing VM-specific chains and allows all future traffic
-through the firewall.
+Given a quick clone name, source IP, and destination TCP port, this function will
+lookup any matching capture session and attempt to extract the first IP address the
+clone VM contacts on the specified destination TCP port.
 
 I<Inputs>:
  B<$session> an optional argument, specifying the Net::Stomp session to reuse 
+ B<$quick_clone_name> is the name of the quick clone VM.
+ B<$src_ip_address> is the VM's IP address.
+ B<$dst_tcp_port> is the destination TCP port of the server to match.
 
-I<Output>: Returns (true, $session) if successful; croaks otherwise.
+I<Output>: Returns the IP address, if successful; empty string otherwise.
 
 =back
 
 =begin testing
 
 eval {
-    # Create a new HoneyClient::Manager::Firewall::Server daemon.
-    use HoneyClient::Manager::Firewall::Server;
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
 
     my $pid = undef;
     if ($pid = fork()) {
         # Wait at least a second, in order to initialize the daemon.
         sleep (1);
 
-        # Allow all traffic.
-        my $session = undef;
+        my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+        my $mac_address = "00:0c:29:c5:11:c7";
+        my $src_ip_address = "10.0.0.1";
+        my $dst_tcp_port = 80;
         my $result = undef;
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->allowAllTraffic(session => $session);
+        my $session = undef;
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
+            session => $session,
+            quick_clone_name => $quick_clone_name,
+            mac_address => $mac_address,
+        );
+
+        # Sleep for 2s, in order to create PCAP file.
+        sleep(2);
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->stopCapture(session => $session, quick_clone_name => $quick_clone_name);
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->getFirstIP(session => $session, quick_clone_name => $quick_clone_name, src_ip_address => $src_ip_address, dst_tcp_port => $dst_tcp_port);
 
         # Validate the result.
-        ok($result, "allowAllTraffic()") or diag("The allowAllTraffic() call failed.");
-    
-        # Restore the default ruleset.
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->denyAllTraffic(session => $session);
+        is($result, '', "getFirstIP(quick_clone_name => '$quick_clone_name', src_ip_address => '$src_ip_address', dst_tcp_port => '$dst_tcp_port')") or diag("The getFirstIP() call failed.");
+
+        # Shutdown all packet captures.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
 
         # Cleanup.
         kill("QUIT", $pid);
@@ -655,7 +651,7 @@ eval {
         if (!defined($pid)) {
             die "Unable to fork child process. $!";
         }
-        HoneyClient::Manager::Firewall::Server->run();
+        HoneyClient::Manager::Pcap::Server->run();
     }
 };
 
@@ -668,7 +664,7 @@ if ($@) {
 
 =cut
 
-sub allowAllTraffic {
+sub getFirstIP {
     # Extract arguments.
     my ($class, %args) = @_;
 
@@ -684,12 +680,106 @@ sub allowAllTraffic {
     if (defined($args{'session'})) {
         $session = delete $args{'session'}; 
     }
-    return HoneyClient::Manager::Firewall::Client->_send(session => $session, message => { action => HoneyClient::Message::Firewall::Command::ActionType::ALLOW_ALL });
+    $args{'action'} = HoneyClient::Message::Pcap::Command::ActionType::GET_IP;
+    return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => \%args);
 }
 
 =pod
 
-=head2 allowVM(session => $session, chain_name => $chain_name, mac_address => $mac_address, ip_address => $ip_address, protocol => $protocol, port => $port)
+=head2 getPcapFile(session => $session, quick_clone_name => $quick_clone_name)
+
+=over 4
+
+Given a quick clone name, this function will return the path and file name of
+any corresponding generated .pcap file.
+
+I<Inputs>:
+ B<$session> an optional argument, specifying the Net::Stomp session to reuse 
+ B<$quick_clone_name> is the name of the quick clone VM.
+
+I<Output>: Returns the path and file name of the .pcap file, if successful;
+empty string otherwise.
+
+=back
+
+=begin testing
+
+eval {
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
+
+    my $pid = undef;
+    if ($pid = fork()) {
+        # Wait at least a second, in order to initialize the daemon.
+        sleep (1);
+
+        my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+        my $mac_address = "00:0c:29:c5:11:c7";
+        my $src_ip_address = "10.0.0.1";
+        my $dst_tcp_port = 80;
+        my $result = undef;
+        my $session = undef;
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
+            session => $session,
+            quick_clone_name => $quick_clone_name,
+            mac_address => $mac_address,
+        );
+
+        # Sleep for 2s, in order to create PCAP file.
+        sleep(2);
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->stopCapture(session => $session, quick_clone_name => $quick_clone_name);
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapFile(session => $session, quick_clone_name => $quick_clone_name);
+
+        # Validate the result.
+        ok($result, "getPcapFile(quick_clone_name => '$quick_clone_name')") or diag("The getPcapFile() call failed.");
+
+        # Shutdown all packet captures.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
+
+        # Cleanup.
+        kill("QUIT", $pid);
+    } else {
+        if (!defined($pid)) {
+            die "Unable to fork child process. $!";
+        }
+        HoneyClient::Manager::Pcap::Server->run();
+    }
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub getPcapFile {
+    # Extract arguments.
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    my $session = undef;
+    if (defined($args{'session'})) {
+        $session = delete $args{'session'}; 
+    }
+    $args{'action'} = HoneyClient::Message::Pcap::Command::ActionType::GET_FILE;
+    return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => \%args);
+}
+
+=pod
+
+=head2 startCapture(session => $session, quick_clone_name => $quick_clone_name, mac_address => $mac_address)
 
 =over 4
 
@@ -698,56 +788,44 @@ have limited network connectivity.
 
 I<Inputs>:
  B<$session> an optional argument, specifying the Net::Stomp session to reuse 
- B<$chain_name> is the name of the IPTables chain name to use for this access.
- B<$mac_address> is the client's MAC address.
- B<$ip_address> is the client's IP address.
- B<$protocol> is the protocol to be allowed.
- B<$port> is an array reference, containing the list of ports to be allowed.
+ B<$quick_clone_name> is the name of the quick clone VM to monitor.
+ B<$mac_address> is the VM's MAC address.
 
 I<Output>: Returns true, if successful; croaks otherwise.
 
 I<Notes>:
-If allowVM() is called multiple times successively, then the previous rules associated
-with this chain will be purged.
+If startCapture() is called multiple times successively with the same quick_clone_name,
+then the previously associated packet capture session will be discarded.
 
 =back
 
 =begin testing
 
 eval {
-    # Create a new HoneyClient::Manager::Firewall::Server daemon.
-    use HoneyClient::Manager::Firewall::Server;
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
 
     my $pid = undef;
     if ($pid = fork()) {
         # Wait at least a second, in order to initialize the daemon.
         sleep (1);
 
-        # Allow VM traffic.
-        my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+        my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
         my $mac_address = "00:0c:29:c5:11:c7";
-        my $ip_address = "10.0.0.254";
-        my $protocol = "tcp";
-        my $port = [ 80, 443 ];
         my $result = undef;
         my $session = undef;
 
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->allowVM(
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
             session => $session,
-            chain_name => $chain_name,
+            quick_clone_name => $quick_clone_name,
             mac_address => $mac_address,
-            ip_address => $ip_address,
-            protocol => $protocol,
-            port => $port,
         );
 
         # Validate the result.
-        $Data::Dumper::Terse = 1;
-        $Data::Dumper::Indent = 0;
-        ok($result, "allowVM(chain_name => '$chain_name', mac_address => '$mac_address', ip_address => '$ip_address', protocol => '$protocol', port => '" . Dumper($port) . "')") or diag("The allowVM() call failed.");
+        ok($result, "startCapture(quick_clone_name => '$quick_clone_name', mac_address => '$mac_address')") or diag("The startCapture() call failed.");
 
-        # Restore the default ruleset.
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->denyAllTraffic(session => $session);
+        # Shutdown all packet captures.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
 
         # Cleanup.
         kill("QUIT", $pid);
@@ -755,7 +833,7 @@ eval {
         if (!defined($pid)) {
             die "Unable to fork child process. $!";
         }
-        HoneyClient::Manager::Firewall::Server->run();
+        HoneyClient::Manager::Pcap::Server->run();
     }
 };
 
@@ -768,7 +846,7 @@ if ($@) {
 
 =cut
 
-sub allowVM {
+sub startCapture {
     # Extract arguments.
     my ($class, %args) = @_;
 
@@ -784,22 +862,21 @@ sub allowVM {
     if (defined($args{'session'})) {
         $session = delete $args{'session'}; 
     }
-    $args{'action'} = HoneyClient::Message::Firewall::Command::ActionType::ALLOW_VM;
-    return HoneyClient::Manager::Firewall::Client->_send(session => $session, message => \%args);
+    $args{'action'} = HoneyClient::Message::Pcap::Command::ActionType::START_VM;
+    return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => \%args);
 }
 
 =pod
 
-=head2 denyVM(session => $session, chain_name => $chain_name)
+=head2 stopCapture(session => $session, quick_clone_name => $quick_clone_name)
 
 =over 4
 
-Updates the firewall to deny the specified client's network
-connectivity by deleting the corresponding chain.
+Stops a packet capture session of the specified quick clone VM.
 
 I<Inputs>:
  B<$session> an optional argument, specifying the Net::Stomp session to reuse 
- B<$chain_name> is the name of the IPTables chain name to delete.
+ B<$quick_clone_name> is the name of the quick clone VM.
 
 I<Output>: Returns true, if successful; croaks otherwise.
 
@@ -809,43 +886,32 @@ I<Output>: Returns true, if successful; croaks otherwise.
 
 eval {
 
-    # Create a new HoneyClient::Manager::Firewall::Server daemon.
-    use HoneyClient::Manager::Firewall::Server;
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
 
     my $pid = undef;
     if ($pid = fork()) {
         # Wait at least a second, in order to initialize the daemon.
         sleep (1);
 
-
-        # Allow VM traffic.
-        my $chain_name = "1ea37e398a4d1d0314da7bdee8";
+        my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
         my $mac_address = "00:0c:29:c5:11:c7";
-        my $ip_address = "10.0.0.254";
-        my $protocol = "tcp";
-        my $port = [ 80, 443 ];
         my $result = undef;
         my $session = undef;
 
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->allowVM(
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
             session => $session,
-            chain_name => $chain_name,
+            quick_clone_name => $quick_clone_name,
             mac_address => $mac_address,
-            ip_address => $ip_address,
-            protocol => $protocol,
-            port => $port,
         );
 
-        # Then, deny VM traffic.
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->denyVM(session => $session, chain_name => $chain_name);
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->stopCapture(session => $session, quick_clone_name => $quick_clone_name);
 
         # Validate the result.
-        $Data::Dumper::Terse = 1;
-        $Data::Dumper::Indent = 0;
-        ok($result, "denyVM(chain_name => '$chain_name')") or diag("The denyVM() call failed.");
+        ok($result, "stopCapture(quick_clone_name => '$quick_clone_name')") or diag("The stopCapture() call failed.");
     
-        # Restore the default ruleset.
-        ($result, $session) = HoneyClient::Manager::Firewall::Client->denyAllTraffic(session => $session);
+        # Shutdown all packet captures.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
 
         # Cleanup.
         kill("QUIT", $pid);
@@ -853,7 +919,7 @@ eval {
         if (!defined($pid)) {
             die "Unable to fork child process. $!";
         }
-        HoneyClient::Manager::Firewall::Server->run();
+        HoneyClient::Manager::Pcap::Server->run();
     }
 };
 
@@ -866,7 +932,7 @@ if ($@) {
 
 =cut
 
-sub denyVM {
+sub stopCapture {
     # Extract arguments.    
     my ($class, %args) = @_;
 
@@ -882,8 +948,8 @@ sub denyVM {
     if (defined($args{'session'})) {
         $session = delete $args{'session'}; 
     }
-    $args{'action'} = HoneyClient::Message::Firewall::Command::ActionType::DENY_VM;
-    return HoneyClient::Manager::Firewall::Client->_send(session => $session, message => \%args);
+    $args{'action'} = HoneyClient::Message::Pcap::Command::ActionType::STOP_VM;
+    return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => \%args);
 }
 
 1;
@@ -916,14 +982,8 @@ entries.
 
 =head1 BUGS & ASSUMPTIONS
 
-This code assumes that the IPTables 'filter' table on the remote system was 
-configured using the standared Uncomplicated Firewall (UFW) framework that is
-packaged with the Ubuntu Linux distribution.  As such, the code relies
-on UFW to have setup and established the basic 'ufw-*' chain names
-within the 'filter' table.
-
 Before running this code, it is assumed that the
-HoneyClient::Manager::Firewall::Server daemon is configured and running
+HoneyClient::Manager::Pcap::Server daemon is configured and running
 on a (potentially) remote system.  As such, the same AMQP/STOMP server
 that the daemon is using must also be used by this client.  Specifically,
 this library assumes that the <stomp_*>, <exchange_name>, <queue_name>,

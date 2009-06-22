@@ -30,29 +30,26 @@ void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
     ::google::protobuf::FileDescriptor* file);
 
 class Message;
+class Message_Application;
+class Message_Os;
+class Message_ClientStatus;
+class Message_Host;
 class Message_Client;
-class Message_File;
-class Message_File_Content;
-class Message_Registry;
-class Message_Process;
-class Message_Fingerprint;
+class Message_Group;
+class Message_JobSource;
+class Message_JobAlert;
+class Message_UrlStatus;
 class Message_Url;
 class Message_Job;
+class Message_FileContent;
+class Message_ProcessFile;
+class Message_ProcessRegistry;
+class Message_OsProcess;
+class Message_Fingerprint;
 class Message_Firewall;
 class Message_Firewall_Command;
-
-enum Message_Url_Status {
-  Message_Url_Status_NOT_VISITED = 1,
-  Message_Url_Status_VISITED = 2,
-  Message_Url_Status_IGNORED = 3,
-  Message_Url_Status_TIMED_OUT = 4,
-  Message_Url_Status_ERROR = 5,
-  Message_Url_Status_SUSPICIOUS = 6
-};
-const ::google::protobuf::EnumDescriptor* Message_Url_Status_descriptor();
-bool Message_Url_Status_IsValid(int value);
-const Message_Url_Status Message_Url_Status_Status_MIN = Message_Url_Status_NOT_VISITED;
-const Message_Url_Status Message_Url_Status_Status_MAX = Message_Url_Status_SUSPICIOUS;
+class Message_Pcap;
+class Message_Pcap_Command;
 
 enum Message_Firewall_Command_ActionType {
   Message_Firewall_Command_ActionType_UNKNOWN = 1,
@@ -75,7 +72,429 @@ bool Message_Firewall_Command_ResponseType_IsValid(int value);
 const Message_Firewall_Command_ResponseType Message_Firewall_Command_ResponseType_ResponseType_MIN = Message_Firewall_Command_ResponseType_ERROR;
 const Message_Firewall_Command_ResponseType Message_Firewall_Command_ResponseType_ResponseType_MAX = Message_Firewall_Command_ResponseType_OK;
 
+enum Message_Pcap_Command_ActionType {
+  Message_Pcap_Command_ActionType_UNKNOWN = 1,
+  Message_Pcap_Command_ActionType_STOP_ALL = 2,
+  Message_Pcap_Command_ActionType_STOP_VM = 3,
+  Message_Pcap_Command_ActionType_START_VM = 4,
+  Message_Pcap_Command_ActionType_GET_IP = 5,
+  Message_Pcap_Command_ActionType_GET_FILE = 6
+};
+const ::google::protobuf::EnumDescriptor* Message_Pcap_Command_ActionType_descriptor();
+bool Message_Pcap_Command_ActionType_IsValid(int value);
+const Message_Pcap_Command_ActionType Message_Pcap_Command_ActionType_ActionType_MIN = Message_Pcap_Command_ActionType_UNKNOWN;
+const Message_Pcap_Command_ActionType Message_Pcap_Command_ActionType_ActionType_MAX = Message_Pcap_Command_ActionType_GET_FILE;
+
+enum Message_Pcap_Command_ResponseType {
+  Message_Pcap_Command_ResponseType_ERROR = 1,
+  Message_Pcap_Command_ResponseType_OK = 2
+};
+const ::google::protobuf::EnumDescriptor* Message_Pcap_Command_ResponseType_descriptor();
+bool Message_Pcap_Command_ResponseType_IsValid(int value);
+const Message_Pcap_Command_ResponseType Message_Pcap_Command_ResponseType_ResponseType_MIN = Message_Pcap_Command_ResponseType_ERROR;
+const Message_Pcap_Command_ResponseType Message_Pcap_Command_ResponseType_ResponseType_MAX = Message_Pcap_Command_ResponseType_OK;
+
 // ===================================================================
+
+class Message_Application : public ::google::protobuf::Message {
+ public:
+  Message_Application();
+  virtual ~Message_Application();
+  
+  Message_Application(const Message_Application& from);
+  
+  inline Message_Application& operator=(const Message_Application& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_Application& default_instance();
+  void Swap(Message_Application* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_Application* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_Application& from);
+  void MergeFrom(const Message_Application& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required string manufacturer = 1;
+  inline bool has_manufacturer() const;
+  inline void clear_manufacturer();
+  inline const ::std::string& manufacturer() const;
+  inline void set_manufacturer(const ::std::string& value);
+  inline void set_manufacturer(const char* value);
+  inline ::std::string* mutable_manufacturer();
+  
+  // required string version = 2;
+  inline bool has_version() const;
+  inline void clear_version();
+  inline const ::std::string& version() const;
+  inline void set_version(const ::std::string& value);
+  inline void set_version(const char* value);
+  inline ::std::string* mutable_version();
+  
+  // required string short_name = 3;
+  inline bool has_short_name() const;
+  inline void clear_short_name();
+  inline const ::std::string& short_name() const;
+  inline void set_short_name(const ::std::string& value);
+  inline void set_short_name(const char* value);
+  inline ::std::string* mutable_short_name();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* manufacturer_;
+  static const ::std::string _default_manufacturer_;
+  ::std::string* version_;
+  static const ::std::string _default_version_;
+  ::std::string* short_name_;
+  static const ::std::string _default_short_name_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Application* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_Os : public ::google::protobuf::Message {
+ public:
+  Message_Os();
+  virtual ~Message_Os();
+  
+  Message_Os(const Message_Os& from);
+  
+  inline Message_Os& operator=(const Message_Os& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_Os& default_instance();
+  void Swap(Message_Os* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_Os* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_Os& from);
+  void MergeFrom(const Message_Os& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline ::std::string* mutable_name();
+  
+  // required string version = 2;
+  inline bool has_version() const;
+  inline void clear_version();
+  inline const ::std::string& version() const;
+  inline void set_version(const ::std::string& value);
+  inline void set_version(const char* value);
+  inline ::std::string* mutable_version();
+  
+  // required string short_name = 3;
+  inline bool has_short_name() const;
+  inline void clear_short_name();
+  inline const ::std::string& short_name() const;
+  inline void set_short_name(const ::std::string& value);
+  inline void set_short_name(const char* value);
+  inline ::std::string* mutable_short_name();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* name_;
+  static const ::std::string _default_name_;
+  ::std::string* version_;
+  static const ::std::string _default_version_;
+  ::std::string* short_name_;
+  static const ::std::string _default_short_name_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Os* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_ClientStatus : public ::google::protobuf::Message {
+ public:
+  Message_ClientStatus();
+  virtual ~Message_ClientStatus();
+  
+  Message_ClientStatus(const Message_ClientStatus& from);
+  
+  inline Message_ClientStatus& operator=(const Message_ClientStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_ClientStatus& default_instance();
+  void Swap(Message_ClientStatus* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_ClientStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_ClientStatus& from);
+  void MergeFrom(const Message_ClientStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required string status = 1;
+  inline bool has_status() const;
+  inline void clear_status();
+  inline const ::std::string& status() const;
+  inline void set_status(const ::std::string& value);
+  inline void set_status(const char* value);
+  inline ::std::string* mutable_status();
+  
+  // optional string description = 2;
+  inline bool has_description() const;
+  inline void clear_description();
+  inline const ::std::string& description() const;
+  inline void set_description(const ::std::string& value);
+  inline void set_description(const char* value);
+  inline ::std::string* mutable_description();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* status_;
+  static const ::std::string _default_status_;
+  ::std::string* description_;
+  static const ::std::string _default_description_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_ClientStatus* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_Host : public ::google::protobuf::Message {
+ public:
+  Message_Host();
+  virtual ~Message_Host();
+  
+  Message_Host(const Message_Host& from);
+  
+  inline Message_Host& operator=(const Message_Host& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_Host& default_instance();
+  void Swap(Message_Host* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_Host* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_Host& from);
+  void MergeFrom(const Message_Host& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required string hostname = 1;
+  inline bool has_hostname() const;
+  inline void clear_hostname();
+  inline const ::std::string& hostname() const;
+  inline void set_hostname(const ::std::string& value);
+  inline void set_hostname(const char* value);
+  inline ::std::string* mutable_hostname();
+  
+  // required string ip = 2;
+  inline bool has_ip() const;
+  inline void clear_ip();
+  inline const ::std::string& ip() const;
+  inline void set_ip(const ::std::string& value);
+  inline void set_ip(const char* value);
+  inline ::std::string* mutable_ip();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* hostname_;
+  static const ::std::string _default_hostname_;
+  ::std::string* ip_;
+  static const ::std::string _default_ip_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Host* default_instance_;
+};
+// -------------------------------------------------------------------
 
 class Message_Client : public ::google::protobuf::Message {
  public:
@@ -128,13 +547,13 @@ class Message_Client : public ::google::protobuf::Message {
   
   // accessors -------------------------------------------------------
   
-  // required string vm_name = 1;
-  inline bool has_vm_name() const;
-  inline void clear_vm_name();
-  inline const ::std::string& vm_name() const;
-  inline void set_vm_name(const ::std::string& value);
-  inline void set_vm_name(const char* value);
-  inline ::std::string* mutable_vm_name();
+  // required string quick_clone_name = 1;
+  inline bool has_quick_clone_name() const;
+  inline void clear_quick_clone_name();
+  inline const ::std::string& quick_clone_name() const;
+  inline void set_quick_clone_name(const ::std::string& value);
+  inline void set_quick_clone_name(const char* value);
+  inline ::std::string* mutable_quick_clone_name();
   
   // required string snapshot_name = 2;
   inline bool has_snapshot_name() const;
@@ -144,47 +563,85 @@ class Message_Client : public ::google::protobuf::Message {
   inline void set_snapshot_name(const char* value);
   inline ::std::string* mutable_snapshot_name();
   
-  // optional string status = 3;
-  inline bool has_status() const;
-  inline void clear_status();
-  inline const ::std::string& status() const;
-  inline void set_status(const ::std::string& value);
-  inline void set_status(const char* value);
-  inline ::std::string* mutable_status();
+  // optional string created_at = 3;
+  inline bool has_created_at() const;
+  inline void clear_created_at();
+  inline const ::std::string& created_at() const;
+  inline void set_created_at(const ::std::string& value);
+  inline void set_created_at(const char* value);
+  inline ::std::string* mutable_created_at();
   
-  // optional string start_at = 4;
-  inline bool has_start_at() const;
-  inline void clear_start_at();
-  inline const ::std::string& start_at() const;
-  inline void set_start_at(const ::std::string& value);
-  inline void set_start_at(const char* value);
-  inline ::std::string* mutable_start_at();
+  // optional .HoneyClient.Message.Os os = 4;
+  inline bool has_os() const;
+  inline void clear_os();
+  inline const ::HoneyClient::Message_Os& os() const;
+  inline ::HoneyClient::Message_Os* mutable_os();
   
-  // optional string compromise_at = 5;
-  inline bool has_compromise_at() const;
-  inline void clear_compromise_at();
-  inline const ::std::string& compromise_at() const;
-  inline void set_compromise_at(const ::std::string& value);
-  inline void set_compromise_at(const char* value);
-  inline ::std::string* mutable_compromise_at();
+  // optional .HoneyClient.Message.Application application = 5;
+  inline bool has_application() const;
+  inline void clear_application();
+  inline const ::HoneyClient::Message_Application& application() const;
+  inline ::HoneyClient::Message_Application* mutable_application();
+  
+  // optional .HoneyClient.Message.ClientStatus client_status = 6;
+  inline bool has_client_status() const;
+  inline void clear_client_status();
+  inline const ::HoneyClient::Message_ClientStatus& client_status() const;
+  inline ::HoneyClient::Message_ClientStatus* mutable_client_status();
+  
+  // optional .HoneyClient.Message.Host host = 7;
+  inline bool has_host() const;
+  inline void clear_host();
+  inline const ::HoneyClient::Message_Host& host() const;
+  inline ::HoneyClient::Message_Host* mutable_host();
+  
+  // optional string suspended_at = 8;
+  inline bool has_suspended_at() const;
+  inline void clear_suspended_at();
+  inline const ::std::string& suspended_at() const;
+  inline void set_suspended_at(const ::std::string& value);
+  inline void set_suspended_at(const char* value);
+  inline ::std::string* mutable_suspended_at();
+  
+  // optional string ip = 9;
+  inline bool has_ip() const;
+  inline void clear_ip();
+  inline const ::std::string& ip() const;
+  inline void set_ip(const ::std::string& value);
+  inline void set_ip(const char* value);
+  inline ::std::string* mutable_ip();
+  
+  // optional string mac = 10;
+  inline bool has_mac() const;
+  inline void clear_mac();
+  inline const ::std::string& mac() const;
+  inline void set_mac(const ::std::string& value);
+  inline void set_mac(const char* value);
+  inline ::std::string* mutable_mac();
   
  private:
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
   mutable int _cached_size_;
   
-  ::std::string* vm_name_;
-  static const ::std::string _default_vm_name_;
+  ::std::string* quick_clone_name_;
+  static const ::std::string _default_quick_clone_name_;
   ::std::string* snapshot_name_;
   static const ::std::string _default_snapshot_name_;
-  ::std::string* status_;
-  static const ::std::string _default_status_;
-  ::std::string* start_at_;
-  static const ::std::string _default_start_at_;
-  ::std::string* compromise_at_;
-  static const ::std::string _default_compromise_at_;
+  ::std::string* created_at_;
+  static const ::std::string _default_created_at_;
+  ::HoneyClient::Message_Os* os_;
+  ::HoneyClient::Message_Application* application_;
+  ::HoneyClient::Message_ClientStatus* client_status_;
+  ::HoneyClient::Message_Host* host_;
+  ::std::string* suspended_at_;
+  static const ::std::string _default_suspended_at_;
+  ::std::string* ip_;
+  static const ::std::string _default_ip_;
+  ::std::string* mac_;
+  static const ::std::string _default_mac_;
   friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
       const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(10 + 31) / 32];
   
   // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
   inline bool _has_bit(int index) const {
@@ -202,14 +659,14 @@ class Message_Client : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
-class Message_File_Content : public ::google::protobuf::Message {
+class Message_Group : public ::google::protobuf::Message {
  public:
-  Message_File_Content();
-  virtual ~Message_File_Content();
+  Message_Group();
+  virtual ~Message_Group();
   
-  Message_File_Content(const Message_File_Content& from);
+  Message_Group(const Message_Group& from);
   
-  inline Message_File_Content& operator=(const Message_File_Content& from) {
+  inline Message_Group& operator=(const Message_Group& from) {
     CopyFrom(from);
     return *this;
   }
@@ -223,16 +680,16 @@ class Message_File_Content : public ::google::protobuf::Message {
   }
   
   static const ::google::protobuf::Descriptor* descriptor();
-  static const Message_File_Content& default_instance();
-  void Swap(Message_File_Content* other);
+  static const Message_Group& default_instance();
+  void Swap(Message_Group* other);
   
   // implements Message ----------------------------------------------
   
-  Message_File_Content* New() const;
+  Message_Group* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Message_File_Content& from);
-  void MergeFrom(const Message_File_Content& from);
+  void CopyFrom(const Message_Group& from);
+  void MergeFrom(const Message_Group& from);
   void Clear();
   bool IsInitialized() const;
   int ByteSize() const;
@@ -253,129 +710,7 @@ class Message_File_Content : public ::google::protobuf::Message {
   
   // accessors -------------------------------------------------------
   
-  // required uint64 size = 1;
-  inline bool has_size() const;
-  inline void clear_size();
-  inline ::google::protobuf::uint64 size() const;
-  inline void set_size(::google::protobuf::uint64 value);
-  
-  // required string md5 = 2;
-  inline bool has_md5() const;
-  inline void clear_md5();
-  inline const ::std::string& md5() const;
-  inline void set_md5(const ::std::string& value);
-  inline void set_md5(const char* value);
-  inline ::std::string* mutable_md5();
-  
-  // required string sha1 = 3;
-  inline bool has_sha1() const;
-  inline void clear_sha1();
-  inline const ::std::string& sha1() const;
-  inline void set_sha1(const ::std::string& value);
-  inline void set_sha1(const char* value);
-  inline ::std::string* mutable_sha1();
-  
-  // required string mime_type = 4;
-  inline bool has_mime_type() const;
-  inline void clear_mime_type();
-  inline const ::std::string& mime_type() const;
-  inline void set_mime_type(const ::std::string& value);
-  inline void set_mime_type(const char* value);
-  inline ::std::string* mutable_mime_type();
-  
- private:
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-  mutable int _cached_size_;
-  
-  ::google::protobuf::uint64 size_;
-  ::std::string* md5_;
-  static const ::std::string _default_md5_;
-  ::std::string* sha1_;
-  static const ::std::string _default_sha1_;
-  ::std::string* mime_type_;
-  static const ::std::string _default_mime_type_;
-  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
-      const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
-  
-  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
-  inline bool _has_bit(int index) const {
-    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
-  }
-  inline void _set_bit(int index) {
-    _has_bits_[index / 32] |= (1u << (index % 32));
-  }
-  inline void _clear_bit(int index) {
-    _has_bits_[index / 32] &= ~(1u << (index % 32));
-  }
-  
-  void InitAsDefaultInstance();
-  static Message_File_Content* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class Message_File : public ::google::protobuf::Message {
- public:
-  Message_File();
-  virtual ~Message_File();
-  
-  Message_File(const Message_File& from);
-  
-  inline Message_File& operator=(const Message_File& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-  
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-  
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const Message_File& default_instance();
-  void Swap(Message_File* other);
-  
-  // implements Message ----------------------------------------------
-  
-  Message_File* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Message_File& from);
-  void MergeFrom(const Message_File& from);
-  void Clear();
-  bool IsInitialized() const;
-  int ByteSize() const;
-  
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  bool SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SetCachedSize(int size) const { _cached_size_ = size; }
-  public:
-  
-  const ::google::protobuf::Descriptor* GetDescriptor() const;
-  const ::google::protobuf::Reflection* GetReflection() const;
-  
-  // nested types ----------------------------------------------------
-  
-  typedef Message_File_Content Content;
-  
-  // accessors -------------------------------------------------------
-  
-  // required string time_at = 1;
-  inline bool has_time_at() const;
-  inline void clear_time_at();
-  inline const ::std::string& time_at() const;
-  inline void set_time_at(const ::std::string& value);
-  inline void set_time_at(const char* value);
-  inline ::std::string* mutable_time_at();
-  
-  // required string name = 2;
+  // optional string name = 1;
   inline bool has_name() const;
   inline void clear_name();
   inline const ::std::string& name() const;
@@ -383,34 +718,15 @@ class Message_File : public ::google::protobuf::Message {
   inline void set_name(const char* value);
   inline ::std::string* mutable_name();
   
-  // required string event = 3;
-  inline bool has_event() const;
-  inline void clear_event();
-  inline const ::std::string& event() const;
-  inline void set_event(const ::std::string& value);
-  inline void set_event(const char* value);
-  inline ::std::string* mutable_event();
-  
-  // required .HoneyClient.Message.File.Content content = 4;
-  inline bool has_content() const;
-  inline void clear_content();
-  inline const ::HoneyClient::Message_File_Content& content() const;
-  inline ::HoneyClient::Message_File_Content* mutable_content();
-  
  private:
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
   mutable int _cached_size_;
   
-  ::std::string* time_at_;
-  static const ::std::string _default_time_at_;
   ::std::string* name_;
   static const ::std::string _default_name_;
-  ::std::string* event_;
-  static const ::std::string _default_event_;
-  ::HoneyClient::Message_File_Content* content_;
   friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
       const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
   
   // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
   inline bool _has_bit(int index) const {
@@ -424,18 +740,18 @@ class Message_File : public ::google::protobuf::Message {
   }
   
   void InitAsDefaultInstance();
-  static Message_File* default_instance_;
+  static Message_Group* default_instance_;
 };
 // -------------------------------------------------------------------
 
-class Message_Registry : public ::google::protobuf::Message {
+class Message_JobSource : public ::google::protobuf::Message {
  public:
-  Message_Registry();
-  virtual ~Message_Registry();
+  Message_JobSource();
+  virtual ~Message_JobSource();
   
-  Message_Registry(const Message_Registry& from);
+  Message_JobSource(const Message_JobSource& from);
   
-  inline Message_Registry& operator=(const Message_Registry& from) {
+  inline Message_JobSource& operator=(const Message_JobSource& from) {
     CopyFrom(from);
     return *this;
   }
@@ -449,151 +765,16 @@ class Message_Registry : public ::google::protobuf::Message {
   }
   
   static const ::google::protobuf::Descriptor* descriptor();
-  static const Message_Registry& default_instance();
-  void Swap(Message_Registry* other);
+  static const Message_JobSource& default_instance();
+  void Swap(Message_JobSource* other);
   
   // implements Message ----------------------------------------------
   
-  Message_Registry* New() const;
+  Message_JobSource* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Message_Registry& from);
-  void MergeFrom(const Message_Registry& from);
-  void Clear();
-  bool IsInitialized() const;
-  int ByteSize() const;
-  
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  bool SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SetCachedSize(int size) const { _cached_size_ = size; }
-  public:
-  
-  const ::google::protobuf::Descriptor* GetDescriptor() const;
-  const ::google::protobuf::Reflection* GetReflection() const;
-  
-  // nested types ----------------------------------------------------
-  
-  // accessors -------------------------------------------------------
-  
-  // required string time_at = 1;
-  inline bool has_time_at() const;
-  inline void clear_time_at();
-  inline const ::std::string& time_at() const;
-  inline void set_time_at(const ::std::string& value);
-  inline void set_time_at(const char* value);
-  inline ::std::string* mutable_time_at();
-  
-  // required string name = 2;
-  inline bool has_name() const;
-  inline void clear_name();
-  inline const ::std::string& name() const;
-  inline void set_name(const ::std::string& value);
-  inline void set_name(const char* value);
-  inline ::std::string* mutable_name();
-  
-  // required string event = 3;
-  inline bool has_event() const;
-  inline void clear_event();
-  inline const ::std::string& event() const;
-  inline void set_event(const ::std::string& value);
-  inline void set_event(const char* value);
-  inline ::std::string* mutable_event();
-  
-  // optional string value = 5;
-  inline bool has_value() const;
-  inline void clear_value();
-  inline const ::std::string& value() const;
-  inline void set_value(const ::std::string& value);
-  inline void set_value(const char* value);
-  inline ::std::string* mutable_value();
-  
-  // optional string value_name = 6;
-  inline bool has_value_name() const;
-  inline void clear_value_name();
-  inline const ::std::string& value_name() const;
-  inline void set_value_name(const ::std::string& value);
-  inline void set_value_name(const char* value);
-  inline ::std::string* mutable_value_name();
-  
-  // optional string value_type = 7;
-  inline bool has_value_type() const;
-  inline void clear_value_type();
-  inline const ::std::string& value_type() const;
-  inline void set_value_type(const ::std::string& value);
-  inline void set_value_type(const char* value);
-  inline ::std::string* mutable_value_type();
-  
- private:
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-  mutable int _cached_size_;
-  
-  ::std::string* time_at_;
-  static const ::std::string _default_time_at_;
-  ::std::string* name_;
-  static const ::std::string _default_name_;
-  ::std::string* event_;
-  static const ::std::string _default_event_;
-  ::std::string* value_;
-  static const ::std::string _default_value_;
-  ::std::string* value_name_;
-  static const ::std::string _default_value_name_;
-  ::std::string* value_type_;
-  static const ::std::string _default_value_type_;
-  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
-      const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
-  
-  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
-  inline bool _has_bit(int index) const {
-    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
-  }
-  inline void _set_bit(int index) {
-    _has_bits_[index / 32] |= (1u << (index % 32));
-  }
-  inline void _clear_bit(int index) {
-    _has_bits_[index / 32] &= ~(1u << (index % 32));
-  }
-  
-  void InitAsDefaultInstance();
-  static Message_Registry* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class Message_Process : public ::google::protobuf::Message {
- public:
-  Message_Process();
-  virtual ~Message_Process();
-  
-  Message_Process(const Message_Process& from);
-  
-  inline Message_Process& operator=(const Message_Process& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-  
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-  
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const Message_Process& default_instance();
-  void Swap(Message_Process* other);
-  
-  // implements Message ----------------------------------------------
-  
-  Message_Process* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Message_Process& from);
-  void MergeFrom(const Message_Process& from);
+  void CopyFrom(const Message_JobSource& from);
+  void MergeFrom(const Message_JobSource& from);
   void Clear();
   bool IsInitialized() const;
   int ByteSize() const;
@@ -622,29 +803,19 @@ class Message_Process : public ::google::protobuf::Message {
   inline void set_name(const char* value);
   inline ::std::string* mutable_name();
   
-  // required uint64 pid = 2;
-  inline bool has_pid() const;
-  inline void clear_pid();
-  inline ::google::protobuf::uint64 pid() const;
-  inline void set_pid(::google::protobuf::uint64 value);
+  // required string protocol = 2;
+  inline bool has_protocol() const;
+  inline void clear_protocol();
+  inline const ::std::string& protocol() const;
+  inline void set_protocol(const ::std::string& value);
+  inline void set_protocol(const char* value);
+  inline ::std::string* mutable_protocol();
   
-  // repeated .HoneyClient.Message.File file = 3;
-  inline int file_size() const;
-  inline void clear_file();
-  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_File >& file() const;
-  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_File >* mutable_file();
-  inline const ::HoneyClient::Message_File& file(int index) const;
-  inline ::HoneyClient::Message_File* mutable_file(int index);
-  inline ::HoneyClient::Message_File* add_file();
-  
-  // repeated .HoneyClient.Message.Registry registry = 4;
-  inline int registry_size() const;
-  inline void clear_registry();
-  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Registry >& registry() const;
-  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Registry >* mutable_registry();
-  inline const ::HoneyClient::Message_Registry& registry(int index) const;
-  inline ::HoneyClient::Message_Registry* mutable_registry(int index);
-  inline ::HoneyClient::Message_Registry* add_registry();
+  // optional .HoneyClient.Message.Group group = 3;
+  inline bool has_group() const;
+  inline void clear_group();
+  inline const ::HoneyClient::Message_Group& group() const;
+  inline ::HoneyClient::Message_Group* mutable_group();
   
  private:
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
@@ -652,12 +823,12 @@ class Message_Process : public ::google::protobuf::Message {
   
   ::std::string* name_;
   static const ::std::string _default_name_;
-  ::google::protobuf::uint64 pid_;
-  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_File > file_;
-  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Registry > registry_;
+  ::std::string* protocol_;
+  static const ::std::string _default_protocol_;
+  ::HoneyClient::Message_Group* group_;
   friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
       const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
   
   // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
   inline bool _has_bit(int index) const {
@@ -671,18 +842,18 @@ class Message_Process : public ::google::protobuf::Message {
   }
   
   void InitAsDefaultInstance();
-  static Message_Process* default_instance_;
+  static Message_JobSource* default_instance_;
 };
 // -------------------------------------------------------------------
 
-class Message_Fingerprint : public ::google::protobuf::Message {
+class Message_JobAlert : public ::google::protobuf::Message {
  public:
-  Message_Fingerprint();
-  virtual ~Message_Fingerprint();
+  Message_JobAlert();
+  virtual ~Message_JobAlert();
   
-  Message_Fingerprint(const Message_Fingerprint& from);
+  Message_JobAlert(const Message_JobAlert& from);
   
-  inline Message_Fingerprint& operator=(const Message_Fingerprint& from) {
+  inline Message_JobAlert& operator=(const Message_JobAlert& from) {
     CopyFrom(from);
     return *this;
   }
@@ -696,16 +867,16 @@ class Message_Fingerprint : public ::google::protobuf::Message {
   }
   
   static const ::google::protobuf::Descriptor* descriptor();
-  static const Message_Fingerprint& default_instance();
-  void Swap(Message_Fingerprint* other);
+  static const Message_JobAlert& default_instance();
+  void Swap(Message_JobAlert* other);
   
   // implements Message ----------------------------------------------
   
-  Message_Fingerprint* New() const;
+  Message_JobAlert* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Message_Fingerprint& from);
-  void MergeFrom(const Message_Fingerprint& from);
+  void CopyFrom(const Message_JobAlert& from);
+  void MergeFrom(const Message_JobAlert& from);
   void Clear();
   bool IsInitialized() const;
   int ByteSize() const;
@@ -726,23 +897,33 @@ class Message_Fingerprint : public ::google::protobuf::Message {
   
   // accessors -------------------------------------------------------
   
-  // repeated .HoneyClient.Message.Process process = 1;
-  inline int process_size() const;
-  inline void clear_process();
-  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Process >& process() const;
-  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Process >* mutable_process();
-  inline const ::HoneyClient::Message_Process& process(int index) const;
-  inline ::HoneyClient::Message_Process* mutable_process(int index);
-  inline ::HoneyClient::Message_Process* add_process();
+  // required string protocol = 1;
+  inline bool has_protocol() const;
+  inline void clear_protocol();
+  inline const ::std::string& protocol() const;
+  inline void set_protocol(const ::std::string& value);
+  inline void set_protocol(const char* value);
+  inline ::std::string* mutable_protocol();
+  
+  // required string address = 2;
+  inline bool has_address() const;
+  inline void clear_address();
+  inline const ::std::string& address() const;
+  inline void set_address(const ::std::string& value);
+  inline void set_address(const char* value);
+  inline ::std::string* mutable_address();
   
  private:
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
   mutable int _cached_size_;
   
-  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Process > process_;
+  ::std::string* protocol_;
+  static const ::std::string _default_protocol_;
+  ::std::string* address_;
+  static const ::std::string _default_address_;
   friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
       const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
   
   // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
   inline bool _has_bit(int index) const {
@@ -756,7 +937,102 @@ class Message_Fingerprint : public ::google::protobuf::Message {
   }
   
   void InitAsDefaultInstance();
-  static Message_Fingerprint* default_instance_;
+  static Message_JobAlert* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_UrlStatus : public ::google::protobuf::Message {
+ public:
+  Message_UrlStatus();
+  virtual ~Message_UrlStatus();
+  
+  Message_UrlStatus(const Message_UrlStatus& from);
+  
+  inline Message_UrlStatus& operator=(const Message_UrlStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_UrlStatus& default_instance();
+  void Swap(Message_UrlStatus* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_UrlStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_UrlStatus& from);
+  void MergeFrom(const Message_UrlStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required string status = 1;
+  inline bool has_status() const;
+  inline void clear_status();
+  inline const ::std::string& status() const;
+  inline void set_status(const ::std::string& value);
+  inline void set_status(const char* value);
+  inline ::std::string* mutable_status();
+  
+  // optional string description = 2;
+  inline bool has_description() const;
+  inline void clear_description();
+  inline const ::std::string& description() const;
+  inline void set_description(const ::std::string& value);
+  inline void set_description(const char* value);
+  inline ::std::string* mutable_description();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* status_;
+  static const ::std::string _default_status_;
+  ::std::string* description_;
+  static const ::std::string _default_description_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_UrlStatus* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -809,65 +1085,63 @@ class Message_Url : public ::google::protobuf::Message {
   
   // nested types ----------------------------------------------------
   
-  typedef Message_Url_Status Status;
-  static const Status NOT_VISITED = Message_Url_Status_NOT_VISITED;
-  static const Status VISITED = Message_Url_Status_VISITED;
-  static const Status IGNORED = Message_Url_Status_IGNORED;
-  static const Status TIMED_OUT = Message_Url_Status_TIMED_OUT;
-  static const Status ERROR = Message_Url_Status_ERROR;
-  static const Status SUSPICIOUS = Message_Url_Status_SUSPICIOUS;
-  static inline const ::google::protobuf::EnumDescriptor*
-  Status_descriptor() {
-    return Message_Url_Status_descriptor();
-  }
-  static inline bool Status_IsValid(int value) {
-    return Message_Url_Status_IsValid(value);
-  }
-  static const Status Status_MIN =
-    Message_Url_Status_Status_MIN;
-  static const Status Status_MAX =
-    Message_Url_Status_Status_MAX;
-  
   // accessors -------------------------------------------------------
   
-  // required string name = 1;
-  inline bool has_name() const;
-  inline void clear_name();
-  inline const ::std::string& name() const;
-  inline void set_name(const ::std::string& value);
-  inline void set_name(const char* value);
-  inline ::std::string* mutable_name();
+  // required string url = 1;
+  inline bool has_url() const;
+  inline void clear_url();
+  inline const ::std::string& url() const;
+  inline void set_url(const ::std::string& value);
+  inline void set_url(const char* value);
+  inline ::std::string* mutable_url();
   
-  // required .HoneyClient.Message.Url.Status status = 2 [default = NOT_VISITED];
-  inline bool has_status() const;
-  inline void clear_status();
-  inline ::HoneyClient::Message_Url_Status status() const;
-  inline void set_status(::HoneyClient::Message_Url_Status value);
+  // optional uint64 priority = 2 [default = 1];
+  inline bool has_priority() const;
+  inline void clear_priority();
+  inline ::google::protobuf::uint64 priority() const;
+  inline void set_priority(::google::protobuf::uint64 value);
   
-  // optional .HoneyClient.Message.Client client = 3;
+  // optional .HoneyClient.Message.UrlStatus url_status = 3;
+  inline bool has_url_status() const;
+  inline void clear_url_status();
+  inline const ::HoneyClient::Message_UrlStatus& url_status() const;
+  inline ::HoneyClient::Message_UrlStatus* mutable_url_status();
+  
+  // optional double time_at = 4;
+  inline bool has_time_at() const;
+  inline void clear_time_at();
+  inline double time_at() const;
+  inline void set_time_at(double value);
+  
+  // optional .HoneyClient.Message.Client client = 5;
   inline bool has_client() const;
   inline void clear_client();
   inline const ::HoneyClient::Message_Client& client() const;
   inline ::HoneyClient::Message_Client* mutable_client();
   
-  // optional .HoneyClient.Message.Fingerprint fingerprint = 4;
-  inline bool has_fingerprint() const;
-  inline void clear_fingerprint();
-  inline const ::HoneyClient::Message_Fingerprint& fingerprint() const;
-  inline ::HoneyClient::Message_Fingerprint* mutable_fingerprint();
+  // optional string ip = 6;
+  inline bool has_ip() const;
+  inline void clear_ip();
+  inline const ::std::string& ip() const;
+  inline void set_ip(const ::std::string& value);
+  inline void set_ip(const char* value);
+  inline ::std::string* mutable_ip();
   
  private:
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
   mutable int _cached_size_;
   
-  ::std::string* name_;
-  static const ::std::string _default_name_;
-  int status_;
+  ::std::string* url_;
+  static const ::std::string _default_url_;
+  ::google::protobuf::uint64 priority_;
+  ::HoneyClient::Message_UrlStatus* url_status_;
+  double time_at_;
   ::HoneyClient::Message_Client* client_;
-  ::HoneyClient::Message_Fingerprint* fingerprint_;
+  ::std::string* ip_;
+  static const ::std::string _default_ip_;
   friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
       const ::google::protobuf::FileDescriptor* file);
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
   
   // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
   inline bool _has_bit(int index) const {
@@ -944,7 +1218,13 @@ class Message_Job : public ::google::protobuf::Message {
   inline void set_uuid(const char* value);
   inline ::std::string* mutable_uuid();
   
-  // optional string created_at = 2;
+  // optional .HoneyClient.Message.JobSource job_source = 2;
+  inline bool has_job_source() const;
+  inline void clear_job_source();
+  inline const ::HoneyClient::Message_JobSource& job_source() const;
+  inline ::HoneyClient::Message_JobSource* mutable_job_source();
+  
+  // optional string created_at = 3;
   inline bool has_created_at() const;
   inline void clear_created_at();
   inline const ::std::string& created_at() const;
@@ -952,7 +1232,7 @@ class Message_Job : public ::google::protobuf::Message {
   inline void set_created_at(const char* value);
   inline ::std::string* mutable_created_at();
   
-  // optional string completed_at = 3;
+  // optional string completed_at = 4;
   inline bool has_completed_at() const;
   inline void clear_completed_at();
   inline const ::std::string& completed_at() const;
@@ -960,20 +1240,29 @@ class Message_Job : public ::google::protobuf::Message {
   inline void set_completed_at(const char* value);
   inline ::std::string* mutable_completed_at();
   
-  // optional uint64 total_num_urls = 4;
-  inline bool has_total_num_urls() const;
-  inline void clear_total_num_urls();
-  inline ::google::protobuf::uint64 total_num_urls() const;
-  inline void set_total_num_urls(::google::protobuf::uint64 value);
+  // optional .HoneyClient.Message.Client client = 5;
+  inline bool has_client() const;
+  inline void clear_client();
+  inline const ::HoneyClient::Message_Client& client() const;
+  inline ::HoneyClient::Message_Client* mutable_client();
   
-  // repeated .HoneyClient.Message.Url url = 5;
-  inline int url_size() const;
-  inline void clear_url();
-  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url >& url() const;
-  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url >* mutable_url();
-  inline const ::HoneyClient::Message_Url& url(int index) const;
-  inline ::HoneyClient::Message_Url* mutable_url(int index);
-  inline ::HoneyClient::Message_Url* add_url();
+  // repeated .HoneyClient.Message.JobAlert job_alerts = 6;
+  inline int job_alerts_size() const;
+  inline void clear_job_alerts();
+  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_JobAlert >& job_alerts() const;
+  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_JobAlert >* mutable_job_alerts();
+  inline const ::HoneyClient::Message_JobAlert& job_alerts(int index) const;
+  inline ::HoneyClient::Message_JobAlert* mutable_job_alerts(int index);
+  inline ::HoneyClient::Message_JobAlert* add_job_alerts();
+  
+  // repeated .HoneyClient.Message.Url urls = 7;
+  inline int urls_size() const;
+  inline void clear_urls();
+  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url >& urls() const;
+  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url >* mutable_urls();
+  inline const ::HoneyClient::Message_Url& urls(int index) const;
+  inline ::HoneyClient::Message_Url* mutable_urls(int index);
+  inline ::HoneyClient::Message_Url* add_urls();
   
  private:
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
@@ -981,12 +1270,136 @@ class Message_Job : public ::google::protobuf::Message {
   
   ::std::string* uuid_;
   static const ::std::string _default_uuid_;
+  ::HoneyClient::Message_JobSource* job_source_;
   ::std::string* created_at_;
   static const ::std::string _default_created_at_;
   ::std::string* completed_at_;
   static const ::std::string _default_completed_at_;
-  ::google::protobuf::uint64 total_num_urls_;
-  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url > url_;
+  ::HoneyClient::Message_Client* client_;
+  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_JobAlert > job_alerts_;
+  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url > urls_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(7 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Job* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_FileContent : public ::google::protobuf::Message {
+ public:
+  Message_FileContent();
+  virtual ~Message_FileContent();
+  
+  Message_FileContent(const Message_FileContent& from);
+  
+  inline Message_FileContent& operator=(const Message_FileContent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_FileContent& default_instance();
+  void Swap(Message_FileContent* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_FileContent* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_FileContent& from);
+  void MergeFrom(const Message_FileContent& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required uint64 size = 1 [default = 0];
+  inline bool has_size() const;
+  inline void clear_size();
+  inline ::google::protobuf::uint64 size() const;
+  inline void set_size(::google::protobuf::uint64 value);
+  
+  // required string md5 = 2;
+  inline bool has_md5() const;
+  inline void clear_md5();
+  inline const ::std::string& md5() const;
+  inline void set_md5(const ::std::string& value);
+  inline void set_md5(const char* value);
+  inline ::std::string* mutable_md5();
+  
+  // required string sha1 = 3;
+  inline bool has_sha1() const;
+  inline void clear_sha1();
+  inline const ::std::string& sha1() const;
+  inline void set_sha1(const ::std::string& value);
+  inline void set_sha1(const char* value);
+  inline ::std::string* mutable_sha1();
+  
+  // required string mime_type = 4;
+  inline bool has_mime_type() const;
+  inline void clear_mime_type();
+  inline const ::std::string& mime_type() const;
+  inline void set_mime_type(const ::std::string& value);
+  inline void set_mime_type(const char* value);
+  inline ::std::string* mutable_mime_type();
+  
+  // optional string data = 5;
+  inline bool has_data() const;
+  inline void clear_data();
+  inline const ::std::string& data() const;
+  inline void set_data(const ::std::string& value);
+  inline void set_data(const char* value);
+  inline ::std::string* mutable_data();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::google::protobuf::uint64 size_;
+  ::std::string* md5_;
+  static const ::std::string _default_md5_;
+  ::std::string* sha1_;
+  static const ::std::string _default_sha1_;
+  ::std::string* mime_type_;
+  static const ::std::string _default_mime_type_;
+  ::std::string* data_;
+  static const ::std::string _default_data_;
   friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
       const ::google::protobuf::FileDescriptor* file);
   ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
@@ -1003,7 +1416,489 @@ class Message_Job : public ::google::protobuf::Message {
   }
   
   void InitAsDefaultInstance();
-  static Message_Job* default_instance_;
+  static Message_FileContent* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_ProcessFile : public ::google::protobuf::Message {
+ public:
+  Message_ProcessFile();
+  virtual ~Message_ProcessFile();
+  
+  Message_ProcessFile(const Message_ProcessFile& from);
+  
+  inline Message_ProcessFile& operator=(const Message_ProcessFile& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_ProcessFile& default_instance();
+  void Swap(Message_ProcessFile* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_ProcessFile* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_ProcessFile& from);
+  void MergeFrom(const Message_ProcessFile& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required double time_at = 1;
+  inline bool has_time_at() const;
+  inline void clear_time_at();
+  inline double time_at() const;
+  inline void set_time_at(double value);
+  
+  // required string name = 2;
+  inline bool has_name() const;
+  inline void clear_name();
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline ::std::string* mutable_name();
+  
+  // required string event = 3;
+  inline bool has_event() const;
+  inline void clear_event();
+  inline const ::std::string& event() const;
+  inline void set_event(const ::std::string& value);
+  inline void set_event(const char* value);
+  inline ::std::string* mutable_event();
+  
+  // optional .HoneyClient.Message.FileContent file_content = 4;
+  inline bool has_file_content() const;
+  inline void clear_file_content();
+  inline const ::HoneyClient::Message_FileContent& file_content() const;
+  inline ::HoneyClient::Message_FileContent* mutable_file_content();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  double time_at_;
+  ::std::string* name_;
+  static const ::std::string _default_name_;
+  ::std::string* event_;
+  static const ::std::string _default_event_;
+  ::HoneyClient::Message_FileContent* file_content_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_ProcessFile* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_ProcessRegistry : public ::google::protobuf::Message {
+ public:
+  Message_ProcessRegistry();
+  virtual ~Message_ProcessRegistry();
+  
+  Message_ProcessRegistry(const Message_ProcessRegistry& from);
+  
+  inline Message_ProcessRegistry& operator=(const Message_ProcessRegistry& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_ProcessRegistry& default_instance();
+  void Swap(Message_ProcessRegistry* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_ProcessRegistry* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_ProcessRegistry& from);
+  void MergeFrom(const Message_ProcessRegistry& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required double time_at = 1;
+  inline bool has_time_at() const;
+  inline void clear_time_at();
+  inline double time_at() const;
+  inline void set_time_at(double value);
+  
+  // required string name = 2;
+  inline bool has_name() const;
+  inline void clear_name();
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline ::std::string* mutable_name();
+  
+  // required string event = 3;
+  inline bool has_event() const;
+  inline void clear_event();
+  inline const ::std::string& event() const;
+  inline void set_event(const ::std::string& value);
+  inline void set_event(const char* value);
+  inline ::std::string* mutable_event();
+  
+  // optional string value_name = 4;
+  inline bool has_value_name() const;
+  inline void clear_value_name();
+  inline const ::std::string& value_name() const;
+  inline void set_value_name(const ::std::string& value);
+  inline void set_value_name(const char* value);
+  inline ::std::string* mutable_value_name();
+  
+  // optional string value_type = 5;
+  inline bool has_value_type() const;
+  inline void clear_value_type();
+  inline const ::std::string& value_type() const;
+  inline void set_value_type(const ::std::string& value);
+  inline void set_value_type(const char* value);
+  inline ::std::string* mutable_value_type();
+  
+  // optional string value = 6;
+  inline bool has_value() const;
+  inline void clear_value();
+  inline const ::std::string& value() const;
+  inline void set_value(const ::std::string& value);
+  inline void set_value(const char* value);
+  inline ::std::string* mutable_value();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  double time_at_;
+  ::std::string* name_;
+  static const ::std::string _default_name_;
+  ::std::string* event_;
+  static const ::std::string _default_event_;
+  ::std::string* value_name_;
+  static const ::std::string _default_value_name_;
+  ::std::string* value_type_;
+  static const ::std::string _default_value_type_;
+  ::std::string* value_;
+  static const ::std::string _default_value_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_ProcessRegistry* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_OsProcess : public ::google::protobuf::Message {
+ public:
+  Message_OsProcess();
+  virtual ~Message_OsProcess();
+  
+  Message_OsProcess(const Message_OsProcess& from);
+  
+  inline Message_OsProcess& operator=(const Message_OsProcess& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_OsProcess& default_instance();
+  void Swap(Message_OsProcess* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_OsProcess* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_OsProcess& from);
+  void MergeFrom(const Message_OsProcess& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // required string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline ::std::string* mutable_name();
+  
+  // required uint64 pid = 2;
+  inline bool has_pid() const;
+  inline void clear_pid();
+  inline ::google::protobuf::uint64 pid() const;
+  inline void set_pid(::google::protobuf::uint64 value);
+  
+  // optional string parent_name = 3;
+  inline bool has_parent_name() const;
+  inline void clear_parent_name();
+  inline const ::std::string& parent_name() const;
+  inline void set_parent_name(const ::std::string& value);
+  inline void set_parent_name(const char* value);
+  inline ::std::string* mutable_parent_name();
+  
+  // optional uint64 parent_pid = 4;
+  inline bool has_parent_pid() const;
+  inline void clear_parent_pid();
+  inline ::google::protobuf::uint64 parent_pid() const;
+  inline void set_parent_pid(::google::protobuf::uint64 value);
+  
+  // repeated .HoneyClient.Message.ProcessFile process_files = 5;
+  inline int process_files_size() const;
+  inline void clear_process_files();
+  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessFile >& process_files() const;
+  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessFile >* mutable_process_files();
+  inline const ::HoneyClient::Message_ProcessFile& process_files(int index) const;
+  inline ::HoneyClient::Message_ProcessFile* mutable_process_files(int index);
+  inline ::HoneyClient::Message_ProcessFile* add_process_files();
+  
+  // repeated .HoneyClient.Message.ProcessRegistry process_registries = 6;
+  inline int process_registries_size() const;
+  inline void clear_process_registries();
+  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessRegistry >& process_registries() const;
+  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessRegistry >* mutable_process_registries();
+  inline const ::HoneyClient::Message_ProcessRegistry& process_registries(int index) const;
+  inline ::HoneyClient::Message_ProcessRegistry* mutable_process_registries(int index);
+  inline ::HoneyClient::Message_ProcessRegistry* add_process_registries();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* name_;
+  static const ::std::string _default_name_;
+  ::google::protobuf::uint64 pid_;
+  ::std::string* parent_name_;
+  static const ::std::string _default_parent_name_;
+  ::google::protobuf::uint64 parent_pid_;
+  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessFile > process_files_;
+  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessRegistry > process_registries_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_OsProcess* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_Fingerprint : public ::google::protobuf::Message {
+ public:
+  Message_Fingerprint();
+  virtual ~Message_Fingerprint();
+  
+  Message_Fingerprint(const Message_Fingerprint& from);
+  
+  inline Message_Fingerprint& operator=(const Message_Fingerprint& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_Fingerprint& default_instance();
+  void Swap(Message_Fingerprint* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_Fingerprint* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_Fingerprint& from);
+  void MergeFrom(const Message_Fingerprint& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  // accessors -------------------------------------------------------
+  
+  // optional string checksum = 1;
+  inline bool has_checksum() const;
+  inline void clear_checksum();
+  inline const ::std::string& checksum() const;
+  inline void set_checksum(const ::std::string& value);
+  inline void set_checksum(const char* value);
+  inline ::std::string* mutable_checksum();
+  
+  // optional string pcap = 2;
+  inline bool has_pcap() const;
+  inline void clear_pcap();
+  inline const ::std::string& pcap() const;
+  inline void set_pcap(const ::std::string& value);
+  inline void set_pcap(const char* value);
+  inline ::std::string* mutable_pcap();
+  
+  // optional .HoneyClient.Message.Url url = 3;
+  inline bool has_url() const;
+  inline void clear_url();
+  inline const ::HoneyClient::Message_Url& url() const;
+  inline ::HoneyClient::Message_Url* mutable_url();
+  
+  // repeated .HoneyClient.Message.OsProcess os_processes = 4;
+  inline int os_processes_size() const;
+  inline void clear_os_processes();
+  inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_OsProcess >& os_processes() const;
+  inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_OsProcess >* mutable_os_processes();
+  inline const ::HoneyClient::Message_OsProcess& os_processes(int index) const;
+  inline ::HoneyClient::Message_OsProcess* mutable_os_processes(int index);
+  inline ::HoneyClient::Message_OsProcess* add_os_processes();
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  ::std::string* checksum_;
+  static const ::std::string _default_checksum_;
+  ::std::string* pcap_;
+  static const ::std::string _default_pcap_;
+  ::HoneyClient::Message_Url* url_;
+  ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_OsProcess > os_processes_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Fingerprint* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1266,6 +2161,270 @@ class Message_Firewall : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class Message_Pcap_Command : public ::google::protobuf::Message {
+ public:
+  Message_Pcap_Command();
+  virtual ~Message_Pcap_Command();
+  
+  Message_Pcap_Command(const Message_Pcap_Command& from);
+  
+  inline Message_Pcap_Command& operator=(const Message_Pcap_Command& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_Pcap_Command& default_instance();
+  void Swap(Message_Pcap_Command* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_Pcap_Command* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_Pcap_Command& from);
+  void MergeFrom(const Message_Pcap_Command& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  typedef Message_Pcap_Command_ActionType ActionType;
+  static const ActionType UNKNOWN = Message_Pcap_Command_ActionType_UNKNOWN;
+  static const ActionType STOP_ALL = Message_Pcap_Command_ActionType_STOP_ALL;
+  static const ActionType STOP_VM = Message_Pcap_Command_ActionType_STOP_VM;
+  static const ActionType START_VM = Message_Pcap_Command_ActionType_START_VM;
+  static const ActionType GET_IP = Message_Pcap_Command_ActionType_GET_IP;
+  static const ActionType GET_FILE = Message_Pcap_Command_ActionType_GET_FILE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  ActionType_descriptor() {
+    return Message_Pcap_Command_ActionType_descriptor();
+  }
+  static inline bool ActionType_IsValid(int value) {
+    return Message_Pcap_Command_ActionType_IsValid(value);
+  }
+  static const ActionType ActionType_MIN =
+    Message_Pcap_Command_ActionType_ActionType_MIN;
+  static const ActionType ActionType_MAX =
+    Message_Pcap_Command_ActionType_ActionType_MAX;
+  
+  typedef Message_Pcap_Command_ResponseType ResponseType;
+  static const ResponseType ERROR = Message_Pcap_Command_ResponseType_ERROR;
+  static const ResponseType OK = Message_Pcap_Command_ResponseType_OK;
+  static inline const ::google::protobuf::EnumDescriptor*
+  ResponseType_descriptor() {
+    return Message_Pcap_Command_ResponseType_descriptor();
+  }
+  static inline bool ResponseType_IsValid(int value) {
+    return Message_Pcap_Command_ResponseType_IsValid(value);
+  }
+  static const ResponseType ResponseType_MIN =
+    Message_Pcap_Command_ResponseType_ResponseType_MIN;
+  static const ResponseType ResponseType_MAX =
+    Message_Pcap_Command_ResponseType_ResponseType_MAX;
+  
+  // accessors -------------------------------------------------------
+  
+  // required .HoneyClient.Message.Pcap.Command.ActionType action = 1 [default = UNKNOWN];
+  inline bool has_action() const;
+  inline void clear_action();
+  inline ::HoneyClient::Message_Pcap_Command_ActionType action() const;
+  inline void set_action(::HoneyClient::Message_Pcap_Command_ActionType value);
+  
+  // optional .HoneyClient.Message.Pcap.Command.ResponseType response = 2 [default = ERROR];
+  inline bool has_response() const;
+  inline void clear_response();
+  inline ::HoneyClient::Message_Pcap_Command_ResponseType response() const;
+  inline void set_response(::HoneyClient::Message_Pcap_Command_ResponseType value);
+  
+  // optional string response_message = 3;
+  inline bool has_response_message() const;
+  inline void clear_response_message();
+  inline const ::std::string& response_message() const;
+  inline void set_response_message(const ::std::string& value);
+  inline void set_response_message(const char* value);
+  inline ::std::string* mutable_response_message();
+  
+  // optional string err_message = 4;
+  inline bool has_err_message() const;
+  inline void clear_err_message();
+  inline const ::std::string& err_message() const;
+  inline void set_err_message(const ::std::string& value);
+  inline void set_err_message(const char* value);
+  inline ::std::string* mutable_err_message();
+  
+  // optional string quick_clone_name = 5;
+  inline bool has_quick_clone_name() const;
+  inline void clear_quick_clone_name();
+  inline const ::std::string& quick_clone_name() const;
+  inline void set_quick_clone_name(const ::std::string& value);
+  inline void set_quick_clone_name(const char* value);
+  inline ::std::string* mutable_quick_clone_name();
+  
+  // optional string mac_address = 6;
+  inline bool has_mac_address() const;
+  inline void clear_mac_address();
+  inline const ::std::string& mac_address() const;
+  inline void set_mac_address(const ::std::string& value);
+  inline void set_mac_address(const char* value);
+  inline ::std::string* mutable_mac_address();
+  
+  // optional string src_ip_address = 7;
+  inline bool has_src_ip_address() const;
+  inline void clear_src_ip_address();
+  inline const ::std::string& src_ip_address() const;
+  inline void set_src_ip_address(const ::std::string& value);
+  inline void set_src_ip_address(const char* value);
+  inline ::std::string* mutable_src_ip_address();
+  
+  // optional uint32 dst_tcp_port = 8;
+  inline bool has_dst_tcp_port() const;
+  inline void clear_dst_tcp_port();
+  inline ::google::protobuf::uint32 dst_tcp_port() const;
+  inline void set_dst_tcp_port(::google::protobuf::uint32 value);
+  
+  // optional bool delete_pcap = 9;
+  inline bool has_delete_pcap() const;
+  inline void clear_delete_pcap();
+  inline bool delete_pcap() const;
+  inline void set_delete_pcap(bool value);
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  int action_;
+  int response_;
+  ::std::string* response_message_;
+  static const ::std::string _default_response_message_;
+  ::std::string* err_message_;
+  static const ::std::string _default_err_message_;
+  ::std::string* quick_clone_name_;
+  static const ::std::string _default_quick_clone_name_;
+  ::std::string* mac_address_;
+  static const ::std::string _default_mac_address_;
+  ::std::string* src_ip_address_;
+  static const ::std::string _default_src_ip_address_;
+  ::google::protobuf::uint32 dst_tcp_port_;
+  bool delete_pcap_;
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[(9 + 31) / 32];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Pcap_Command* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Message_Pcap : public ::google::protobuf::Message {
+ public:
+  Message_Pcap();
+  virtual ~Message_Pcap();
+  
+  Message_Pcap(const Message_Pcap& from);
+  
+  inline Message_Pcap& operator=(const Message_Pcap& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+  
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+  
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Message_Pcap& default_instance();
+  void Swap(Message_Pcap* other);
+  
+  // implements Message ----------------------------------------------
+  
+  Message_Pcap* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Message_Pcap& from);
+  void MergeFrom(const Message_Pcap& from);
+  void Clear();
+  bool IsInitialized() const;
+  int ByteSize() const;
+  
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  bool SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SetCachedSize(int size) const { _cached_size_ = size; }
+  public:
+  
+  const ::google::protobuf::Descriptor* GetDescriptor() const;
+  const ::google::protobuf::Reflection* GetReflection() const;
+  
+  // nested types ----------------------------------------------------
+  
+  typedef Message_Pcap_Command Command;
+  
+  // accessors -------------------------------------------------------
+  
+ private:
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+  mutable int _cached_size_;
+  
+  friend void protobuf_BuildDesc_message_2eproto_AssignGlobalDescriptors(
+      const ::google::protobuf::FileDescriptor* file);
+  ::google::protobuf::uint32 _has_bits_[1];
+  
+  // WHY DOES & HAVE LOWER PRECEDENCE THAN != !?
+  inline bool _has_bit(int index) const {
+    return (_has_bits_[index / 32] & (1u << (index % 32))) != 0;
+  }
+  inline void _set_bit(int index) {
+    _has_bits_[index / 32] |= (1u << (index % 32));
+  }
+  inline void _clear_bit(int index) {
+    _has_bits_[index / 32] &= ~(1u << (index % 32));
+  }
+  
+  void InitAsDefaultInstance();
+  static Message_Pcap* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class Message : public ::google::protobuf::Message {
  public:
   Message();
@@ -1315,14 +2474,24 @@ class Message : public ::google::protobuf::Message {
   
   // nested types ----------------------------------------------------
   
+  typedef Message_Application Application;
+  typedef Message_Os Os;
+  typedef Message_ClientStatus ClientStatus;
+  typedef Message_Host Host;
   typedef Message_Client Client;
-  typedef Message_File File;
-  typedef Message_Registry Registry;
-  typedef Message_Process Process;
-  typedef Message_Fingerprint Fingerprint;
+  typedef Message_Group Group;
+  typedef Message_JobSource JobSource;
+  typedef Message_JobAlert JobAlert;
+  typedef Message_UrlStatus UrlStatus;
   typedef Message_Url Url;
   typedef Message_Job Job;
+  typedef Message_FileContent FileContent;
+  typedef Message_ProcessFile ProcessFile;
+  typedef Message_ProcessRegistry ProcessRegistry;
+  typedef Message_OsProcess OsProcess;
+  typedef Message_Fingerprint Fingerprint;
   typedef Message_Firewall Firewall;
+  typedef Message_Pcap Pcap;
   
   // accessors -------------------------------------------------------
   
@@ -1356,41 +2525,407 @@ class Message : public ::google::protobuf::Message {
 
 // ===================================================================
 
-// Message_Client
+// Message_Application
 
-// required string vm_name = 1;
-inline bool Message_Client::has_vm_name() const {
+// required string manufacturer = 1;
+inline bool Message_Application::has_manufacturer() const {
   return _has_bit(0);
 }
-inline void Message_Client::clear_vm_name() {
-  if (vm_name_ != &_default_vm_name_) {
-    vm_name_->clear();
+inline void Message_Application::clear_manufacturer() {
+  if (manufacturer_ != &_default_manufacturer_) {
+    manufacturer_->clear();
   }
   _clear_bit(0);
 }
-inline const ::std::string& Message_Client::vm_name() const {
-  return *vm_name_;
+inline const ::std::string& Message_Application::manufacturer() const {
+  return *manufacturer_;
 }
-inline void Message_Client::set_vm_name(const ::std::string& value) {
+inline void Message_Application::set_manufacturer(const ::std::string& value) {
   _set_bit(0);
-  if (vm_name_ == &_default_vm_name_) {
-    vm_name_ = new ::std::string;
+  if (manufacturer_ == &_default_manufacturer_) {
+    manufacturer_ = new ::std::string;
   }
-  vm_name_->assign(value);
+  manufacturer_->assign(value);
 }
-inline void Message_Client::set_vm_name(const char* value) {
+inline void Message_Application::set_manufacturer(const char* value) {
   _set_bit(0);
-  if (vm_name_ == &_default_vm_name_) {
-    vm_name_ = new ::std::string;
+  if (manufacturer_ == &_default_manufacturer_) {
+    manufacturer_ = new ::std::string;
   }
-  vm_name_->assign(value);
+  manufacturer_->assign(value);
 }
-inline ::std::string* Message_Client::mutable_vm_name() {
+inline ::std::string* Message_Application::mutable_manufacturer() {
   _set_bit(0);
-  if (vm_name_ == &_default_vm_name_) {
-    vm_name_ = new ::std::string;
+  if (manufacturer_ == &_default_manufacturer_) {
+    manufacturer_ = new ::std::string;
   }
-  return vm_name_;
+  return manufacturer_;
+}
+
+// required string version = 2;
+inline bool Message_Application::has_version() const {
+  return _has_bit(1);
+}
+inline void Message_Application::clear_version() {
+  if (version_ != &_default_version_) {
+    version_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_Application::version() const {
+  return *version_;
+}
+inline void Message_Application::set_version(const ::std::string& value) {
+  _set_bit(1);
+  if (version_ == &_default_version_) {
+    version_ = new ::std::string;
+  }
+  version_->assign(value);
+}
+inline void Message_Application::set_version(const char* value) {
+  _set_bit(1);
+  if (version_ == &_default_version_) {
+    version_ = new ::std::string;
+  }
+  version_->assign(value);
+}
+inline ::std::string* Message_Application::mutable_version() {
+  _set_bit(1);
+  if (version_ == &_default_version_) {
+    version_ = new ::std::string;
+  }
+  return version_;
+}
+
+// required string short_name = 3;
+inline bool Message_Application::has_short_name() const {
+  return _has_bit(2);
+}
+inline void Message_Application::clear_short_name() {
+  if (short_name_ != &_default_short_name_) {
+    short_name_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_Application::short_name() const {
+  return *short_name_;
+}
+inline void Message_Application::set_short_name(const ::std::string& value) {
+  _set_bit(2);
+  if (short_name_ == &_default_short_name_) {
+    short_name_ = new ::std::string;
+  }
+  short_name_->assign(value);
+}
+inline void Message_Application::set_short_name(const char* value) {
+  _set_bit(2);
+  if (short_name_ == &_default_short_name_) {
+    short_name_ = new ::std::string;
+  }
+  short_name_->assign(value);
+}
+inline ::std::string* Message_Application::mutable_short_name() {
+  _set_bit(2);
+  if (short_name_ == &_default_short_name_) {
+    short_name_ = new ::std::string;
+  }
+  return short_name_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_Os
+
+// required string name = 1;
+inline bool Message_Os::has_name() const {
+  return _has_bit(0);
+}
+inline void Message_Os::clear_name() {
+  if (name_ != &_default_name_) {
+    name_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_Os::name() const {
+  return *name_;
+}
+inline void Message_Os::set_name(const ::std::string& value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline void Message_Os::set_name(const char* value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline ::std::string* Message_Os::mutable_name() {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  return name_;
+}
+
+// required string version = 2;
+inline bool Message_Os::has_version() const {
+  return _has_bit(1);
+}
+inline void Message_Os::clear_version() {
+  if (version_ != &_default_version_) {
+    version_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_Os::version() const {
+  return *version_;
+}
+inline void Message_Os::set_version(const ::std::string& value) {
+  _set_bit(1);
+  if (version_ == &_default_version_) {
+    version_ = new ::std::string;
+  }
+  version_->assign(value);
+}
+inline void Message_Os::set_version(const char* value) {
+  _set_bit(1);
+  if (version_ == &_default_version_) {
+    version_ = new ::std::string;
+  }
+  version_->assign(value);
+}
+inline ::std::string* Message_Os::mutable_version() {
+  _set_bit(1);
+  if (version_ == &_default_version_) {
+    version_ = new ::std::string;
+  }
+  return version_;
+}
+
+// required string short_name = 3;
+inline bool Message_Os::has_short_name() const {
+  return _has_bit(2);
+}
+inline void Message_Os::clear_short_name() {
+  if (short_name_ != &_default_short_name_) {
+    short_name_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_Os::short_name() const {
+  return *short_name_;
+}
+inline void Message_Os::set_short_name(const ::std::string& value) {
+  _set_bit(2);
+  if (short_name_ == &_default_short_name_) {
+    short_name_ = new ::std::string;
+  }
+  short_name_->assign(value);
+}
+inline void Message_Os::set_short_name(const char* value) {
+  _set_bit(2);
+  if (short_name_ == &_default_short_name_) {
+    short_name_ = new ::std::string;
+  }
+  short_name_->assign(value);
+}
+inline ::std::string* Message_Os::mutable_short_name() {
+  _set_bit(2);
+  if (short_name_ == &_default_short_name_) {
+    short_name_ = new ::std::string;
+  }
+  return short_name_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_ClientStatus
+
+// required string status = 1;
+inline bool Message_ClientStatus::has_status() const {
+  return _has_bit(0);
+}
+inline void Message_ClientStatus::clear_status() {
+  if (status_ != &_default_status_) {
+    status_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_ClientStatus::status() const {
+  return *status_;
+}
+inline void Message_ClientStatus::set_status(const ::std::string& value) {
+  _set_bit(0);
+  if (status_ == &_default_status_) {
+    status_ = new ::std::string;
+  }
+  status_->assign(value);
+}
+inline void Message_ClientStatus::set_status(const char* value) {
+  _set_bit(0);
+  if (status_ == &_default_status_) {
+    status_ = new ::std::string;
+  }
+  status_->assign(value);
+}
+inline ::std::string* Message_ClientStatus::mutable_status() {
+  _set_bit(0);
+  if (status_ == &_default_status_) {
+    status_ = new ::std::string;
+  }
+  return status_;
+}
+
+// optional string description = 2;
+inline bool Message_ClientStatus::has_description() const {
+  return _has_bit(1);
+}
+inline void Message_ClientStatus::clear_description() {
+  if (description_ != &_default_description_) {
+    description_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_ClientStatus::description() const {
+  return *description_;
+}
+inline void Message_ClientStatus::set_description(const ::std::string& value) {
+  _set_bit(1);
+  if (description_ == &_default_description_) {
+    description_ = new ::std::string;
+  }
+  description_->assign(value);
+}
+inline void Message_ClientStatus::set_description(const char* value) {
+  _set_bit(1);
+  if (description_ == &_default_description_) {
+    description_ = new ::std::string;
+  }
+  description_->assign(value);
+}
+inline ::std::string* Message_ClientStatus::mutable_description() {
+  _set_bit(1);
+  if (description_ == &_default_description_) {
+    description_ = new ::std::string;
+  }
+  return description_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_Host
+
+// required string hostname = 1;
+inline bool Message_Host::has_hostname() const {
+  return _has_bit(0);
+}
+inline void Message_Host::clear_hostname() {
+  if (hostname_ != &_default_hostname_) {
+    hostname_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_Host::hostname() const {
+  return *hostname_;
+}
+inline void Message_Host::set_hostname(const ::std::string& value) {
+  _set_bit(0);
+  if (hostname_ == &_default_hostname_) {
+    hostname_ = new ::std::string;
+  }
+  hostname_->assign(value);
+}
+inline void Message_Host::set_hostname(const char* value) {
+  _set_bit(0);
+  if (hostname_ == &_default_hostname_) {
+    hostname_ = new ::std::string;
+  }
+  hostname_->assign(value);
+}
+inline ::std::string* Message_Host::mutable_hostname() {
+  _set_bit(0);
+  if (hostname_ == &_default_hostname_) {
+    hostname_ = new ::std::string;
+  }
+  return hostname_;
+}
+
+// required string ip = 2;
+inline bool Message_Host::has_ip() const {
+  return _has_bit(1);
+}
+inline void Message_Host::clear_ip() {
+  if (ip_ != &_default_ip_) {
+    ip_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_Host::ip() const {
+  return *ip_;
+}
+inline void Message_Host::set_ip(const ::std::string& value) {
+  _set_bit(1);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  ip_->assign(value);
+}
+inline void Message_Host::set_ip(const char* value) {
+  _set_bit(1);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  ip_->assign(value);
+}
+inline ::std::string* Message_Host::mutable_ip() {
+  _set_bit(1);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  return ip_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_Client
+
+// required string quick_clone_name = 1;
+inline bool Message_Client::has_quick_clone_name() const {
+  return _has_bit(0);
+}
+inline void Message_Client::clear_quick_clone_name() {
+  if (quick_clone_name_ != &_default_quick_clone_name_) {
+    quick_clone_name_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_Client::quick_clone_name() const {
+  return *quick_clone_name_;
+}
+inline void Message_Client::set_quick_clone_name(const ::std::string& value) {
+  _set_bit(0);
+  if (quick_clone_name_ == &_default_quick_clone_name_) {
+    quick_clone_name_ = new ::std::string;
+  }
+  quick_clone_name_->assign(value);
+}
+inline void Message_Client::set_quick_clone_name(const char* value) {
+  _set_bit(0);
+  if (quick_clone_name_ == &_default_quick_clone_name_) {
+    quick_clone_name_ = new ::std::string;
+  }
+  quick_clone_name_->assign(value);
+}
+inline ::std::string* Message_Client::mutable_quick_clone_name() {
+  _set_bit(0);
+  if (quick_clone_name_ == &_default_quick_clone_name_) {
+    quick_clone_name_ = new ::std::string;
+  }
+  return quick_clone_name_;
 }
 
 // required string snapshot_name = 2;
@@ -1428,798 +2963,630 @@ inline ::std::string* Message_Client::mutable_snapshot_name() {
   return snapshot_name_;
 }
 
-// optional string status = 3;
-inline bool Message_Client::has_status() const {
+// optional string created_at = 3;
+inline bool Message_Client::has_created_at() const {
   return _has_bit(2);
 }
-inline void Message_Client::clear_status() {
-  if (status_ != &_default_status_) {
-    status_->clear();
+inline void Message_Client::clear_created_at() {
+  if (created_at_ != &_default_created_at_) {
+    created_at_->clear();
   }
   _clear_bit(2);
 }
-inline const ::std::string& Message_Client::status() const {
+inline const ::std::string& Message_Client::created_at() const {
+  return *created_at_;
+}
+inline void Message_Client::set_created_at(const ::std::string& value) {
+  _set_bit(2);
+  if (created_at_ == &_default_created_at_) {
+    created_at_ = new ::std::string;
+  }
+  created_at_->assign(value);
+}
+inline void Message_Client::set_created_at(const char* value) {
+  _set_bit(2);
+  if (created_at_ == &_default_created_at_) {
+    created_at_ = new ::std::string;
+  }
+  created_at_->assign(value);
+}
+inline ::std::string* Message_Client::mutable_created_at() {
+  _set_bit(2);
+  if (created_at_ == &_default_created_at_) {
+    created_at_ = new ::std::string;
+  }
+  return created_at_;
+}
+
+// optional .HoneyClient.Message.Os os = 4;
+inline bool Message_Client::has_os() const {
+  return _has_bit(3);
+}
+inline void Message_Client::clear_os() {
+  if (os_ != NULL) os_->::HoneyClient::Message_Os::Clear();
+  _clear_bit(3);
+}
+inline const ::HoneyClient::Message_Os& Message_Client::os() const {
+  return os_ != NULL ? *os_ : *default_instance_->os_;
+}
+inline ::HoneyClient::Message_Os* Message_Client::mutable_os() {
+  _set_bit(3);
+  if (os_ == NULL) os_ = new ::HoneyClient::Message_Os;
+  return os_;
+}
+
+// optional .HoneyClient.Message.Application application = 5;
+inline bool Message_Client::has_application() const {
+  return _has_bit(4);
+}
+inline void Message_Client::clear_application() {
+  if (application_ != NULL) application_->::HoneyClient::Message_Application::Clear();
+  _clear_bit(4);
+}
+inline const ::HoneyClient::Message_Application& Message_Client::application() const {
+  return application_ != NULL ? *application_ : *default_instance_->application_;
+}
+inline ::HoneyClient::Message_Application* Message_Client::mutable_application() {
+  _set_bit(4);
+  if (application_ == NULL) application_ = new ::HoneyClient::Message_Application;
+  return application_;
+}
+
+// optional .HoneyClient.Message.ClientStatus client_status = 6;
+inline bool Message_Client::has_client_status() const {
+  return _has_bit(5);
+}
+inline void Message_Client::clear_client_status() {
+  if (client_status_ != NULL) client_status_->::HoneyClient::Message_ClientStatus::Clear();
+  _clear_bit(5);
+}
+inline const ::HoneyClient::Message_ClientStatus& Message_Client::client_status() const {
+  return client_status_ != NULL ? *client_status_ : *default_instance_->client_status_;
+}
+inline ::HoneyClient::Message_ClientStatus* Message_Client::mutable_client_status() {
+  _set_bit(5);
+  if (client_status_ == NULL) client_status_ = new ::HoneyClient::Message_ClientStatus;
+  return client_status_;
+}
+
+// optional .HoneyClient.Message.Host host = 7;
+inline bool Message_Client::has_host() const {
+  return _has_bit(6);
+}
+inline void Message_Client::clear_host() {
+  if (host_ != NULL) host_->::HoneyClient::Message_Host::Clear();
+  _clear_bit(6);
+}
+inline const ::HoneyClient::Message_Host& Message_Client::host() const {
+  return host_ != NULL ? *host_ : *default_instance_->host_;
+}
+inline ::HoneyClient::Message_Host* Message_Client::mutable_host() {
+  _set_bit(6);
+  if (host_ == NULL) host_ = new ::HoneyClient::Message_Host;
+  return host_;
+}
+
+// optional string suspended_at = 8;
+inline bool Message_Client::has_suspended_at() const {
+  return _has_bit(7);
+}
+inline void Message_Client::clear_suspended_at() {
+  if (suspended_at_ != &_default_suspended_at_) {
+    suspended_at_->clear();
+  }
+  _clear_bit(7);
+}
+inline const ::std::string& Message_Client::suspended_at() const {
+  return *suspended_at_;
+}
+inline void Message_Client::set_suspended_at(const ::std::string& value) {
+  _set_bit(7);
+  if (suspended_at_ == &_default_suspended_at_) {
+    suspended_at_ = new ::std::string;
+  }
+  suspended_at_->assign(value);
+}
+inline void Message_Client::set_suspended_at(const char* value) {
+  _set_bit(7);
+  if (suspended_at_ == &_default_suspended_at_) {
+    suspended_at_ = new ::std::string;
+  }
+  suspended_at_->assign(value);
+}
+inline ::std::string* Message_Client::mutable_suspended_at() {
+  _set_bit(7);
+  if (suspended_at_ == &_default_suspended_at_) {
+    suspended_at_ = new ::std::string;
+  }
+  return suspended_at_;
+}
+
+// optional string ip = 9;
+inline bool Message_Client::has_ip() const {
+  return _has_bit(8);
+}
+inline void Message_Client::clear_ip() {
+  if (ip_ != &_default_ip_) {
+    ip_->clear();
+  }
+  _clear_bit(8);
+}
+inline const ::std::string& Message_Client::ip() const {
+  return *ip_;
+}
+inline void Message_Client::set_ip(const ::std::string& value) {
+  _set_bit(8);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  ip_->assign(value);
+}
+inline void Message_Client::set_ip(const char* value) {
+  _set_bit(8);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  ip_->assign(value);
+}
+inline ::std::string* Message_Client::mutable_ip() {
+  _set_bit(8);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  return ip_;
+}
+
+// optional string mac = 10;
+inline bool Message_Client::has_mac() const {
+  return _has_bit(9);
+}
+inline void Message_Client::clear_mac() {
+  if (mac_ != &_default_mac_) {
+    mac_->clear();
+  }
+  _clear_bit(9);
+}
+inline const ::std::string& Message_Client::mac() const {
+  return *mac_;
+}
+inline void Message_Client::set_mac(const ::std::string& value) {
+  _set_bit(9);
+  if (mac_ == &_default_mac_) {
+    mac_ = new ::std::string;
+  }
+  mac_->assign(value);
+}
+inline void Message_Client::set_mac(const char* value) {
+  _set_bit(9);
+  if (mac_ == &_default_mac_) {
+    mac_ = new ::std::string;
+  }
+  mac_->assign(value);
+}
+inline ::std::string* Message_Client::mutable_mac() {
+  _set_bit(9);
+  if (mac_ == &_default_mac_) {
+    mac_ = new ::std::string;
+  }
+  return mac_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_Group
+
+// optional string name = 1;
+inline bool Message_Group::has_name() const {
+  return _has_bit(0);
+}
+inline void Message_Group::clear_name() {
+  if (name_ != &_default_name_) {
+    name_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_Group::name() const {
+  return *name_;
+}
+inline void Message_Group::set_name(const ::std::string& value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline void Message_Group::set_name(const char* value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline ::std::string* Message_Group::mutable_name() {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  return name_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_JobSource
+
+// required string name = 1;
+inline bool Message_JobSource::has_name() const {
+  return _has_bit(0);
+}
+inline void Message_JobSource::clear_name() {
+  if (name_ != &_default_name_) {
+    name_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_JobSource::name() const {
+  return *name_;
+}
+inline void Message_JobSource::set_name(const ::std::string& value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline void Message_JobSource::set_name(const char* value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline ::std::string* Message_JobSource::mutable_name() {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  return name_;
+}
+
+// required string protocol = 2;
+inline bool Message_JobSource::has_protocol() const {
+  return _has_bit(1);
+}
+inline void Message_JobSource::clear_protocol() {
+  if (protocol_ != &_default_protocol_) {
+    protocol_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_JobSource::protocol() const {
+  return *protocol_;
+}
+inline void Message_JobSource::set_protocol(const ::std::string& value) {
+  _set_bit(1);
+  if (protocol_ == &_default_protocol_) {
+    protocol_ = new ::std::string;
+  }
+  protocol_->assign(value);
+}
+inline void Message_JobSource::set_protocol(const char* value) {
+  _set_bit(1);
+  if (protocol_ == &_default_protocol_) {
+    protocol_ = new ::std::string;
+  }
+  protocol_->assign(value);
+}
+inline ::std::string* Message_JobSource::mutable_protocol() {
+  _set_bit(1);
+  if (protocol_ == &_default_protocol_) {
+    protocol_ = new ::std::string;
+  }
+  return protocol_;
+}
+
+// optional .HoneyClient.Message.Group group = 3;
+inline bool Message_JobSource::has_group() const {
+  return _has_bit(2);
+}
+inline void Message_JobSource::clear_group() {
+  if (group_ != NULL) group_->::HoneyClient::Message_Group::Clear();
+  _clear_bit(2);
+}
+inline const ::HoneyClient::Message_Group& Message_JobSource::group() const {
+  return group_ != NULL ? *group_ : *default_instance_->group_;
+}
+inline ::HoneyClient::Message_Group* Message_JobSource::mutable_group() {
+  _set_bit(2);
+  if (group_ == NULL) group_ = new ::HoneyClient::Message_Group;
+  return group_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_JobAlert
+
+// required string protocol = 1;
+inline bool Message_JobAlert::has_protocol() const {
+  return _has_bit(0);
+}
+inline void Message_JobAlert::clear_protocol() {
+  if (protocol_ != &_default_protocol_) {
+    protocol_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_JobAlert::protocol() const {
+  return *protocol_;
+}
+inline void Message_JobAlert::set_protocol(const ::std::string& value) {
+  _set_bit(0);
+  if (protocol_ == &_default_protocol_) {
+    protocol_ = new ::std::string;
+  }
+  protocol_->assign(value);
+}
+inline void Message_JobAlert::set_protocol(const char* value) {
+  _set_bit(0);
+  if (protocol_ == &_default_protocol_) {
+    protocol_ = new ::std::string;
+  }
+  protocol_->assign(value);
+}
+inline ::std::string* Message_JobAlert::mutable_protocol() {
+  _set_bit(0);
+  if (protocol_ == &_default_protocol_) {
+    protocol_ = new ::std::string;
+  }
+  return protocol_;
+}
+
+// required string address = 2;
+inline bool Message_JobAlert::has_address() const {
+  return _has_bit(1);
+}
+inline void Message_JobAlert::clear_address() {
+  if (address_ != &_default_address_) {
+    address_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_JobAlert::address() const {
+  return *address_;
+}
+inline void Message_JobAlert::set_address(const ::std::string& value) {
+  _set_bit(1);
+  if (address_ == &_default_address_) {
+    address_ = new ::std::string;
+  }
+  address_->assign(value);
+}
+inline void Message_JobAlert::set_address(const char* value) {
+  _set_bit(1);
+  if (address_ == &_default_address_) {
+    address_ = new ::std::string;
+  }
+  address_->assign(value);
+}
+inline ::std::string* Message_JobAlert::mutable_address() {
+  _set_bit(1);
+  if (address_ == &_default_address_) {
+    address_ = new ::std::string;
+  }
+  return address_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_UrlStatus
+
+// required string status = 1;
+inline bool Message_UrlStatus::has_status() const {
+  return _has_bit(0);
+}
+inline void Message_UrlStatus::clear_status() {
+  if (status_ != &_default_status_) {
+    status_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_UrlStatus::status() const {
   return *status_;
 }
-inline void Message_Client::set_status(const ::std::string& value) {
-  _set_bit(2);
+inline void Message_UrlStatus::set_status(const ::std::string& value) {
+  _set_bit(0);
   if (status_ == &_default_status_) {
     status_ = new ::std::string;
   }
   status_->assign(value);
 }
-inline void Message_Client::set_status(const char* value) {
-  _set_bit(2);
+inline void Message_UrlStatus::set_status(const char* value) {
+  _set_bit(0);
   if (status_ == &_default_status_) {
     status_ = new ::std::string;
   }
   status_->assign(value);
 }
-inline ::std::string* Message_Client::mutable_status() {
-  _set_bit(2);
+inline ::std::string* Message_UrlStatus::mutable_status() {
+  _set_bit(0);
   if (status_ == &_default_status_) {
     status_ = new ::std::string;
   }
   return status_;
 }
 
-// optional string start_at = 4;
-inline bool Message_Client::has_start_at() const {
-  return _has_bit(3);
-}
-inline void Message_Client::clear_start_at() {
-  if (start_at_ != &_default_start_at_) {
-    start_at_->clear();
-  }
-  _clear_bit(3);
-}
-inline const ::std::string& Message_Client::start_at() const {
-  return *start_at_;
-}
-inline void Message_Client::set_start_at(const ::std::string& value) {
-  _set_bit(3);
-  if (start_at_ == &_default_start_at_) {
-    start_at_ = new ::std::string;
-  }
-  start_at_->assign(value);
-}
-inline void Message_Client::set_start_at(const char* value) {
-  _set_bit(3);
-  if (start_at_ == &_default_start_at_) {
-    start_at_ = new ::std::string;
-  }
-  start_at_->assign(value);
-}
-inline ::std::string* Message_Client::mutable_start_at() {
-  _set_bit(3);
-  if (start_at_ == &_default_start_at_) {
-    start_at_ = new ::std::string;
-  }
-  return start_at_;
-}
-
-// optional string compromise_at = 5;
-inline bool Message_Client::has_compromise_at() const {
-  return _has_bit(4);
-}
-inline void Message_Client::clear_compromise_at() {
-  if (compromise_at_ != &_default_compromise_at_) {
-    compromise_at_->clear();
-  }
-  _clear_bit(4);
-}
-inline const ::std::string& Message_Client::compromise_at() const {
-  return *compromise_at_;
-}
-inline void Message_Client::set_compromise_at(const ::std::string& value) {
-  _set_bit(4);
-  if (compromise_at_ == &_default_compromise_at_) {
-    compromise_at_ = new ::std::string;
-  }
-  compromise_at_->assign(value);
-}
-inline void Message_Client::set_compromise_at(const char* value) {
-  _set_bit(4);
-  if (compromise_at_ == &_default_compromise_at_) {
-    compromise_at_ = new ::std::string;
-  }
-  compromise_at_->assign(value);
-}
-inline ::std::string* Message_Client::mutable_compromise_at() {
-  _set_bit(4);
-  if (compromise_at_ == &_default_compromise_at_) {
-    compromise_at_ = new ::std::string;
-  }
-  return compromise_at_;
-}
-
-// -------------------------------------------------------------------
-
-// Message_File_Content
-
-// required uint64 size = 1;
-inline bool Message_File_Content::has_size() const {
-  return _has_bit(0);
-}
-inline void Message_File_Content::clear_size() {
-  size_ = GOOGLE_ULONGLONG(0);
-  _clear_bit(0);
-}
-inline ::google::protobuf::uint64 Message_File_Content::size() const {
-  return size_;
-}
-inline void Message_File_Content::set_size(::google::protobuf::uint64 value) {
-  _set_bit(0);
-  size_ = value;
-}
-
-// required string md5 = 2;
-inline bool Message_File_Content::has_md5() const {
+// optional string description = 2;
+inline bool Message_UrlStatus::has_description() const {
   return _has_bit(1);
 }
-inline void Message_File_Content::clear_md5() {
-  if (md5_ != &_default_md5_) {
-    md5_->clear();
+inline void Message_UrlStatus::clear_description() {
+  if (description_ != &_default_description_) {
+    description_->clear();
   }
   _clear_bit(1);
 }
-inline const ::std::string& Message_File_Content::md5() const {
-  return *md5_;
+inline const ::std::string& Message_UrlStatus::description() const {
+  return *description_;
 }
-inline void Message_File_Content::set_md5(const ::std::string& value) {
+inline void Message_UrlStatus::set_description(const ::std::string& value) {
   _set_bit(1);
-  if (md5_ == &_default_md5_) {
-    md5_ = new ::std::string;
+  if (description_ == &_default_description_) {
+    description_ = new ::std::string;
   }
-  md5_->assign(value);
+  description_->assign(value);
 }
-inline void Message_File_Content::set_md5(const char* value) {
+inline void Message_UrlStatus::set_description(const char* value) {
   _set_bit(1);
-  if (md5_ == &_default_md5_) {
-    md5_ = new ::std::string;
+  if (description_ == &_default_description_) {
+    description_ = new ::std::string;
   }
-  md5_->assign(value);
+  description_->assign(value);
 }
-inline ::std::string* Message_File_Content::mutable_md5() {
+inline ::std::string* Message_UrlStatus::mutable_description() {
   _set_bit(1);
-  if (md5_ == &_default_md5_) {
-    md5_ = new ::std::string;
+  if (description_ == &_default_description_) {
+    description_ = new ::std::string;
   }
-  return md5_;
-}
-
-// required string sha1 = 3;
-inline bool Message_File_Content::has_sha1() const {
-  return _has_bit(2);
-}
-inline void Message_File_Content::clear_sha1() {
-  if (sha1_ != &_default_sha1_) {
-    sha1_->clear();
-  }
-  _clear_bit(2);
-}
-inline const ::std::string& Message_File_Content::sha1() const {
-  return *sha1_;
-}
-inline void Message_File_Content::set_sha1(const ::std::string& value) {
-  _set_bit(2);
-  if (sha1_ == &_default_sha1_) {
-    sha1_ = new ::std::string;
-  }
-  sha1_->assign(value);
-}
-inline void Message_File_Content::set_sha1(const char* value) {
-  _set_bit(2);
-  if (sha1_ == &_default_sha1_) {
-    sha1_ = new ::std::string;
-  }
-  sha1_->assign(value);
-}
-inline ::std::string* Message_File_Content::mutable_sha1() {
-  _set_bit(2);
-  if (sha1_ == &_default_sha1_) {
-    sha1_ = new ::std::string;
-  }
-  return sha1_;
-}
-
-// required string mime_type = 4;
-inline bool Message_File_Content::has_mime_type() const {
-  return _has_bit(3);
-}
-inline void Message_File_Content::clear_mime_type() {
-  if (mime_type_ != &_default_mime_type_) {
-    mime_type_->clear();
-  }
-  _clear_bit(3);
-}
-inline const ::std::string& Message_File_Content::mime_type() const {
-  return *mime_type_;
-}
-inline void Message_File_Content::set_mime_type(const ::std::string& value) {
-  _set_bit(3);
-  if (mime_type_ == &_default_mime_type_) {
-    mime_type_ = new ::std::string;
-  }
-  mime_type_->assign(value);
-}
-inline void Message_File_Content::set_mime_type(const char* value) {
-  _set_bit(3);
-  if (mime_type_ == &_default_mime_type_) {
-    mime_type_ = new ::std::string;
-  }
-  mime_type_->assign(value);
-}
-inline ::std::string* Message_File_Content::mutable_mime_type() {
-  _set_bit(3);
-  if (mime_type_ == &_default_mime_type_) {
-    mime_type_ = new ::std::string;
-  }
-  return mime_type_;
-}
-
-// -------------------------------------------------------------------
-
-// Message_File
-
-// required string time_at = 1;
-inline bool Message_File::has_time_at() const {
-  return _has_bit(0);
-}
-inline void Message_File::clear_time_at() {
-  if (time_at_ != &_default_time_at_) {
-    time_at_->clear();
-  }
-  _clear_bit(0);
-}
-inline const ::std::string& Message_File::time_at() const {
-  return *time_at_;
-}
-inline void Message_File::set_time_at(const ::std::string& value) {
-  _set_bit(0);
-  if (time_at_ == &_default_time_at_) {
-    time_at_ = new ::std::string;
-  }
-  time_at_->assign(value);
-}
-inline void Message_File::set_time_at(const char* value) {
-  _set_bit(0);
-  if (time_at_ == &_default_time_at_) {
-    time_at_ = new ::std::string;
-  }
-  time_at_->assign(value);
-}
-inline ::std::string* Message_File::mutable_time_at() {
-  _set_bit(0);
-  if (time_at_ == &_default_time_at_) {
-    time_at_ = new ::std::string;
-  }
-  return time_at_;
-}
-
-// required string name = 2;
-inline bool Message_File::has_name() const {
-  return _has_bit(1);
-}
-inline void Message_File::clear_name() {
-  if (name_ != &_default_name_) {
-    name_->clear();
-  }
-  _clear_bit(1);
-}
-inline const ::std::string& Message_File::name() const {
-  return *name_;
-}
-inline void Message_File::set_name(const ::std::string& value) {
-  _set_bit(1);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  name_->assign(value);
-}
-inline void Message_File::set_name(const char* value) {
-  _set_bit(1);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  name_->assign(value);
-}
-inline ::std::string* Message_File::mutable_name() {
-  _set_bit(1);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  return name_;
-}
-
-// required string event = 3;
-inline bool Message_File::has_event() const {
-  return _has_bit(2);
-}
-inline void Message_File::clear_event() {
-  if (event_ != &_default_event_) {
-    event_->clear();
-  }
-  _clear_bit(2);
-}
-inline const ::std::string& Message_File::event() const {
-  return *event_;
-}
-inline void Message_File::set_event(const ::std::string& value) {
-  _set_bit(2);
-  if (event_ == &_default_event_) {
-    event_ = new ::std::string;
-  }
-  event_->assign(value);
-}
-inline void Message_File::set_event(const char* value) {
-  _set_bit(2);
-  if (event_ == &_default_event_) {
-    event_ = new ::std::string;
-  }
-  event_->assign(value);
-}
-inline ::std::string* Message_File::mutable_event() {
-  _set_bit(2);
-  if (event_ == &_default_event_) {
-    event_ = new ::std::string;
-  }
-  return event_;
-}
-
-// required .HoneyClient.Message.File.Content content = 4;
-inline bool Message_File::has_content() const {
-  return _has_bit(3);
-}
-inline void Message_File::clear_content() {
-  if (content_ != NULL) content_->::HoneyClient::Message_File_Content::Clear();
-  _clear_bit(3);
-}
-inline const ::HoneyClient::Message_File_Content& Message_File::content() const {
-  return content_ != NULL ? *content_ : *default_instance_->content_;
-}
-inline ::HoneyClient::Message_File_Content* Message_File::mutable_content() {
-  _set_bit(3);
-  if (content_ == NULL) content_ = new ::HoneyClient::Message_File_Content;
-  return content_;
-}
-
-// -------------------------------------------------------------------
-
-// Message_Registry
-
-// required string time_at = 1;
-inline bool Message_Registry::has_time_at() const {
-  return _has_bit(0);
-}
-inline void Message_Registry::clear_time_at() {
-  if (time_at_ != &_default_time_at_) {
-    time_at_->clear();
-  }
-  _clear_bit(0);
-}
-inline const ::std::string& Message_Registry::time_at() const {
-  return *time_at_;
-}
-inline void Message_Registry::set_time_at(const ::std::string& value) {
-  _set_bit(0);
-  if (time_at_ == &_default_time_at_) {
-    time_at_ = new ::std::string;
-  }
-  time_at_->assign(value);
-}
-inline void Message_Registry::set_time_at(const char* value) {
-  _set_bit(0);
-  if (time_at_ == &_default_time_at_) {
-    time_at_ = new ::std::string;
-  }
-  time_at_->assign(value);
-}
-inline ::std::string* Message_Registry::mutable_time_at() {
-  _set_bit(0);
-  if (time_at_ == &_default_time_at_) {
-    time_at_ = new ::std::string;
-  }
-  return time_at_;
-}
-
-// required string name = 2;
-inline bool Message_Registry::has_name() const {
-  return _has_bit(1);
-}
-inline void Message_Registry::clear_name() {
-  if (name_ != &_default_name_) {
-    name_->clear();
-  }
-  _clear_bit(1);
-}
-inline const ::std::string& Message_Registry::name() const {
-  return *name_;
-}
-inline void Message_Registry::set_name(const ::std::string& value) {
-  _set_bit(1);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  name_->assign(value);
-}
-inline void Message_Registry::set_name(const char* value) {
-  _set_bit(1);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  name_->assign(value);
-}
-inline ::std::string* Message_Registry::mutable_name() {
-  _set_bit(1);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  return name_;
-}
-
-// required string event = 3;
-inline bool Message_Registry::has_event() const {
-  return _has_bit(2);
-}
-inline void Message_Registry::clear_event() {
-  if (event_ != &_default_event_) {
-    event_->clear();
-  }
-  _clear_bit(2);
-}
-inline const ::std::string& Message_Registry::event() const {
-  return *event_;
-}
-inline void Message_Registry::set_event(const ::std::string& value) {
-  _set_bit(2);
-  if (event_ == &_default_event_) {
-    event_ = new ::std::string;
-  }
-  event_->assign(value);
-}
-inline void Message_Registry::set_event(const char* value) {
-  _set_bit(2);
-  if (event_ == &_default_event_) {
-    event_ = new ::std::string;
-  }
-  event_->assign(value);
-}
-inline ::std::string* Message_Registry::mutable_event() {
-  _set_bit(2);
-  if (event_ == &_default_event_) {
-    event_ = new ::std::string;
-  }
-  return event_;
-}
-
-// optional string value = 5;
-inline bool Message_Registry::has_value() const {
-  return _has_bit(3);
-}
-inline void Message_Registry::clear_value() {
-  if (value_ != &_default_value_) {
-    value_->clear();
-  }
-  _clear_bit(3);
-}
-inline const ::std::string& Message_Registry::value() const {
-  return *value_;
-}
-inline void Message_Registry::set_value(const ::std::string& value) {
-  _set_bit(3);
-  if (value_ == &_default_value_) {
-    value_ = new ::std::string;
-  }
-  value_->assign(value);
-}
-inline void Message_Registry::set_value(const char* value) {
-  _set_bit(3);
-  if (value_ == &_default_value_) {
-    value_ = new ::std::string;
-  }
-  value_->assign(value);
-}
-inline ::std::string* Message_Registry::mutable_value() {
-  _set_bit(3);
-  if (value_ == &_default_value_) {
-    value_ = new ::std::string;
-  }
-  return value_;
-}
-
-// optional string value_name = 6;
-inline bool Message_Registry::has_value_name() const {
-  return _has_bit(4);
-}
-inline void Message_Registry::clear_value_name() {
-  if (value_name_ != &_default_value_name_) {
-    value_name_->clear();
-  }
-  _clear_bit(4);
-}
-inline const ::std::string& Message_Registry::value_name() const {
-  return *value_name_;
-}
-inline void Message_Registry::set_value_name(const ::std::string& value) {
-  _set_bit(4);
-  if (value_name_ == &_default_value_name_) {
-    value_name_ = new ::std::string;
-  }
-  value_name_->assign(value);
-}
-inline void Message_Registry::set_value_name(const char* value) {
-  _set_bit(4);
-  if (value_name_ == &_default_value_name_) {
-    value_name_ = new ::std::string;
-  }
-  value_name_->assign(value);
-}
-inline ::std::string* Message_Registry::mutable_value_name() {
-  _set_bit(4);
-  if (value_name_ == &_default_value_name_) {
-    value_name_ = new ::std::string;
-  }
-  return value_name_;
-}
-
-// optional string value_type = 7;
-inline bool Message_Registry::has_value_type() const {
-  return _has_bit(5);
-}
-inline void Message_Registry::clear_value_type() {
-  if (value_type_ != &_default_value_type_) {
-    value_type_->clear();
-  }
-  _clear_bit(5);
-}
-inline const ::std::string& Message_Registry::value_type() const {
-  return *value_type_;
-}
-inline void Message_Registry::set_value_type(const ::std::string& value) {
-  _set_bit(5);
-  if (value_type_ == &_default_value_type_) {
-    value_type_ = new ::std::string;
-  }
-  value_type_->assign(value);
-}
-inline void Message_Registry::set_value_type(const char* value) {
-  _set_bit(5);
-  if (value_type_ == &_default_value_type_) {
-    value_type_ = new ::std::string;
-  }
-  value_type_->assign(value);
-}
-inline ::std::string* Message_Registry::mutable_value_type() {
-  _set_bit(5);
-  if (value_type_ == &_default_value_type_) {
-    value_type_ = new ::std::string;
-  }
-  return value_type_;
-}
-
-// -------------------------------------------------------------------
-
-// Message_Process
-
-// required string name = 1;
-inline bool Message_Process::has_name() const {
-  return _has_bit(0);
-}
-inline void Message_Process::clear_name() {
-  if (name_ != &_default_name_) {
-    name_->clear();
-  }
-  _clear_bit(0);
-}
-inline const ::std::string& Message_Process::name() const {
-  return *name_;
-}
-inline void Message_Process::set_name(const ::std::string& value) {
-  _set_bit(0);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  name_->assign(value);
-}
-inline void Message_Process::set_name(const char* value) {
-  _set_bit(0);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  name_->assign(value);
-}
-inline ::std::string* Message_Process::mutable_name() {
-  _set_bit(0);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
-  }
-  return name_;
-}
-
-// required uint64 pid = 2;
-inline bool Message_Process::has_pid() const {
-  return _has_bit(1);
-}
-inline void Message_Process::clear_pid() {
-  pid_ = GOOGLE_ULONGLONG(0);
-  _clear_bit(1);
-}
-inline ::google::protobuf::uint64 Message_Process::pid() const {
-  return pid_;
-}
-inline void Message_Process::set_pid(::google::protobuf::uint64 value) {
-  _set_bit(1);
-  pid_ = value;
-}
-
-// repeated .HoneyClient.Message.File file = 3;
-inline int Message_Process::file_size() const {
-  return file_.size();
-}
-inline void Message_Process::clear_file() {
-  file_.Clear();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_File >&
-Message_Process::file() const {
-  return file_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_File >*
-Message_Process::mutable_file() {
-  return &file_;
-}
-inline const ::HoneyClient::Message_File& Message_Process::file(int index) const {
-  return file_.Get(index);
-}
-inline ::HoneyClient::Message_File* Message_Process::mutable_file(int index) {
-  return file_.Mutable(index);
-}
-inline ::HoneyClient::Message_File* Message_Process::add_file() {
-  return file_.Add();
-}
-
-// repeated .HoneyClient.Message.Registry registry = 4;
-inline int Message_Process::registry_size() const {
-  return registry_.size();
-}
-inline void Message_Process::clear_registry() {
-  registry_.Clear();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Registry >&
-Message_Process::registry() const {
-  return registry_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Registry >*
-Message_Process::mutable_registry() {
-  return &registry_;
-}
-inline const ::HoneyClient::Message_Registry& Message_Process::registry(int index) const {
-  return registry_.Get(index);
-}
-inline ::HoneyClient::Message_Registry* Message_Process::mutable_registry(int index) {
-  return registry_.Mutable(index);
-}
-inline ::HoneyClient::Message_Registry* Message_Process::add_registry() {
-  return registry_.Add();
-}
-
-// -------------------------------------------------------------------
-
-// Message_Fingerprint
-
-// repeated .HoneyClient.Message.Process process = 1;
-inline int Message_Fingerprint::process_size() const {
-  return process_.size();
-}
-inline void Message_Fingerprint::clear_process() {
-  process_.Clear();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Process >&
-Message_Fingerprint::process() const {
-  return process_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Process >*
-Message_Fingerprint::mutable_process() {
-  return &process_;
-}
-inline const ::HoneyClient::Message_Process& Message_Fingerprint::process(int index) const {
-  return process_.Get(index);
-}
-inline ::HoneyClient::Message_Process* Message_Fingerprint::mutable_process(int index) {
-  return process_.Mutable(index);
-}
-inline ::HoneyClient::Message_Process* Message_Fingerprint::add_process() {
-  return process_.Add();
+  return description_;
 }
 
 // -------------------------------------------------------------------
 
 // Message_Url
 
-// required string name = 1;
-inline bool Message_Url::has_name() const {
+// required string url = 1;
+inline bool Message_Url::has_url() const {
   return _has_bit(0);
 }
-inline void Message_Url::clear_name() {
-  if (name_ != &_default_name_) {
-    name_->clear();
+inline void Message_Url::clear_url() {
+  if (url_ != &_default_url_) {
+    url_->clear();
   }
   _clear_bit(0);
 }
-inline const ::std::string& Message_Url::name() const {
-  return *name_;
+inline const ::std::string& Message_Url::url() const {
+  return *url_;
 }
-inline void Message_Url::set_name(const ::std::string& value) {
+inline void Message_Url::set_url(const ::std::string& value) {
   _set_bit(0);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
+  if (url_ == &_default_url_) {
+    url_ = new ::std::string;
   }
-  name_->assign(value);
+  url_->assign(value);
 }
-inline void Message_Url::set_name(const char* value) {
+inline void Message_Url::set_url(const char* value) {
   _set_bit(0);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
+  if (url_ == &_default_url_) {
+    url_ = new ::std::string;
   }
-  name_->assign(value);
+  url_->assign(value);
 }
-inline ::std::string* Message_Url::mutable_name() {
+inline ::std::string* Message_Url::mutable_url() {
   _set_bit(0);
-  if (name_ == &_default_name_) {
-    name_ = new ::std::string;
+  if (url_ == &_default_url_) {
+    url_ = new ::std::string;
   }
-  return name_;
+  return url_;
 }
 
-// required .HoneyClient.Message.Url.Status status = 2 [default = NOT_VISITED];
-inline bool Message_Url::has_status() const {
+// optional uint64 priority = 2 [default = 1];
+inline bool Message_Url::has_priority() const {
   return _has_bit(1);
 }
-inline void Message_Url::clear_status() {
-  status_ = 1;
+inline void Message_Url::clear_priority() {
+  priority_ = GOOGLE_ULONGLONG(1);
   _clear_bit(1);
 }
-inline ::HoneyClient::Message_Url_Status Message_Url::status() const {
-  return static_cast< ::HoneyClient::Message_Url_Status >(status_);
+inline ::google::protobuf::uint64 Message_Url::priority() const {
+  return priority_;
 }
-inline void Message_Url::set_status(::HoneyClient::Message_Url_Status value) {
-  GOOGLE_DCHECK(::HoneyClient::Message_Url_Status_IsValid(value));
+inline void Message_Url::set_priority(::google::protobuf::uint64 value) {
   _set_bit(1);
-  status_ = value;
+  priority_ = value;
 }
 
-// optional .HoneyClient.Message.Client client = 3;
-inline bool Message_Url::has_client() const {
+// optional .HoneyClient.Message.UrlStatus url_status = 3;
+inline bool Message_Url::has_url_status() const {
   return _has_bit(2);
+}
+inline void Message_Url::clear_url_status() {
+  if (url_status_ != NULL) url_status_->::HoneyClient::Message_UrlStatus::Clear();
+  _clear_bit(2);
+}
+inline const ::HoneyClient::Message_UrlStatus& Message_Url::url_status() const {
+  return url_status_ != NULL ? *url_status_ : *default_instance_->url_status_;
+}
+inline ::HoneyClient::Message_UrlStatus* Message_Url::mutable_url_status() {
+  _set_bit(2);
+  if (url_status_ == NULL) url_status_ = new ::HoneyClient::Message_UrlStatus;
+  return url_status_;
+}
+
+// optional double time_at = 4;
+inline bool Message_Url::has_time_at() const {
+  return _has_bit(3);
+}
+inline void Message_Url::clear_time_at() {
+  time_at_ = 0;
+  _clear_bit(3);
+}
+inline double Message_Url::time_at() const {
+  return time_at_;
+}
+inline void Message_Url::set_time_at(double value) {
+  _set_bit(3);
+  time_at_ = value;
+}
+
+// optional .HoneyClient.Message.Client client = 5;
+inline bool Message_Url::has_client() const {
+  return _has_bit(4);
 }
 inline void Message_Url::clear_client() {
   if (client_ != NULL) client_->::HoneyClient::Message_Client::Clear();
-  _clear_bit(2);
+  _clear_bit(4);
 }
 inline const ::HoneyClient::Message_Client& Message_Url::client() const {
   return client_ != NULL ? *client_ : *default_instance_->client_;
 }
 inline ::HoneyClient::Message_Client* Message_Url::mutable_client() {
-  _set_bit(2);
+  _set_bit(4);
   if (client_ == NULL) client_ = new ::HoneyClient::Message_Client;
   return client_;
 }
 
-// optional .HoneyClient.Message.Fingerprint fingerprint = 4;
-inline bool Message_Url::has_fingerprint() const {
-  return _has_bit(3);
+// optional string ip = 6;
+inline bool Message_Url::has_ip() const {
+  return _has_bit(5);
 }
-inline void Message_Url::clear_fingerprint() {
-  if (fingerprint_ != NULL) fingerprint_->::HoneyClient::Message_Fingerprint::Clear();
-  _clear_bit(3);
+inline void Message_Url::clear_ip() {
+  if (ip_ != &_default_ip_) {
+    ip_->clear();
+  }
+  _clear_bit(5);
 }
-inline const ::HoneyClient::Message_Fingerprint& Message_Url::fingerprint() const {
-  return fingerprint_ != NULL ? *fingerprint_ : *default_instance_->fingerprint_;
+inline const ::std::string& Message_Url::ip() const {
+  return *ip_;
 }
-inline ::HoneyClient::Message_Fingerprint* Message_Url::mutable_fingerprint() {
-  _set_bit(3);
-  if (fingerprint_ == NULL) fingerprint_ = new ::HoneyClient::Message_Fingerprint;
-  return fingerprint_;
+inline void Message_Url::set_ip(const ::std::string& value) {
+  _set_bit(5);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  ip_->assign(value);
+}
+inline void Message_Url::set_ip(const char* value) {
+  _set_bit(5);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  ip_->assign(value);
+}
+inline ::std::string* Message_Url::mutable_ip() {
+  _set_bit(5);
+  if (ip_ == &_default_ip_) {
+    ip_ = new ::std::string;
+  }
+  return ip_;
 }
 
 // -------------------------------------------------------------------
@@ -2261,115 +3628,892 @@ inline ::std::string* Message_Job::mutable_uuid() {
   return uuid_;
 }
 
-// optional string created_at = 2;
-inline bool Message_Job::has_created_at() const {
+// optional .HoneyClient.Message.JobSource job_source = 2;
+inline bool Message_Job::has_job_source() const {
   return _has_bit(1);
+}
+inline void Message_Job::clear_job_source() {
+  if (job_source_ != NULL) job_source_->::HoneyClient::Message_JobSource::Clear();
+  _clear_bit(1);
+}
+inline const ::HoneyClient::Message_JobSource& Message_Job::job_source() const {
+  return job_source_ != NULL ? *job_source_ : *default_instance_->job_source_;
+}
+inline ::HoneyClient::Message_JobSource* Message_Job::mutable_job_source() {
+  _set_bit(1);
+  if (job_source_ == NULL) job_source_ = new ::HoneyClient::Message_JobSource;
+  return job_source_;
+}
+
+// optional string created_at = 3;
+inline bool Message_Job::has_created_at() const {
+  return _has_bit(2);
 }
 inline void Message_Job::clear_created_at() {
   if (created_at_ != &_default_created_at_) {
     created_at_->clear();
   }
-  _clear_bit(1);
+  _clear_bit(2);
 }
 inline const ::std::string& Message_Job::created_at() const {
   return *created_at_;
 }
 inline void Message_Job::set_created_at(const ::std::string& value) {
-  _set_bit(1);
+  _set_bit(2);
   if (created_at_ == &_default_created_at_) {
     created_at_ = new ::std::string;
   }
   created_at_->assign(value);
 }
 inline void Message_Job::set_created_at(const char* value) {
-  _set_bit(1);
+  _set_bit(2);
   if (created_at_ == &_default_created_at_) {
     created_at_ = new ::std::string;
   }
   created_at_->assign(value);
 }
 inline ::std::string* Message_Job::mutable_created_at() {
-  _set_bit(1);
+  _set_bit(2);
   if (created_at_ == &_default_created_at_) {
     created_at_ = new ::std::string;
   }
   return created_at_;
 }
 
-// optional string completed_at = 3;
+// optional string completed_at = 4;
 inline bool Message_Job::has_completed_at() const {
-  return _has_bit(2);
+  return _has_bit(3);
 }
 inline void Message_Job::clear_completed_at() {
   if (completed_at_ != &_default_completed_at_) {
     completed_at_->clear();
   }
-  _clear_bit(2);
+  _clear_bit(3);
 }
 inline const ::std::string& Message_Job::completed_at() const {
   return *completed_at_;
 }
 inline void Message_Job::set_completed_at(const ::std::string& value) {
-  _set_bit(2);
+  _set_bit(3);
   if (completed_at_ == &_default_completed_at_) {
     completed_at_ = new ::std::string;
   }
   completed_at_->assign(value);
 }
 inline void Message_Job::set_completed_at(const char* value) {
-  _set_bit(2);
+  _set_bit(3);
   if (completed_at_ == &_default_completed_at_) {
     completed_at_ = new ::std::string;
   }
   completed_at_->assign(value);
 }
 inline ::std::string* Message_Job::mutable_completed_at() {
-  _set_bit(2);
+  _set_bit(3);
   if (completed_at_ == &_default_completed_at_) {
     completed_at_ = new ::std::string;
   }
   return completed_at_;
 }
 
-// optional uint64 total_num_urls = 4;
-inline bool Message_Job::has_total_num_urls() const {
-  return _has_bit(3);
+// optional .HoneyClient.Message.Client client = 5;
+inline bool Message_Job::has_client() const {
+  return _has_bit(4);
 }
-inline void Message_Job::clear_total_num_urls() {
-  total_num_urls_ = GOOGLE_ULONGLONG(0);
-  _clear_bit(3);
+inline void Message_Job::clear_client() {
+  if (client_ != NULL) client_->::HoneyClient::Message_Client::Clear();
+  _clear_bit(4);
 }
-inline ::google::protobuf::uint64 Message_Job::total_num_urls() const {
-  return total_num_urls_;
+inline const ::HoneyClient::Message_Client& Message_Job::client() const {
+  return client_ != NULL ? *client_ : *default_instance_->client_;
 }
-inline void Message_Job::set_total_num_urls(::google::protobuf::uint64 value) {
-  _set_bit(3);
-  total_num_urls_ = value;
+inline ::HoneyClient::Message_Client* Message_Job::mutable_client() {
+  _set_bit(4);
+  if (client_ == NULL) client_ = new ::HoneyClient::Message_Client;
+  return client_;
 }
 
-// repeated .HoneyClient.Message.Url url = 5;
-inline int Message_Job::url_size() const {
-  return url_.size();
+// repeated .HoneyClient.Message.JobAlert job_alerts = 6;
+inline int Message_Job::job_alerts_size() const {
+  return job_alerts_.size();
 }
-inline void Message_Job::clear_url() {
-  url_.Clear();
+inline void Message_Job::clear_job_alerts() {
+  job_alerts_.Clear();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_JobAlert >&
+Message_Job::job_alerts() const {
+  return job_alerts_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_JobAlert >*
+Message_Job::mutable_job_alerts() {
+  return &job_alerts_;
+}
+inline const ::HoneyClient::Message_JobAlert& Message_Job::job_alerts(int index) const {
+  return job_alerts_.Get(index);
+}
+inline ::HoneyClient::Message_JobAlert* Message_Job::mutable_job_alerts(int index) {
+  return job_alerts_.Mutable(index);
+}
+inline ::HoneyClient::Message_JobAlert* Message_Job::add_job_alerts() {
+  return job_alerts_.Add();
+}
+
+// repeated .HoneyClient.Message.Url urls = 7;
+inline int Message_Job::urls_size() const {
+  return urls_.size();
+}
+inline void Message_Job::clear_urls() {
+  urls_.Clear();
 }
 inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url >&
-Message_Job::url() const {
-  return url_;
+Message_Job::urls() const {
+  return urls_;
 }
 inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_Url >*
-Message_Job::mutable_url() {
-  return &url_;
+Message_Job::mutable_urls() {
+  return &urls_;
 }
-inline const ::HoneyClient::Message_Url& Message_Job::url(int index) const {
-  return url_.Get(index);
+inline const ::HoneyClient::Message_Url& Message_Job::urls(int index) const {
+  return urls_.Get(index);
 }
-inline ::HoneyClient::Message_Url* Message_Job::mutable_url(int index) {
-  return url_.Mutable(index);
+inline ::HoneyClient::Message_Url* Message_Job::mutable_urls(int index) {
+  return urls_.Mutable(index);
 }
-inline ::HoneyClient::Message_Url* Message_Job::add_url() {
-  return url_.Add();
+inline ::HoneyClient::Message_Url* Message_Job::add_urls() {
+  return urls_.Add();
+}
+
+// -------------------------------------------------------------------
+
+// Message_FileContent
+
+// required uint64 size = 1 [default = 0];
+inline bool Message_FileContent::has_size() const {
+  return _has_bit(0);
+}
+inline void Message_FileContent::clear_size() {
+  size_ = GOOGLE_ULONGLONG(0);
+  _clear_bit(0);
+}
+inline ::google::protobuf::uint64 Message_FileContent::size() const {
+  return size_;
+}
+inline void Message_FileContent::set_size(::google::protobuf::uint64 value) {
+  _set_bit(0);
+  size_ = value;
+}
+
+// required string md5 = 2;
+inline bool Message_FileContent::has_md5() const {
+  return _has_bit(1);
+}
+inline void Message_FileContent::clear_md5() {
+  if (md5_ != &_default_md5_) {
+    md5_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_FileContent::md5() const {
+  return *md5_;
+}
+inline void Message_FileContent::set_md5(const ::std::string& value) {
+  _set_bit(1);
+  if (md5_ == &_default_md5_) {
+    md5_ = new ::std::string;
+  }
+  md5_->assign(value);
+}
+inline void Message_FileContent::set_md5(const char* value) {
+  _set_bit(1);
+  if (md5_ == &_default_md5_) {
+    md5_ = new ::std::string;
+  }
+  md5_->assign(value);
+}
+inline ::std::string* Message_FileContent::mutable_md5() {
+  _set_bit(1);
+  if (md5_ == &_default_md5_) {
+    md5_ = new ::std::string;
+  }
+  return md5_;
+}
+
+// required string sha1 = 3;
+inline bool Message_FileContent::has_sha1() const {
+  return _has_bit(2);
+}
+inline void Message_FileContent::clear_sha1() {
+  if (sha1_ != &_default_sha1_) {
+    sha1_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_FileContent::sha1() const {
+  return *sha1_;
+}
+inline void Message_FileContent::set_sha1(const ::std::string& value) {
+  _set_bit(2);
+  if (sha1_ == &_default_sha1_) {
+    sha1_ = new ::std::string;
+  }
+  sha1_->assign(value);
+}
+inline void Message_FileContent::set_sha1(const char* value) {
+  _set_bit(2);
+  if (sha1_ == &_default_sha1_) {
+    sha1_ = new ::std::string;
+  }
+  sha1_->assign(value);
+}
+inline ::std::string* Message_FileContent::mutable_sha1() {
+  _set_bit(2);
+  if (sha1_ == &_default_sha1_) {
+    sha1_ = new ::std::string;
+  }
+  return sha1_;
+}
+
+// required string mime_type = 4;
+inline bool Message_FileContent::has_mime_type() const {
+  return _has_bit(3);
+}
+inline void Message_FileContent::clear_mime_type() {
+  if (mime_type_ != &_default_mime_type_) {
+    mime_type_->clear();
+  }
+  _clear_bit(3);
+}
+inline const ::std::string& Message_FileContent::mime_type() const {
+  return *mime_type_;
+}
+inline void Message_FileContent::set_mime_type(const ::std::string& value) {
+  _set_bit(3);
+  if (mime_type_ == &_default_mime_type_) {
+    mime_type_ = new ::std::string;
+  }
+  mime_type_->assign(value);
+}
+inline void Message_FileContent::set_mime_type(const char* value) {
+  _set_bit(3);
+  if (mime_type_ == &_default_mime_type_) {
+    mime_type_ = new ::std::string;
+  }
+  mime_type_->assign(value);
+}
+inline ::std::string* Message_FileContent::mutable_mime_type() {
+  _set_bit(3);
+  if (mime_type_ == &_default_mime_type_) {
+    mime_type_ = new ::std::string;
+  }
+  return mime_type_;
+}
+
+// optional string data = 5;
+inline bool Message_FileContent::has_data() const {
+  return _has_bit(4);
+}
+inline void Message_FileContent::clear_data() {
+  if (data_ != &_default_data_) {
+    data_->clear();
+  }
+  _clear_bit(4);
+}
+inline const ::std::string& Message_FileContent::data() const {
+  return *data_;
+}
+inline void Message_FileContent::set_data(const ::std::string& value) {
+  _set_bit(4);
+  if (data_ == &_default_data_) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+}
+inline void Message_FileContent::set_data(const char* value) {
+  _set_bit(4);
+  if (data_ == &_default_data_) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+}
+inline ::std::string* Message_FileContent::mutable_data() {
+  _set_bit(4);
+  if (data_ == &_default_data_) {
+    data_ = new ::std::string;
+  }
+  return data_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_ProcessFile
+
+// required double time_at = 1;
+inline bool Message_ProcessFile::has_time_at() const {
+  return _has_bit(0);
+}
+inline void Message_ProcessFile::clear_time_at() {
+  time_at_ = 0;
+  _clear_bit(0);
+}
+inline double Message_ProcessFile::time_at() const {
+  return time_at_;
+}
+inline void Message_ProcessFile::set_time_at(double value) {
+  _set_bit(0);
+  time_at_ = value;
+}
+
+// required string name = 2;
+inline bool Message_ProcessFile::has_name() const {
+  return _has_bit(1);
+}
+inline void Message_ProcessFile::clear_name() {
+  if (name_ != &_default_name_) {
+    name_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_ProcessFile::name() const {
+  return *name_;
+}
+inline void Message_ProcessFile::set_name(const ::std::string& value) {
+  _set_bit(1);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline void Message_ProcessFile::set_name(const char* value) {
+  _set_bit(1);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline ::std::string* Message_ProcessFile::mutable_name() {
+  _set_bit(1);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  return name_;
+}
+
+// required string event = 3;
+inline bool Message_ProcessFile::has_event() const {
+  return _has_bit(2);
+}
+inline void Message_ProcessFile::clear_event() {
+  if (event_ != &_default_event_) {
+    event_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_ProcessFile::event() const {
+  return *event_;
+}
+inline void Message_ProcessFile::set_event(const ::std::string& value) {
+  _set_bit(2);
+  if (event_ == &_default_event_) {
+    event_ = new ::std::string;
+  }
+  event_->assign(value);
+}
+inline void Message_ProcessFile::set_event(const char* value) {
+  _set_bit(2);
+  if (event_ == &_default_event_) {
+    event_ = new ::std::string;
+  }
+  event_->assign(value);
+}
+inline ::std::string* Message_ProcessFile::mutable_event() {
+  _set_bit(2);
+  if (event_ == &_default_event_) {
+    event_ = new ::std::string;
+  }
+  return event_;
+}
+
+// optional .HoneyClient.Message.FileContent file_content = 4;
+inline bool Message_ProcessFile::has_file_content() const {
+  return _has_bit(3);
+}
+inline void Message_ProcessFile::clear_file_content() {
+  if (file_content_ != NULL) file_content_->::HoneyClient::Message_FileContent::Clear();
+  _clear_bit(3);
+}
+inline const ::HoneyClient::Message_FileContent& Message_ProcessFile::file_content() const {
+  return file_content_ != NULL ? *file_content_ : *default_instance_->file_content_;
+}
+inline ::HoneyClient::Message_FileContent* Message_ProcessFile::mutable_file_content() {
+  _set_bit(3);
+  if (file_content_ == NULL) file_content_ = new ::HoneyClient::Message_FileContent;
+  return file_content_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_ProcessRegistry
+
+// required double time_at = 1;
+inline bool Message_ProcessRegistry::has_time_at() const {
+  return _has_bit(0);
+}
+inline void Message_ProcessRegistry::clear_time_at() {
+  time_at_ = 0;
+  _clear_bit(0);
+}
+inline double Message_ProcessRegistry::time_at() const {
+  return time_at_;
+}
+inline void Message_ProcessRegistry::set_time_at(double value) {
+  _set_bit(0);
+  time_at_ = value;
+}
+
+// required string name = 2;
+inline bool Message_ProcessRegistry::has_name() const {
+  return _has_bit(1);
+}
+inline void Message_ProcessRegistry::clear_name() {
+  if (name_ != &_default_name_) {
+    name_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_ProcessRegistry::name() const {
+  return *name_;
+}
+inline void Message_ProcessRegistry::set_name(const ::std::string& value) {
+  _set_bit(1);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline void Message_ProcessRegistry::set_name(const char* value) {
+  _set_bit(1);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline ::std::string* Message_ProcessRegistry::mutable_name() {
+  _set_bit(1);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  return name_;
+}
+
+// required string event = 3;
+inline bool Message_ProcessRegistry::has_event() const {
+  return _has_bit(2);
+}
+inline void Message_ProcessRegistry::clear_event() {
+  if (event_ != &_default_event_) {
+    event_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_ProcessRegistry::event() const {
+  return *event_;
+}
+inline void Message_ProcessRegistry::set_event(const ::std::string& value) {
+  _set_bit(2);
+  if (event_ == &_default_event_) {
+    event_ = new ::std::string;
+  }
+  event_->assign(value);
+}
+inline void Message_ProcessRegistry::set_event(const char* value) {
+  _set_bit(2);
+  if (event_ == &_default_event_) {
+    event_ = new ::std::string;
+  }
+  event_->assign(value);
+}
+inline ::std::string* Message_ProcessRegistry::mutable_event() {
+  _set_bit(2);
+  if (event_ == &_default_event_) {
+    event_ = new ::std::string;
+  }
+  return event_;
+}
+
+// optional string value_name = 4;
+inline bool Message_ProcessRegistry::has_value_name() const {
+  return _has_bit(3);
+}
+inline void Message_ProcessRegistry::clear_value_name() {
+  if (value_name_ != &_default_value_name_) {
+    value_name_->clear();
+  }
+  _clear_bit(3);
+}
+inline const ::std::string& Message_ProcessRegistry::value_name() const {
+  return *value_name_;
+}
+inline void Message_ProcessRegistry::set_value_name(const ::std::string& value) {
+  _set_bit(3);
+  if (value_name_ == &_default_value_name_) {
+    value_name_ = new ::std::string;
+  }
+  value_name_->assign(value);
+}
+inline void Message_ProcessRegistry::set_value_name(const char* value) {
+  _set_bit(3);
+  if (value_name_ == &_default_value_name_) {
+    value_name_ = new ::std::string;
+  }
+  value_name_->assign(value);
+}
+inline ::std::string* Message_ProcessRegistry::mutable_value_name() {
+  _set_bit(3);
+  if (value_name_ == &_default_value_name_) {
+    value_name_ = new ::std::string;
+  }
+  return value_name_;
+}
+
+// optional string value_type = 5;
+inline bool Message_ProcessRegistry::has_value_type() const {
+  return _has_bit(4);
+}
+inline void Message_ProcessRegistry::clear_value_type() {
+  if (value_type_ != &_default_value_type_) {
+    value_type_->clear();
+  }
+  _clear_bit(4);
+}
+inline const ::std::string& Message_ProcessRegistry::value_type() const {
+  return *value_type_;
+}
+inline void Message_ProcessRegistry::set_value_type(const ::std::string& value) {
+  _set_bit(4);
+  if (value_type_ == &_default_value_type_) {
+    value_type_ = new ::std::string;
+  }
+  value_type_->assign(value);
+}
+inline void Message_ProcessRegistry::set_value_type(const char* value) {
+  _set_bit(4);
+  if (value_type_ == &_default_value_type_) {
+    value_type_ = new ::std::string;
+  }
+  value_type_->assign(value);
+}
+inline ::std::string* Message_ProcessRegistry::mutable_value_type() {
+  _set_bit(4);
+  if (value_type_ == &_default_value_type_) {
+    value_type_ = new ::std::string;
+  }
+  return value_type_;
+}
+
+// optional string value = 6;
+inline bool Message_ProcessRegistry::has_value() const {
+  return _has_bit(5);
+}
+inline void Message_ProcessRegistry::clear_value() {
+  if (value_ != &_default_value_) {
+    value_->clear();
+  }
+  _clear_bit(5);
+}
+inline const ::std::string& Message_ProcessRegistry::value() const {
+  return *value_;
+}
+inline void Message_ProcessRegistry::set_value(const ::std::string& value) {
+  _set_bit(5);
+  if (value_ == &_default_value_) {
+    value_ = new ::std::string;
+  }
+  value_->assign(value);
+}
+inline void Message_ProcessRegistry::set_value(const char* value) {
+  _set_bit(5);
+  if (value_ == &_default_value_) {
+    value_ = new ::std::string;
+  }
+  value_->assign(value);
+}
+inline ::std::string* Message_ProcessRegistry::mutable_value() {
+  _set_bit(5);
+  if (value_ == &_default_value_) {
+    value_ = new ::std::string;
+  }
+  return value_;
+}
+
+// -------------------------------------------------------------------
+
+// Message_OsProcess
+
+// required string name = 1;
+inline bool Message_OsProcess::has_name() const {
+  return _has_bit(0);
+}
+inline void Message_OsProcess::clear_name() {
+  if (name_ != &_default_name_) {
+    name_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_OsProcess::name() const {
+  return *name_;
+}
+inline void Message_OsProcess::set_name(const ::std::string& value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline void Message_OsProcess::set_name(const char* value) {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+}
+inline ::std::string* Message_OsProcess::mutable_name() {
+  _set_bit(0);
+  if (name_ == &_default_name_) {
+    name_ = new ::std::string;
+  }
+  return name_;
+}
+
+// required uint64 pid = 2;
+inline bool Message_OsProcess::has_pid() const {
+  return _has_bit(1);
+}
+inline void Message_OsProcess::clear_pid() {
+  pid_ = GOOGLE_ULONGLONG(0);
+  _clear_bit(1);
+}
+inline ::google::protobuf::uint64 Message_OsProcess::pid() const {
+  return pid_;
+}
+inline void Message_OsProcess::set_pid(::google::protobuf::uint64 value) {
+  _set_bit(1);
+  pid_ = value;
+}
+
+// optional string parent_name = 3;
+inline bool Message_OsProcess::has_parent_name() const {
+  return _has_bit(2);
+}
+inline void Message_OsProcess::clear_parent_name() {
+  if (parent_name_ != &_default_parent_name_) {
+    parent_name_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_OsProcess::parent_name() const {
+  return *parent_name_;
+}
+inline void Message_OsProcess::set_parent_name(const ::std::string& value) {
+  _set_bit(2);
+  if (parent_name_ == &_default_parent_name_) {
+    parent_name_ = new ::std::string;
+  }
+  parent_name_->assign(value);
+}
+inline void Message_OsProcess::set_parent_name(const char* value) {
+  _set_bit(2);
+  if (parent_name_ == &_default_parent_name_) {
+    parent_name_ = new ::std::string;
+  }
+  parent_name_->assign(value);
+}
+inline ::std::string* Message_OsProcess::mutable_parent_name() {
+  _set_bit(2);
+  if (parent_name_ == &_default_parent_name_) {
+    parent_name_ = new ::std::string;
+  }
+  return parent_name_;
+}
+
+// optional uint64 parent_pid = 4;
+inline bool Message_OsProcess::has_parent_pid() const {
+  return _has_bit(3);
+}
+inline void Message_OsProcess::clear_parent_pid() {
+  parent_pid_ = GOOGLE_ULONGLONG(0);
+  _clear_bit(3);
+}
+inline ::google::protobuf::uint64 Message_OsProcess::parent_pid() const {
+  return parent_pid_;
+}
+inline void Message_OsProcess::set_parent_pid(::google::protobuf::uint64 value) {
+  _set_bit(3);
+  parent_pid_ = value;
+}
+
+// repeated .HoneyClient.Message.ProcessFile process_files = 5;
+inline int Message_OsProcess::process_files_size() const {
+  return process_files_.size();
+}
+inline void Message_OsProcess::clear_process_files() {
+  process_files_.Clear();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessFile >&
+Message_OsProcess::process_files() const {
+  return process_files_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessFile >*
+Message_OsProcess::mutable_process_files() {
+  return &process_files_;
+}
+inline const ::HoneyClient::Message_ProcessFile& Message_OsProcess::process_files(int index) const {
+  return process_files_.Get(index);
+}
+inline ::HoneyClient::Message_ProcessFile* Message_OsProcess::mutable_process_files(int index) {
+  return process_files_.Mutable(index);
+}
+inline ::HoneyClient::Message_ProcessFile* Message_OsProcess::add_process_files() {
+  return process_files_.Add();
+}
+
+// repeated .HoneyClient.Message.ProcessRegistry process_registries = 6;
+inline int Message_OsProcess::process_registries_size() const {
+  return process_registries_.size();
+}
+inline void Message_OsProcess::clear_process_registries() {
+  process_registries_.Clear();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessRegistry >&
+Message_OsProcess::process_registries() const {
+  return process_registries_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_ProcessRegistry >*
+Message_OsProcess::mutable_process_registries() {
+  return &process_registries_;
+}
+inline const ::HoneyClient::Message_ProcessRegistry& Message_OsProcess::process_registries(int index) const {
+  return process_registries_.Get(index);
+}
+inline ::HoneyClient::Message_ProcessRegistry* Message_OsProcess::mutable_process_registries(int index) {
+  return process_registries_.Mutable(index);
+}
+inline ::HoneyClient::Message_ProcessRegistry* Message_OsProcess::add_process_registries() {
+  return process_registries_.Add();
+}
+
+// -------------------------------------------------------------------
+
+// Message_Fingerprint
+
+// optional string checksum = 1;
+inline bool Message_Fingerprint::has_checksum() const {
+  return _has_bit(0);
+}
+inline void Message_Fingerprint::clear_checksum() {
+  if (checksum_ != &_default_checksum_) {
+    checksum_->clear();
+  }
+  _clear_bit(0);
+}
+inline const ::std::string& Message_Fingerprint::checksum() const {
+  return *checksum_;
+}
+inline void Message_Fingerprint::set_checksum(const ::std::string& value) {
+  _set_bit(0);
+  if (checksum_ == &_default_checksum_) {
+    checksum_ = new ::std::string;
+  }
+  checksum_->assign(value);
+}
+inline void Message_Fingerprint::set_checksum(const char* value) {
+  _set_bit(0);
+  if (checksum_ == &_default_checksum_) {
+    checksum_ = new ::std::string;
+  }
+  checksum_->assign(value);
+}
+inline ::std::string* Message_Fingerprint::mutable_checksum() {
+  _set_bit(0);
+  if (checksum_ == &_default_checksum_) {
+    checksum_ = new ::std::string;
+  }
+  return checksum_;
+}
+
+// optional string pcap = 2;
+inline bool Message_Fingerprint::has_pcap() const {
+  return _has_bit(1);
+}
+inline void Message_Fingerprint::clear_pcap() {
+  if (pcap_ != &_default_pcap_) {
+    pcap_->clear();
+  }
+  _clear_bit(1);
+}
+inline const ::std::string& Message_Fingerprint::pcap() const {
+  return *pcap_;
+}
+inline void Message_Fingerprint::set_pcap(const ::std::string& value) {
+  _set_bit(1);
+  if (pcap_ == &_default_pcap_) {
+    pcap_ = new ::std::string;
+  }
+  pcap_->assign(value);
+}
+inline void Message_Fingerprint::set_pcap(const char* value) {
+  _set_bit(1);
+  if (pcap_ == &_default_pcap_) {
+    pcap_ = new ::std::string;
+  }
+  pcap_->assign(value);
+}
+inline ::std::string* Message_Fingerprint::mutable_pcap() {
+  _set_bit(1);
+  if (pcap_ == &_default_pcap_) {
+    pcap_ = new ::std::string;
+  }
+  return pcap_;
+}
+
+// optional .HoneyClient.Message.Url url = 3;
+inline bool Message_Fingerprint::has_url() const {
+  return _has_bit(2);
+}
+inline void Message_Fingerprint::clear_url() {
+  if (url_ != NULL) url_->::HoneyClient::Message_Url::Clear();
+  _clear_bit(2);
+}
+inline const ::HoneyClient::Message_Url& Message_Fingerprint::url() const {
+  return url_ != NULL ? *url_ : *default_instance_->url_;
+}
+inline ::HoneyClient::Message_Url* Message_Fingerprint::mutable_url() {
+  _set_bit(2);
+  if (url_ == NULL) url_ = new ::HoneyClient::Message_Url;
+  return url_;
+}
+
+// repeated .HoneyClient.Message.OsProcess os_processes = 4;
+inline int Message_Fingerprint::os_processes_size() const {
+  return os_processes_.size();
+}
+inline void Message_Fingerprint::clear_os_processes() {
+  os_processes_.Clear();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_OsProcess >&
+Message_Fingerprint::os_processes() const {
+  return os_processes_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::HoneyClient::Message_OsProcess >*
+Message_Fingerprint::mutable_os_processes() {
+  return &os_processes_;
+}
+inline const ::HoneyClient::Message_OsProcess& Message_Fingerprint::os_processes(int index) const {
+  return os_processes_.Get(index);
+}
+inline ::HoneyClient::Message_OsProcess* Message_Fingerprint::mutable_os_processes(int index) {
+  return os_processes_.Mutable(index);
+}
+inline ::HoneyClient::Message_OsProcess* Message_Fingerprint::add_os_processes() {
+  return os_processes_.Add();
 }
 
 // -------------------------------------------------------------------
@@ -2613,6 +4757,255 @@ inline void Message_Firewall_Command::add_port(::google::protobuf::uint32 value)
 // -------------------------------------------------------------------
 
 // Message_Firewall
+
+// -------------------------------------------------------------------
+
+// Message_Pcap_Command
+
+// required .HoneyClient.Message.Pcap.Command.ActionType action = 1 [default = UNKNOWN];
+inline bool Message_Pcap_Command::has_action() const {
+  return _has_bit(0);
+}
+inline void Message_Pcap_Command::clear_action() {
+  action_ = 1;
+  _clear_bit(0);
+}
+inline ::HoneyClient::Message_Pcap_Command_ActionType Message_Pcap_Command::action() const {
+  return static_cast< ::HoneyClient::Message_Pcap_Command_ActionType >(action_);
+}
+inline void Message_Pcap_Command::set_action(::HoneyClient::Message_Pcap_Command_ActionType value) {
+  GOOGLE_DCHECK(::HoneyClient::Message_Pcap_Command_ActionType_IsValid(value));
+  _set_bit(0);
+  action_ = value;
+}
+
+// optional .HoneyClient.Message.Pcap.Command.ResponseType response = 2 [default = ERROR];
+inline bool Message_Pcap_Command::has_response() const {
+  return _has_bit(1);
+}
+inline void Message_Pcap_Command::clear_response() {
+  response_ = 1;
+  _clear_bit(1);
+}
+inline ::HoneyClient::Message_Pcap_Command_ResponseType Message_Pcap_Command::response() const {
+  return static_cast< ::HoneyClient::Message_Pcap_Command_ResponseType >(response_);
+}
+inline void Message_Pcap_Command::set_response(::HoneyClient::Message_Pcap_Command_ResponseType value) {
+  GOOGLE_DCHECK(::HoneyClient::Message_Pcap_Command_ResponseType_IsValid(value));
+  _set_bit(1);
+  response_ = value;
+}
+
+// optional string response_message = 3;
+inline bool Message_Pcap_Command::has_response_message() const {
+  return _has_bit(2);
+}
+inline void Message_Pcap_Command::clear_response_message() {
+  if (response_message_ != &_default_response_message_) {
+    response_message_->clear();
+  }
+  _clear_bit(2);
+}
+inline const ::std::string& Message_Pcap_Command::response_message() const {
+  return *response_message_;
+}
+inline void Message_Pcap_Command::set_response_message(const ::std::string& value) {
+  _set_bit(2);
+  if (response_message_ == &_default_response_message_) {
+    response_message_ = new ::std::string;
+  }
+  response_message_->assign(value);
+}
+inline void Message_Pcap_Command::set_response_message(const char* value) {
+  _set_bit(2);
+  if (response_message_ == &_default_response_message_) {
+    response_message_ = new ::std::string;
+  }
+  response_message_->assign(value);
+}
+inline ::std::string* Message_Pcap_Command::mutable_response_message() {
+  _set_bit(2);
+  if (response_message_ == &_default_response_message_) {
+    response_message_ = new ::std::string;
+  }
+  return response_message_;
+}
+
+// optional string err_message = 4;
+inline bool Message_Pcap_Command::has_err_message() const {
+  return _has_bit(3);
+}
+inline void Message_Pcap_Command::clear_err_message() {
+  if (err_message_ != &_default_err_message_) {
+    err_message_->clear();
+  }
+  _clear_bit(3);
+}
+inline const ::std::string& Message_Pcap_Command::err_message() const {
+  return *err_message_;
+}
+inline void Message_Pcap_Command::set_err_message(const ::std::string& value) {
+  _set_bit(3);
+  if (err_message_ == &_default_err_message_) {
+    err_message_ = new ::std::string;
+  }
+  err_message_->assign(value);
+}
+inline void Message_Pcap_Command::set_err_message(const char* value) {
+  _set_bit(3);
+  if (err_message_ == &_default_err_message_) {
+    err_message_ = new ::std::string;
+  }
+  err_message_->assign(value);
+}
+inline ::std::string* Message_Pcap_Command::mutable_err_message() {
+  _set_bit(3);
+  if (err_message_ == &_default_err_message_) {
+    err_message_ = new ::std::string;
+  }
+  return err_message_;
+}
+
+// optional string quick_clone_name = 5;
+inline bool Message_Pcap_Command::has_quick_clone_name() const {
+  return _has_bit(4);
+}
+inline void Message_Pcap_Command::clear_quick_clone_name() {
+  if (quick_clone_name_ != &_default_quick_clone_name_) {
+    quick_clone_name_->clear();
+  }
+  _clear_bit(4);
+}
+inline const ::std::string& Message_Pcap_Command::quick_clone_name() const {
+  return *quick_clone_name_;
+}
+inline void Message_Pcap_Command::set_quick_clone_name(const ::std::string& value) {
+  _set_bit(4);
+  if (quick_clone_name_ == &_default_quick_clone_name_) {
+    quick_clone_name_ = new ::std::string;
+  }
+  quick_clone_name_->assign(value);
+}
+inline void Message_Pcap_Command::set_quick_clone_name(const char* value) {
+  _set_bit(4);
+  if (quick_clone_name_ == &_default_quick_clone_name_) {
+    quick_clone_name_ = new ::std::string;
+  }
+  quick_clone_name_->assign(value);
+}
+inline ::std::string* Message_Pcap_Command::mutable_quick_clone_name() {
+  _set_bit(4);
+  if (quick_clone_name_ == &_default_quick_clone_name_) {
+    quick_clone_name_ = new ::std::string;
+  }
+  return quick_clone_name_;
+}
+
+// optional string mac_address = 6;
+inline bool Message_Pcap_Command::has_mac_address() const {
+  return _has_bit(5);
+}
+inline void Message_Pcap_Command::clear_mac_address() {
+  if (mac_address_ != &_default_mac_address_) {
+    mac_address_->clear();
+  }
+  _clear_bit(5);
+}
+inline const ::std::string& Message_Pcap_Command::mac_address() const {
+  return *mac_address_;
+}
+inline void Message_Pcap_Command::set_mac_address(const ::std::string& value) {
+  _set_bit(5);
+  if (mac_address_ == &_default_mac_address_) {
+    mac_address_ = new ::std::string;
+  }
+  mac_address_->assign(value);
+}
+inline void Message_Pcap_Command::set_mac_address(const char* value) {
+  _set_bit(5);
+  if (mac_address_ == &_default_mac_address_) {
+    mac_address_ = new ::std::string;
+  }
+  mac_address_->assign(value);
+}
+inline ::std::string* Message_Pcap_Command::mutable_mac_address() {
+  _set_bit(5);
+  if (mac_address_ == &_default_mac_address_) {
+    mac_address_ = new ::std::string;
+  }
+  return mac_address_;
+}
+
+// optional string src_ip_address = 7;
+inline bool Message_Pcap_Command::has_src_ip_address() const {
+  return _has_bit(6);
+}
+inline void Message_Pcap_Command::clear_src_ip_address() {
+  if (src_ip_address_ != &_default_src_ip_address_) {
+    src_ip_address_->clear();
+  }
+  _clear_bit(6);
+}
+inline const ::std::string& Message_Pcap_Command::src_ip_address() const {
+  return *src_ip_address_;
+}
+inline void Message_Pcap_Command::set_src_ip_address(const ::std::string& value) {
+  _set_bit(6);
+  if (src_ip_address_ == &_default_src_ip_address_) {
+    src_ip_address_ = new ::std::string;
+  }
+  src_ip_address_->assign(value);
+}
+inline void Message_Pcap_Command::set_src_ip_address(const char* value) {
+  _set_bit(6);
+  if (src_ip_address_ == &_default_src_ip_address_) {
+    src_ip_address_ = new ::std::string;
+  }
+  src_ip_address_->assign(value);
+}
+inline ::std::string* Message_Pcap_Command::mutable_src_ip_address() {
+  _set_bit(6);
+  if (src_ip_address_ == &_default_src_ip_address_) {
+    src_ip_address_ = new ::std::string;
+  }
+  return src_ip_address_;
+}
+
+// optional uint32 dst_tcp_port = 8;
+inline bool Message_Pcap_Command::has_dst_tcp_port() const {
+  return _has_bit(7);
+}
+inline void Message_Pcap_Command::clear_dst_tcp_port() {
+  dst_tcp_port_ = 0u;
+  _clear_bit(7);
+}
+inline ::google::protobuf::uint32 Message_Pcap_Command::dst_tcp_port() const {
+  return dst_tcp_port_;
+}
+inline void Message_Pcap_Command::set_dst_tcp_port(::google::protobuf::uint32 value) {
+  _set_bit(7);
+  dst_tcp_port_ = value;
+}
+
+// optional bool delete_pcap = 9;
+inline bool Message_Pcap_Command::has_delete_pcap() const {
+  return _has_bit(8);
+}
+inline void Message_Pcap_Command::clear_delete_pcap() {
+  delete_pcap_ = false;
+  _clear_bit(8);
+}
+inline bool Message_Pcap_Command::delete_pcap() const {
+  return delete_pcap_;
+}
+inline void Message_Pcap_Command::set_delete_pcap(bool value) {
+  _set_bit(8);
+  delete_pcap_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// Message_Pcap
 
 // -------------------------------------------------------------------
 

@@ -42,61 +42,21 @@ This documentation refers to HoneyClient::Manager version 1.02.
 
   use HoneyClient::Manager;
 
-  # Note: Make sure only one of these "my $driver_name =" lines
-  # is uncommented.
-
-  # Use Internet Explorer as the instrumenting application.
-  my $driver_name = "HoneyClient::Agent::Driver::Browser::IE";
-
-  # Use Mozilla Firefox as the instrumenting application.
-  #my $driver_name = "HoneyClient::Agent::Driver::Browser::FF";
-
   # Start the Manager.
-  HoneyClient::Manager->run(
-
-      driver_name => $driver_name,
-
-      # The URLs (and priorities) of each entry to process.
-      work => {
-          'http://www.google.com' => 1,
-      },
-  );
+  HoneyClient::Manager->run();
 
 =head1 DESCRIPTION
 
-This module provides centralized control over provisioning, initializing,
-running, and suspending all Agent VMs.  Upon calling the run() function,
-the Manager will proceed to create a new clone of the master Honeyclient VM
-(aka. an Agent VM) and feed this Agent VM a new list of URLs to visit.
-
-While the Agent VM is running, the Manager will check to make sure the
-Agent VM has not been compromised.  If no compromise was found, then the
-Manager will signal the Firewall to allow the Agent VM to contact the
-next set of network resources (i.e., a webserver).
-
-If the Manager discovers the Agent VM has been compromised, then the
-Manager will suspend the clone VM, log the incident, and create a new Agent
-VM clone -- where this new clone picks up with the next set of URLs to
-visit.
-
-If there are no URLs left for the Agent VM to visit OR if the user
-presses CTRL+C while the Manager is running, then the Manager will
-suspend the currently running Agent VM.
-
-In order to determine which URLs were identified as malicious, you
-will need to check the syslog on the host system and search for the
-keyword of "FAILED" or "Failure".
-
-By default, all cloned VMs that the Manager suspends will have been
-flagged as suspicious -- unless the set of URLs has been exhausted
-or the user prematurely terminates the process (by pressing CTRL+C).
+This module provides centralized control obtaining work from the Drone
+webservice and routing that work to different Workers running on the
+host system.
 
 =cut
 
 package HoneyClient::Manager;
 
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 use Config;
 use Carp ();
 
@@ -131,9 +91,6 @@ BEGIN {
 
     # Symbols to autoexport (when qw(:all) tag is used)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-    # Check to see if ithreads are compiled into this version of Perl.
-    $Config{useithreads} or Carp::croak "Error: Recompile Perl with ithread support, in order to use this module.\n";
 
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
 }
@@ -197,22 +154,15 @@ BEGIN { use_ok('HoneyClient::Manager') or diag("Can't load HoneyClient::Manager 
 require_ok('HoneyClient::Manager');
 use HoneyClient::Manager;
 
-# Make sure HonyClient::Manager::VM::Clone or HoneyClient::Manager::ESX::Clone loads.
+# Make sure the Virtualization Library loads.
 my $VM_MODE = getVar(name => "virtualization_mode", namespace => "HoneyClient::Manager") . "::Clone";
 require_ok($VM_MODE);
 eval "require $VM_MODE";
 
-# If VMware ESX is specified, then we need to make sure HoneyClient::Manager::Firewall::Client loads.
-if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
-    require_ok('HoneyClient::Manager::Firewall::Client');
-}
-
-# Make sure HoneyClient::Util::SOAP loads.
-BEGIN { use_ok('HoneyClient::Util::SOAP', qw(getServerHandle getClientHandle)) or diag("Can't load HoneyClient::Util::SOAP package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Util::SOAP');
-can_ok('HoneyClient::Util::SOAP', 'getServerHandle');
-can_ok('HoneyClient::Util::SOAP', 'getClientHandle');
-use HoneyClient::Util::SOAP qw(getServerHandle getClientHandle);
+# Make sure HoneyClient::Manager::Firewall::Client loads.
+BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Firewall::Client');
+use HoneyClient::Manager::Firewall::Client;
 
 # Make sure HoneyClient::Util::Config loads.
 BEGIN { use_ok('HoneyClient::Util::Config', qw(getVar)) or diag("Can't load HoneyClient::Util::Config package.  Check to make sure the package library is correctly listed within the path."); }
@@ -224,20 +174,6 @@ use HoneyClient::Util::Config qw(getVar);
 BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient::Manager::Database package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::Database');
 use HoneyClient::Manager::Database;
-
-# Make sure Storable loads.
-BEGIN { use_ok('Storable', qw(nfreeze thaw)) or diag("Can't load Storable package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Storable');
-can_ok('Storable', 'nfreeze');
-can_ok('Storable', 'thaw');
-use Storable qw(nfreeze thaw);
-
-# Make sure MIME::Base64 loads.
-BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('MIME::Base64');
-can_ok('MIME::Base64', 'encode_base64');
-can_ok('MIME::Base64', 'decode_base64');
-use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
@@ -255,20 +191,32 @@ BEGIN { use_ok('Sys::HostIP') or diag("Can't load Sys::HostIP package.  Check to
 require_ok('Sys::HostIP');
 use Sys::HostIP;
 
+# Make sure Net::Stomp loads.
+BEGIN { use_ok('Net::Stomp') or diag("Can't load Net::Stomp package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Net::Stomp');
+use Net::Stomp;
+
+# Make sure HoneyClient::Message loads.
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Message');
+use HoneyClient::Message;
+
+# Make sure Data::UUID loads.
+BEGIN { use_ok('Data::UUID') or diag("Can't load Data::UUID package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Data::UUID');
+use Data::UUID;
+
+# Make sure HoneyClient::Util::DateTime loads.
+BEGIN { use_ok('HoneyClient::Util::DateTime') or diag("Can't load HoneyClient::Util::DateTime package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::DateTime');
+use HoneyClient::Util::DateTime;
+
 =end testing
 
 =cut
 
 #######################################################################
-
-# Include the SOAP Utility Library
-use HoneyClient::Util::SOAP qw(getClientHandle getServerHandle);
-
-# Include Thread Libraries
-use threads;
-use threads::shared;
-use Thread::Semaphore;
-use Thread::Queue;
 
 # Include utility access to global configuration.
 use HoneyClient::Util::Config qw(getVar);
@@ -277,10 +225,8 @@ use HoneyClient::Util::Config qw(getVar);
 my $VM_MODE = getVar(name => "virtualization_mode") . "::Clone";
 eval "require $VM_MODE";
 
-# If VMware ESX is specified, then load HoneyClient::Manager::Firewall::Client.
-if ($VM_MODE eq 'HoneyClient::Manager::ESX::Clone') {
-    require HoneyClient::Manager::Firewall::Client;
-}
+# Include Firewall Library
+use HoneyClient::Manager::Firewall::Client;
 
 # Include Database Libraries
 use HoneyClient::Manager::Database;
@@ -298,125 +244,31 @@ use Data::Dumper;
 $Data::Dumper::Terse = 0;
 $Data::Dumper::Indent = 2;
 
-# Include Hash Serialization Utility Libraries
-use Storable qw(nfreeze thaw);
-
-# Include Base64 Libraries
-use MIME::Base64 qw(encode_base64 decode_base64);
-
-# Include Hash Serialization Utility Libraries
-use Storable qw(nfreeze thaw);
-
 # Include Logging Library
 use Log::Log4perl qw(:easy);
 
 # The global logging object.
 our $LOG = get_logger();
 
-# The global work queue.  Each entry represents
-# work destined for a child thread worker.
-our $WORK_QUEUE : shared = undef;
+# Include STOMP Client Library
+use Net::Stomp;
 
-# The global wait queue.  Each entry represents
-# a thread ID waiting for more work.
-our $WAIT_QUEUE : shared = undef;
+# Include UUID Generator
+use Data::UUID;
+
+# Include Protobuf Libraries
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+use HoneyClient::Message;
+
+# Include DateTime Library
+use HoneyClient::Util::DateTime;
 
 #######################################################################
 # Private Methods Implemented                                         #
 #######################################################################
 
-# Default handler for any faults that are received by a SOAP client.
-# Inputs: Class, SOAP::SOM
-# Outputs: None
-sub _handleFault {
-
-    # Extract arguments.
-    my ($class, $res) = @_;
-
-    # Construct error message.
-    # Figure out if the error occurred in transport or over
-    # on the other side.
-    my $errMsg = $class->transport->status; # Assume transport error.
-
-    if (ref $res) {
-        $errMsg = $res->faultcode . ": ".  $res->faultstring . "\n";
-    }
-
-    $LOG->warn("Error occurred during processing. " . $errMsg);
-    Carp::carp __PACKAGE__ . "->_handleFault(): Error occurred during processing.\n" . $errMsg;
-}
-
-# Specialized fault handler for any faults that are received by a SOAP client.
-# Outputs the fault and then performs cleanup operations before shutting down.
-# Inputs: Class, SOAP::SOM
-# Outputs: None
-sub _handleFaultAndCleanup {
-
-    # Extract arguments.
-    my ($class, $res) = @_;
-
-    # Print fault.
-    _handleFault($class, $res);
-    
-    exit;
-}
-
+# TODO: Needed?
 END {
-    # Verify all sub threads are finished, prior to shutting down.
-    my $thread;
-    foreach $thread (threads->list()) {
-        # Don't kill/detach the main thread or ourselves.
-        if ($thread->tid() && !$thread->equal(threads->self())) {
-            # Kill the child thread, if it's running.
-            if ($thread->is_running()) {
-                # Send empty work, if need be.
-                my $work = {};
-                $WORK_QUEUE->enqueue(nfreeze($work));
-
-                $LOG->info("Shutting down Thread ID (" . $thread->tid() . ").");
-                $thread->kill('USR1');
-            }
-        }
-    }
-
-    foreach $thread (threads->list()) {
-        # Don't kill/detach the main thread or ourselves.
-        if ($thread->tid() && !$thread->equal(threads->self())) {
-            # Join the child thread.
-            if (!$thread->is_detached()) {
-                $LOG->info("Joining Thread ID (" . $thread->tid() . ").");
-                $thread->join();
-            }
-        }
-    }
-
-    # Reset the firewall.
-    eval {
-        $LOG->info("Resetting firewall.");
-        require HoneyClient::Util::Config;
-        my $VM_MODE = HoneyClient::Util::Config::getVar(name => "virtualization_mode");
-        if ($VM_MODE eq "HoneyClient::Manager::VM") {
-            my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
-                                         fault_handler => \&_handleFault);
-            $stubFW->installDefaultRules();
-        } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
-            HoneyClient::Manager::Firewall::Client->denyAllTraffic();
-        }
-    };
-
-    # XXX: There is an issue where if we try to quit but are in the
-    # process of snapshotting a VM, then the snapshot
-    # process will fail.
-
-    my $package = undef;
-    my $filename = undef;
-    my $line = undef;
-    ($package, $filename, $line) = caller();
-    # Only kill our process group when we're not in a unit test.
-    if ($filename ne 't/honeyclient_manager.t') {
-        # Make sure all processes in our process group our dead.
-        kill("KILL", -$$);
-    }
 }
 
 # Helper function designed to "pop" a (key, value) pair off a given hashtable.
@@ -525,126 +377,11 @@ sub _get_urls {
     return $ret;
 }
 
-# Helper function designed to create a worker thread which manages a single
-# VM, using a WORK_QUEUE and a WAIT_QUEUE.
-#
-# Note: We can gracefully stop each worker, by sending an empty hashtable of work,
-# or by signalling the thread.
-sub _worker {
-
-    # Make sure the thread can only kill itself and not the entire application.
-    threads->set_thread_exit_only(1);
-
-    # Register interrupt/kill signal handlers.
-    # These handlers are designed to kill this thread upon overall module
-    # destruction.  These handlers should never be used for normal program
-    # operations, since they will NOT release any locks/semaphores properly.
-    local $SIG{USR1} = sub {
-        my $LOG = get_logger();
-        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down worker.");
-        # Yield processing to parent thread.
-        threads->yield();
-        threads->exit();
-    };
-
-    local $SIG{INT} = sub { 
-        my $LOG = get_logger();
-        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down worker.");
-        # Yield processing to parent thread.
-        threads->yield();
-        threads->exit();
-    };
-
-    # Extract arguments.
-    my $args = shift;
-
-    $LOG->info("Thread ID (" . threads->tid() . "): Starting worker.");
-
-    # Yield processing to parent thread.
-    threads->yield();
-
-    # Variable to hold our work.
-    my $work = undef;
-    my $data = undef;
-
-    eval {
-        # Create a new cloned VM.
-        my $VM_MODE = getVar(name => "virtualization_mode") . "::Clone";
-        my $vm = $VM_MODE->new(%{$args});
-
-        # If there's no work on the queue, signal that we need more work.
-        $LOG->info("Thread ID (" . threads->tid() . "): Checking if we have existing work.");
-        if (!$WORK_QUEUE->pending) {
-            $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
-            # Signal that we're ready for more work.
-            $WAIT_QUEUE->enqueue(threads->tid());
-        }
-
-        # This is a little hackish, since calling Thread::Queue->dequeue
-        # doesn't properly handle signals.
-        $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
-        while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
-            # Poll the wait queue every 2 seconds.
-            # This time delay should be short.
-            threads->yield();
-            sleep(2);
-        }
-        $work = thaw($data);
-
-        while (scalar(%{$work})) {
-            $vm = $vm->drive(work => $work);
-
-            # If there's no work on the queue, signal that we need more work.
-            if (!$WORK_QUEUE->pending) {
-                $LOG->info("Thread ID (" . threads->tid() . "): Signaling for more work.");
-                # Signal that we're ready for more work.
-                $WAIT_QUEUE->enqueue(threads->tid());
-            }
-            # This is a little hackish, since calling Thread::Queue->dequeue
-            # doesn't properly handle signals.
-            $LOG->info("Thread ID (" . threads->tid() . "): Waiting for more work.");
-            while (!defined($data = $WORK_QUEUE->dequeue_nb)) {
-                # Poll the wait queue every 2 seconds.
-                # This time delay should be short.
-                threads->yield();
-                sleep(2);
-            }
-            $work = thaw($data);
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): Got more work: " . Dumper($work));
-
-        }
-    };
-    # Report when a fault occurs.
-    if ($@) {
-        $LOG->warn("Thread ID (" . threads->tid() . "): Encountered an error. Shutting down worker. " . $@);
-    } elsif (scalar(%{$work}) > 0) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Encountered unknown error - still have work, yet managed to exit out of main loop!");
-# TODO: Delete this, eventually? - this is really hackish.
-$LOG->info("Thread ID (" . threads->tid() . "): Work: " . Dumper($work));
-    } else {
-        $LOG->info("Thread ID (" . threads->tid() . "): Received empty work. Shutting down worker.");
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): Status: " . Dumper($@));
-$LOG->info("Thread ID (" . threads->tid() . "): Work: " . Dumper($work));
-    }
-
-    # Signal to the parent that we're shutting down.
-    if (!threads->is_detached()) {
-        threads->detach();
-    }
-    $WAIT_QUEUE->enqueue(threads->tid());
-   
-    # Shut thread down.
-    threads->exit();
-}
-
-
 # Signal handler to help give user immediate feedback during
 # shutdown process.
 sub _shutdown {
     my $LOG = get_logger();
-    $LOG->warn("Received termination signal.  Shutting down (please wait).");
+    $LOG->warn("Process ID (" . $$ . "): Received termination signal.  Shutting down manager (please wait).");
     exit;
 };
 $SIG{HUP}  = \&_shutdown;
@@ -661,19 +398,23 @@ $SIG{TERM} = \&_shutdown;
 
 =head1 EXPORTS
 
-=head2 run(driver_name => $driver_name, master_vm_config => $master_vm_config, work => $work)
+=head2 run(stomp_address => $stomp_address, stomp_port => $stomp_port, stomp_user_name => $stomp_user_name, stomp_password => $stomp_password, stomp_virtual_host => $stomp_virtual_host)
 
 =over 4
 
 Runs the Manager code, using the specified arguments.
 
 I<Inputs>: 
- B<$driver_name> is an optional argument, indicating the driver name to
-use when driving all cloned VMs.
- B<$master_vm_config> is an optional argument, indicating the absolute
-path to the master VM configuration file that each clone VM should use.
- B<$work> is an optional argument, indicating the work each cloned
-VM should process.
+ B<$stomp_address> is an optional argument, specifying the IP address
+of the STOMP server this component should connect to.
+ B<$stomp_port> is an optional argument, specifying the TCP port of the
+STOMP server this component should connect to.
+ B<$stomp_user_name> is an optional argument, specifying the user name
+used to authenticate to the STOMP server.
+ B<$stomp_password> is an optional argument, specifying the password
+used to authenticate to the STOMP server.
+ B<$stomp_virtual_host> is an optional argument, specifying the virtual
+host used to authenticate to the STOMP server.
 
 =back
 
@@ -695,276 +436,141 @@ sub run {
     # for consistency.
     my ($class, %args) = @_;
 
-    # Sanity check: If there's no database support and no work was
-    # specified, then stop.
-    my $localLinksExist = scalar(%{$args{'work'}});
+    $LOG->info("Process ID (" . $$ . "): Starting manager.");
+
+    # Sanity check.
     if (!getVar(name      => "enable",
-                namespace => "HoneyClient::Manager::Database") && !$localLinksExist) {
-        $LOG->error("No URLs specified and database support is disabled.  Shutting down Manager.");
-        exit;
+                namespace => "HoneyClient::Manager::Database")) {
+        $LOG->info("Process ID (" . $$ . "): Unable to run without database support. Shutting down manager.");
     }
 
-    # Temporary variable to hold each cloned VM.
-    my $vm        = undef;
+    my $argsExist = scalar(%args);
+    my $arg_names = [ 'stomp_address',
+                      'stomp_port',
+                      'stomp_user_name',
+                      'stomp_password',
+                      'stomp_virtual_host', ];
 
-    $LOG->info("Installing default firewall rules.");
-
-    # Identify virtualization mode used.
-    my $VM_MODE = getVar(name => "virtualization_mode");
-    my $TOTAL_NUM_SIMULTANEOUS_CLONES : shared = 0;
-    if ($VM_MODE eq "HoneyClient::Manager::VM") {
-        # Get a stub connection to the firewall.
-        my $stubFW = getClientHandle(namespace     => "HoneyClient::Manager::FW",
-                                     fault_handler => \&_handleFaultAndCleanup);
-        $stubFW->installDefaultRules();
-        # Figure out how many simultaneously running clones there will be on the host system.
-        $TOTAL_NUM_SIMULTANEOUS_CLONES = getVar(name => "num_simultaneous_clones", namespace => $VM_MODE);
-    } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
-        HoneyClient::Manager::Firewall::Client->denyAllTraffic();
-
-        # Check to see how many hosts are specified in the configuration file.
-        my $hosts = getVar(name => "hosts", namespace => $VM_MODE);
-
-        # Iterate through each host and figure out how many simultaneously running clones there will be
-        # across all VMware ESX Servers.
-        foreach my $host (@{$hosts->{'host'}}) {
-            # Each host entry will have only one child entry, with that key being
-            # the service_url.
-            my @host_keys = keys(%{$host});
-            my $service_url = $host_keys[0];
-            $TOTAL_NUM_SIMULTANEOUS_CLONES += $host->{$service_url}->{'max_num_clones'};
-        } 
+    # Parse optional arguments.
+    foreach my $name (@{$arg_names}) {
+        if (!($argsExist &&
+            exists($args{$name}) &&
+            defined($args{$name}))) {
+            $args{$name} = getVar(name => $name);
+        }
     }
 
-    # If these parameters weren't defined, delete them
-    # from the specified arg hash.
-    if (!defined($args{'master_vm_config'})) {
-        delete $args{'master_vm_config'}; 
-    }
-    if (!defined($args{'driver_name'})) {
-        delete $args{'driver_name'}; 
-    }
 
-    # Create a new work queue.
-    $WORK_QUEUE = new Thread::Queue;
-    
-    # Create a new wait queue.
-    $WAIT_QUEUE = new Thread::Queue;
+    # Register the host system with the database.
+    my $host = {
+        org => getVar(name => "organization"),
+        hostname => Sys::Hostname::Long::hostname_long,
+        ip => Sys::HostIP->ip,
+    };
+    HoneyClient::Manager::Database::insert_host($host);
 
-    # Create the thread pool.
-    my @THREAD_POOL;
+    # STOMP client handle.
+    my $stomp = undef;
+    my $frame = undef;
 
-    # Start up workers slowly, in order to not overwhelm the host system.
-    my $startup_thread = async {
+    # Variable to hold the URLs received from the database.
+    my $queue_url_list = {};
+    # Indicates this is the first time connecting to the database to obtain URLs.
+    my $first_access_attempt = 1;
 
-        # Make sure the thread can only kill itself and not the entire application.
-        threads->set_thread_exit_only(1);
+    eval {
 
-        # Register interrupt/kill signal handlers.
-        # These handlers are designed to kill this thread upon overall module
-        # destruction.  These handlers should never be used for normal program
-        # operations, since they will NOT release any locks/semaphores properly.
-        local $SIG{USR1} = sub {
-            my $LOG = get_logger();
-            $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down startup thread.");
-            # Yield processing to parent thread.
-            threads->yield();
-            threads->exit();
-        };
+        # Initialize the STOMP client handle.
+        $stomp = Net::Stomp->new({
+                     'hostname'  =>  $args{'stomp_address'},
+                     'port'      =>  $args{'stomp_port'},
+                 });
 
-        local $SIG{INT} = sub { 
-            my $LOG = get_logger();
-            $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down startup thread.");
-            # Yield processing to parent thread.
-            threads->yield();
-            threads->exit();
-        };
-        threads->detach();
+        # Connect to the STOMP server.
+        $stomp->connect({
+                    'login'         =>  $args{'stomp_user_name'},
+                    'passcode'      =>  $args{'stomp_password'},
+                    'virtual-host'  =>  $args{'stomp_virtual_host'},
+        });
 
-        # Create the cloned VMs.
-        if ($VM_MODE eq "HoneyClient::Manager::VM") {
-            for (my $counter = 0; $counter < $TOTAL_NUM_SIMULTANEOUS_CLONES; $counter++) {
-                my $thread = threads->create(\&_worker, \%args);
-                if (!defined($thread)) {
-                    $LOG->error("Unable to create worker thread! Shutting down.");
-                    Carp::croak "Unable to create worker thread! Shutting down.";
-                }
+        # Create a new UUID generator.
+        my $generator = Data::UUID->new();
 
-                # Push thread onto thread pool.
-                push(@THREAD_POOL, $thread);
+# TODO: Delete this.
+#my $COUNT = 0;
 
-                # Sleep for a fixed amount of time, before starting up another worker.
-                sleep(getVar(name => "worker_startup_delay"));
-            }
-        } elsif ($VM_MODE eq "HoneyClient::Manager::ESX") {
+        # Get URLs from the database.
+        while (1) {
 
-            # Check to see how many hosts are specified in the configuration file.
-            my $hosts = getVar(name => "hosts", namespace => $VM_MODE);
+            $LOG->info("Process ID (" . $$ . "): Waiting for new URLs from database.");
 
-            # Iterate through each host.
-            foreach my $host (@{$hosts->{'host'}}) {
-                # Start up each host simultaneously (using async threading).
-                my $startup_host_thread = async {
-                    # Make sure the thread can only kill itself and not the entire application.
-                    threads->set_thread_exit_only(1);
-
-                    # Register interrupt/kill signal handlers.
-                    # These handlers are designed to kill this thread upon overall module
-                    # destruction.  These handlers should never be used for normal program
-                    # operations, since they will NOT release any locks/semaphores properly.
-                    local $SIG{USR1} = sub {
-                        my $LOG = get_logger();
-                        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGUSR1. Shutting down host-specific startup thread.");
-                        # Yield processing to parent thread.
-                        threads->yield();
-                        threads->exit();
-                    };
-
-                    local $SIG{INT} = sub { 
-                        my $LOG = get_logger();
-                        $LOG->warn("Thread ID (" . threads->tid() . "): Received SIGINT. Shutting down host-specific startup thread.");
-                        # Yield processing to parent thread.
-                        threads->yield();
-                        threads->exit();
-                    };
-                    threads->detach();
-                    # Extract the service_url, user_name, and password from each entry.
-                    # Each host entry will have only one child entry, with that key being
-                    # the service_url.
-                    my @host_keys = keys(%{$host});
-                    $args{'service_url'} = $host_keys[0];
-                    $args{'user_name'} = $host->{$args{'service_url'}}->{'user_name'};
-                    $args{'password'}  = $host->{$args{'service_url'}}->{'password'};
-                    my $num_simultaneous_clones = $host->{$args{'service_url'}}->{'max_num_clones'};
-                    for (my $counter = 0; $counter < $num_simultaneous_clones; $counter++) {
-                        my $thread = threads->create(\&_worker, \%args);
-                        if (!defined($thread)) {
-                            $LOG->error("Unable to create worker thread! Shutting down.");
-                            Carp::croak "Unable to create worker thread! Shutting down.";
-                        }
-
-                        # Push thread onto thread pool.
-                        push(@THREAD_POOL, $thread);
-
-                        # Sleep for a fixed amount of time, before starting up another worker.
-                        sleep(getVar(name => "worker_startup_delay"));
-                    }
+            while (!scalar(%{$queue_url_list})) {
+                # XXX: Trap/ignore all errors and simply retry.
+                eval {
+                    $queue_url_list = _get_urls(first_attempt => $first_access_attempt);
+                    $first_access_attempt = 0;
                 };
-            } 
+
+                # If we're retrying, then sleep for a bit, before trying again to contact the database.
+                if (!scalar(%{$queue_url_list})) {
+                    sleep(getVar(name => "database_retry_delay"));
+                }
+            }
+            $LOG->info("Process ID (" . $$ . "): Received new work and updating the workers.");
+
+            # Collect the list of URLs.
+            foreach my $url (keys(%{$queue_url_list})) {
+                my $job_urls = [];
+                my $entry = {
+                    name   => $url,
+                    status => HoneyClient::Message::Url::Status::NOT_VISITED,
+                };
+                push(@{$job_urls}, $entry);
+
+                # Create a (relatively) unique job.
+                my $job = HoneyClient::Message::Job->new({
+                    uuid => $generator->create_str(),
+                    created_at => HoneyClient::Util::DateTime->now(),
+                    total_num_urls => scalar(@{$job_urls}),
+                    url => $job_urls,
+                });
+
+                $LOG->info("Process ID (" . $$ . "): Constructing job.");
+                # TODO: Delete this, eventually.
+                $Data::Dumper::Terse = 0;
+                $Data::Dumper::Indent = 1;
+                print Dumper($job->to_hashref) . "\n";
+
+                $stomp->send({
+                    'exchange'        =>  getVar(name => 'exchange_name', namespace => 'HoneyClient::Manager::Worker'),
+                    'delivery-mode'   =>  2, # Make sure the message is durable.
+                    'destination'     =>  getVar(name => 'routing_key',   namespace => 'HoneyClient::Manager::Worker'),
+	                'body'            =>  $job->pack(),
+                });
+                # TODO: Delete this.
+#                $COUNT++;
+#                if ($COUNT >= 20) {
+#                    print "\n\nQUITTING!\n\n";
+#sleep(10);
+#                    return;
+#                }
+            }
+            $queue_url_list = {};
+print "Sleeping for 1s...\n";
+sleep(1);
+            # Loop forever, since we have a database connection.
         }
     };
-
-    # Register the host system with the database, if need be.
-    if (getVar(name      => "enable",
-               namespace => "HoneyClient::Manager::Database")) {
-
-        my $host = {
-            org => getVar(name => "organization"),
-            hostname => Sys::Hostname::Long::hostname_long,
-            ip => Sys::HostIP->ip,
-        };
-        HoneyClient::Manager::Database::insert_host($host);
+    # Report when a fault occurs.
+    if ($@) {
+        $LOG->error("Process ID (" . $$ . "): Encountered an error. Shutting down manager. " . $@);
     }
 
-    # If supported, get a URL list from the database.
-    my $remoteLinksExist = 0;
-    my $queue_url_list = {};
-    my $tid = undef;
-    my $first_access_attempt = 1;
-    while (getVar(name      => "enable",
-                  namespace => "HoneyClient::Manager::Database")) {
-        $LOG->info("Waiting for new URLs from database.");
-        $queue_url_list = _get_urls(first_attempt => $first_access_attempt);
-        $first_access_attempt = 0;
-
-        $remoteLinksExist = scalar(%{$queue_url_list});
-        while (!$localLinksExist && !$remoteLinksExist) {
-
-            # Sleep for a bit, before trying again to contact the database.
-            sleep(getVar(name => "database_retry_delay"));
-            # XXX: Trap/ignore all errors and simply retry.
-            eval {
-                $queue_url_list = _get_urls(first_attempt => 0);
-                $remoteLinksExist = scalar(%{$queue_url_list});
-            };
-        }
-        # If we do have URLs from the database, then merge them into the agent state.
-        # Note: Priorities specified in the database take precedent over any URLs specified locally.
-        if ($remoteLinksExist) {
-            $args{'work'} = { %{$args{'work'}}, %{$queue_url_list} };
-        }
-        
-        # Drive the VMs, using the work found.
-        $LOG->info("Received new work and updating queue.");
-        _divide_work(work_queue              => $WORK_QUEUE,
-                     wait_queue              => $WAIT_QUEUE,
-                     work                    => $args{'work'},
-                     num_simultaneous_clones => $TOTAL_NUM_SIMULTANEOUS_CLONES);
-
-        # Wait until the VMs need more work.
-        while (!$WAIT_QUEUE->pending) {
-            # Poll the wait queue every 2 seconds.
-            # This time delay should be short.
-            threads->yield();
-            sleep(2);
-
-            # Make sure all worker threads are still alive.
-            for (my $counter = 0; $counter < $TOTAL_NUM_SIMULTANEOUS_CLONES; $counter++) {
-                my $thread = $THREAD_POOL[$counter];
-                if (defined($thread) && !$thread->is_running()) {
-                    $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
-                    Carp::croak "Thread ID (" . $thread->tid() . "): Unexpectedly terminated.";
-                }
-            }
-        }
-        $LOG->info("Got a signal that a thread needs more work.");
-
-        # Once finished, empty the work queue.
-        $args{'work'} = {};
-        # If we had any local links, they definately will have been processed by now.
-        $localLinksExist = 0;
-
-        # Loop forever, since we have a database connection.
+    # Cleanup - Close STOMP connection.
+    if (defined($stomp) &&
+        (ref($stomp) eq "Net::Stomp")) {
+        $stomp->disconnect();
     }
-
-    # If we don't have a database connection, then just handle the work
-    # that was provided from the command line and then shut down.
-    if (scalar(%{$args{'work'}})) {
-
-        # Drive the VMs, using the work found.
-        $LOG->info("Received new work and updating queue.");
-        _divide_work(work_queue              => $WORK_QUEUE,
-                     wait_queue              => $WAIT_QUEUE,
-                     work                    => $args{'work'},
-                     num_simultaneous_clones => $TOTAL_NUM_SIMULTANEOUS_CLONES);
-
-        # Wait until all VMs are finished.
-        # We wait for each worker to signal that they are waiting for more work, before shutting down
-        # the application.
-        for (my $i = 0; $i < $TOTAL_NUM_SIMULTANEOUS_CLONES; $i++) {
-            my $tid = undef;
-            # This is a little hackish, since calling Thread::Queue->dequeue
-            # doesn't properly handle signals.
-            while (!defined($tid = $WAIT_QUEUE->dequeue_nb)) {
-                # Poll the wait queue every 2 seconds.
-                # This time delay should be short.
-                threads->yield();
-                sleep(2);
-
-                # Make sure all worker threads are still alive.
-                for (my $counter = 0; $counter < $TOTAL_NUM_SIMULTANEOUS_CLONES; $counter++) {
-                    my $thread = $THREAD_POOL[$counter];
-                    if (defined($thread) && !$thread->is_running()) {
-                        $LOG->error("Thread ID (" . $thread->tid() . "): Unexpectedly terminated.");
-                        Carp::croak "Thread ID (" . $thread->tid() . "): Unexpectedly terminated.";
-                    }
-                }
-            }
-        }
-        # Once finished, empty the work queue.
-        $args{'work'} = {};
-    }
-    $LOG->info("All URLs exhausted. Shutting down Manager.");
 }
 
 #######################################################################
@@ -987,12 +593,6 @@ This module relies on various libraries, which may have their own
 set of issues.  As such, see the following sections:
 
 =over 4
-
-=item *
-
-L<HoneyClient::Manager::VM::Clone/"BUGS & ASSUMPTIONS">
-
-=back
 
 =item *
 

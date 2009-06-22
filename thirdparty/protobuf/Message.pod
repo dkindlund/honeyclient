@@ -1,0 +1,3506 @@
+=pod
+
+=head1 NAME
+
+HoneyClient::Message - Perl/XS interface to HoneyClient.Message
+
+=head1 SYNOPSIS
+
+=head2 Serializing messages
+
+ #!/usr/bin/perl
+
+ use strict;
+ use warnings;
+ use HoneyClient::Message;
+
+ my $Message = HoneyClient::Message->new;
+ # Set fields in $Message...
+ my $packMessage = $Message->pack();
+
+=head2 Unserializing messages
+
+ #!/usr/bin/perl
+
+ use strict;
+ use warnings;
+ use HoneyClient::Message;
+
+ my $packMessage; # Read this from somewhere...
+ my $Message = HoneyClient::Message->new;
+ if ( $Message->unpack($packMessage) ) {
+   print "OK"
+ } else {
+   print "NOT OK"
+ }
+
+=head1 DESCRIPTION
+
+HoneyClient::Message defines the following classes:
+
+=over 5
+
+=item C<HoneyClient::Message::Application>
+
+A wrapper around the HoneyClient.Message.Application message
+
+=item C<HoneyClient::Message::Os>
+
+A wrapper around the HoneyClient.Message.Os message
+
+=item C<HoneyClient::Message::ClientStatus>
+
+A wrapper around the HoneyClient.Message.ClientStatus message
+
+=item C<HoneyClient::Message::Host>
+
+A wrapper around the HoneyClient.Message.Host message
+
+=item C<HoneyClient::Message::Client>
+
+A wrapper around the HoneyClient.Message.Client message
+
+=item C<HoneyClient::Message::Group>
+
+A wrapper around the HoneyClient.Message.Group message
+
+=item C<HoneyClient::Message::JobSource>
+
+A wrapper around the HoneyClient.Message.JobSource message
+
+=item C<HoneyClient::Message::JobAlert>
+
+A wrapper around the HoneyClient.Message.JobAlert message
+
+=item C<HoneyClient::Message::UrlStatus>
+
+A wrapper around the HoneyClient.Message.UrlStatus message
+
+=item C<HoneyClient::Message::Url>
+
+A wrapper around the HoneyClient.Message.Url message
+
+=item C<HoneyClient::Message::Job>
+
+A wrapper around the HoneyClient.Message.Job message
+
+=item C<HoneyClient::Message::FileContent>
+
+A wrapper around the HoneyClient.Message.FileContent message
+
+=item C<HoneyClient::Message::ProcessFile>
+
+A wrapper around the HoneyClient.Message.ProcessFile message
+
+=item C<HoneyClient::Message::ProcessRegistry>
+
+A wrapper around the HoneyClient.Message.ProcessRegistry message
+
+=item C<HoneyClient::Message::OsProcess>
+
+A wrapper around the HoneyClient.Message.OsProcess message
+
+=item C<HoneyClient::Message::Fingerprint>
+
+A wrapper around the HoneyClient.Message.Fingerprint message
+
+=item C<HoneyClient::Message::Firewall::Command::ActionType>
+
+A wrapper around the HoneyClient.Message.Firewall.Command.ActionType enum
+
+=item C<HoneyClient::Message::Firewall::Command::ResponseType>
+
+A wrapper around the HoneyClient.Message.Firewall.Command.ResponseType enum
+
+=item C<HoneyClient::Message::Firewall::Command>
+
+A wrapper around the HoneyClient.Message.Firewall.Command message
+
+=item C<HoneyClient::Message::Firewall>
+
+A wrapper around the HoneyClient.Message.Firewall message
+
+=item C<HoneyClient::Message::Pcap::Command::ActionType>
+
+A wrapper around the HoneyClient.Message.Pcap.Command.ActionType enum
+
+=item C<HoneyClient::Message::Pcap::Command::ResponseType>
+
+A wrapper around the HoneyClient.Message.Pcap.Command.ResponseType enum
+
+=item C<HoneyClient::Message::Pcap::Command>
+
+A wrapper around the HoneyClient.Message.Pcap.Command message
+
+=item C<HoneyClient::Message::Pcap>
+
+A wrapper around the HoneyClient.Message.Pcap message
+
+=item C<HoneyClient::Message>
+
+A wrapper around the HoneyClient.Message message
+
+
+=back
+
+=head1 HoneyClient::Message::Application Constructor
+
+=over 4
+
+=item B<$Application = HoneyClient::Message::Application-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Application>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Application Methods
+
+=over 4
+
+=item B<$Application2-E<gt>copy_from($Application1)>
+
+Copies the contents of C<Application1> into C<Application2>.
+C<Application2> is another instance of the same message type.
+
+=item B<$Application2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Application2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Application2-E<gt>merge_from($Application1)>
+
+Merges the contents of C<Application1> into C<Application2>.
+C<Application2> is another instance of the same message type.
+
+=item B<$Application2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Application2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Application-E<gt>clear()>
+
+Clears the contents of C<Application>.
+
+=item B<$init = $Application-E<gt>is_initialized()>
+
+Returns 1 if C<Application> has been initialized with data.
+
+=item B<$errstr = $Application-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Application-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Application>.
+
+=item B<$dstr = $Application-E<gt>debug_string()>
+
+Returns a string representation of C<Application>.
+
+=item B<$dstr = $Application-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Application>.
+
+=item B<$ok = $Application-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Application>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Application-E<gt>pack()>
+
+Serializes C<Application> into C<string>.
+
+=item B<$length = $Application-E<gt>length()>
+
+Returns the serialized length of C<Application>.
+
+=item B<@fields = $Application-E<gt>fields()>
+
+Returns the defined fields of C<Application>.
+
+=item B<$hashref = $Application-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_manufacturer = $Application-E<gt>has_manufacturer()>
+
+Returns 1 if the C<manufacturer> element of C<Application> is set, 0 otherwise.
+
+=item B<$Application-E<gt>clear_manufacturer()>
+
+Clears the C<manufacturer> element(s) of C<Application>.
+
+=item B<$manufacturer = $Application-E<gt>manufacturer()>
+
+Returns C<manufacturer> from C<Application>.  C<manufacturer> will be a string.
+
+=item B<$Application-E<gt>set_manufacturer($value)>
+
+Sets the value of C<manufacturer> in C<Application> to C<value>.  C<value> must be a string.
+
+=item B<$has_version = $Application-E<gt>has_version()>
+
+Returns 1 if the C<version> element of C<Application> is set, 0 otherwise.
+
+=item B<$Application-E<gt>clear_version()>
+
+Clears the C<version> element(s) of C<Application>.
+
+=item B<$version = $Application-E<gt>version()>
+
+Returns C<version> from C<Application>.  C<version> will be a string.
+
+=item B<$Application-E<gt>set_version($value)>
+
+Sets the value of C<version> in C<Application> to C<value>.  C<value> must be a string.
+
+=item B<$has_short_name = $Application-E<gt>has_short_name()>
+
+Returns 1 if the C<short_name> element of C<Application> is set, 0 otherwise.
+
+=item B<$Application-E<gt>clear_short_name()>
+
+Clears the C<short_name> element(s) of C<Application>.
+
+=item B<$short_name = $Application-E<gt>short_name()>
+
+Returns C<short_name> from C<Application>.  C<short_name> will be a string.
+
+=item B<$Application-E<gt>set_short_name($value)>
+
+Sets the value of C<short_name> in C<Application> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::Os Constructor
+
+=over 4
+
+=item B<$Os = HoneyClient::Message::Os-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Os>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Os Methods
+
+=over 4
+
+=item B<$Os2-E<gt>copy_from($Os1)>
+
+Copies the contents of C<Os1> into C<Os2>.
+C<Os2> is another instance of the same message type.
+
+=item B<$Os2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Os2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Os2-E<gt>merge_from($Os1)>
+
+Merges the contents of C<Os1> into C<Os2>.
+C<Os2> is another instance of the same message type.
+
+=item B<$Os2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Os2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Os-E<gt>clear()>
+
+Clears the contents of C<Os>.
+
+=item B<$init = $Os-E<gt>is_initialized()>
+
+Returns 1 if C<Os> has been initialized with data.
+
+=item B<$errstr = $Os-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Os-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Os>.
+
+=item B<$dstr = $Os-E<gt>debug_string()>
+
+Returns a string representation of C<Os>.
+
+=item B<$dstr = $Os-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Os>.
+
+=item B<$ok = $Os-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Os>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Os-E<gt>pack()>
+
+Serializes C<Os> into C<string>.
+
+=item B<$length = $Os-E<gt>length()>
+
+Returns the serialized length of C<Os>.
+
+=item B<@fields = $Os-E<gt>fields()>
+
+Returns the defined fields of C<Os>.
+
+=item B<$hashref = $Os-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_name = $Os-E<gt>has_name()>
+
+Returns 1 if the C<name> element of C<Os> is set, 0 otherwise.
+
+=item B<$Os-E<gt>clear_name()>
+
+Clears the C<name> element(s) of C<Os>.
+
+=item B<$name = $Os-E<gt>name()>
+
+Returns C<name> from C<Os>.  C<name> will be a string.
+
+=item B<$Os-E<gt>set_name($value)>
+
+Sets the value of C<name> in C<Os> to C<value>.  C<value> must be a string.
+
+=item B<$has_version = $Os-E<gt>has_version()>
+
+Returns 1 if the C<version> element of C<Os> is set, 0 otherwise.
+
+=item B<$Os-E<gt>clear_version()>
+
+Clears the C<version> element(s) of C<Os>.
+
+=item B<$version = $Os-E<gt>version()>
+
+Returns C<version> from C<Os>.  C<version> will be a string.
+
+=item B<$Os-E<gt>set_version($value)>
+
+Sets the value of C<version> in C<Os> to C<value>.  C<value> must be a string.
+
+=item B<$has_short_name = $Os-E<gt>has_short_name()>
+
+Returns 1 if the C<short_name> element of C<Os> is set, 0 otherwise.
+
+=item B<$Os-E<gt>clear_short_name()>
+
+Clears the C<short_name> element(s) of C<Os>.
+
+=item B<$short_name = $Os-E<gt>short_name()>
+
+Returns C<short_name> from C<Os>.  C<short_name> will be a string.
+
+=item B<$Os-E<gt>set_short_name($value)>
+
+Sets the value of C<short_name> in C<Os> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::ClientStatus Constructor
+
+=over 4
+
+=item B<$ClientStatus = HoneyClient::Message::ClientStatus-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::ClientStatus>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::ClientStatus Methods
+
+=over 4
+
+=item B<$ClientStatus2-E<gt>copy_from($ClientStatus1)>
+
+Copies the contents of C<ClientStatus1> into C<ClientStatus2>.
+C<ClientStatus2> is another instance of the same message type.
+
+=item B<$ClientStatus2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<ClientStatus2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$ClientStatus2-E<gt>merge_from($ClientStatus1)>
+
+Merges the contents of C<ClientStatus1> into C<ClientStatus2>.
+C<ClientStatus2> is another instance of the same message type.
+
+=item B<$ClientStatus2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<ClientStatus2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$ClientStatus-E<gt>clear()>
+
+Clears the contents of C<ClientStatus>.
+
+=item B<$init = $ClientStatus-E<gt>is_initialized()>
+
+Returns 1 if C<ClientStatus> has been initialized with data.
+
+=item B<$errstr = $ClientStatus-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$ClientStatus-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<ClientStatus>.
+
+=item B<$dstr = $ClientStatus-E<gt>debug_string()>
+
+Returns a string representation of C<ClientStatus>.
+
+=item B<$dstr = $ClientStatus-E<gt>short_debug_string()>
+
+Returns a short string representation of C<ClientStatus>.
+
+=item B<$ok = $ClientStatus-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<ClientStatus>, returning 1 on success and 0 on failure.
+
+=item B<$string = $ClientStatus-E<gt>pack()>
+
+Serializes C<ClientStatus> into C<string>.
+
+=item B<$length = $ClientStatus-E<gt>length()>
+
+Returns the serialized length of C<ClientStatus>.
+
+=item B<@fields = $ClientStatus-E<gt>fields()>
+
+Returns the defined fields of C<ClientStatus>.
+
+=item B<$hashref = $ClientStatus-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_status = $ClientStatus-E<gt>has_status()>
+
+Returns 1 if the C<status> element of C<ClientStatus> is set, 0 otherwise.
+
+=item B<$ClientStatus-E<gt>clear_status()>
+
+Clears the C<status> element(s) of C<ClientStatus>.
+
+=item B<$status = $ClientStatus-E<gt>status()>
+
+Returns C<status> from C<ClientStatus>.  C<status> will be a string.
+
+=item B<$ClientStatus-E<gt>set_status($value)>
+
+Sets the value of C<status> in C<ClientStatus> to C<value>.  C<value> must be a string.
+
+=item B<$has_description = $ClientStatus-E<gt>has_description()>
+
+Returns 1 if the C<description> element of C<ClientStatus> is set, 0 otherwise.
+
+=item B<$ClientStatus-E<gt>clear_description()>
+
+Clears the C<description> element(s) of C<ClientStatus>.
+
+=item B<$description = $ClientStatus-E<gt>description()>
+
+Returns C<description> from C<ClientStatus>.  C<description> will be a string.
+
+=item B<$ClientStatus-E<gt>set_description($value)>
+
+Sets the value of C<description> in C<ClientStatus> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::Host Constructor
+
+=over 4
+
+=item B<$Host = HoneyClient::Message::Host-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Host>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Host Methods
+
+=over 4
+
+=item B<$Host2-E<gt>copy_from($Host1)>
+
+Copies the contents of C<Host1> into C<Host2>.
+C<Host2> is another instance of the same message type.
+
+=item B<$Host2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Host2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Host2-E<gt>merge_from($Host1)>
+
+Merges the contents of C<Host1> into C<Host2>.
+C<Host2> is another instance of the same message type.
+
+=item B<$Host2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Host2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Host-E<gt>clear()>
+
+Clears the contents of C<Host>.
+
+=item B<$init = $Host-E<gt>is_initialized()>
+
+Returns 1 if C<Host> has been initialized with data.
+
+=item B<$errstr = $Host-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Host-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Host>.
+
+=item B<$dstr = $Host-E<gt>debug_string()>
+
+Returns a string representation of C<Host>.
+
+=item B<$dstr = $Host-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Host>.
+
+=item B<$ok = $Host-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Host>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Host-E<gt>pack()>
+
+Serializes C<Host> into C<string>.
+
+=item B<$length = $Host-E<gt>length()>
+
+Returns the serialized length of C<Host>.
+
+=item B<@fields = $Host-E<gt>fields()>
+
+Returns the defined fields of C<Host>.
+
+=item B<$hashref = $Host-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_hostname = $Host-E<gt>has_hostname()>
+
+Returns 1 if the C<hostname> element of C<Host> is set, 0 otherwise.
+
+=item B<$Host-E<gt>clear_hostname()>
+
+Clears the C<hostname> element(s) of C<Host>.
+
+=item B<$hostname = $Host-E<gt>hostname()>
+
+Returns C<hostname> from C<Host>.  C<hostname> will be a string.
+
+=item B<$Host-E<gt>set_hostname($value)>
+
+Sets the value of C<hostname> in C<Host> to C<value>.  C<value> must be a string.
+
+=item B<$has_ip = $Host-E<gt>has_ip()>
+
+Returns 1 if the C<ip> element of C<Host> is set, 0 otherwise.
+
+=item B<$Host-E<gt>clear_ip()>
+
+Clears the C<ip> element(s) of C<Host>.
+
+=item B<$ip = $Host-E<gt>ip()>
+
+Returns C<ip> from C<Host>.  C<ip> will be a string.
+
+=item B<$Host-E<gt>set_ip($value)>
+
+Sets the value of C<ip> in C<Host> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::Client Constructor
+
+=over 4
+
+=item B<$Client = HoneyClient::Message::Client-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Client>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Client Methods
+
+=over 4
+
+=item B<$Client2-E<gt>copy_from($Client1)>
+
+Copies the contents of C<Client1> into C<Client2>.
+C<Client2> is another instance of the same message type.
+
+=item B<$Client2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Client2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Client2-E<gt>merge_from($Client1)>
+
+Merges the contents of C<Client1> into C<Client2>.
+C<Client2> is another instance of the same message type.
+
+=item B<$Client2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Client2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Client-E<gt>clear()>
+
+Clears the contents of C<Client>.
+
+=item B<$init = $Client-E<gt>is_initialized()>
+
+Returns 1 if C<Client> has been initialized with data.
+
+=item B<$errstr = $Client-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Client-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Client>.
+
+=item B<$dstr = $Client-E<gt>debug_string()>
+
+Returns a string representation of C<Client>.
+
+=item B<$dstr = $Client-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Client>.
+
+=item B<$ok = $Client-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Client>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Client-E<gt>pack()>
+
+Serializes C<Client> into C<string>.
+
+=item B<$length = $Client-E<gt>length()>
+
+Returns the serialized length of C<Client>.
+
+=item B<@fields = $Client-E<gt>fields()>
+
+Returns the defined fields of C<Client>.
+
+=item B<$hashref = $Client-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_quick_clone_name = $Client-E<gt>has_quick_clone_name()>
+
+Returns 1 if the C<quick_clone_name> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_quick_clone_name()>
+
+Clears the C<quick_clone_name> element(s) of C<Client>.
+
+=item B<$quick_clone_name = $Client-E<gt>quick_clone_name()>
+
+Returns C<quick_clone_name> from C<Client>.  C<quick_clone_name> will be a string.
+
+=item B<$Client-E<gt>set_quick_clone_name($value)>
+
+Sets the value of C<quick_clone_name> in C<Client> to C<value>.  C<value> must be a string.
+
+=item B<$has_snapshot_name = $Client-E<gt>has_snapshot_name()>
+
+Returns 1 if the C<snapshot_name> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_snapshot_name()>
+
+Clears the C<snapshot_name> element(s) of C<Client>.
+
+=item B<$snapshot_name = $Client-E<gt>snapshot_name()>
+
+Returns C<snapshot_name> from C<Client>.  C<snapshot_name> will be a string.
+
+=item B<$Client-E<gt>set_snapshot_name($value)>
+
+Sets the value of C<snapshot_name> in C<Client> to C<value>.  C<value> must be a string.
+
+=item B<$has_created_at = $Client-E<gt>has_created_at()>
+
+Returns 1 if the C<created_at> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_created_at()>
+
+Clears the C<created_at> element(s) of C<Client>.
+
+=item B<$created_at = $Client-E<gt>created_at()>
+
+Returns C<created_at> from C<Client>.  C<created_at> will be a string.
+
+=item B<$Client-E<gt>set_created_at($value)>
+
+Sets the value of C<created_at> in C<Client> to C<value>.  C<value> must be a string.
+
+=item B<$has_os = $Client-E<gt>has_os()>
+
+Returns 1 if the C<os> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_os()>
+
+Clears the C<os> element(s) of C<Client>.
+
+=item B<$os = $Client-E<gt>os()>
+
+Returns C<os> from C<Client>.  C<os> will be an instance of HoneyClient::Message::Os.
+
+=item B<$Client-E<gt>set_os($value)>
+
+Sets the value of C<os> in C<Client> to C<value>.  C<value> must be an instance of HoneyClient::Message::Os.
+
+=item B<$has_application = $Client-E<gt>has_application()>
+
+Returns 1 if the C<application> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_application()>
+
+Clears the C<application> element(s) of C<Client>.
+
+=item B<$application = $Client-E<gt>application()>
+
+Returns C<application> from C<Client>.  C<application> will be an instance of HoneyClient::Message::Application.
+
+=item B<$Client-E<gt>set_application($value)>
+
+Sets the value of C<application> in C<Client> to C<value>.  C<value> must be an instance of HoneyClient::Message::Application.
+
+=item B<$has_client_status = $Client-E<gt>has_client_status()>
+
+Returns 1 if the C<client_status> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_client_status()>
+
+Clears the C<client_status> element(s) of C<Client>.
+
+=item B<$client_status = $Client-E<gt>client_status()>
+
+Returns C<client_status> from C<Client>.  C<client_status> will be an instance of HoneyClient::Message::ClientStatus.
+
+=item B<$Client-E<gt>set_client_status($value)>
+
+Sets the value of C<client_status> in C<Client> to C<value>.  C<value> must be an instance of HoneyClient::Message::ClientStatus.
+
+=item B<$has_host = $Client-E<gt>has_host()>
+
+Returns 1 if the C<host> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_host()>
+
+Clears the C<host> element(s) of C<Client>.
+
+=item B<$host = $Client-E<gt>host()>
+
+Returns C<host> from C<Client>.  C<host> will be an instance of HoneyClient::Message::Host.
+
+=item B<$Client-E<gt>set_host($value)>
+
+Sets the value of C<host> in C<Client> to C<value>.  C<value> must be an instance of HoneyClient::Message::Host.
+
+=item B<$has_suspended_at = $Client-E<gt>has_suspended_at()>
+
+Returns 1 if the C<suspended_at> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_suspended_at()>
+
+Clears the C<suspended_at> element(s) of C<Client>.
+
+=item B<$suspended_at = $Client-E<gt>suspended_at()>
+
+Returns C<suspended_at> from C<Client>.  C<suspended_at> will be a string.
+
+=item B<$Client-E<gt>set_suspended_at($value)>
+
+Sets the value of C<suspended_at> in C<Client> to C<value>.  C<value> must be a string.
+
+=item B<$has_ip = $Client-E<gt>has_ip()>
+
+Returns 1 if the C<ip> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_ip()>
+
+Clears the C<ip> element(s) of C<Client>.
+
+=item B<$ip = $Client-E<gt>ip()>
+
+Returns C<ip> from C<Client>.  C<ip> will be a string.
+
+=item B<$Client-E<gt>set_ip($value)>
+
+Sets the value of C<ip> in C<Client> to C<value>.  C<value> must be a string.
+
+=item B<$has_mac = $Client-E<gt>has_mac()>
+
+Returns 1 if the C<mac> element of C<Client> is set, 0 otherwise.
+
+=item B<$Client-E<gt>clear_mac()>
+
+Clears the C<mac> element(s) of C<Client>.
+
+=item B<$mac = $Client-E<gt>mac()>
+
+Returns C<mac> from C<Client>.  C<mac> will be a string.
+
+=item B<$Client-E<gt>set_mac($value)>
+
+Sets the value of C<mac> in C<Client> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::Group Constructor
+
+=over 4
+
+=item B<$Group = HoneyClient::Message::Group-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Group>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Group Methods
+
+=over 4
+
+=item B<$Group2-E<gt>copy_from($Group1)>
+
+Copies the contents of C<Group1> into C<Group2>.
+C<Group2> is another instance of the same message type.
+
+=item B<$Group2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Group2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Group2-E<gt>merge_from($Group1)>
+
+Merges the contents of C<Group1> into C<Group2>.
+C<Group2> is another instance of the same message type.
+
+=item B<$Group2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Group2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Group-E<gt>clear()>
+
+Clears the contents of C<Group>.
+
+=item B<$init = $Group-E<gt>is_initialized()>
+
+Returns 1 if C<Group> has been initialized with data.
+
+=item B<$errstr = $Group-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Group-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Group>.
+
+=item B<$dstr = $Group-E<gt>debug_string()>
+
+Returns a string representation of C<Group>.
+
+=item B<$dstr = $Group-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Group>.
+
+=item B<$ok = $Group-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Group>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Group-E<gt>pack()>
+
+Serializes C<Group> into C<string>.
+
+=item B<$length = $Group-E<gt>length()>
+
+Returns the serialized length of C<Group>.
+
+=item B<@fields = $Group-E<gt>fields()>
+
+Returns the defined fields of C<Group>.
+
+=item B<$hashref = $Group-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_name = $Group-E<gt>has_name()>
+
+Returns 1 if the C<name> element of C<Group> is set, 0 otherwise.
+
+=item B<$Group-E<gt>clear_name()>
+
+Clears the C<name> element(s) of C<Group>.
+
+=item B<$name = $Group-E<gt>name()>
+
+Returns C<name> from C<Group>.  C<name> will be a string.
+
+=item B<$Group-E<gt>set_name($value)>
+
+Sets the value of C<name> in C<Group> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::JobSource Constructor
+
+=over 4
+
+=item B<$JobSource = HoneyClient::Message::JobSource-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::JobSource>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::JobSource Methods
+
+=over 4
+
+=item B<$JobSource2-E<gt>copy_from($JobSource1)>
+
+Copies the contents of C<JobSource1> into C<JobSource2>.
+C<JobSource2> is another instance of the same message type.
+
+=item B<$JobSource2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<JobSource2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$JobSource2-E<gt>merge_from($JobSource1)>
+
+Merges the contents of C<JobSource1> into C<JobSource2>.
+C<JobSource2> is another instance of the same message type.
+
+=item B<$JobSource2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<JobSource2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$JobSource-E<gt>clear()>
+
+Clears the contents of C<JobSource>.
+
+=item B<$init = $JobSource-E<gt>is_initialized()>
+
+Returns 1 if C<JobSource> has been initialized with data.
+
+=item B<$errstr = $JobSource-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$JobSource-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<JobSource>.
+
+=item B<$dstr = $JobSource-E<gt>debug_string()>
+
+Returns a string representation of C<JobSource>.
+
+=item B<$dstr = $JobSource-E<gt>short_debug_string()>
+
+Returns a short string representation of C<JobSource>.
+
+=item B<$ok = $JobSource-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<JobSource>, returning 1 on success and 0 on failure.
+
+=item B<$string = $JobSource-E<gt>pack()>
+
+Serializes C<JobSource> into C<string>.
+
+=item B<$length = $JobSource-E<gt>length()>
+
+Returns the serialized length of C<JobSource>.
+
+=item B<@fields = $JobSource-E<gt>fields()>
+
+Returns the defined fields of C<JobSource>.
+
+=item B<$hashref = $JobSource-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_name = $JobSource-E<gt>has_name()>
+
+Returns 1 if the C<name> element of C<JobSource> is set, 0 otherwise.
+
+=item B<$JobSource-E<gt>clear_name()>
+
+Clears the C<name> element(s) of C<JobSource>.
+
+=item B<$name = $JobSource-E<gt>name()>
+
+Returns C<name> from C<JobSource>.  C<name> will be a string.
+
+=item B<$JobSource-E<gt>set_name($value)>
+
+Sets the value of C<name> in C<JobSource> to C<value>.  C<value> must be a string.
+
+=item B<$has_protocol = $JobSource-E<gt>has_protocol()>
+
+Returns 1 if the C<protocol> element of C<JobSource> is set, 0 otherwise.
+
+=item B<$JobSource-E<gt>clear_protocol()>
+
+Clears the C<protocol> element(s) of C<JobSource>.
+
+=item B<$protocol = $JobSource-E<gt>protocol()>
+
+Returns C<protocol> from C<JobSource>.  C<protocol> will be a string.
+
+=item B<$JobSource-E<gt>set_protocol($value)>
+
+Sets the value of C<protocol> in C<JobSource> to C<value>.  C<value> must be a string.
+
+=item B<$has_group = $JobSource-E<gt>has_group()>
+
+Returns 1 if the C<group> element of C<JobSource> is set, 0 otherwise.
+
+=item B<$JobSource-E<gt>clear_group()>
+
+Clears the C<group> element(s) of C<JobSource>.
+
+=item B<$group = $JobSource-E<gt>group()>
+
+Returns C<group> from C<JobSource>.  C<group> will be an instance of HoneyClient::Message::Group.
+
+=item B<$JobSource-E<gt>set_group($value)>
+
+Sets the value of C<group> in C<JobSource> to C<value>.  C<value> must be an instance of HoneyClient::Message::Group.
+
+
+=back
+
+=head1 HoneyClient::Message::JobAlert Constructor
+
+=over 4
+
+=item B<$JobAlert = HoneyClient::Message::JobAlert-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::JobAlert>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::JobAlert Methods
+
+=over 4
+
+=item B<$JobAlert2-E<gt>copy_from($JobAlert1)>
+
+Copies the contents of C<JobAlert1> into C<JobAlert2>.
+C<JobAlert2> is another instance of the same message type.
+
+=item B<$JobAlert2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<JobAlert2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$JobAlert2-E<gt>merge_from($JobAlert1)>
+
+Merges the contents of C<JobAlert1> into C<JobAlert2>.
+C<JobAlert2> is another instance of the same message type.
+
+=item B<$JobAlert2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<JobAlert2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$JobAlert-E<gt>clear()>
+
+Clears the contents of C<JobAlert>.
+
+=item B<$init = $JobAlert-E<gt>is_initialized()>
+
+Returns 1 if C<JobAlert> has been initialized with data.
+
+=item B<$errstr = $JobAlert-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$JobAlert-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<JobAlert>.
+
+=item B<$dstr = $JobAlert-E<gt>debug_string()>
+
+Returns a string representation of C<JobAlert>.
+
+=item B<$dstr = $JobAlert-E<gt>short_debug_string()>
+
+Returns a short string representation of C<JobAlert>.
+
+=item B<$ok = $JobAlert-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<JobAlert>, returning 1 on success and 0 on failure.
+
+=item B<$string = $JobAlert-E<gt>pack()>
+
+Serializes C<JobAlert> into C<string>.
+
+=item B<$length = $JobAlert-E<gt>length()>
+
+Returns the serialized length of C<JobAlert>.
+
+=item B<@fields = $JobAlert-E<gt>fields()>
+
+Returns the defined fields of C<JobAlert>.
+
+=item B<$hashref = $JobAlert-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_protocol = $JobAlert-E<gt>has_protocol()>
+
+Returns 1 if the C<protocol> element of C<JobAlert> is set, 0 otherwise.
+
+=item B<$JobAlert-E<gt>clear_protocol()>
+
+Clears the C<protocol> element(s) of C<JobAlert>.
+
+=item B<$protocol = $JobAlert-E<gt>protocol()>
+
+Returns C<protocol> from C<JobAlert>.  C<protocol> will be a string.
+
+=item B<$JobAlert-E<gt>set_protocol($value)>
+
+Sets the value of C<protocol> in C<JobAlert> to C<value>.  C<value> must be a string.
+
+=item B<$has_address = $JobAlert-E<gt>has_address()>
+
+Returns 1 if the C<address> element of C<JobAlert> is set, 0 otherwise.
+
+=item B<$JobAlert-E<gt>clear_address()>
+
+Clears the C<address> element(s) of C<JobAlert>.
+
+=item B<$address = $JobAlert-E<gt>address()>
+
+Returns C<address> from C<JobAlert>.  C<address> will be a string.
+
+=item B<$JobAlert-E<gt>set_address($value)>
+
+Sets the value of C<address> in C<JobAlert> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::UrlStatus Constructor
+
+=over 4
+
+=item B<$UrlStatus = HoneyClient::Message::UrlStatus-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::UrlStatus>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::UrlStatus Methods
+
+=over 4
+
+=item B<$UrlStatus2-E<gt>copy_from($UrlStatus1)>
+
+Copies the contents of C<UrlStatus1> into C<UrlStatus2>.
+C<UrlStatus2> is another instance of the same message type.
+
+=item B<$UrlStatus2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<UrlStatus2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$UrlStatus2-E<gt>merge_from($UrlStatus1)>
+
+Merges the contents of C<UrlStatus1> into C<UrlStatus2>.
+C<UrlStatus2> is another instance of the same message type.
+
+=item B<$UrlStatus2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<UrlStatus2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$UrlStatus-E<gt>clear()>
+
+Clears the contents of C<UrlStatus>.
+
+=item B<$init = $UrlStatus-E<gt>is_initialized()>
+
+Returns 1 if C<UrlStatus> has been initialized with data.
+
+=item B<$errstr = $UrlStatus-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$UrlStatus-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<UrlStatus>.
+
+=item B<$dstr = $UrlStatus-E<gt>debug_string()>
+
+Returns a string representation of C<UrlStatus>.
+
+=item B<$dstr = $UrlStatus-E<gt>short_debug_string()>
+
+Returns a short string representation of C<UrlStatus>.
+
+=item B<$ok = $UrlStatus-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<UrlStatus>, returning 1 on success and 0 on failure.
+
+=item B<$string = $UrlStatus-E<gt>pack()>
+
+Serializes C<UrlStatus> into C<string>.
+
+=item B<$length = $UrlStatus-E<gt>length()>
+
+Returns the serialized length of C<UrlStatus>.
+
+=item B<@fields = $UrlStatus-E<gt>fields()>
+
+Returns the defined fields of C<UrlStatus>.
+
+=item B<$hashref = $UrlStatus-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_status = $UrlStatus-E<gt>has_status()>
+
+Returns 1 if the C<status> element of C<UrlStatus> is set, 0 otherwise.
+
+=item B<$UrlStatus-E<gt>clear_status()>
+
+Clears the C<status> element(s) of C<UrlStatus>.
+
+=item B<$status = $UrlStatus-E<gt>status()>
+
+Returns C<status> from C<UrlStatus>.  C<status> will be a string.
+
+=item B<$UrlStatus-E<gt>set_status($value)>
+
+Sets the value of C<status> in C<UrlStatus> to C<value>.  C<value> must be a string.
+
+=item B<$has_description = $UrlStatus-E<gt>has_description()>
+
+Returns 1 if the C<description> element of C<UrlStatus> is set, 0 otherwise.
+
+=item B<$UrlStatus-E<gt>clear_description()>
+
+Clears the C<description> element(s) of C<UrlStatus>.
+
+=item B<$description = $UrlStatus-E<gt>description()>
+
+Returns C<description> from C<UrlStatus>.  C<description> will be a string.
+
+=item B<$UrlStatus-E<gt>set_description($value)>
+
+Sets the value of C<description> in C<UrlStatus> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::Url Constructor
+
+=over 4
+
+=item B<$Url = HoneyClient::Message::Url-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Url>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Url Methods
+
+=over 4
+
+=item B<$Url2-E<gt>copy_from($Url1)>
+
+Copies the contents of C<Url1> into C<Url2>.
+C<Url2> is another instance of the same message type.
+
+=item B<$Url2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Url2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Url2-E<gt>merge_from($Url1)>
+
+Merges the contents of C<Url1> into C<Url2>.
+C<Url2> is another instance of the same message type.
+
+=item B<$Url2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Url2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Url-E<gt>clear()>
+
+Clears the contents of C<Url>.
+
+=item B<$init = $Url-E<gt>is_initialized()>
+
+Returns 1 if C<Url> has been initialized with data.
+
+=item B<$errstr = $Url-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Url-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Url>.
+
+=item B<$dstr = $Url-E<gt>debug_string()>
+
+Returns a string representation of C<Url>.
+
+=item B<$dstr = $Url-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Url>.
+
+=item B<$ok = $Url-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Url>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Url-E<gt>pack()>
+
+Serializes C<Url> into C<string>.
+
+=item B<$length = $Url-E<gt>length()>
+
+Returns the serialized length of C<Url>.
+
+=item B<@fields = $Url-E<gt>fields()>
+
+Returns the defined fields of C<Url>.
+
+=item B<$hashref = $Url-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_url = $Url-E<gt>has_url()>
+
+Returns 1 if the C<url> element of C<Url> is set, 0 otherwise.
+
+=item B<$Url-E<gt>clear_url()>
+
+Clears the C<url> element(s) of C<Url>.
+
+=item B<$url = $Url-E<gt>url()>
+
+Returns C<url> from C<Url>.  C<url> will be a string.
+
+=item B<$Url-E<gt>set_url($value)>
+
+Sets the value of C<url> in C<Url> to C<value>.  C<value> must be a string.
+
+=item B<$has_priority = $Url-E<gt>has_priority()>
+
+Returns 1 if the C<priority> element of C<Url> is set, 0 otherwise.
+
+=item B<$Url-E<gt>clear_priority()>
+
+Clears the C<priority> element(s) of C<Url>.
+
+=item B<$priority = $Url-E<gt>priority()>
+
+Returns C<priority> from C<Url>.  C<priority> will be a 64-bit unsigned integer.
+
+=item B<$Url-E<gt>set_priority($value)>
+
+Sets the value of C<priority> in C<Url> to C<value>.  C<value> must be a 64-bit unsigned integer.
+
+=item B<$has_url_status = $Url-E<gt>has_url_status()>
+
+Returns 1 if the C<url_status> element of C<Url> is set, 0 otherwise.
+
+=item B<$Url-E<gt>clear_url_status()>
+
+Clears the C<url_status> element(s) of C<Url>.
+
+=item B<$url_status = $Url-E<gt>url_status()>
+
+Returns C<url_status> from C<Url>.  C<url_status> will be an instance of HoneyClient::Message::UrlStatus.
+
+=item B<$Url-E<gt>set_url_status($value)>
+
+Sets the value of C<url_status> in C<Url> to C<value>.  C<value> must be an instance of HoneyClient::Message::UrlStatus.
+
+=item B<$has_time_at = $Url-E<gt>has_time_at()>
+
+Returns 1 if the C<time_at> element of C<Url> is set, 0 otherwise.
+
+=item B<$Url-E<gt>clear_time_at()>
+
+Clears the C<time_at> element(s) of C<Url>.
+
+=item B<$time_at = $Url-E<gt>time_at()>
+
+Returns C<time_at> from C<Url>.  C<time_at> will be a floating point number.
+
+=item B<$Url-E<gt>set_time_at($value)>
+
+Sets the value of C<time_at> in C<Url> to C<value>.  C<value> must be a floating point number.
+
+=item B<$has_client = $Url-E<gt>has_client()>
+
+Returns 1 if the C<client> element of C<Url> is set, 0 otherwise.
+
+=item B<$Url-E<gt>clear_client()>
+
+Clears the C<client> element(s) of C<Url>.
+
+=item B<$client = $Url-E<gt>client()>
+
+Returns C<client> from C<Url>.  C<client> will be an instance of HoneyClient::Message::Client.
+
+=item B<$Url-E<gt>set_client($value)>
+
+Sets the value of C<client> in C<Url> to C<value>.  C<value> must be an instance of HoneyClient::Message::Client.
+
+=item B<$has_ip = $Url-E<gt>has_ip()>
+
+Returns 1 if the C<ip> element of C<Url> is set, 0 otherwise.
+
+=item B<$Url-E<gt>clear_ip()>
+
+Clears the C<ip> element(s) of C<Url>.
+
+=item B<$ip = $Url-E<gt>ip()>
+
+Returns C<ip> from C<Url>.  C<ip> will be a string.
+
+=item B<$Url-E<gt>set_ip($value)>
+
+Sets the value of C<ip> in C<Url> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::Job Constructor
+
+=over 4
+
+=item B<$Job = HoneyClient::Message::Job-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Job>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Job Methods
+
+=over 4
+
+=item B<$Job2-E<gt>copy_from($Job1)>
+
+Copies the contents of C<Job1> into C<Job2>.
+C<Job2> is another instance of the same message type.
+
+=item B<$Job2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Job2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Job2-E<gt>merge_from($Job1)>
+
+Merges the contents of C<Job1> into C<Job2>.
+C<Job2> is another instance of the same message type.
+
+=item B<$Job2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Job2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Job-E<gt>clear()>
+
+Clears the contents of C<Job>.
+
+=item B<$init = $Job-E<gt>is_initialized()>
+
+Returns 1 if C<Job> has been initialized with data.
+
+=item B<$errstr = $Job-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Job-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Job>.
+
+=item B<$dstr = $Job-E<gt>debug_string()>
+
+Returns a string representation of C<Job>.
+
+=item B<$dstr = $Job-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Job>.
+
+=item B<$ok = $Job-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Job>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Job-E<gt>pack()>
+
+Serializes C<Job> into C<string>.
+
+=item B<$length = $Job-E<gt>length()>
+
+Returns the serialized length of C<Job>.
+
+=item B<@fields = $Job-E<gt>fields()>
+
+Returns the defined fields of C<Job>.
+
+=item B<$hashref = $Job-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_uuid = $Job-E<gt>has_uuid()>
+
+Returns 1 if the C<uuid> element of C<Job> is set, 0 otherwise.
+
+=item B<$Job-E<gt>clear_uuid()>
+
+Clears the C<uuid> element(s) of C<Job>.
+
+=item B<$uuid = $Job-E<gt>uuid()>
+
+Returns C<uuid> from C<Job>.  C<uuid> will be a string.
+
+=item B<$Job-E<gt>set_uuid($value)>
+
+Sets the value of C<uuid> in C<Job> to C<value>.  C<value> must be a string.
+
+=item B<$has_job_source = $Job-E<gt>has_job_source()>
+
+Returns 1 if the C<job_source> element of C<Job> is set, 0 otherwise.
+
+=item B<$Job-E<gt>clear_job_source()>
+
+Clears the C<job_source> element(s) of C<Job>.
+
+=item B<$job_source = $Job-E<gt>job_source()>
+
+Returns C<job_source> from C<Job>.  C<job_source> will be an instance of HoneyClient::Message::JobSource.
+
+=item B<$Job-E<gt>set_job_source($value)>
+
+Sets the value of C<job_source> in C<Job> to C<value>.  C<value> must be an instance of HoneyClient::Message::JobSource.
+
+=item B<$has_created_at = $Job-E<gt>has_created_at()>
+
+Returns 1 if the C<created_at> element of C<Job> is set, 0 otherwise.
+
+=item B<$Job-E<gt>clear_created_at()>
+
+Clears the C<created_at> element(s) of C<Job>.
+
+=item B<$created_at = $Job-E<gt>created_at()>
+
+Returns C<created_at> from C<Job>.  C<created_at> will be a string.
+
+=item B<$Job-E<gt>set_created_at($value)>
+
+Sets the value of C<created_at> in C<Job> to C<value>.  C<value> must be a string.
+
+=item B<$has_completed_at = $Job-E<gt>has_completed_at()>
+
+Returns 1 if the C<completed_at> element of C<Job> is set, 0 otherwise.
+
+=item B<$Job-E<gt>clear_completed_at()>
+
+Clears the C<completed_at> element(s) of C<Job>.
+
+=item B<$completed_at = $Job-E<gt>completed_at()>
+
+Returns C<completed_at> from C<Job>.  C<completed_at> will be a string.
+
+=item B<$Job-E<gt>set_completed_at($value)>
+
+Sets the value of C<completed_at> in C<Job> to C<value>.  C<value> must be a string.
+
+=item B<$has_client = $Job-E<gt>has_client()>
+
+Returns 1 if the C<client> element of C<Job> is set, 0 otherwise.
+
+=item B<$Job-E<gt>clear_client()>
+
+Clears the C<client> element(s) of C<Job>.
+
+=item B<$client = $Job-E<gt>client()>
+
+Returns C<client> from C<Job>.  C<client> will be an instance of HoneyClient::Message::Client.
+
+=item B<$Job-E<gt>set_client($value)>
+
+Sets the value of C<client> in C<Job> to C<value>.  C<value> must be an instance of HoneyClient::Message::Client.
+
+=item B<$job_alerts_size = $Job-E<gt>job_alerts_size()>
+
+Returns the number of C<job_alerts> elements present in C<Job>.
+
+=item B<$Job-E<gt>clear_job_alerts()>
+
+Clears the C<job_alerts> element(s) of C<Job>.
+
+=item B<@job_alerts_list = $Job-E<gt>job_alerts()>
+
+Returns all values of C<job_alerts> in an array.  Each element of C<job_alerts_list> will be an instance of HoneyClient::Message::JobAlert.
+
+=item B<$job_alerts_elem = $Job-E<gt>job_alerts($index)>
+
+Returns C<job_alerts> element C<index> from C<Job>.  C<job_alerts> will be an instance of HoneyClient::Message::JobAlert, unless C<index> is out of range, in which case it will be undef.
+
+=item B<$Job-E<gt>add_job_alerts($value)>
+
+Adds C<value> to the list of C<job_alerts> in C<Job>.  C<value> must be an instance of HoneyClient::Message::JobAlert.
+
+=item B<$urls_size = $Job-E<gt>urls_size()>
+
+Returns the number of C<urls> elements present in C<Job>.
+
+=item B<$Job-E<gt>clear_urls()>
+
+Clears the C<urls> element(s) of C<Job>.
+
+=item B<@urls_list = $Job-E<gt>urls()>
+
+Returns all values of C<urls> in an array.  Each element of C<urls_list> will be an instance of HoneyClient::Message::Url.
+
+=item B<$urls_elem = $Job-E<gt>urls($index)>
+
+Returns C<urls> element C<index> from C<Job>.  C<urls> will be an instance of HoneyClient::Message::Url, unless C<index> is out of range, in which case it will be undef.
+
+=item B<$Job-E<gt>add_urls($value)>
+
+Adds C<value> to the list of C<urls> in C<Job>.  C<value> must be an instance of HoneyClient::Message::Url.
+
+
+=back
+
+=head1 HoneyClient::Message::FileContent Constructor
+
+=over 4
+
+=item B<$FileContent = HoneyClient::Message::FileContent-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::FileContent>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::FileContent Methods
+
+=over 4
+
+=item B<$FileContent2-E<gt>copy_from($FileContent1)>
+
+Copies the contents of C<FileContent1> into C<FileContent2>.
+C<FileContent2> is another instance of the same message type.
+
+=item B<$FileContent2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<FileContent2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$FileContent2-E<gt>merge_from($FileContent1)>
+
+Merges the contents of C<FileContent1> into C<FileContent2>.
+C<FileContent2> is another instance of the same message type.
+
+=item B<$FileContent2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<FileContent2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$FileContent-E<gt>clear()>
+
+Clears the contents of C<FileContent>.
+
+=item B<$init = $FileContent-E<gt>is_initialized()>
+
+Returns 1 if C<FileContent> has been initialized with data.
+
+=item B<$errstr = $FileContent-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$FileContent-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<FileContent>.
+
+=item B<$dstr = $FileContent-E<gt>debug_string()>
+
+Returns a string representation of C<FileContent>.
+
+=item B<$dstr = $FileContent-E<gt>short_debug_string()>
+
+Returns a short string representation of C<FileContent>.
+
+=item B<$ok = $FileContent-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<FileContent>, returning 1 on success and 0 on failure.
+
+=item B<$string = $FileContent-E<gt>pack()>
+
+Serializes C<FileContent> into C<string>.
+
+=item B<$length = $FileContent-E<gt>length()>
+
+Returns the serialized length of C<FileContent>.
+
+=item B<@fields = $FileContent-E<gt>fields()>
+
+Returns the defined fields of C<FileContent>.
+
+=item B<$hashref = $FileContent-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_size = $FileContent-E<gt>has_size()>
+
+Returns 1 if the C<size> element of C<FileContent> is set, 0 otherwise.
+
+=item B<$FileContent-E<gt>clear_size()>
+
+Clears the C<size> element(s) of C<FileContent>.
+
+=item B<$size = $FileContent-E<gt>size()>
+
+Returns C<size> from C<FileContent>.  C<size> will be a 64-bit unsigned integer.
+
+=item B<$FileContent-E<gt>set_size($value)>
+
+Sets the value of C<size> in C<FileContent> to C<value>.  C<value> must be a 64-bit unsigned integer.
+
+=item B<$has_md5 = $FileContent-E<gt>has_md5()>
+
+Returns 1 if the C<md5> element of C<FileContent> is set, 0 otherwise.
+
+=item B<$FileContent-E<gt>clear_md5()>
+
+Clears the C<md5> element(s) of C<FileContent>.
+
+=item B<$md5 = $FileContent-E<gt>md5()>
+
+Returns C<md5> from C<FileContent>.  C<md5> will be a string.
+
+=item B<$FileContent-E<gt>set_md5($value)>
+
+Sets the value of C<md5> in C<FileContent> to C<value>.  C<value> must be a string.
+
+=item B<$has_sha1 = $FileContent-E<gt>has_sha1()>
+
+Returns 1 if the C<sha1> element of C<FileContent> is set, 0 otherwise.
+
+=item B<$FileContent-E<gt>clear_sha1()>
+
+Clears the C<sha1> element(s) of C<FileContent>.
+
+=item B<$sha1 = $FileContent-E<gt>sha1()>
+
+Returns C<sha1> from C<FileContent>.  C<sha1> will be a string.
+
+=item B<$FileContent-E<gt>set_sha1($value)>
+
+Sets the value of C<sha1> in C<FileContent> to C<value>.  C<value> must be a string.
+
+=item B<$has_mime_type = $FileContent-E<gt>has_mime_type()>
+
+Returns 1 if the C<mime_type> element of C<FileContent> is set, 0 otherwise.
+
+=item B<$FileContent-E<gt>clear_mime_type()>
+
+Clears the C<mime_type> element(s) of C<FileContent>.
+
+=item B<$mime_type = $FileContent-E<gt>mime_type()>
+
+Returns C<mime_type> from C<FileContent>.  C<mime_type> will be a string.
+
+=item B<$FileContent-E<gt>set_mime_type($value)>
+
+Sets the value of C<mime_type> in C<FileContent> to C<value>.  C<value> must be a string.
+
+=item B<$has_data = $FileContent-E<gt>has_data()>
+
+Returns 1 if the C<data> element of C<FileContent> is set, 0 otherwise.
+
+=item B<$FileContent-E<gt>clear_data()>
+
+Clears the C<data> element(s) of C<FileContent>.
+
+=item B<$data = $FileContent-E<gt>data()>
+
+Returns C<data> from C<FileContent>.  C<data> will be a string.
+
+=item B<$FileContent-E<gt>set_data($value)>
+
+Sets the value of C<data> in C<FileContent> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::ProcessFile Constructor
+
+=over 4
+
+=item B<$ProcessFile = HoneyClient::Message::ProcessFile-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::ProcessFile>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::ProcessFile Methods
+
+=over 4
+
+=item B<$ProcessFile2-E<gt>copy_from($ProcessFile1)>
+
+Copies the contents of C<ProcessFile1> into C<ProcessFile2>.
+C<ProcessFile2> is another instance of the same message type.
+
+=item B<$ProcessFile2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<ProcessFile2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$ProcessFile2-E<gt>merge_from($ProcessFile1)>
+
+Merges the contents of C<ProcessFile1> into C<ProcessFile2>.
+C<ProcessFile2> is another instance of the same message type.
+
+=item B<$ProcessFile2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<ProcessFile2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$ProcessFile-E<gt>clear()>
+
+Clears the contents of C<ProcessFile>.
+
+=item B<$init = $ProcessFile-E<gt>is_initialized()>
+
+Returns 1 if C<ProcessFile> has been initialized with data.
+
+=item B<$errstr = $ProcessFile-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$ProcessFile-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<ProcessFile>.
+
+=item B<$dstr = $ProcessFile-E<gt>debug_string()>
+
+Returns a string representation of C<ProcessFile>.
+
+=item B<$dstr = $ProcessFile-E<gt>short_debug_string()>
+
+Returns a short string representation of C<ProcessFile>.
+
+=item B<$ok = $ProcessFile-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<ProcessFile>, returning 1 on success and 0 on failure.
+
+=item B<$string = $ProcessFile-E<gt>pack()>
+
+Serializes C<ProcessFile> into C<string>.
+
+=item B<$length = $ProcessFile-E<gt>length()>
+
+Returns the serialized length of C<ProcessFile>.
+
+=item B<@fields = $ProcessFile-E<gt>fields()>
+
+Returns the defined fields of C<ProcessFile>.
+
+=item B<$hashref = $ProcessFile-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_time_at = $ProcessFile-E<gt>has_time_at()>
+
+Returns 1 if the C<time_at> element of C<ProcessFile> is set, 0 otherwise.
+
+=item B<$ProcessFile-E<gt>clear_time_at()>
+
+Clears the C<time_at> element(s) of C<ProcessFile>.
+
+=item B<$time_at = $ProcessFile-E<gt>time_at()>
+
+Returns C<time_at> from C<ProcessFile>.  C<time_at> will be a floating point number.
+
+=item B<$ProcessFile-E<gt>set_time_at($value)>
+
+Sets the value of C<time_at> in C<ProcessFile> to C<value>.  C<value> must be a floating point number.
+
+=item B<$has_name = $ProcessFile-E<gt>has_name()>
+
+Returns 1 if the C<name> element of C<ProcessFile> is set, 0 otherwise.
+
+=item B<$ProcessFile-E<gt>clear_name()>
+
+Clears the C<name> element(s) of C<ProcessFile>.
+
+=item B<$name = $ProcessFile-E<gt>name()>
+
+Returns C<name> from C<ProcessFile>.  C<name> will be a string.
+
+=item B<$ProcessFile-E<gt>set_name($value)>
+
+Sets the value of C<name> in C<ProcessFile> to C<value>.  C<value> must be a string.
+
+=item B<$has_event = $ProcessFile-E<gt>has_event()>
+
+Returns 1 if the C<event> element of C<ProcessFile> is set, 0 otherwise.
+
+=item B<$ProcessFile-E<gt>clear_event()>
+
+Clears the C<event> element(s) of C<ProcessFile>.
+
+=item B<$event = $ProcessFile-E<gt>event()>
+
+Returns C<event> from C<ProcessFile>.  C<event> will be a string.
+
+=item B<$ProcessFile-E<gt>set_event($value)>
+
+Sets the value of C<event> in C<ProcessFile> to C<value>.  C<value> must be a string.
+
+=item B<$has_file_content = $ProcessFile-E<gt>has_file_content()>
+
+Returns 1 if the C<file_content> element of C<ProcessFile> is set, 0 otherwise.
+
+=item B<$ProcessFile-E<gt>clear_file_content()>
+
+Clears the C<file_content> element(s) of C<ProcessFile>.
+
+=item B<$file_content = $ProcessFile-E<gt>file_content()>
+
+Returns C<file_content> from C<ProcessFile>.  C<file_content> will be an instance of HoneyClient::Message::FileContent.
+
+=item B<$ProcessFile-E<gt>set_file_content($value)>
+
+Sets the value of C<file_content> in C<ProcessFile> to C<value>.  C<value> must be an instance of HoneyClient::Message::FileContent.
+
+
+=back
+
+=head1 HoneyClient::Message::ProcessRegistry Constructor
+
+=over 4
+
+=item B<$ProcessRegistry = HoneyClient::Message::ProcessRegistry-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::ProcessRegistry>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::ProcessRegistry Methods
+
+=over 4
+
+=item B<$ProcessRegistry2-E<gt>copy_from($ProcessRegistry1)>
+
+Copies the contents of C<ProcessRegistry1> into C<ProcessRegistry2>.
+C<ProcessRegistry2> is another instance of the same message type.
+
+=item B<$ProcessRegistry2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<ProcessRegistry2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$ProcessRegistry2-E<gt>merge_from($ProcessRegistry1)>
+
+Merges the contents of C<ProcessRegistry1> into C<ProcessRegistry2>.
+C<ProcessRegistry2> is another instance of the same message type.
+
+=item B<$ProcessRegistry2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<ProcessRegistry2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$ProcessRegistry-E<gt>clear()>
+
+Clears the contents of C<ProcessRegistry>.
+
+=item B<$init = $ProcessRegistry-E<gt>is_initialized()>
+
+Returns 1 if C<ProcessRegistry> has been initialized with data.
+
+=item B<$errstr = $ProcessRegistry-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$ProcessRegistry-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<ProcessRegistry>.
+
+=item B<$dstr = $ProcessRegistry-E<gt>debug_string()>
+
+Returns a string representation of C<ProcessRegistry>.
+
+=item B<$dstr = $ProcessRegistry-E<gt>short_debug_string()>
+
+Returns a short string representation of C<ProcessRegistry>.
+
+=item B<$ok = $ProcessRegistry-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<ProcessRegistry>, returning 1 on success and 0 on failure.
+
+=item B<$string = $ProcessRegistry-E<gt>pack()>
+
+Serializes C<ProcessRegistry> into C<string>.
+
+=item B<$length = $ProcessRegistry-E<gt>length()>
+
+Returns the serialized length of C<ProcessRegistry>.
+
+=item B<@fields = $ProcessRegistry-E<gt>fields()>
+
+Returns the defined fields of C<ProcessRegistry>.
+
+=item B<$hashref = $ProcessRegistry-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_time_at = $ProcessRegistry-E<gt>has_time_at()>
+
+Returns 1 if the C<time_at> element of C<ProcessRegistry> is set, 0 otherwise.
+
+=item B<$ProcessRegistry-E<gt>clear_time_at()>
+
+Clears the C<time_at> element(s) of C<ProcessRegistry>.
+
+=item B<$time_at = $ProcessRegistry-E<gt>time_at()>
+
+Returns C<time_at> from C<ProcessRegistry>.  C<time_at> will be a floating point number.
+
+=item B<$ProcessRegistry-E<gt>set_time_at($value)>
+
+Sets the value of C<time_at> in C<ProcessRegistry> to C<value>.  C<value> must be a floating point number.
+
+=item B<$has_name = $ProcessRegistry-E<gt>has_name()>
+
+Returns 1 if the C<name> element of C<ProcessRegistry> is set, 0 otherwise.
+
+=item B<$ProcessRegistry-E<gt>clear_name()>
+
+Clears the C<name> element(s) of C<ProcessRegistry>.
+
+=item B<$name = $ProcessRegistry-E<gt>name()>
+
+Returns C<name> from C<ProcessRegistry>.  C<name> will be a string.
+
+=item B<$ProcessRegistry-E<gt>set_name($value)>
+
+Sets the value of C<name> in C<ProcessRegistry> to C<value>.  C<value> must be a string.
+
+=item B<$has_event = $ProcessRegistry-E<gt>has_event()>
+
+Returns 1 if the C<event> element of C<ProcessRegistry> is set, 0 otherwise.
+
+=item B<$ProcessRegistry-E<gt>clear_event()>
+
+Clears the C<event> element(s) of C<ProcessRegistry>.
+
+=item B<$event = $ProcessRegistry-E<gt>event()>
+
+Returns C<event> from C<ProcessRegistry>.  C<event> will be a string.
+
+=item B<$ProcessRegistry-E<gt>set_event($value)>
+
+Sets the value of C<event> in C<ProcessRegistry> to C<value>.  C<value> must be a string.
+
+=item B<$has_value_name = $ProcessRegistry-E<gt>has_value_name()>
+
+Returns 1 if the C<value_name> element of C<ProcessRegistry> is set, 0 otherwise.
+
+=item B<$ProcessRegistry-E<gt>clear_value_name()>
+
+Clears the C<value_name> element(s) of C<ProcessRegistry>.
+
+=item B<$value_name = $ProcessRegistry-E<gt>value_name()>
+
+Returns C<value_name> from C<ProcessRegistry>.  C<value_name> will be a string.
+
+=item B<$ProcessRegistry-E<gt>set_value_name($value)>
+
+Sets the value of C<value_name> in C<ProcessRegistry> to C<value>.  C<value> must be a string.
+
+=item B<$has_value_type = $ProcessRegistry-E<gt>has_value_type()>
+
+Returns 1 if the C<value_type> element of C<ProcessRegistry> is set, 0 otherwise.
+
+=item B<$ProcessRegistry-E<gt>clear_value_type()>
+
+Clears the C<value_type> element(s) of C<ProcessRegistry>.
+
+=item B<$value_type = $ProcessRegistry-E<gt>value_type()>
+
+Returns C<value_type> from C<ProcessRegistry>.  C<value_type> will be a string.
+
+=item B<$ProcessRegistry-E<gt>set_value_type($value)>
+
+Sets the value of C<value_type> in C<ProcessRegistry> to C<value>.  C<value> must be a string.
+
+=item B<$has_value = $ProcessRegistry-E<gt>has_value()>
+
+Returns 1 if the C<value> element of C<ProcessRegistry> is set, 0 otherwise.
+
+=item B<$ProcessRegistry-E<gt>clear_value()>
+
+Clears the C<value> element(s) of C<ProcessRegistry>.
+
+=item B<$value = $ProcessRegistry-E<gt>value()>
+
+Returns C<value> from C<ProcessRegistry>.  C<value> will be a string.
+
+=item B<$ProcessRegistry-E<gt>set_value($value)>
+
+Sets the value of C<value> in C<ProcessRegistry> to C<value>.  C<value> must be a string.
+
+
+=back
+
+=head1 HoneyClient::Message::OsProcess Constructor
+
+=over 4
+
+=item B<$OsProcess = HoneyClient::Message::OsProcess-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::OsProcess>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::OsProcess Methods
+
+=over 4
+
+=item B<$OsProcess2-E<gt>copy_from($OsProcess1)>
+
+Copies the contents of C<OsProcess1> into C<OsProcess2>.
+C<OsProcess2> is another instance of the same message type.
+
+=item B<$OsProcess2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<OsProcess2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$OsProcess2-E<gt>merge_from($OsProcess1)>
+
+Merges the contents of C<OsProcess1> into C<OsProcess2>.
+C<OsProcess2> is another instance of the same message type.
+
+=item B<$OsProcess2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<OsProcess2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$OsProcess-E<gt>clear()>
+
+Clears the contents of C<OsProcess>.
+
+=item B<$init = $OsProcess-E<gt>is_initialized()>
+
+Returns 1 if C<OsProcess> has been initialized with data.
+
+=item B<$errstr = $OsProcess-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$OsProcess-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<OsProcess>.
+
+=item B<$dstr = $OsProcess-E<gt>debug_string()>
+
+Returns a string representation of C<OsProcess>.
+
+=item B<$dstr = $OsProcess-E<gt>short_debug_string()>
+
+Returns a short string representation of C<OsProcess>.
+
+=item B<$ok = $OsProcess-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<OsProcess>, returning 1 on success and 0 on failure.
+
+=item B<$string = $OsProcess-E<gt>pack()>
+
+Serializes C<OsProcess> into C<string>.
+
+=item B<$length = $OsProcess-E<gt>length()>
+
+Returns the serialized length of C<OsProcess>.
+
+=item B<@fields = $OsProcess-E<gt>fields()>
+
+Returns the defined fields of C<OsProcess>.
+
+=item B<$hashref = $OsProcess-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_name = $OsProcess-E<gt>has_name()>
+
+Returns 1 if the C<name> element of C<OsProcess> is set, 0 otherwise.
+
+=item B<$OsProcess-E<gt>clear_name()>
+
+Clears the C<name> element(s) of C<OsProcess>.
+
+=item B<$name = $OsProcess-E<gt>name()>
+
+Returns C<name> from C<OsProcess>.  C<name> will be a string.
+
+=item B<$OsProcess-E<gt>set_name($value)>
+
+Sets the value of C<name> in C<OsProcess> to C<value>.  C<value> must be a string.
+
+=item B<$has_pid = $OsProcess-E<gt>has_pid()>
+
+Returns 1 if the C<pid> element of C<OsProcess> is set, 0 otherwise.
+
+=item B<$OsProcess-E<gt>clear_pid()>
+
+Clears the C<pid> element(s) of C<OsProcess>.
+
+=item B<$pid = $OsProcess-E<gt>pid()>
+
+Returns C<pid> from C<OsProcess>.  C<pid> will be a 64-bit unsigned integer.
+
+=item B<$OsProcess-E<gt>set_pid($value)>
+
+Sets the value of C<pid> in C<OsProcess> to C<value>.  C<value> must be a 64-bit unsigned integer.
+
+=item B<$has_parent_name = $OsProcess-E<gt>has_parent_name()>
+
+Returns 1 if the C<parent_name> element of C<OsProcess> is set, 0 otherwise.
+
+=item B<$OsProcess-E<gt>clear_parent_name()>
+
+Clears the C<parent_name> element(s) of C<OsProcess>.
+
+=item B<$parent_name = $OsProcess-E<gt>parent_name()>
+
+Returns C<parent_name> from C<OsProcess>.  C<parent_name> will be a string.
+
+=item B<$OsProcess-E<gt>set_parent_name($value)>
+
+Sets the value of C<parent_name> in C<OsProcess> to C<value>.  C<value> must be a string.
+
+=item B<$has_parent_pid = $OsProcess-E<gt>has_parent_pid()>
+
+Returns 1 if the C<parent_pid> element of C<OsProcess> is set, 0 otherwise.
+
+=item B<$OsProcess-E<gt>clear_parent_pid()>
+
+Clears the C<parent_pid> element(s) of C<OsProcess>.
+
+=item B<$parent_pid = $OsProcess-E<gt>parent_pid()>
+
+Returns C<parent_pid> from C<OsProcess>.  C<parent_pid> will be a 64-bit unsigned integer.
+
+=item B<$OsProcess-E<gt>set_parent_pid($value)>
+
+Sets the value of C<parent_pid> in C<OsProcess> to C<value>.  C<value> must be a 64-bit unsigned integer.
+
+=item B<$process_files_size = $OsProcess-E<gt>process_files_size()>
+
+Returns the number of C<process_files> elements present in C<OsProcess>.
+
+=item B<$OsProcess-E<gt>clear_process_files()>
+
+Clears the C<process_files> element(s) of C<OsProcess>.
+
+=item B<@process_files_list = $OsProcess-E<gt>process_files()>
+
+Returns all values of C<process_files> in an array.  Each element of C<process_files_list> will be an instance of HoneyClient::Message::ProcessFile.
+
+=item B<$process_files_elem = $OsProcess-E<gt>process_files($index)>
+
+Returns C<process_files> element C<index> from C<OsProcess>.  C<process_files> will be an instance of HoneyClient::Message::ProcessFile, unless C<index> is out of range, in which case it will be undef.
+
+=item B<$OsProcess-E<gt>add_process_files($value)>
+
+Adds C<value> to the list of C<process_files> in C<OsProcess>.  C<value> must be an instance of HoneyClient::Message::ProcessFile.
+
+=item B<$process_registries_size = $OsProcess-E<gt>process_registries_size()>
+
+Returns the number of C<process_registries> elements present in C<OsProcess>.
+
+=item B<$OsProcess-E<gt>clear_process_registries()>
+
+Clears the C<process_registries> element(s) of C<OsProcess>.
+
+=item B<@process_registries_list = $OsProcess-E<gt>process_registries()>
+
+Returns all values of C<process_registries> in an array.  Each element of C<process_registries_list> will be an instance of HoneyClient::Message::ProcessRegistry.
+
+=item B<$process_registries_elem = $OsProcess-E<gt>process_registries($index)>
+
+Returns C<process_registries> element C<index> from C<OsProcess>.  C<process_registries> will be an instance of HoneyClient::Message::ProcessRegistry, unless C<index> is out of range, in which case it will be undef.
+
+=item B<$OsProcess-E<gt>add_process_registries($value)>
+
+Adds C<value> to the list of C<process_registries> in C<OsProcess>.  C<value> must be an instance of HoneyClient::Message::ProcessRegistry.
+
+
+=back
+
+=head1 HoneyClient::Message::Fingerprint Constructor
+
+=over 4
+
+=item B<$Fingerprint = HoneyClient::Message::Fingerprint-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Fingerprint>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Fingerprint Methods
+
+=over 4
+
+=item B<$Fingerprint2-E<gt>copy_from($Fingerprint1)>
+
+Copies the contents of C<Fingerprint1> into C<Fingerprint2>.
+C<Fingerprint2> is another instance of the same message type.
+
+=item B<$Fingerprint2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Fingerprint2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Fingerprint2-E<gt>merge_from($Fingerprint1)>
+
+Merges the contents of C<Fingerprint1> into C<Fingerprint2>.
+C<Fingerprint2> is another instance of the same message type.
+
+=item B<$Fingerprint2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Fingerprint2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Fingerprint-E<gt>clear()>
+
+Clears the contents of C<Fingerprint>.
+
+=item B<$init = $Fingerprint-E<gt>is_initialized()>
+
+Returns 1 if C<Fingerprint> has been initialized with data.
+
+=item B<$errstr = $Fingerprint-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Fingerprint-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Fingerprint>.
+
+=item B<$dstr = $Fingerprint-E<gt>debug_string()>
+
+Returns a string representation of C<Fingerprint>.
+
+=item B<$dstr = $Fingerprint-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Fingerprint>.
+
+=item B<$ok = $Fingerprint-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Fingerprint>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Fingerprint-E<gt>pack()>
+
+Serializes C<Fingerprint> into C<string>.
+
+=item B<$length = $Fingerprint-E<gt>length()>
+
+Returns the serialized length of C<Fingerprint>.
+
+=item B<@fields = $Fingerprint-E<gt>fields()>
+
+Returns the defined fields of C<Fingerprint>.
+
+=item B<$hashref = $Fingerprint-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_checksum = $Fingerprint-E<gt>has_checksum()>
+
+Returns 1 if the C<checksum> element of C<Fingerprint> is set, 0 otherwise.
+
+=item B<$Fingerprint-E<gt>clear_checksum()>
+
+Clears the C<checksum> element(s) of C<Fingerprint>.
+
+=item B<$checksum = $Fingerprint-E<gt>checksum()>
+
+Returns C<checksum> from C<Fingerprint>.  C<checksum> will be a string.
+
+=item B<$Fingerprint-E<gt>set_checksum($value)>
+
+Sets the value of C<checksum> in C<Fingerprint> to C<value>.  C<value> must be a string.
+
+=item B<$has_pcap = $Fingerprint-E<gt>has_pcap()>
+
+Returns 1 if the C<pcap> element of C<Fingerprint> is set, 0 otherwise.
+
+=item B<$Fingerprint-E<gt>clear_pcap()>
+
+Clears the C<pcap> element(s) of C<Fingerprint>.
+
+=item B<$pcap = $Fingerprint-E<gt>pcap()>
+
+Returns C<pcap> from C<Fingerprint>.  C<pcap> will be a string.
+
+=item B<$Fingerprint-E<gt>set_pcap($value)>
+
+Sets the value of C<pcap> in C<Fingerprint> to C<value>.  C<value> must be a string.
+
+=item B<$has_url = $Fingerprint-E<gt>has_url()>
+
+Returns 1 if the C<url> element of C<Fingerprint> is set, 0 otherwise.
+
+=item B<$Fingerprint-E<gt>clear_url()>
+
+Clears the C<url> element(s) of C<Fingerprint>.
+
+=item B<$url = $Fingerprint-E<gt>url()>
+
+Returns C<url> from C<Fingerprint>.  C<url> will be an instance of HoneyClient::Message::Url.
+
+=item B<$Fingerprint-E<gt>set_url($value)>
+
+Sets the value of C<url> in C<Fingerprint> to C<value>.  C<value> must be an instance of HoneyClient::Message::Url.
+
+=item B<$os_processes_size = $Fingerprint-E<gt>os_processes_size()>
+
+Returns the number of C<os_processes> elements present in C<Fingerprint>.
+
+=item B<$Fingerprint-E<gt>clear_os_processes()>
+
+Clears the C<os_processes> element(s) of C<Fingerprint>.
+
+=item B<@os_processes_list = $Fingerprint-E<gt>os_processes()>
+
+Returns all values of C<os_processes> in an array.  Each element of C<os_processes_list> will be an instance of HoneyClient::Message::OsProcess.
+
+=item B<$os_processes_elem = $Fingerprint-E<gt>os_processes($index)>
+
+Returns C<os_processes> element C<index> from C<Fingerprint>.  C<os_processes> will be an instance of HoneyClient::Message::OsProcess, unless C<index> is out of range, in which case it will be undef.
+
+=item B<$Fingerprint-E<gt>add_os_processes($value)>
+
+Adds C<value> to the list of C<os_processes> in C<Fingerprint>.  C<value> must be an instance of HoneyClient::Message::OsProcess.
+
+
+=back
+
+=head1 C<HoneyClient::Message::Firewall::Command::ActionType> values
+
+=over 4
+
+=item B<UNKNOWN>
+
+This constant has a value of 1.
+
+=item B<DENY_ALL>
+
+This constant has a value of 2.
+
+=item B<DENY_VM>
+
+This constant has a value of 3.
+
+=item B<ALLOW_VM>
+
+This constant has a value of 4.
+
+=item B<ALLOW_ALL>
+
+This constant has a value of 5.
+
+
+=back
+
+=head1 C<HoneyClient::Message::Firewall::Command::ResponseType> values
+
+=over 4
+
+=item B<ERROR>
+
+This constant has a value of 1.
+
+=item B<OK>
+
+This constant has a value of 2.
+
+
+=back
+
+=head1 HoneyClient::Message::Firewall::Command Constructor
+
+=over 4
+
+=item B<$Command = HoneyClient::Message::Firewall::Command-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Firewall::Command>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Firewall::Command Methods
+
+=over 4
+
+=item B<$Command2-E<gt>copy_from($Command1)>
+
+Copies the contents of C<Command1> into C<Command2>.
+C<Command2> is another instance of the same message type.
+
+=item B<$Command2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Command2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Command2-E<gt>merge_from($Command1)>
+
+Merges the contents of C<Command1> into C<Command2>.
+C<Command2> is another instance of the same message type.
+
+=item B<$Command2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Command2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Command-E<gt>clear()>
+
+Clears the contents of C<Command>.
+
+=item B<$init = $Command-E<gt>is_initialized()>
+
+Returns 1 if C<Command> has been initialized with data.
+
+=item B<$errstr = $Command-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Command-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Command>.
+
+=item B<$dstr = $Command-E<gt>debug_string()>
+
+Returns a string representation of C<Command>.
+
+=item B<$dstr = $Command-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Command>.
+
+=item B<$ok = $Command-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Command>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Command-E<gt>pack()>
+
+Serializes C<Command> into C<string>.
+
+=item B<$length = $Command-E<gt>length()>
+
+Returns the serialized length of C<Command>.
+
+=item B<@fields = $Command-E<gt>fields()>
+
+Returns the defined fields of C<Command>.
+
+=item B<$hashref = $Command-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_action = $Command-E<gt>has_action()>
+
+Returns 1 if the C<action> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_action()>
+
+Clears the C<action> element(s) of C<Command>.
+
+=item B<$action = $Command-E<gt>action()>
+
+Returns C<action> from C<Command>.  C<action> will be a value of HoneyClient::Message::Firewall::Command::ActionType.
+
+=item B<$Command-E<gt>set_action($value)>
+
+Sets the value of C<action> in C<Command> to C<value>.  C<value> must be a value of HoneyClient::Message::Firewall::Command::ActionType.
+
+=item B<$has_response = $Command-E<gt>has_response()>
+
+Returns 1 if the C<response> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_response()>
+
+Clears the C<response> element(s) of C<Command>.
+
+=item B<$response = $Command-E<gt>response()>
+
+Returns C<response> from C<Command>.  C<response> will be a value of HoneyClient::Message::Firewall::Command::ResponseType.
+
+=item B<$Command-E<gt>set_response($value)>
+
+Sets the value of C<response> in C<Command> to C<value>.  C<value> must be a value of HoneyClient::Message::Firewall::Command::ResponseType.
+
+=item B<$has_err_message = $Command-E<gt>has_err_message()>
+
+Returns 1 if the C<err_message> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_err_message()>
+
+Clears the C<err_message> element(s) of C<Command>.
+
+=item B<$err_message = $Command-E<gt>err_message()>
+
+Returns C<err_message> from C<Command>.  C<err_message> will be a string.
+
+=item B<$Command-E<gt>set_err_message($value)>
+
+Sets the value of C<err_message> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_chain_name = $Command-E<gt>has_chain_name()>
+
+Returns 1 if the C<chain_name> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_chain_name()>
+
+Clears the C<chain_name> element(s) of C<Command>.
+
+=item B<$chain_name = $Command-E<gt>chain_name()>
+
+Returns C<chain_name> from C<Command>.  C<chain_name> will be a string.
+
+=item B<$Command-E<gt>set_chain_name($value)>
+
+Sets the value of C<chain_name> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_mac_address = $Command-E<gt>has_mac_address()>
+
+Returns 1 if the C<mac_address> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_mac_address()>
+
+Clears the C<mac_address> element(s) of C<Command>.
+
+=item B<$mac_address = $Command-E<gt>mac_address()>
+
+Returns C<mac_address> from C<Command>.  C<mac_address> will be a string.
+
+=item B<$Command-E<gt>set_mac_address($value)>
+
+Sets the value of C<mac_address> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_ip_address = $Command-E<gt>has_ip_address()>
+
+Returns 1 if the C<ip_address> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_ip_address()>
+
+Clears the C<ip_address> element(s) of C<Command>.
+
+=item B<$ip_address = $Command-E<gt>ip_address()>
+
+Returns C<ip_address> from C<Command>.  C<ip_address> will be a string.
+
+=item B<$Command-E<gt>set_ip_address($value)>
+
+Sets the value of C<ip_address> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_protocol = $Command-E<gt>has_protocol()>
+
+Returns 1 if the C<protocol> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_protocol()>
+
+Clears the C<protocol> element(s) of C<Command>.
+
+=item B<$protocol = $Command-E<gt>protocol()>
+
+Returns C<protocol> from C<Command>.  C<protocol> will be a string.
+
+=item B<$Command-E<gt>set_protocol($value)>
+
+Sets the value of C<protocol> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$port_size = $Command-E<gt>port_size()>
+
+Returns the number of C<port> elements present in C<Command>.
+
+=item B<$Command-E<gt>clear_port()>
+
+Clears the C<port> element(s) of C<Command>.
+
+=item B<@port_list = $Command-E<gt>port()>
+
+Returns all values of C<port> in an array.  Each element of C<port_list> will be a 32-bit unsigned integer.
+
+=item B<$port_elem = $Command-E<gt>port($index)>
+
+Returns C<port> element C<index> from C<Command>.  C<port> will be a 32-bit unsigned integer, unless C<index> is out of range, in which case it will be undef.
+
+=item B<$Command-E<gt>add_port($value)>
+
+Adds C<value> to the list of C<port> in C<Command>.  C<value> must be a 32-bit unsigned integer.
+
+
+=back
+
+=head1 HoneyClient::Message::Firewall Constructor
+
+=over 4
+
+=item B<$Firewall = HoneyClient::Message::Firewall-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Firewall>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Firewall Methods
+
+=over 4
+
+=item B<$Firewall2-E<gt>copy_from($Firewall1)>
+
+Copies the contents of C<Firewall1> into C<Firewall2>.
+C<Firewall2> is another instance of the same message type.
+
+=item B<$Firewall2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Firewall2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Firewall2-E<gt>merge_from($Firewall1)>
+
+Merges the contents of C<Firewall1> into C<Firewall2>.
+C<Firewall2> is another instance of the same message type.
+
+=item B<$Firewall2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Firewall2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Firewall-E<gt>clear()>
+
+Clears the contents of C<Firewall>.
+
+=item B<$init = $Firewall-E<gt>is_initialized()>
+
+Returns 1 if C<Firewall> has been initialized with data.
+
+=item B<$errstr = $Firewall-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Firewall-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Firewall>.
+
+=item B<$dstr = $Firewall-E<gt>debug_string()>
+
+Returns a string representation of C<Firewall>.
+
+=item B<$dstr = $Firewall-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Firewall>.
+
+=item B<$ok = $Firewall-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Firewall>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Firewall-E<gt>pack()>
+
+Serializes C<Firewall> into C<string>.
+
+=item B<$length = $Firewall-E<gt>length()>
+
+Returns the serialized length of C<Firewall>.
+
+=item B<@fields = $Firewall-E<gt>fields()>
+
+Returns the defined fields of C<Firewall>.
+
+=item B<$hashref = $Firewall-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+
+=back
+
+=head1 C<HoneyClient::Message::Pcap::Command::ActionType> values
+
+=over 4
+
+=item B<UNKNOWN>
+
+This constant has a value of 1.
+
+=item B<STOP_ALL>
+
+This constant has a value of 2.
+
+=item B<STOP_VM>
+
+This constant has a value of 3.
+
+=item B<START_VM>
+
+This constant has a value of 4.
+
+=item B<GET_IP>
+
+This constant has a value of 5.
+
+=item B<GET_FILE>
+
+This constant has a value of 6.
+
+
+=back
+
+=head1 C<HoneyClient::Message::Pcap::Command::ResponseType> values
+
+=over 4
+
+=item B<ERROR>
+
+This constant has a value of 1.
+
+=item B<OK>
+
+This constant has a value of 2.
+
+
+=back
+
+=head1 HoneyClient::Message::Pcap::Command Constructor
+
+=over 4
+
+=item B<$Command = HoneyClient::Message::Pcap::Command-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Pcap::Command>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Pcap::Command Methods
+
+=over 4
+
+=item B<$Command2-E<gt>copy_from($Command1)>
+
+Copies the contents of C<Command1> into C<Command2>.
+C<Command2> is another instance of the same message type.
+
+=item B<$Command2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Command2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Command2-E<gt>merge_from($Command1)>
+
+Merges the contents of C<Command1> into C<Command2>.
+C<Command2> is another instance of the same message type.
+
+=item B<$Command2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Command2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Command-E<gt>clear()>
+
+Clears the contents of C<Command>.
+
+=item B<$init = $Command-E<gt>is_initialized()>
+
+Returns 1 if C<Command> has been initialized with data.
+
+=item B<$errstr = $Command-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Command-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Command>.
+
+=item B<$dstr = $Command-E<gt>debug_string()>
+
+Returns a string representation of C<Command>.
+
+=item B<$dstr = $Command-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Command>.
+
+=item B<$ok = $Command-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Command>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Command-E<gt>pack()>
+
+Serializes C<Command> into C<string>.
+
+=item B<$length = $Command-E<gt>length()>
+
+Returns the serialized length of C<Command>.
+
+=item B<@fields = $Command-E<gt>fields()>
+
+Returns the defined fields of C<Command>.
+
+=item B<$hashref = $Command-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+=item B<$has_action = $Command-E<gt>has_action()>
+
+Returns 1 if the C<action> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_action()>
+
+Clears the C<action> element(s) of C<Command>.
+
+=item B<$action = $Command-E<gt>action()>
+
+Returns C<action> from C<Command>.  C<action> will be a value of HoneyClient::Message::Pcap::Command::ActionType.
+
+=item B<$Command-E<gt>set_action($value)>
+
+Sets the value of C<action> in C<Command> to C<value>.  C<value> must be a value of HoneyClient::Message::Pcap::Command::ActionType.
+
+=item B<$has_response = $Command-E<gt>has_response()>
+
+Returns 1 if the C<response> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_response()>
+
+Clears the C<response> element(s) of C<Command>.
+
+=item B<$response = $Command-E<gt>response()>
+
+Returns C<response> from C<Command>.  C<response> will be a value of HoneyClient::Message::Pcap::Command::ResponseType.
+
+=item B<$Command-E<gt>set_response($value)>
+
+Sets the value of C<response> in C<Command> to C<value>.  C<value> must be a value of HoneyClient::Message::Pcap::Command::ResponseType.
+
+=item B<$has_response_message = $Command-E<gt>has_response_message()>
+
+Returns 1 if the C<response_message> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_response_message()>
+
+Clears the C<response_message> element(s) of C<Command>.
+
+=item B<$response_message = $Command-E<gt>response_message()>
+
+Returns C<response_message> from C<Command>.  C<response_message> will be a string.
+
+=item B<$Command-E<gt>set_response_message($value)>
+
+Sets the value of C<response_message> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_err_message = $Command-E<gt>has_err_message()>
+
+Returns 1 if the C<err_message> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_err_message()>
+
+Clears the C<err_message> element(s) of C<Command>.
+
+=item B<$err_message = $Command-E<gt>err_message()>
+
+Returns C<err_message> from C<Command>.  C<err_message> will be a string.
+
+=item B<$Command-E<gt>set_err_message($value)>
+
+Sets the value of C<err_message> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_quick_clone_name = $Command-E<gt>has_quick_clone_name()>
+
+Returns 1 if the C<quick_clone_name> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_quick_clone_name()>
+
+Clears the C<quick_clone_name> element(s) of C<Command>.
+
+=item B<$quick_clone_name = $Command-E<gt>quick_clone_name()>
+
+Returns C<quick_clone_name> from C<Command>.  C<quick_clone_name> will be a string.
+
+=item B<$Command-E<gt>set_quick_clone_name($value)>
+
+Sets the value of C<quick_clone_name> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_mac_address = $Command-E<gt>has_mac_address()>
+
+Returns 1 if the C<mac_address> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_mac_address()>
+
+Clears the C<mac_address> element(s) of C<Command>.
+
+=item B<$mac_address = $Command-E<gt>mac_address()>
+
+Returns C<mac_address> from C<Command>.  C<mac_address> will be a string.
+
+=item B<$Command-E<gt>set_mac_address($value)>
+
+Sets the value of C<mac_address> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_src_ip_address = $Command-E<gt>has_src_ip_address()>
+
+Returns 1 if the C<src_ip_address> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_src_ip_address()>
+
+Clears the C<src_ip_address> element(s) of C<Command>.
+
+=item B<$src_ip_address = $Command-E<gt>src_ip_address()>
+
+Returns C<src_ip_address> from C<Command>.  C<src_ip_address> will be a string.
+
+=item B<$Command-E<gt>set_src_ip_address($value)>
+
+Sets the value of C<src_ip_address> in C<Command> to C<value>.  C<value> must be a string.
+
+=item B<$has_dst_tcp_port = $Command-E<gt>has_dst_tcp_port()>
+
+Returns 1 if the C<dst_tcp_port> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_dst_tcp_port()>
+
+Clears the C<dst_tcp_port> element(s) of C<Command>.
+
+=item B<$dst_tcp_port = $Command-E<gt>dst_tcp_port()>
+
+Returns C<dst_tcp_port> from C<Command>.  C<dst_tcp_port> will be a 32-bit unsigned integer.
+
+=item B<$Command-E<gt>set_dst_tcp_port($value)>
+
+Sets the value of C<dst_tcp_port> in C<Command> to C<value>.  C<value> must be a 32-bit unsigned integer.
+
+=item B<$has_delete_pcap = $Command-E<gt>has_delete_pcap()>
+
+Returns 1 if the C<delete_pcap> element of C<Command> is set, 0 otherwise.
+
+=item B<$Command-E<gt>clear_delete_pcap()>
+
+Clears the C<delete_pcap> element(s) of C<Command>.
+
+=item B<$delete_pcap = $Command-E<gt>delete_pcap()>
+
+Returns C<delete_pcap> from C<Command>.  C<delete_pcap> will be a Boolean value.
+
+=item B<$Command-E<gt>set_delete_pcap($value)>
+
+Sets the value of C<delete_pcap> in C<Command> to C<value>.  C<value> must be a Boolean value.
+
+
+=back
+
+=head1 HoneyClient::Message::Pcap Constructor
+
+=over 4
+
+=item B<$Pcap = HoneyClient::Message::Pcap-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message::Pcap>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message::Pcap Methods
+
+=over 4
+
+=item B<$Pcap2-E<gt>copy_from($Pcap1)>
+
+Copies the contents of C<Pcap1> into C<Pcap2>.
+C<Pcap2> is another instance of the same message type.
+
+=item B<$Pcap2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Pcap2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Pcap2-E<gt>merge_from($Pcap1)>
+
+Merges the contents of C<Pcap1> into C<Pcap2>.
+C<Pcap2> is another instance of the same message type.
+
+=item B<$Pcap2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Pcap2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Pcap-E<gt>clear()>
+
+Clears the contents of C<Pcap>.
+
+=item B<$init = $Pcap-E<gt>is_initialized()>
+
+Returns 1 if C<Pcap> has been initialized with data.
+
+=item B<$errstr = $Pcap-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Pcap-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Pcap>.
+
+=item B<$dstr = $Pcap-E<gt>debug_string()>
+
+Returns a string representation of C<Pcap>.
+
+=item B<$dstr = $Pcap-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Pcap>.
+
+=item B<$ok = $Pcap-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Pcap>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Pcap-E<gt>pack()>
+
+Serializes C<Pcap> into C<string>.
+
+=item B<$length = $Pcap-E<gt>length()>
+
+Returns the serialized length of C<Pcap>.
+
+=item B<@fields = $Pcap-E<gt>fields()>
+
+Returns the defined fields of C<Pcap>.
+
+=item B<$hashref = $Pcap-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+
+=back
+
+=head1 HoneyClient::Message Constructor
+
+=over 4
+
+=item B<$Message = HoneyClient::Message-E<gt>new( [$arg] )>
+
+Constructs an instance of C<HoneyClient::Message>.  If a hashref argument
+is supplied, it is copied into the message instance as if
+the copy_from() method were called immediately after
+construction.  Otherwise, if a scalar argument is supplied,
+it is interpreted as a serialized instance of the message
+type, and the scalar is parsed to populate the message
+fields.  Otherwise, if no argument is supplied, an empty
+message instance is constructed.
+
+=back
+
+=head1 HoneyClient::Message Methods
+
+=over 4
+
+=item B<$Message2-E<gt>copy_from($Message1)>
+
+Copies the contents of C<Message1> into C<Message2>.
+C<Message2> is another instance of the same message type.
+
+=item B<$Message2-E<gt>copy_from($hashref)>
+
+Copies the contents of C<hashref> into C<Message2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Message2-E<gt>merge_from($Message1)>
+
+Merges the contents of C<Message1> into C<Message2>.
+C<Message2> is another instance of the same message type.
+
+=item B<$Message2-E<gt>merge_from($hashref)>
+
+Merges the contents of C<hashref> into C<Message2>.
+C<hashref> is a Data::Dumper-style representation of an
+instance of the message type.
+
+=item B<$Message-E<gt>clear()>
+
+Clears the contents of C<Message>.
+
+=item B<$init = $Message-E<gt>is_initialized()>
+
+Returns 1 if C<Message> has been initialized with data.
+
+=item B<$errstr = $Message-E<gt>error_string()>
+
+Returns a comma-delimited string of initialization errors.
+
+=item B<$Message-E<gt>discard_unknown_fields()>
+
+Discards unknown fields from C<Message>.
+
+=item B<$dstr = $Message-E<gt>debug_string()>
+
+Returns a string representation of C<Message>.
+
+=item B<$dstr = $Message-E<gt>short_debug_string()>
+
+Returns a short string representation of C<Message>.
+
+=item B<$ok = $Message-E<gt>unpack($string)>
+
+Attempts to parse C<string> into C<Message>, returning 1 on success and 0 on failure.
+
+=item B<$string = $Message-E<gt>pack()>
+
+Serializes C<Message> into C<string>.
+
+=item B<$length = $Message-E<gt>length()>
+
+Returns the serialized length of C<Message>.
+
+=item B<@fields = $Message-E<gt>fields()>
+
+Returns the defined fields of C<Message>.
+
+=item B<$hashref = $Message-E<gt>to_hashref()>
+
+Exports the message to a hashref suitable for use in the
+C<copy_from> or C<merge_from> methods.
+
+
+=back
+
+=head1 AUTHOR
+
+Generated from HoneyClient.Message by the protoc compiler.
+
+=head1 SEE ALSO
+
+http://code.google.com/p/protobuf
+
+=cut
+

@@ -57,17 +57,11 @@ can_ok('Storable', 'thaw');
 can_ok('Storable', 'dclone');
 use Storable qw(nfreeze thaw dclone);
 
-# Make sure HoneyClient::Agent::Integrity::Registry loads
-#BEGIN { use_ok('HoneyClient::Agent::Integrity::Registry')
-#        or diag("Can't load HoneyClient::Agent::Integrity::Registry package. Check to make sure the package library is correctly listed within the path."); }
-#require_ok('HoneyClient::Agent::Integrity::Registry');
-#use HoneyClient::Agent::Integrity::Registry;
-
-# Make sure HoneyClient::Agent::Integrity::Filesystem loads
-#BEGIN { use_ok('HoneyClient::Agent::Integrity::Filesystem')
-#        or diag("Can't load HoneyClient::Agent::Integrity::Filesystem package. Check to make sure the package library is correctly listed within the path."); }
-#require_ok('HoneyClient::Agent::Integrity::Filesystem');
-#use HoneyClient::Agent::Integrity::Filesystem;
+# Make sure HoneyClient::Util::DateTime loads
+BEGIN { use_ok('HoneyClient::Util::DateTime')
+        or diag("Can't load HoneyClient::Util::DateTime package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::DateTime');
+use HoneyClient::Util::DateTime;
 
 # Make sure HoneyClient::Agent::Integrity loads.
 BEGIN { use_ok('HoneyClient::Agent::Integrity') or diag("Can't load HoneyClient::Agent::Integrity package.  Check to make sure the package library is correctly listed within the path."); }

@@ -43,15 +43,17 @@ def main():
     ch = conn.channel()
     ch.access_request('/data', active=True)
 
-    # Delete exchanges and corresponding queues.
-    # Jobs Exchange
-    ch.exchange_delete(exchange='jobs')
-    ch.queue_delete(queue='manager.workers')
-    ch.queue_delete(queue='drone')
-
-    # Commands Exchange
+    # Delete Exchanges
+    ch.exchange_delete(exchange='events')
     ch.exchange_delete(exchange='commands')
+
+    # Delete Queues
     ch.queue_delete(queue='manager.firewall')
+    ch.queue_delete(queue='1.manager.workers')
+    ch.queue_delete(queue='500.manager.workers')
+    ch.queue_delete(queue='drone.high')
+    ch.queue_delete(queue='drone.low')
+    ch.queue_delete(queue='notifier')
 
     ch.close()
     conn.close()

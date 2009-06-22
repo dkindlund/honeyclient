@@ -2,78 +2,159 @@ package HoneyClient;
 
 message Message {
 
+    message Application {
+
+        required string manufacturer = 1;
+        required string version      = 2;
+        required string short_name   = 3;
+
+    }
+
+    message Os {
+
+        required string name       = 1;
+        required string version    = 2;
+        required string short_name = 3;
+
+    }
+
+    message ClientStatus {
+
+        required string status      = 1;
+        optional string description = 2;
+
+    }
+
+    message Host {
+
+        required string hostname = 1;
+        required string ip       = 2;
+
+    }
+
     message Client {
 
-        required string vm_name       = 1;
-        required string snapshot_name = 2;
-        optional string status        = 3;
-        optional string start_at      = 4;
-        optional string compromise_at = 5;
+        required string               quick_clone_name = 1;
+        required string               snapshot_name    = 2;
+        optional string               created_at       = 3;
+
+        optional Message.Os           os               = 4;
+        optional Message.Application  application      = 5;
+        optional Message.ClientStatus client_status    = 6;
+        optional Message.Host         host             = 7;
+
+        optional string suspended_at                   = 8;
+        optional string ip                             = 9;
+        optional string mac                            = 10;
+
     }
 
-    message File {
+    message Group {
 
-        message Content {
+        optional string name     = 1;
 
-            required uint64 size      = 1;
-            required string md5       = 2;
-            required string sha1      = 3;
-            required string mime_type = 4; 
-        }
-
-        required string time_at  = 1;
-        required string name     = 2;
-        required string event    = 3;
-        required Content content = 4;
     }
 
-    message Registry {
+    message JobSource {
 
-        required string time_at    = 1;
-        required string name       = 2;
-        required string event      = 3;
-        optional string value      = 5;
-        optional string value_name = 6;
-        optional string value_type = 7;
+        required string name         = 1;
+        required string protocol     = 2;
+        optional Message.Group group = 3;
+
     }
 
-    message Process {
+    message JobAlert {
 
-        required string           name     = 1;
-        required uint64           pid      = 2;
-        repeated Message.File     file     = 3;
-        repeated Message.Registry registry = 4;
+        required string protocol = 1;
+        required string address  = 2;
+
     }
 
-    message Fingerprint {
+    message UrlStatus {
 
-        repeated Process process = 1;
+        required string status      = 1;
+        optional string description = 2;
+
     }
 
     message Url {
 
-        enum Status {
-            NOT_VISITED = 1;
-            VISITED     = 2;
-            IGNORED     = 3;
-            TIMED_OUT   = 4;
-            ERROR       = 5;
-            SUSPICIOUS  = 6;
-        }
+        required string              url        = 1;
 
-        required string              name        = 1;
-        required Status              status      = 2 [default = NOT_VISITED];
-        optional Message.Client      client      = 3;
-        optional Message.Fingerprint fingerprint = 4;
+        optional uint64              priority   = 2 [default = 1];
+        optional Message.UrlStatus   url_status = 3;
+        optional double              time_at    = 4;
+        optional Message.Client      client     = 5;
+        optional string              ip         = 6;
+
     }
 
     message Job {
 
-        required string uuid           = 1;
-        optional string created_at     = 2;
-        optional string completed_at   = 3;
-        optional uint64 total_num_urls = 4;
-        repeated Message.Url url       = 5;
+        required string            uuid         = 1;
+
+        optional Message.JobSource job_source   = 2;
+        optional string            created_at   = 3;
+        optional string            completed_at = 4;
+        optional Message.Client    client       = 5;
+
+        repeated Message.JobAlert  job_alerts   = 6;
+        repeated Message.Url       urls         = 7;
+
+    }
+
+    message FileContent {
+
+        required uint64 size      = 1 [default = 0];
+        required string md5       = 2;
+        required string sha1      = 3;
+        required string mime_type = 4;
+
+        optional string data      = 5;
+
+    }
+
+    message ProcessFile {
+
+        required double              time_at      = 1;
+        required string              name         = 2;
+        required string              event        = 3;
+
+        optional Message.FileContent file_content = 4;
+
+    }
+
+    message ProcessRegistry {
+
+        required double time_at    = 1;
+        required string name       = 2;
+        required string event      = 3;
+        optional string value_name = 4;
+        optional string value_type = 5;
+        optional string value      = 6;
+    }
+
+    message OsProcess {
+
+        required string                  name               = 1;
+        required uint64                  pid                = 2;
+
+        optional string                  parent_name        = 3;
+        optional uint64                  parent_pid         = 4;
+
+        repeated Message.ProcessFile     process_files      = 5;
+        repeated Message.ProcessRegistry process_registries = 6;
+
+    }
+
+    message Fingerprint {
+
+        optional string            checksum     = 1;
+        optional string            pcap         = 2;
+        optional Message.Url       url          = 3;
+
+        repeated Message.OsProcess os_processes = 4;
+
     }
 
     message Firewall {
@@ -101,6 +182,36 @@ message Message {
             optional string ip_address     = 6;
             optional string protocol       = 7;
             repeated uint32 port           = 8;
+        }
+    }
+
+    message Pcap {
+
+        message Command {
+
+            enum ActionType {
+                UNKNOWN   = 1;
+                STOP_ALL  = 2;
+                STOP_VM   = 3;
+                START_VM  = 4;
+                GET_IP    = 5;
+                GET_FILE  = 6;
+            }
+
+            enum ResponseType {
+                ERROR     = 1;
+                OK        = 2;
+            }
+
+            required ActionType action       = 1 [default = UNKNOWN];
+            optional ResponseType response   = 2 [default = ERROR];
+            optional string response_message = 3;
+            optional string err_message      = 4;
+            optional string quick_clone_name = 5;
+            optional string mac_address      = 6;
+            optional string src_ip_address   = 7;
+            optional uint32 dst_tcp_port     = 8;
+            optional bool   delete_pcap      = 9;
         }
     }
 }

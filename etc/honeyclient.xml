@@ -50,7 +50,7 @@ Keep in mind, though, that some variables should remain module-specific
         MITRE
     </organization>
     <time_zone description="The system should always report date/time using the following time zone." default="local">
-        local
+        UTC
     </time_zone>
     <!-- Note: This timeout should be long enough so that the Agent watchdog code will properly let the integrity checking code finish, before detecting a faulty timeout in processing. -->
     <timeout description="Default timeout used for all communications between each module (in seconds)." default="3600">
@@ -63,7 +63,7 @@ Keep in mind, though, that some variables should remain module-specific
         10.0.0.1
     </syslog_address>
     <stomp_address description="The IP address of the STOMP server that will send/receive all messages to/from various HoneyClient components.">
-        172.16.164.204
+        127.0.0.1
     </stomp_address>
     <stomp_port description="The TCP port number used to communicate with the STOMP server." default="61613">
         61613
@@ -83,9 +83,8 @@ Keep in mind, though, that some variables should remain module-specific
             0.0.0.0
         </address>
         <timeout description="How long the Manager should wait for a response from the Agent, before timing out the VM (in seconds)." default="120">
-            120
+            240
         </timeout>
-        <!-- TODO: Update this. -->
         <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running inside the VM. -->
         <port description="The TCP port number that the SOAP server for all Agent modules will listen on for requests." default="7627">
             7627
@@ -198,7 +197,7 @@ Keep in mind, though, that some variables should remain module-specific
         </Browser>
     </Crawler>
     <Manager>
-        <virtualization_mode description="This value dictates whether VMware Server (HoneyClient::Manager::VM) or VMware ESX Server (HoneyClient::Manager::ESX) is used as the primary virtualization mode." default="HoneyClient::Manager::VM">
+        <virtualization_mode description="This value dictates that VMware ESX Server (HoneyClient::Manager::ESX) is used as the primary virtualization mode." default="HoneyClient::Manager::ESX">
             HoneyClient::Manager::ESX
         </virtualization_mode>
         <worker_startup_delay description="The amount of time (in seconds) that the Manager should wait between starting up successive clone VMs, so that the host system is not initially overwhelmed by too much activity." default="300">
@@ -223,22 +222,18 @@ Keep in mind, though, that some variables should remain module-specific
         <command_line_base_priority description="When the Manager is supplied URLs from the command line, it will assign each URL the following numerical base priority." default="1000">
             1000
         </command_line_base_priority>
-        <!-- HoneyClient::Manager::Database Options -->
-        <Database>
-            <enable description="Enables database operations. 1 enables, 0 disables." default="1">
-                1
-            </enable>
-            <!-- TODO: Update this. -->
-            <url description="The URL of the local Ruby web service, which interfaces with the local HoneyClient database.">
-                http://172.16.164.102/hc_database/api
-            </url>
-            <max_retry_count description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry up to the specified number of times before giving up." default="1800">
-                1800
-            </max_retry_count>
-            <delay_between_retries description="If the Manager is unable to contact the Ruby web service due to connectivity issues, then the Manager will retry, waiting the specified amount of time (in seconds) between each retry attempt." default="2">
-                2
-            </delay_between_retries>
-        </Database>
+        <!-- HoneyClient::Manager::Worker Options -->
+        <Worker>
+            <exchange_name description="The name of the STOMP exchange used to send messages to this component." default="jobs">
+                events
+            </exchange_name>
+            <queue_name description="The name of the STOMP queue used to receive messages sent to this component." default="manager.workers">
+                1.manager.workers
+            </queue_name>
+            <routing_key description="The routing key used on all STOMP messages sent to this component." default="pending.job">
+                1.job.create.#
+            </routing_key>
+        </Worker>
         <!-- HoneyClient::Manager::Firewall Options -->
         <Firewall>
             <!--
@@ -262,26 +257,41 @@ Keep in mind, though, that some variables should remain module-specific
                 firewall
             </routing_key>
         </Firewall>
+        <!-- HoneyClient::Manager::Pcap Options -->
+        <Pcap>
+            <exchange_name description="The name of the STOMP exchange used to send messages to this component." default="commands">
+                commands
+            </exchange_name>
+            <queue_name description="The name of the STOMP queue used to receive messages sent to this component." default="manager.pcap">
+                manager.pcap
+            </queue_name>
+            <routing_key description="The routing key used on all STOMP messages sent to this component." default="pcap">
+                pcap
+            </routing_key>
+            <directory description="The directory used to save all packet capture sessions, relative to the honeyclient root directory." default="pcaps">
+                pcaps
+            </directory>
+            <capture_interface description="The physical network interface to perform all packet capture sessions." default="eth1">
+                eth1
+            </capture_interface>
+            <promiscuous description="A boolean, indicating if the capture interface should be in promiscuous mode." default="1">
+                1
+            </promiscuous>
+            <snaplen description="The snapshot length indicating how many bytes should be captured per packet." default="65535">
+                65535
+            </snaplen>
+            <tcpdump_bin description="The absolute path and filename, indicating the location of the tcpdump binary." default="/usr/sbin/tcpdump">
+                /usr/sbin/tcpdump
+            </tcpdump_bin>
+        </Pcap>
         <!-- HoneyClient::Manager::ESX Options -->
         <ESX>
-            <hosts description="This element contains a list of VMware ESX Servers along with corresponding authentication credentials for each server.">
-                <!--
-                 The format of each <host> entry is as follows:
-                 <host      user_name="The name of the user account to login to the VMware ESX Server (must have Administrator priviledges)."
-                             password="The password of the user account to use for authenticating to the VMware ESX Server."
-                       max_num_clones="An integer representing the maximum number of simultaneous clones that should be run on this VMware ESX Server.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this number (e.g., 4 simultaneous VMs x 256 = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM that the VMware ESX Server can provision.  Allow VMware ESX Server at least 512 MB of RAM for normal operations.">
-
-                     The element value is the service URL for accessing the VIM webservice on the VMware ESX Server, usually in the format of:
-                     https://esx_server_hostname_or_ip/sdk/vimService
-
-                 </host>
-                --> 
-                <host user_name="root" password="passw0rd" max_num_clones="4">https://172.16.164.103/sdk/vimService</host>
-                <host user_name="root" password="passw0rd" max_num_clones="3">https://172.16.164.115/sdk/vimService</host>
-            </hosts>
             <session_timeout description="The amount of time (in seconds) a VIM session remains active, before automatically expiring due to inactivity.  The default time is 15 minutes, since the default VMware ESX Server expires inactive sessions older than 30 mintues." default="900">
                 900
             </session_timeout>
+            <timeout description="The amount of time (in seconds) that we will wait for a response from the VMware ESX Server, before timing out." default="7200">
+                7200
+            </timeout>
             <vm_id_length description="The length of each corresponding VM identifier (VMID).  This value can be any integer between 1 and 32, inclusive.  The VMID is a hexadecimal string that represents the VM's name.  It is designed to be generated once per clone and remain for the life of the VM (regardless of where it runs).  The VMID is used externally by HoneyClient::Manager and HoneyClient::Manager::FW.  The HoneyClient::Manager::FW package uses IPTables and binds each rule to a specific VMID.  However, IPTable's firewall rule labels can only be a maximum of 30 characters in length.  Thus, 26 is specified here, to account for 'VMID-OUT' as a possible chain name." default="26">
                 26
             </vm_id_length>
@@ -303,7 +313,7 @@ State: Operational - This snapshot marks the operational state of this clone VM.
 State: Compromised - This snapshot marks a compromised state of this clone VM.  At this point, the clone VM has failed an integrity check after peforming some type of work.
             </compromised_quick_clone_snapshot_description>
             <master_vm_name description="The name of the master VM on the VMware ESX system that will be used by all subsequent cloned VMs.">
-                Agent.Master-44-IE6
+                Agent.Master-45-IE6
             </master_vm_name>
             <min_space_free description="The minimum amount of disk space (in GB) that must remain free in the primary datastore in order for the Manager to continue processing.  If the free disk space drops below this threshold, then the Manager will gracefully terminate." default="2">
                 2
@@ -319,6 +329,9 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                 <work_unit_limit description="An integer, indicating how many work units (e.g., URLs) the clone VM should process before destroying the VM and regenerating a new clone VM.  This option is useful to set, when trying to drive an application that appears to create slow memory leaks within the VM's OS.  For example, after processing X work units, the VM's OS runs out of memory altogether.  To deal with this issue, we preemptively destroy and regenerate a new clone VM at (X-1) work units, so that the leak no longer affects our operations.  To completely disable this functionality, specify -1." default="2000">
                     1000
                 </work_unit_limit>
+                <max_retry_count description="If the Worker is unable to contact the recently initialized clone VM due to connectivity issues, then the Worker will retry up to the specified number of times before reinitializing the clone VM." default="100">
+                    100
+                </max_retry_count>
             </Clone>
             <!-- HoneyClient::Manager::ESX::Test Options -->
             <Test>
@@ -345,65 +358,6 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                 </test_vm_name>
             </Test>
         </ESX>
-        <!-- HoneyClient::Manager::VM Options -->
-        <VM>
-            <num_simultaneous_clones description="Upon startup, the Manager will attempt to spawn the specified number of cloned VMs simultaneously.  To figure out an optimal value, take the amount of RAM allocated for your master VM (e.g., 256MB) and multiply that amount by this specified number (e.g., 4 simultaneous VMs x 256MB = 1GB).  You want to make sure that the total RAM requirements do not exceed the amount of RAM that the host system can provision.  Allow the host system at least 512MB of RAM for normal operations." default="1">
-                1
-            </num_simultaneous_clones>
-            <master_vm_config description="The full absolute path to the VM configuration file on the host system that will be used by all subsequent cloned VMs.">
-                /vm/masters/Agent.Master-46-IE6/winXPPro.cfg
-            </master_vm_config>
-            <port description="The TCP port number that the SOAP server of the VM daemon will listen on for requests.  Note: This port should be unique and not already be used by other modules, services, or daemons running on the host system." default="7627">
-                7627
-            </port>
-            <datastore_path description="The absolute path to the parent directory, where all HoneyClient VM data is stored on the host server.  It is assumed that individual VM data is stored in separate subdirectories within this parent directory." default="/vm">
-                /vm/clones
-            </datastore_path>
-            <snapshot_path description="The absolute path to the directory that contains all snapshot data, associated with every HoneyClient VM." default="/vm/snapshots">
-                /vm/snapshots
-            </snapshot_path>
-            <min_space_free description="The minimum amount of disk space (in GB) that must remain free in both the datastore_path and snapshot_path in order for the Manager to continue processing.  If the free disk space drops below this threshold, then the Manager will gracefully terminate." default="2">
-                2
-            </min_space_free>
-            <vmware_port description="The TCP port that VMware Server uses for console communication.  By default, this TCP port is 902.  Unless you've explicitly changes this port during the vmware-config.pl setup process, leave this setting as the default." default="902">
-                902
-            </vmware_port>
-            <bin_tar description="The absolute path to the 'tar' executable, accessible on the host filesystem." default="/bin/tar">
-                /bin/tar
-            </bin_tar>
-            <vm_id_length description="The length of each corresponding VM identifier (VMID).  This value can be any integer between 1 and 32, inclusive.  The VMID is a hexadecimal string that represents the VM's name.  It is designed to be generated once per clone and remain for the life of the VM (regardless of where it runs).  The VMID is used externally by HoneyClient::Manager and HoneyClient::Manager::FW.  The HoneyClient::Manager::FW package uses IPTables and binds each rule to a specific VMID.  However, IPTable's firewall rule labels can only be a maximum of 30 characters in length.  Thus, 26 is specified here, to account for 'VMID-OUT' as a possible chain name." default="26">
-                26
-            </vm_id_length>
-            <dhcp_leases description="The absolute path to the file that contains the DHCP leases, when a new VM gets a DHCP lease from the VMware Server." default="/etc/vmware/vmnet1/dhcpd/dhcpd.leases">
-                /etc/vmware/vmnet1/dhcpd/dhcpd.leases
-            </dhcp_leases>
-            <max_connect_retries description="When the VMware Server attempts to connect to any VM, it will repeatedly attempt to connect to the VM if the first attempt fails, for a maximum number of times specified by this value.  Generally, this value should not be changed, unless the host system has an exceptionally slow disk - in which case, increasing this value may help." default="5">
-                5
-            </max_connect_retries>
-            <!-- HoneyClient::Manager::VM::Clone Options -->
-            <Clone>
-                <archive_upon_suspend description="If set to 1, then everytime a cloned VM is suspended, a copy of the VM will be archived in the 'snapshot_path' directory.  Set this option to 0, if you discover errors during cloning operations, where the hard disk on the host system is overworked on slow systems." default="1">
-                    1
-                </archive_upon_suspend>
-                <work_unit_limit description="An integer, indicating how many work units (e.g., URLs) the clone VM should process before destroying the VM and regenerating a new clone VM.  This option is useful to set, when trying to drive an application that appears to create slow memory leaks within the VM's OS.  For example, after processing X work units, the VM's OS runs out of memory altogether.  To deal with this issue, we preemptively destroy and regenerate a new clone VM at (X-1) work units, so that the leak no longer affects our operations.  To completely disable this functionality, specify -1." default="2000">
-                    2000
-                </work_unit_limit>
-            </Clone>
-            <!-- HoneyClient::Manager::VM::Test Options -->
-            <Test>
-                <!--
-                    Note: you should *never* need to change *any* values
-                    within this section of the configuration.  All contents
-                    are *only* used for unit testing.
-                -->
-                <test_vm_config description="The relative path to the (empty) test VM, that's used during unit testing." default="t/test_vm/winXPPro.vmx">
-                    t/test_vm/winXPPro.vmx
-                </test_vm_config>
-                <test_vm_config_livecd description="The relative path to the (livecd) test VM, that's used during unit testing." default="t/test_vm-livecd/winXPPro.vmx">
-                    t/test_vm-livecd/winXPPro.vmx
-                </test_vm_config_livecd>
-            </Test>
-        </VM>
     </Manager>
     <!-- HoneyClient::Util Options -->
     <Util>
@@ -436,5 +390,19 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                 </Zim>
             </Test>
         </Config>
+        <EventEmitter>
+            <exchange_name description="The name of the STOMP exchange used to send messages from this component." default="events">
+                events
+            </exchange_name>
+            <high_priority description="The numerical value indicating that a message has a high priority." default="500">
+                500
+            </high_priority>
+            <low_priority description="The numerical value indicating that a message has a low priority." default="1">
+                1
+            </low_priority>
+            <default_priority description="The default priority to use, when sending messages." default="1">
+                1
+            </default_priority>
+        </EventEmitter>
     </Util>
 </HoneyClient>

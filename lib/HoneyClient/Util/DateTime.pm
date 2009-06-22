@@ -156,6 +156,12 @@ BEGIN { use_ok('DateTime::HiRes')
 require_ok('DateTime::HiRes');
 use DateTime::HiRes;
 
+# Make sure DateTime::Format::ISO8601 loads
+BEGIN { use_ok('DateTime::Format::ISO8601')
+        or diag("Can't load DateTime::Format::ISO8601 package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Format::ISO8601');
+use DateTime::Format::ISO8601;
+
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
@@ -191,6 +197,9 @@ $Data::Dumper::Indent = 0;
 # Include DateTime::HiRes Library
 use DateTime::HiRes;
 
+# Include ISO8601 Parsing Library
+use DateTime::Format::ISO8601;
+
 #######################################################################
 # Public Methods Implemented                                          #
 #######################################################################
@@ -218,7 +227,7 @@ I<Output>: A string representing the current time in ISO 8601 format.
 =begin testing
 
 my $timestamp = HoneyClient::Util::DateTime->now();
-like($timestamp, qr/\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d\d\d/, "now()") or diag("The now() call failed.");
+like($timestamp, qr/\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d\d{0,1}/, "now()") or diag("The now() call failed.");
 
 =end testing
 
@@ -247,7 +256,70 @@ sub now {
     my $dt = DateTime::HiRes->now(%args);
     return $dt->ymd('-') . " " .
            $dt->hms(':') . "." .
-           $dt->nanosecond();
+           $dt->nanosecond() . " " .
+           $dt->time_zone()->name();
+}
+
+=pod
+
+=head2 epoch(time_zone => $time_zone, time_at => $time_at)
+
+=over 4
+
+Returns the current (or supplied) system time as a floating point number
+representing the epoch, using the specified time zone or the time zone
+specified in the HoneyClient etc/honeyclient.xml configuration file.
+
+I<Input>:
+ B<$time_zone> is an optional argument, specifying that the current time
+formatted according to the time zone specified.
+ B($time_at> is an optional argument, specifying the time to convert instead of
+the current time.
+
+I<Output>: A floating point number representing the current (or supplied)
+time in epoch format.
+
+=back
+
+=begin testing
+
+my $timestamp = HoneyClient::Util::DateTime->epoch();
+like($timestamp, qr/\d*\.\d*/, "epoch()") or diag("The epoch() call failed.");
+
+=end testing
+
+=cut
+
+sub epoch {
+
+    # Extract arguments.
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Sanity check the arguments.
+    if (!scalar(%args) ||
+        !exists($args{'time_zone'}) ||
+        !defined($args{'time_zone'})) {
+        $args{'time_zone'} = getVar(name => "time_zone");
+    }
+
+    my $dt = undef;
+    if (scalar(%args) &&
+        exists($args{'time_at'}) &&
+        defined($args{'time_at'})) {
+        $args{'time_at'} =~ s/ /T/;
+        $dt = DateTime::Format::ISO8601->parse_datetime($args{'time_at'});
+    } else {
+        $dt = DateTime::HiRes->now(%args);
+    }
+    return $dt->hires_epoch();
 }
 
 1;

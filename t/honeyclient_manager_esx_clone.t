@@ -59,15 +59,20 @@ BEGIN { use_ok('HoneyClient::Manager::ESX') or diag("Can't load HoneyClient::Man
 require_ok('HoneyClient::Manager::ESX');
 use HoneyClient::Manager::ESX;
 
-# Make sure HoneyClient::Manager::Database loads.
-BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient::Manager::Database package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Database');
-use HoneyClient::Manager::Database;
+# Make sure HoneyClient::Util::EventEmitter loads.
+BEGIN { use_ok('HoneyClient::Util::EventEmitter') or diag("Can't load HoneyClient::Util::EventEmitter package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::EventEmitter');
+use HoneyClient::Util::EventEmitter;
 
 # Make sure HoneyClient::Manager::Firewall::Client loads.
 BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::Firewall::Client');
 use HoneyClient::Manager::Firewall::Client;
+
+# Make sure HoneyClient::Manager::Pcap::Client loads.
+BEGIN { use_ok('HoneyClient::Manager::Pcap::Client') or diag("Can't load HoneyClient::Manager::Pcap::Client package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Pcap::Client');
+use HoneyClient::Manager::Pcap::Client;
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
@@ -98,26 +103,29 @@ can_ok('MIME::Base64', 'encode_base64');
 can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
 
-# Make sure Data::Dumper loads
+# Make sure Data::Dumper loads.
 BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
 
-# Make sure threads loads.
-BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads');
-use threads;
+# Make sure URI::URL loads.
+BEGIN { use_ok('URI::URL')
+        or diag("Can't load URI::URL package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('URI::URL');
+use URI::URL;
 
-# Make sure threads::shared loads.
-BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads::shared');
-use threads::shared;
+# Make sure File::Slurp loads.
+BEGIN { use_ok('File::Slurp')
+        or diag("Can't load File::Slurp package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Slurp');
+use File::Slurp;
 
-# Make sure Thread::Semaphore loads.
-BEGIN { use_ok('Thread::Semaphore') or diag("Can't load Thread::Semaphore package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Thread::Semaphore');
-use Thread::Semaphore;
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
 
 # Make sure File::Basename loads.
 BEGIN { use_ok('File::Basename', qw(dirname basename)) or diag("Can't load File::Basename package.  Check to make sure the package library is correctly listed within the path."); }
@@ -126,15 +134,21 @@ can_ok('File::Basename', 'dirname');
 can_ok('File::Basename', 'basename');
 use File::Basename qw(dirname basename);
 
-# Make sure DateTime::HiRes loads.
-BEGIN { use_ok('DateTime::HiRes') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('DateTime::HiRes');
-use DateTime::HiRes;
+# Make sure HoneyClient::Util::DateTime loads.
+BEGIN { use_ok('HoneyClient::Util::DateTime') or diag("Can't load HoneyClient::Util::DateTime package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::DateTime');
+use HoneyClient::Util::DateTime;
 
 # Make sure IO::File loads.
 BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('IO::File');
 use IO::File;
+
+# Make sure HoneyClient::Message loads.
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Message');
+use HoneyClient::Message;
 }
 
 
@@ -383,7 +397,9 @@ eval {
                     );
         my $quick_clone_vm_name = $clone->{quick_clone_vm_name};
 
+# TODO: Fix this.
         $clone = $clone->drive(work => { 'http://www.google.com/' => 1 });
+# TODO: Fix this.
         isa_ok($clone, 'HoneyClient::Manager::ESX::Clone', "drive(work => { 'http://www.google.com/' => 1})") or diag("The drive() call failed.");
         $clone = undef;
 

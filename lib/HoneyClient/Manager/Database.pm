@@ -35,6 +35,8 @@
 HoneyClient::Manager::Database - Perl extension to provide an abstract
 interface for storing/accessing HoneyClient within the Hive web service.
 
+NOTE: This module has been deprecated.
+
 =head1 VERSION
 
 This documentation refers to HoneyClient::Manager::Database version 1.02.

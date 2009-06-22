@@ -63,6 +63,12 @@ BEGIN { use_ok('DateTime::HiRes')
 require_ok('DateTime::HiRes');
 use DateTime::HiRes;
 
+# Make sure DateTime::Format::ISO8601 loads
+BEGIN { use_ok('DateTime::Format::ISO8601')
+        or diag("Can't load DateTime::Format::ISO8601 package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Format::ISO8601');
+use DateTime::Format::ISO8601;
+
 # Make sure Data::Dumper loads
 BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
@@ -75,7 +81,15 @@ use Data::Dumper;
 # =begin testing
 {
 my $timestamp = HoneyClient::Util::DateTime->now();
-like($timestamp, qr/\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d\d\d/, "now()") or diag("The now() call failed.");
+like($timestamp, qr/\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\d\d\d\d\d{0,1}/, "now()") or diag("The now() call failed.");
+}
+
+
+
+# =begin testing
+{
+my $timestamp = HoneyClient::Util::DateTime->epoch();
+like($timestamp, qr/\d*\.\d*/, "epoch()") or diag("The epoch() call failed.");
 }
 
 

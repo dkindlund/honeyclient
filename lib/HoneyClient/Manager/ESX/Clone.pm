@@ -78,6 +78,7 @@ This documentation refers to HoneyClient::Manager::ESX::Clone version 1.02.
   my $ip_address = $clone->{'ip_address'};
 
   # Specify the type of work you want the clone to handle.
+# TODO: Fix this.
   my $work = {
       "http://www.google.com/" => 1,
       "http://www.cnn.com/" => 1,
@@ -186,11 +187,6 @@ BEGIN {
     # Symbols to autoexport (when qw(:all) tag is used)
     @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-    # Check to see if ithreads are compiled into this version of Perl.
-    if (!$Config{useithreads}) {
-        Carp::croak "Error: Recompile Perl with ithread support, in order to use this module.\n";
-    }
-
     $SIG{PIPE} = 'IGNORE'; # Do not exit on broken pipes.
 }
 our (@EXPORT_OK, $VERSION);
@@ -250,15 +246,20 @@ BEGIN { use_ok('HoneyClient::Manager::ESX') or diag("Can't load HoneyClient::Man
 require_ok('HoneyClient::Manager::ESX');
 use HoneyClient::Manager::ESX;
 
-# Make sure HoneyClient::Manager::Database loads.
-BEGIN { use_ok('HoneyClient::Manager::Database') or diag("Can't load HoneyClient::Manager::Database package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('HoneyClient::Manager::Database');
-use HoneyClient::Manager::Database;
+# Make sure HoneyClient::Util::EventEmitter loads.
+BEGIN { use_ok('HoneyClient::Util::EventEmitter') or diag("Can't load HoneyClient::Util::EventEmitter package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::EventEmitter');
+use HoneyClient::Util::EventEmitter;
 
 # Make sure HoneyClient::Manager::Firewall::Client loads.
 BEGIN { use_ok('HoneyClient::Manager::Firewall::Client') or diag("Can't load HoneyClient::Manager::Firewall::Client package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Manager::Firewall::Client');
 use HoneyClient::Manager::Firewall::Client;
+
+# Make sure HoneyClient::Manager::Pcap::Client loads.
+BEGIN { use_ok('HoneyClient::Manager::Pcap::Client') or diag("Can't load HoneyClient::Manager::Pcap::Client package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Manager::Pcap::Client');
+use HoneyClient::Manager::Pcap::Client;
 
 # Make sure the module loads properly, with the exportable
 # functions shared.
@@ -289,26 +290,29 @@ can_ok('MIME::Base64', 'encode_base64');
 can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
 
-# Make sure Data::Dumper loads
+# Make sure Data::Dumper loads.
 BEGIN { use_ok('Data::Dumper')
         or diag("Can't load Data::Dumper package. Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
 use Data::Dumper;
 
-# Make sure threads loads.
-BEGIN { use_ok('threads') or diag("Can't load threads package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads');
-use threads;
+# Make sure URI::URL loads.
+BEGIN { use_ok('URI::URL')
+        or diag("Can't load URI::URL package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('URI::URL');
+use URI::URL;
 
-# Make sure threads::shared loads.
-BEGIN { use_ok('threads::shared') or diag("Can't load threads::shared package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('threads::shared');
-use threads::shared;
+# Make sure File::Slurp loads.
+BEGIN { use_ok('File::Slurp')
+        or diag("Can't load File::Slurp package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Slurp');
+use File::Slurp;
 
-# Make sure Thread::Semaphore loads.
-BEGIN { use_ok('Thread::Semaphore') or diag("Can't load Thread::Semaphore package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('Thread::Semaphore');
-use Thread::Semaphore;
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
 
 # Make sure File::Basename loads.
 BEGIN { use_ok('File::Basename', qw(dirname basename)) or diag("Can't load File::Basename package.  Check to make sure the package library is correctly listed within the path."); }
@@ -317,26 +321,27 @@ can_ok('File::Basename', 'dirname');
 can_ok('File::Basename', 'basename');
 use File::Basename qw(dirname basename);
 
-# Make sure DateTime::HiRes loads.
-BEGIN { use_ok('DateTime::HiRes') or diag("Can't load Sys::HostIP package.  Check to make sure the package library is correctly listed within the path."); }
-require_ok('DateTime::HiRes');
-use DateTime::HiRes;
+# Make sure HoneyClient::Util::DateTime loads.
+BEGIN { use_ok('HoneyClient::Util::DateTime') or diag("Can't load HoneyClient::Util::DateTime package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Util::DateTime');
+use HoneyClient::Util::DateTime;
 
 # Make sure IO::File loads.
 BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('IO::File');
 use IO::File;
 
+# Make sure HoneyClient::Message loads.
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('HoneyClient::Message');
+use HoneyClient::Message;
+
 =end testing
 
 =cut
 
 #######################################################################
-
-# Include Threading Library
-use threads;
-use threads::shared;
-use Thread::Semaphore;
 
 # Include Global Configuration Processing Library
 use HoneyClient::Util::Config qw(getVar);
@@ -353,6 +358,15 @@ use Storable qw(dclone thaw);
 # Use Dumper Library
 use Data::Dumper;
 
+# Use URL Library
+use URI::URL;
+
+# Use File::Slurp Library
+use File::Slurp;
+
+# Use Compress::Zlib Library
+use Compress::Zlib;
+
 # Package Global Variable
 our $AUTOLOAD;
 
@@ -362,20 +376,29 @@ use Log::Log4perl qw(:easy);
 # The global logging object.
 our $LOG = get_logger();
 
-# Use DateTime::HiRes Libraries
-use DateTime::HiRes;
+# Include DateTime Libraries
+use HoneyClient::Util::DateTime;
 
-# Include Database Libraries
-use HoneyClient::Manager::Database;
+# Include Event Emitter Libraries
+use HoneyClient::Util::EventEmitter;
 
 # Include Firewall Libraries
 use HoneyClient::Manager::Firewall::Client;
+
+# Include Pcap Libraries
+# TODO: Fix this.
+use HoneyClient::Manager::Pcap::Client;
+#use HoneyClient::Manager::Pcap;
 
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Include IO::File Libraries
 use IO::File;
+
+# Include Protobuf Libraries
+use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
+use HoneyClient::Message;
 
 =pod
 
@@ -511,7 +534,7 @@ The number of work units processed by this VM.
 # within this object, through indirect use of the AUTOLOAD function.
 #
 # It's best to explain by example:
-# Assume we have defined a driver object, like the following.
+# Assume we have defined an object, like the following.
 #
 # use HoneyClient::Manager::ESX::Clone;
 # my $clone = HoneyClient::Manager::ESX::Clone->new(someVar => 'someValue');
@@ -565,6 +588,11 @@ sub AUTOLOAD {
 # we can simply leave the garbage collection up to Perl's internal
 # mechanism.
 sub DESTROY {
+
+    if ($@) {
+        $LOG->error("Process ID (" . $$ . "): Encountered an error. " . $@);
+    }
+
     # Get the object.
     my $self = shift;
 
@@ -573,28 +601,34 @@ sub DESTROY {
          ($self->{'status'} eq 'initialized') ||
          ($self->{'status'} eq 'uninitialized') ||
          ($self->{'status'} eq 'registered'))) {
+
+# TODO: Delete this, eventually.
+$DB::single=1;
+
         # Signal firewall to deny traffic from this clone.
         # Ignore errors.
         eval {
             $self->_denyNetwork();
         };
        
-        $LOG->info("Thread ID (" . threads->tid() . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         my $som = undef;
+        my $suspended_at = undef;
         eval {
+            $suspended_at = HoneyClient::Util::DateTime->now();
             $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         };
 
         if (!defined($som)) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+            $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
             $self->_changeStatus(status => "error");
         } else {
             $self->{'_vm_session'} = $som;
-            $self->_changeStatus(status => "suspended");
+            $self->_changeStatus(status => "suspended", suspended_at => $suspended_at);
         }
 
         # Upon termination, close our session.
-        $LOG->info("Thread ID (" . threads->tid() . "): Closing ESX session.");
+        $LOG->info("Process ID (" . $$ . "): Closing ESX session.");
         HoneyClient::Manager::ESX->logout(session => $self->{'_vm_session'});
     }
 }
@@ -623,7 +657,7 @@ sub _handleAgentFault {
     
     if (($errMsg !~ /Connection refused/) &&
         ($errMsg !~ /No route to host/)) {
-        $LOG->warn("Thread ID (" . threads->tid() . "): Error occurred during processing. " . $errMsg);
+        $LOG->warn("Process ID (" . $$ . "): Error occurred during processing. " . $errMsg);
         Carp::carp __PACKAGE__ . "->_handleAgentFault(): Error occurred during processing.\n" . $errMsg;
     }
 }
@@ -673,10 +707,10 @@ sub _init {
         # If the quick_clone_vm_name wasn't specified, then create a new quick clone from the master_vm_name
         # and initialize it completely.
 
-        $LOG->info("Thread ID (" . threads->tid() . "): Quick cloning master VM (" . $self->{'master_vm_name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Quick cloning master VM (" . $self->{'master_vm_name'} . ").");
         ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->quickCloneVM(session => $self->{'_vm_session'}, src_name => $self->{'master_vm_name'});
         if (!defined($ret)) {
-            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").");
+            $LOG->error("Process ID (" . $$ . "): Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").");
             Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").";
         }
         # Set the name of the cloned VM.
@@ -685,7 +719,7 @@ sub _init {
         $self->_changeStatus(status => "initialized");
 
         # Wait until the VM gets registered, before proceeding.
-        $LOG->debug("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is registered.");
+        $LOG->debug("Process ID (" . $$ . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is registered.");
         $ret = undef;
         while (!defined($ret) or !$ret) {
             ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->isRegisteredVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
@@ -696,12 +730,12 @@ sub _init {
             }
         }
         # Now, get the VM's configuration.
-        $LOG->debug("Thread ID (" . threads->tid() . "): Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->debug("Process ID (" . $$ . "): Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($self->{'_vm_session'}, $self->{'config'}) = HoneyClient::Manager::ESX->getConfigVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         $self->_changeStatus(status => "registered");
 
         # Once registered, check if the VM is ON yet.
-        $LOG->debug("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
+        $LOG->debug("Process ID (" . $$ . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
         $ret = undef;
         while (!defined($ret) or ($ret ne 'poweredon')) {
             ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
@@ -715,32 +749,40 @@ sub _init {
     
 
         # Now, get the VM's MAC/IP address.
-        $LOG->info("Thread ID (" . threads->tid() . "): Waiting for a valid MAC/IP address of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Waiting for a valid MAC/IP address of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         $ret = undef;
         my $logMsgPrinted = 0;
+        my $ip_address = undef;
         while (!defined($self->{'ip_address'}) or 
                !defined($self->{'mac_address'}) or
                !defined($ret)) {
-            ($self->{'_vm_session'}, $self->{'mac_address'}) = HoneyClient::Manager::ESX->getMACaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
-            ($self->{'_vm_session'}, $self->{'ip_address'}) = HoneyClient::Manager::ESX->getIPaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
-# XXX: What if the VM goes into BSOD at this point?
-#      We essentially retry forever -- may not be a great idea.
+            ($self->{'_vm_session'}, $self->{'mac_address'}) = HoneyClient::Manager::ESX->getMACaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+
+            ($self->{'_vm_session'}, $ip_address) = HoneyClient::Manager::ESX->getIPaddrVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            if (defined($ip_address) && 
+                (!defined($self->{'ip_address'}) ||
+                 ($ip_address ne $self->{'ip_address'}))) {
+                $LOG->info("Process ID (" . $$ . "): Clone VM (" . $self->{'quick_clone_vm_name'} . ") has a new IP (" . $ip_address . ") - updating firewall.");
+                $self->_denyNetwork();
+                $self->{'ip_address'} = $ip_address;
+            }
 
             # If the VM isn't booted yet, wait before trying again.
             if (!defined($self->{'ip_address'}) or !defined($self->{'mac_address'})) {
+                $self->_checkForBSOD(snapshot_name => getVar(name => "default_quick_clone_snapshot_name"));
                 sleep ($self->{'_retry_period'});
                 next; # skip further processing
             } elsif (!$logMsgPrinted) {
-                $LOG->info("Thread ID (" . threads->tid() . "): Initialized clone VM (" . $self->{'quick_clone_vm_name'} . ") using IP (" .
+                $LOG->info("Process ID (" . $$ . "): Initialized clone VM (" . $self->{'quick_clone_vm_name'} . ") using IP (" .
                            $self->{'ip_address'} . ") and MAC (" . $self->{'mac_address'} . ").");
 
-                # Signal firewall to allow traffic from this clone through.
-                $self->_allowNetwork();
-
-                $LOG->info("Thread ID (" . threads->tid() . "): Waiting for Agent daemon to initialize inside clone VM.");
+                $LOG->info("Process ID (" . $$ . "): Waiting for Agent daemon to initialize inside clone VM.");
                 $logMsgPrinted = 1;
             }
+
+            # Signal firewall to allow traffic from this clone through.
+            $self->_allowNetwork();
         
             # Now, try contacting the Agent.
             $self->{'_agent_handle'} = getClientHandle(namespace     => "HoneyClient::Agent",
@@ -754,26 +796,23 @@ sub _init {
             # Clear returned state, if any fault occurs.
             if ($@) {
                 $ret = undef;
+                $self->_checkForBSOD(snapshot_name => getVar(name => "default_quick_clone_snapshot_name"));
             }
 
             # If the Agent daemon isn't responding yet, wait before trying again.
             if (!defined($ret)) {
                 sleep ($self->{'_retry_period'});
 
-            } elsif (getVar(name      => "enable",
-                            namespace => "HoneyClient::Manager::Database")) {
+            } else {
 
                 # Generate a new Operational snapshot.
-                $LOG->info("Thread ID (" . threads->tid() . "): Creating a new operational snapshot of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+                $LOG->info("Process ID (" . $$ . "): Creating a new operational snapshot of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
                 ($self->{'_vm_session'}, $self->{'name'}) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
                                                                                                   name                 => $self->{'quick_clone_vm_name'},
                                                                                                   snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
                 $self->{'_num_snapshots'}++;
-                $LOG->info("Thread ID (" . threads->tid() . "): Created operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+                $LOG->info("Process ID (" . $$ . "): Created operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
 
-                # Register the cloned VM with the Drone database.
-                my $dt = DateTime::HiRes->now(time_zone => "local");
-   
                 # XXX: We need to separate this call into 2 smaller ones.
                 #      1) Register basic client information.
                 #      2) Register OS/application details.
@@ -781,24 +820,29 @@ sub _init {
                 #      we have *some* sort of record in the database about it,
                 #      for cleanup purposes.
 
-                # Construct the 'Client' object.
+                # Notify the Drone about the new client.
                 my $hostname = undef;
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
-                my $client = {
-                    cid => $self->{'quick_clone_vm_name'},
-                    snapshot_name => $self->{'name'},
-                    status => $self->{'status'},
-                    host => {
-                        org => getVar(name => "organization"),
-                        hostname => $hostname,
-                        ip => $ip,
+                my $message = HoneyClient::Message::Client->new({
+                    quick_clone_name => $self->{'quick_clone_vm_name'},
+                    snapshot_name    => $self->{'name'},
+                    created_at       => HoneyClient::Util::DateTime->now(),
+                    host             => {
+                        hostname     => $hostname,
+                        ip           => $ip,
                     },
-                    os => $ret,
-                    start => $dt->ymd('-').'T'.$dt->hms(':'),
-                };
-                $self->{'database_id'} = HoneyClient::Manager::Database::insert_client($client);
+                    client_status    => {
+                        status       => $self->{'status'},
+                    },
+                    os               => $ret->{'os'},
+                    application      => $ret->{'application'},
+                    ip               => $self->{'ip_address'},
+                    mac              => $self->{'mac_address'},
+                });
+                my $result = undef;
+                ($result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Client(session => $self->{'_emitter_session'}, action => 'find_or_create', message => $message);
             }
         }
         
@@ -810,15 +854,15 @@ sub _init {
 
         # First, make sure that an operational snapshot name was already provided (as a basis).
         if (!defined($self->{'name'})) {
-            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.");
+            $LOG->error("Process ID (" . $$ . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.";
         }
 
         # Revert to operational snapshot; upon revert, the VM will already be running.
-        $LOG->info("Thread ID (" . threads->tid() . "): Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to operational snapshot (" . $self->{'name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to operational snapshot (" . $self->{'name'} . ").");
         $ret = HoneyClient::Manager::ESX->revertVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'}, snapshot_name => $self->{'name'});
         if (!$ret) {
-            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.");
+            $LOG->error("Process ID (" . $$ . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.";
         }
         $self->{'_vm_session'} = $ret;
@@ -829,17 +873,17 @@ sub _init {
                                                                                                 old_snapshot_name        => $self->{'name'},
                                                                                                 new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
         if (!defined($self->{'name'})) {
-            $LOG->fatal("Thread ID (" . threads->tid() . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.");
+            $LOG->error("Process ID (" . $$ . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.";
         }
-        $LOG->info("Thread ID (" . threads->tid() . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
-# TODO: Sanity check to make sure the VM is powered on and not in a suspended state.
-        $LOG->info("Thread ID (" . threads->tid() . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
+
+        $LOG->info("Process ID (" . $$ . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         $self->{'_vm_session'} = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         # Sanity check: Make sure the VM is powered ON.
         $ret = undef;
         while (!defined($ret) or ($ret ne 'poweredon')) {
-            $LOG->info("Thread ID (" . threads->tid() . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
+            $LOG->info("Process ID (" . $$ . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
             ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
             # If the VM isn't ON yet, wait before trying again.
@@ -849,56 +893,33 @@ sub _init {
         }
         $self->_changeStatus(status => "running");
 
-        # Signal firewall to allow traffic from this clone through.
-        $self->_allowNetwork();
-
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [1] - Entering Agent Loop.");
         $ret = undef;
         while (!defined($ret)) {
 
-# XXX: What if the VM goes into BSOD at this point?
-#      We essentially retry forever -- may not be a great idea.
+            # Signal firewall to allow traffic from this clone through.
+            $self->_allowNetwork();
 
             # Try contacting the Agent.
             $self->{'_agent_handle'} = getClientHandle(namespace     => "HoneyClient::Agent",
                                                        address       => $self->{'ip_address'},
                                                        fault_handler => \&_handleAgentFault);
 
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [2] - Got client handle.");
-
             eval {
                 $som = $self->{'_agent_handle'}->getProperties(driver_name => $self->{'driver_name'});
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [3] - Got properties.");
                 $ret = $som->result();
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [4] - Extracting result.");
             };
             # Clear returned state, if any fault occurs.
             if ($@) {
                 $ret = undef;
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [4a] - Encountered fault; retrying to get properties.");
+                $self->_checkForBSOD(snapshot_name => $self->{'name'});
             }
 
             # If the Agent daemon isn't responding yet, wait before trying again.
             if (!defined($ret)) {
-
-                # TODO: ??? - Sanity check to make sure the VM is powered on and not in a suspended state.
                 sleep ($self->{'_retry_period'});
 
-            } elsif (getVar(name      => "enable",
-                            namespace => "HoneyClient::Manager::Database")) {
+            } else {
 
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [5] - Entering database logic.");
-                # Register the cloned VM with the Drone database.
-                my $dt = DateTime::HiRes->now(time_zone => "local");
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [6] - Extracting local time.");
-   
                 # XXX: We need to separate this call into 2 smaller ones.
                 #      1) Register basic client information.
                 #      2) Register OS/application details.
@@ -906,34 +927,29 @@ $LOG->info("Thread ID (" . threads->tid() . "): [6] - Extracting local time.");
                 #      we have *some* sort of record in the database about it,
                 #      for cleanup purposes.
 
-                # Construct the 'Client' object.
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [7] - Extracting ESX hostname.");
+                # Notify the Drone about the new client.
                 my $hostname = undef;
                 ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [8] - Extracting ESX IP address.");
                 my $ip = undef;
                 ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [10] - Constructing client object.");
-                my $client = {
-                    cid => $self->{'quick_clone_vm_name'},
-                    snapshot_name => $self->{'name'},
-                    status => $self->{'status'},
-                    host => {
-                        org => getVar(name => "organization"),
-                        hostname => $hostname,
-                        ip => $ip,
+                my $message = HoneyClient::Message::Client->new({
+                    quick_clone_name => $self->{'quick_clone_vm_name'},
+                    snapshot_name    => $self->{'name'},
+                    created_at       => HoneyClient::Util::DateTime->now(),
+                    host             => {
+                        hostname     => $hostname,
+                        ip           => $ip,
                     },
-                    os => $ret,
-                    start => $dt->ymd('-').'T'.$dt->hms(':'),
-                };
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [11] - Inserting client into database.");
-                $self->{'database_id'} = HoneyClient::Manager::Database::insert_client($client);
-# TODO: Delete this, eventually.
-$LOG->info("Thread ID (" . threads->tid() . "): [12] - Client insert successful.");
+                    client_status    => {
+                        status       => $self->{'status'},
+                    },
+                    os               => $ret->{'os'},
+                    application      => $ret->{'application'},
+                    ip               => $self->{'ip_address'},
+                    mac              => $self->{'mac_address'},
+                });
+                my $result = undef;
+                ($result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Client(session => $self->{'_emitter_session'}, action => 'find_or_create', message => $message);
             }
         }
     }
@@ -978,6 +994,15 @@ sub _changeStatus {
     # Extract arguments.
     my ($self, %args) = @_;
 
+# TODO: Change this, eventually.
+    # Log resolved arguments.
+    $LOG->warn(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
     # Sanity check: Make sure we've been fed an object.
     unless (ref($self)) {
         $LOG->error("Error: Function must be called in reference to a " .
@@ -993,7 +1018,7 @@ sub _changeStatus {
         !defined($args{'status'})) {
 
         # Croak if no valid argument is supplied.
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: No status argument supplied.");
+        $LOG->error("Process ID (" . $$ . "): Error: No status argument supplied.");
         Carp::croak "Error: No status argument supplied.";
     }
 
@@ -1010,58 +1035,28 @@ sub _changeStatus {
     # Change the status field.
     $self->{'status'} = $args{'status'};
 
-    # Update the corresponding client record in the Drone database.
-    if (defined($self->{'database_id'})) {
-        for ($self->{'status'}) {
-            if (/running/) {
-                HoneyClient::Manager::Database::set_client_running($self->{'database_id'});
-            } elsif (/suspended/) {
-                HoneyClient::Manager::Database::set_client_suspended($self->{'database_id'});
-            } elsif (/suspicious/) {
-                if (!$argsExist || 
-                    !exists($args{'fingerprint'}) ||
-                    !defined($args{'fingerprint'})) {
+    # Notify the Drone that the client status has changed.
+    if (defined($self->{'quick_clone_vm_name'}) &&
+        defined($self->{'name'})) {
+        my $message = HoneyClient::Message::Client->new({
+            quick_clone_name => $self->{'quick_clone_vm_name'},
+            snapshot_name    => $self->{'name'},
+            client_status    => {
+                status       => $self->{'status'},
+            },
+        });
+        my $action = 'find_and_update.client_status';
 
-                    # Warn if no valid fingerprint is supplied.
-                    $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - No valid fingerprint found.");
-                    Carp::carp __PACKAGE__ . "->_changeStatus(): (" . $self->{'quick_clone_vm_name'} . ") - No valid fingerprint found.";
-
-                    # Mark the VM as suspicious, manually.
-                    my $dt = DateTime::HiRes->now(time_zone => "local");
-                    HoneyClient::Manager::Database::set_client_suspicious({
-                        client_id => $self->{'database_id'},
-                        compromise => $dt->ymd('-').'T'.$dt->hms(':'),
-                    });
-
-                } else {
-
-                    # Mark the VM as suspicious indirectly, by inserting the fingerprint.
-
-                    $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Inserting Fingerprint Into Database.");
-                    # Make sure the fingerprint contains a client_id.
-                    $args{'fingerprint'}->{'client_id'} = $self->{'database_id'};
-                    my $fingerprint_id = undef;
-                    eval {
-                        $fingerprint_id = HoneyClient::Manager::Database::insert_fingerprint($args{'fingerprint'});
-                    };
-                    if ($@ || ($fingerprint_id == 0) || !defined($fingerprint_id)) {
-                        $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Failure Inserting Fingerprint: " . $@);
-                    } else {
-                        $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Database Insert Successful.");
-                    }
-                }
-            } elsif (/compromised/) {
-                HoneyClient::Manager::Database::set_client_compromised($self->{'database_id'});
-            } elsif (/deleted/) {
-                HoneyClient::Manager::Database::set_client_deleted($self->{'database_id'});
-            } elsif (/error/) {
-                HoneyClient::Manager::Database::set_client_error($self->{'database_id'});
-            } elsif (/bug/) {
-                HoneyClient::Manager::Database::set_client_bug($self->{'database_id'});
-            }
+        if ($argsExist &&
+            exists($args{'suspended_at'}) &&
+            defined($args{'suspended_at'})) {
+            $message->set_suspended_at($args{'suspended_at'});
+            $action .= '.suspended_at';
         }
-    }
 
+        my $result = undef;
+        ($result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Client(session => $self->{'_emitter_session'}, action => $action, message => $message);
+    }
     return $self;
 }
 
@@ -1079,7 +1074,7 @@ sub _dumpFingerprint {
     my $COMPROMISE_FILE = getVar(name => "fingerprint_dump");
     if (length($COMPROMISE_FILE) > 0 &&
         defined($fingerprint)) {
-        $LOG->info("Thread ID (" . threads->tid() . "): Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
+        $LOG->info("Process ID (" . $$ . "): Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
         my $dump_file = new IO::File($COMPROMISE_FILE, "a");
 
         $Data::Dumper::Terse = 0;
@@ -1102,17 +1097,25 @@ sub _allowNetwork {
         return;
     }
 
-    $LOG->info("Thread ID (" . threads->tid() . "): Allowing VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
+    # Check if the VM even has network access.
+    if ($self->{'_has_network_access'}) {
+        return;
+    }
+    my $result = undef; 
+
+    $LOG->info("Process ID (" . $$ . "): Allowing VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
 
     my $allowed_outbound_ports = getVar(name      => "allowed_outbound_ports",
                                         namespace => "HoneyClient::Manager::Firewall");
-    if (HoneyClient::Manager::Firewall::Client->allowVM(
+    ($result, $self->{'_firewall_session'}) = HoneyClient::Manager::Firewall::Client->allowVM(
+            session     => $self->{'_firewall_session'},
             chain_name  => $self->{'quick_clone_vm_name'},
             mac_address => $self->{'mac_address'},
             ip_address  => $self->{'ip_address'},
             # XXX: Need to make this more configurable, by supporting other protocols.
             protocol    => "tcp",
-            port        => $allowed_outbound_ports->{'tcp'},)) {
+            port        => $allowed_outbound_ports->{'tcp'});
+    if ($result) {
 
         # Mark that the VM has been granted network access.
         $self->{'_has_network_access'} = 1;
@@ -1135,12 +1138,24 @@ sub _denyNetwork {
     if (!$self->{'_has_network_access'}) {
         return;
     }
+    my $result = undef; 
 
-    $LOG->info("Thread ID (" . threads->tid() . "): Denying VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
-    if (HoneyClient::Manager::Firewall::Client->denyVM(chain_name => $self->{'quick_clone_vm_name'})) {
+    $LOG->info("Process ID (" . $$ . "): Denying VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
+    
+    ($result, $self->{'_firewall_session'}) = HoneyClient::Manager::Firewall::Client->denyVM(session => $self->{'_firewall_session'}, chain_name => $self->{'quick_clone_vm_name'});
+    if ($result) {
         # Mark that the VM has been denied network access.
         $self->{'_has_network_access'} = 0;
     }
+
+    $LOG->info("Process ID (" . $$ . "): Destroying Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
+# TODO: Fix this.
+    ($result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
+        session          => $self->{'_pcap_session'},
+#    $self->{'_pcap_session'} = HoneyClient::Manager::Pcap->stopCapture(
+#        sessions         => $self->{'_pcap_session'},
+        quick_clone_name => $self->{'quick_clone_vm_name'},
+        delete_pcap      => 1);
 }
 
 # Helper function to check if the VMware ESX system has enough disk
@@ -1162,12 +1177,50 @@ sub _checkSpaceAvailable {
 
     if ($datastore_free < $min_space_free) {
         my $datastore_free_in_gb = sprintf("%.2f", $datastore_free / (1024 * 1024 * 1024));
-        $LOG->warn("Thread ID (" . threads->tid() . "): Primary datstore has low disk space (" . $datastore_free_in_gb . " GB).");
+        $LOG->warn("Process ID (" . $$ . "): Primary datstore has low disk space (" . $datastore_free_in_gb . " GB).");
     } else {
         return;
     }
-    $LOG->info("Thread ID (" . threads->tid() . "): Low disk space detected. Shutting down.");
+    $LOG->info("Process ID (" . $$ . "): Low disk space detected. Shutting down.");
     exit;
+}
+
+# Helper function to check if the initialized clone VM has inadvertently
+# generated a BSOD.  We count how many times this function is called; if
+# if exceeds max_retry_count, then we re-initialize the VM by reverting
+# to the specified snapshot_name.
+#
+# Inputs: self, snapshot_name
+sub _checkForBSOD {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    if ($self->{'_num_failed_inits'} >= getVar(name => "max_retry_count")) {
+
+        # Deny the VM's network, since when we revert, we'll probably be getting a new IP address.
+        $self->_denyNetwork();
+
+        $LOG->warn("Process ID (" . $$ . "): Detected possible BSOD in initializing clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+
+        # Revert to default snapshot; upon revert, the VM will already be stopped.
+        $LOG->info("Process ID (" . $$ . "): Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to snapshot (" . $args{'snapshot_name'} . ").");
+        my $ret = HoneyClient::Manager::ESX->revertVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'}, snapshot_name => $args{'snapshot_name'});
+        if (!$ret) {
+            $LOG->error("Process ID (" . $$ . "): Unable to revert clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to snapshot (" . $args{'snapshot_name'} . ").");
+            Carp::croak "Unable to revert clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to snapshot (" . $args{'snapshot_name'} . ").";
+        }
+        $self->{'_vm_session'} = $ret;
+
+        $LOG->info("Process ID (" . $$ . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $self->{'_vm_session'} = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+
+        $self->{'_num_failed_inits'} = 0;
+    } else {
+        $self->{'_num_failed_inits'}++;
+
+# TODO: Delete this, eventually.
+        $LOG->warn("Process ID (" . $$ . "): Clone VM (" . $self->{'quick_clone_vm_name'} . ") - _num_failed_inits: " . $self->{'_num_failed_inits'} . ".");
+    }
 }
 
 #######################################################################
@@ -1356,6 +1409,25 @@ sub new {
         # should never be modified externally.)
         _vm_session => undef,
 
+        # A Net::Stomp session object, used to interact with the 
+        # HoneyClient::Manager::Firewall::Server daemon. (This internal variable
+        # should never be modified externally.)
+        _firewall_session => undef,
+
+        # A Net::Packet::Dump session object, used to interact with the
+        # HoneyClient::Manager::Pcap process.  (This internal variable
+        # should never be modified externally.)
+# TODO: Update this.
+        # A Net::Stomp session object, used to interact with the
+        # HoneyClient::Manager::Pcap::Server daemon. (This internal variable
+        # should never be modified externally.)
+        _pcap_session => undef,
+
+        # A Net::Stomp session object, used to interact with the 
+        # Drone server. (This internal variable
+        # should never be modified externally.)
+        _emitter_session => undef,
+
         # A SOAP handle to the Agent daemon.  (This internal variable
         # should never be modified externally.)
         _agent_handle => undef,
@@ -1377,6 +1449,10 @@ sub new {
         # A variable indicating the number of snapshots currently
         # associated with this cloned VM.
         _num_snapshots => 0,
+
+        # A variable indicating the number of failed retries in attempting
+        # to contact the clone VM upon initialization.
+        _num_failed_inits => 0,
     );
 
     @{$self}{keys %params} = values %params;
@@ -1390,28 +1466,33 @@ sub new {
     
     # Set a valid handle for the VM daemon.
     if (!defined($self->{'_vm_session'})) {
-        $LOG->info("Thread ID (" . threads->tid() . "): Creating a new ESX session to (" . $self->{'service_url'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Creating a new ESX session to (" . $self->{'service_url'} . ").");
         $self->{'_vm_session'} = HoneyClient::Manager::ESX->login(
                                      service_url => $self->{'service_url'},
                                      user_name   => $self->{'user_name'},
                                      password    => $self->{'password'},
                                  );
+
+        # Notify Drone about the new host.
+        my $hostname = undef;
+        ($self->{'_vm_session'}, $hostname) = HoneyClient::Manager::ESX->getHostnameESX(session => $self->{'_vm_session'});
+        my $ip = undef;
+        ($self->{'_vm_session'}, $ip) = HoneyClient::Manager::ESX->getIPaddrESX(session => $self->{'_vm_session'});
+        my $message = HoneyClient::Message::Host->new({
+            hostname => $hostname,
+            ip       => $ip,
+        });
+        my $result = undef;
+        ($result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Host(session => $self->{'_emitter_session'}, action => 'find_or_create', message => $message);
     }
 
     # Sanity check: Make sure there is enough disk space available. 
     $self->_checkSpaceAvailable();
     
-    # Install the default firewall rules only if we're being called by code
-    # other than HoneyClient::Manager or by ourselves.
-    my $caller = caller();
-    if (($caller ne __PACKAGE__) && ($caller ne "HoneyClient::Manager")) {
-        $LOG->info("Thread ID (" . threads->tid() . "): Installing default firewall rules.");
-        HoneyClient::Manager::Firewall::Client->denyAllTraffic();
-    }
-
     # Determine if the firewall needs to be bypassed.
     if ($self->{'_bypass_firewall'}) {
-        HoneyClient::Manager::Firewall::Client->allowAllTraffic();
+        my $result = undef;
+        ($result, $self->{'_firewall_session'}) = HoneyClient::Manager::Firewall::Client->allowAllTraffic(session => $self->{'_firewall_session'});
     }
 
     # Check to see if this quick clone VM already has reached the
@@ -1419,11 +1500,13 @@ sub new {
     if ($self->{'_num_snapshots'} >= getVar(name => "max_num_snapshots")) {
 
         # If so, then suspend the existing quick clone.
-        $LOG->info("Thread ID (" . threads->tid() . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ") - reached maximum number of snapshots (" . $self->{'_num_snapshots'} . ").");
-        my $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
-        
-        if (!defined($som)) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ") - reached maximum number of snapshots (" . $self->{'_num_snapshots'} . ").");
+        my $som = undef;
+        eval {
+            $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+        }; 
+        if ($@ || !defined($som)) {
+            $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
         } else {
             $self->{'_vm_session'} = $som;
         }
@@ -1442,7 +1525,37 @@ sub new {
     if ($self->{'_dont_init'}) {
         return $self;
     } else {
-        return $self->_init();
+        eval {
+            $self->_init();
+        };
+        if ($@) {
+            $LOG->error("Process ID (" . $$ . "): Unable to initialize VM (" . $self->{'quick_clone_vm_name'} . ") - Retrying operation. " . $@);
+# TODO: Make sure this works!
+#$DB::single = 1;
+
+            # Make sure the old VM is at least suspended, before attempting to clone another one.
+            $LOG->info("Process ID (" . $$ . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+            my $som = undef;
+            my $suspended_at = undef;
+            eval {
+                $suspended_at = HoneyClient::Util::DateTime->now();
+                $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            };
+
+            if (!defined($som)) {
+                $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+            } else {
+                $self->{'_vm_session'} = $som;
+                $self->_changeStatus(status => "suspended", suspended_at => $suspended_at);
+            }
+
+            my $new_self = HoneyClient::Manager::ESX::Clone->new(%{$self});
+
+            # We mark the old clone VM as an "error" and move on.
+            $self->_changeStatus(status => "error");
+            $self = $new_self;
+        }
+        return $self;
     }
 }
 
@@ -1583,24 +1696,36 @@ sub suspend {
 
     # Snapshot the VM.
     if ($args{'perform_snapshot'}) {
-        $LOG->info("Thread ID (" . threads->tid() . "): Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Process ID (" . $$ . "): Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         my $som = undef;
-        ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
-                                                                               name                 => $self->{'quick_clone_vm_name'},
-                                                                               snapshot_name        => $self->{'name'},
-                                                                               snapshot_description => getVar(name => "compromised_quick_clone_snapshot_description"),
-                                                                               ignore_collisions    => 1);
-
-        if (!defined($som)) {
-            $LOG->error("Thread ID (" . threads->tid() . "): Unable to save operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        my $suspended_at = undef;
+        eval {
+            $suspended_at = HoneyClient::Util::DateTime->now();
+            ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
+                                                                                   name                 => $self->{'quick_clone_vm_name'},
+                                                                                   snapshot_name        => $self->{'name'},
+                                                                                   snapshot_description => getVar(name => "compromised_quick_clone_snapshot_description"),
+                                                                                   ignore_collisions    => 1);
+        };
+        if ($@ || !defined($som)) {
+            $LOG->error("Process ID (" . $$ . "): Unable to save operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
+            # Try at least to suspend the VM, when an error occurs.
+            eval {
+                $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+            };
+            if (!defined($som)) {
+                $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+            } else {
+                $self->{'_vm_session'} = $som;
+            }
             $self->_changeStatus(status => "error");
         } else {
             $self->{'_num_snapshots'}++;
-            $self->_changeStatus(status => "suspended");
+            $self->_changeStatus(status => "suspended", suspended_at => $suspended_at);
         }
     }
 
-    # Even though the VM is technically not "suspended" at this point, the expectation is that
+    # In the best case, Even though the VM is technically not "suspended" at this point, the expectation is that
     # the VM will be reverted shortly after this call completes.  As such, we forgo any actual
     # suspend calls, as they can be wasteful since the VM will be reverted anyway.
 
@@ -1720,59 +1845,55 @@ sub destroy {
     # We don't actually delete the snapshot, instead we just obliterate the operational snapshot's
     # original name; that way, it's equivalent to deletion.  We assume the operational snapshot
     # will then be reverted and renamed to the next valid operational snapshot name.
-    $LOG->info("Thread ID (" . threads->tid() . "): Destroying snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+    $LOG->info("Process ID (" . $$ . "): Destroying snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
     my $som = undef;
-    ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->renameSnapshotVM(session                  => $self->{'_vm_session'},
-                                                                                 name                     => $self->{'quick_clone_vm_name'},
-                                                                                 old_snapshot_name        => $self->{'name'},
-                                                                                 new_snapshot_name        => "Deleted Snapshot",
-                                                                                 new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"),
-                                                                                 ignore_collisions        => 1);
-
-    if (!defined($som)) {
-        $LOG->error("Thread ID (" . threads->tid() . "): Unable to remove snapshot (" . $self->{'name'} .  ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+    eval {
+        ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->renameSnapshotVM(session                  => $self->{'_vm_session'},
+                                                                                     name                     => $self->{'quick_clone_vm_name'},
+                                                                                     old_snapshot_name        => $self->{'name'},
+                                                                                     new_snapshot_name        => "Deleted Snapshot",
+                                                                                     new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"),
+                                                                                     ignore_collisions        => 1);
+    };
+    if ($@ || !defined($som)) {
+        $LOG->error("Process ID (" . $$ . "): Unable to remove snapshot (" . $self->{'name'} .  ") on clone VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
+        # Try at least to suspend the VM, when an error occurs.
+        eval {
+            $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
+        };
+        if (!defined($som)) {
+            $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+        } else {
+            $self->{'_vm_session'} = $som;
+        }
         $self->_changeStatus(status => "error");
     } else {
+        # Record the new name of the operational snapshot.
         $self->_changeStatus(status => "deleted");
+        $self->{'name'} = $som;
     }
-
-    # Record the new name of the operational snapshot.
-    $self->{'name'} = $som;
 
     return $self;
 }
 
 =pod
 
-=head2 $object->drive(work => $work)
+=head2 $object->drive(job => $job)
 
 =over 4
 
 Drives the Agent running inside the Clone VM, based upon
-the work supplied.  If any portion of the work causes the
+the job supplied.  If any portion of the work causes the
 VM to become compromised, then the compromised VM will be
 suspended, archived, and logged -- while a new clone VM
 will be created to continue processing the remaining
 work.
 
 I<Inputs>:
- B<$work> is a required argument, referencing a hashtable of
-different parameters to pass to the driven application,
-which is running on the Agent inside the cloned VM.
-
-I<Notes>:
- Each "key" in the $work hashtable is a parameter;
-each "value" in the $work hashtable is an integer,
-reflecting the priority assigned to that key.  Large values
-indicate high priority.
-
-Here is an example of a possible $work hashtable:
-
- my $work = {
-     "http://www.mitre.org/"  => 10, # First to process
-     "http://www.google.com/" =>  5, # Second to process
-     "http://www.cnn.com/"    =>  1, # Last to process
- };
+ B<$job> is a required argument, referencing a 
+HoneyClient::Message::Job, which contains URLs to pass to
+the driven application, running on the Agent inside
+the cloned VM.
 
 =back
 
@@ -1809,7 +1930,9 @@ eval {
                     );
         my $quick_clone_vm_name = $clone->{quick_clone_vm_name};
 
+# TODO: Fix this.
         $clone = $clone->drive(work => { 'http://www.google.com/' => 1 });
+# TODO: Fix this.
         isa_ok($clone, 'HoneyClient::Manager::ESX::Clone', "drive(work => { 'http://www.google.com/' => 1})") or diag("The drive() call failed.");
         $clone = undef;
 
@@ -1857,34 +1980,68 @@ sub drive {
     # Sanity check.  Make sure we get a valid argument.
     my $argsExist = scalar(%args);
     if (!$argsExist || 
-        !exists($args{'work'}) ||
-        !defined($args{'work'})) {
+        !exists($args{'job'}) ||
+        !defined($args{'job'}) ||
+        ref($args{'job'}) ne "HoneyClient::Message::Job") {
 
         # Croak if no valid argument is supplied.
-        $LOG->error("Thread ID (" . threads->tid() . "): Error: No work argument supplied.");
-        Carp::croak "Error: No work argument supplied.";
+        $LOG->error("Process ID (" . $$ . "): Error: Invalid job supplied.");
+        Carp::croak "Error: Invalid job supplied.";
     }
 
+    # Sort the URLs by priority - highest one first.
+    my @urls = sort {$b->priority() <=> $a->priority()} $args{'job'}->urls();
+
+    # Declare a completed urls array for final reporting.
+    my @completed_urls = ();
+
+    # Clear all extraneous data from the job, but retain the uuid and job_alerts.
+    # TODO: Add job_alerts only to completed jobs.
+    my $job_alerts = [];
+    foreach my $job_alert ($args{'job'}->job_alerts()) {
+        push(@{$job_alerts}, $job_alert->to_hashref);
+    }
+    $args{'job'} = HoneyClient::Message::Job->new({uuid => $args{'job'}->uuid(), job_alerts => $job_alerts});
+
+    # Temporary variables.
     my $som;
     my $result;
-    my $currentWork;
-    my $finishedWork = {
-        'client_id'     => {},
-        'links_visited' => {}, 
-        'links_timed_out' => {},
-        'links_ignored' => {},
-        'links_suspicious' => {},
-    };
-    my $numWorkInserted;
+    my $emit_result;
+    my $vm_status;
 
-    while (scalar(%{$args{'work'}})) {
+    # Notify the Drone that we've acquired the job.
+    my $message = HoneyClient::Message::Job->new({
+        uuid   => $args{'job'}->uuid(),
+        client => {
+            quick_clone_name => $self->{'quick_clone_vm_name'},
+            snapshot_name    => $self->{'name'},
+        },
+    });
+    $emit_result = undef;
+    ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => 'find_and_update.client', message => $message);
+
+    # If the Job is empty, then immediately complete it.
+    if (@urls <= 0) {
+        $args{'job'}->set_completed_at(HoneyClient::Util::DateTime->now());
+        $emit_result = undef;
+        ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => 'find_and_update.completed_at', message => $args{'job'});
+
+        return $self;
+    }
+
+    for my $url_counter (0..$#urls) {
+        # Get the next URL.
+        my $url = $urls[$url_counter];
+
+        # Clear the URL priority - otherwise Drone will not properly update url->time_at() fields.
+        $url->clear_priority();
 
         # Before driving, check if a work unit limit has been specified
         # and if we've exceeded that limit.
         if ((getVar(name => "work_unit_limit") > 0) &&
             ($self->{'work_units_processed'} >= getVar(name => "work_unit_limit"))) {
 
-            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
+            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
             $self->destroy();
         }
 
@@ -1894,6 +2051,8 @@ sub drive {
             # clones.
             $self = HoneyClient::Manager::ESX::Clone->new(
                         _vm_session           => $self->{'_vm_session'},
+                        _firewall_session     => $self->{'_firewall_session'},
+                        _pcap_session         => $self->{'_pcap_session'},
                         master_vm_name        => $self->{'master_vm_name'},
                         quick_clone_vm_name   => $self->{'quick_clone_vm_name'},
                         driver_name           => $self->{'driver_name'},
@@ -1902,86 +2061,216 @@ sub drive {
                         ip_address            => $self->{'ip_address'},
                         _num_snapshots        => $self->{'_num_snapshots'},
                     );
+
+            # Notify the Drone that we've acquired the job.
+            my $message = HoneyClient::Message::Job->new({
+                uuid   => $args{'job'}->uuid(),
+                client => {
+                    quick_clone_name => $self->{'quick_clone_vm_name'},
+                    snapshot_name    => $self->{'name'},
+                },
+            });
+            $emit_result = undef;
+            ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => 'find_and_update.client', message => $message);
+
         }
 
-        # Make sure the database_id is set to the client_id.
-        $finishedWork->{'client_id'} = $self->{'database_id'};
+        # Set the VM status.
+        $vm_status = $self->{'status'};
 
-        # Extract the highest priority work.
-        $currentWork = _pop($args{'work'});
+        # Record which client is about to visit this URL.
+        $url->set_client(HoneyClient::Message::Client->new({
+            quick_clone_name => $self->{'quick_clone_vm_name'},
+            snapshot_name    => $self->{'name'},
+        }));
+
+        my $capture_result = undef;
+        $LOG->info("Process ID (" . $$ . "): Starting Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
+# TODO: Fix this.
+        ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->startCapture(
+            session          => $self->{'_pcap_session'},
+#        $self->{'_pcap_session'} = HoneyClient::Manager::Pcap->startCapture(
+#            sessions         => $self->{'_pcap_session'},
+            quick_clone_name => $self->{'quick_clone_vm_name'},
+            mac_address      => $self->{'mac_address'});
 
         # Drive the Agent.
+        $result = undef;
         eval {
-            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $currentWork);
+            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $url->url());
             $self->{'work_units_processed'}++;
             $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
-                                                   parameters  => encode_base64($currentWork));
+                                                   parameters  => encode_base64($url->url()));
             $result = thaw(decode_base64($som->result()));
         };
         if ($@) {
             # We lost communications with the Agent; assume the worst
             # and mark the VM as suspicious.
-            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED");
+            $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED");
 
-            # Suspend the cloned VM.
-            $self->suspend();
+            $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "error"}));
 
-            # If possibile, insert work history.
-            # XXX: This may need to be changed; we need to mark these URLs differently.
-            #      Technically, the link didn't time out; we lost some sort of communication
-            #      with the Agent, when we tried visiting the link.
-            $finishedWork->{'links_timed_out'}->{$currentWork} = $result->{'time_at'};
-            if (defined($self->{'database_id'})) {
-                $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
-                $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
-            }
-
-            # Mark the VM as bug.
-            $self->_changeStatus(status => "bug");
+            # Mark the VM as error.
+            $vm_status = "error";
 
         # Figure out if there was a compromise found.
         } elsif (scalar(@{$result->{'fingerprint'}->{os_processes}})) {
-            $LOG->warn("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
+            $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
 
             # Dump the fingerprint to a file, if need be.
             $self->_dumpFingerprint($result->{'fingerprint'});
 
-            # Suspend the cloned VM.
-            $self->suspend();
-
-            # If possibile, insert work history.
-            $finishedWork->{'links_suspicious'}->{$currentWork} = $result->{'time_at'};
-            if (defined($self->{'database_id'})) {
-                $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
-                $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
-            }
+            $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "suspicious"}));
 
             # Mark the VM as suspicious and insert the fingerprint, if possible.
-            $self->_changeStatus(status => "suspicious", fingerprint => $result->{'fingerprint'});
+            $vm_status = "suspicious";
 
         } else {
-            $LOG->info("Thread ID (" . threads->tid() . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
-            # If possibile, insert work history.
-            $finishedWork->{'links_visited'}->{$currentWork} = $result->{'time_at'};
-            if (defined($self->{'database_id'})) {
-                $numWorkInserted = HoneyClient::Manager::Database::insert_history_urls($finishedWork);
-                $LOG->info("Thread ID (" . threads->tid() . "): " . $numWorkInserted . " URL(s) Inserted.");
+            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
+
+            $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "visited"}));
+        }
+
+        $LOG->info("Process ID (" . $$ . "): Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
+# TODO: Fix this.
+        ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
+            session          => $self->{'_pcap_session'},
+#        $self->{'_pcap_session'} = HoneyClient::Manager::Pcap->stopCapture(
+#            sessions         => $self->{'_pcap_session'},
+            quick_clone_name => $self->{'quick_clone_vm_name'});
+
+        # Construct the basic action.
+        my $action = 'find_and_update.urls.url_status.ip.time_at.client';
+
+        # If possible, insert work history.
+        if (defined($result) &&
+            exists($result->{'time_at'}) &&
+            defined($result->{'time_at'})) {
+            $url->set_time_at($result->{'time_at'});
+        } else {
+            $url->set_time_at(HoneyClient::Util::DateTime->epoch());
+        }
+
+        # Figure out the destination TCP port associated with this URL.
+        my $dst_tcp_port = undef;
+        my $ip_result = undef;
+        eval {
+            $dst_tcp_port = URI::URL->new($url->url())->port;
+        };
+
+        # If possible, get the IP address associated with this URL.
+        if (defined($dst_tcp_port)) {
+# TODO: Fix this.
+            ($ip_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getFirstIP(
+                session          => $self->{'_pcap_session'},
+#            $ip_result = HoneyClient::Manager::Pcap->getFirstIP(
+#                sessions         => $self->{'_pcap_session'},
+                quick_clone_name => $self->{'quick_clone_vm_name'},
+                src_ip_address   => $self->{'ip_address'},
+                dst_tcp_port     => $dst_tcp_port);
+            # If we got back valid data, then set the IP address of the URL.
+            if (defined($ip_result) && ($ip_result ne "")) {
+                $url->set_ip($ip_result);
             }
         }
 
-        # Flush the work history, after committing to the database.
-        $finishedWork->{'links_visited'} = {};
-        $finishedWork->{'links_timed_out'} = {};
-        $finishedWork->{'links_ignored'} = {};
-        $finishedWork->{'links_suspicious'} = {};
+# TODO: Fix this.
+        if (!defined($ip_result) || ($ip_result eq "")) {
+            # If we can't get the IP of the initial server, then we assume the connection timed out.
+            $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "timed_out"}));
+        }
 
-        # Create a new clone, if a compromise was found and we still have work to do.
-        if (($self->{'status'} eq "suspicious") &&
-            scalar(%{$args{'work'}})) {
+        # Store this completed URL.
+        push(@completed_urls, $url);
+
+        # Transmit the Job updates.
+        # To conserve bandwidth, we only emit events in any of the following conditions:
+        # - The job is complete.
+        # - The current URL was found to be suspicious.
+        # Check if this is the last URL.
+        if ($url_counter == $#urls) {
+            $args{'job'}->set_completed_at(HoneyClient::Util::DateTime->now());
+            $action .= ".completed_at";
+
+            # Add all the completed URLs back into the job.  This allows other programs
+            # to easily pick out "completed" jobs versus "in process" jobs.
+            foreach my $entry (@completed_urls) {
+                $args{'job'}->add_urls($entry);
+            }
+
+            # TODO: Delete this, eventually.
+            $Data::Dumper::Terse = 0;
+            $Data::Dumper::Indent = 1;
+            print Dumper($args{'job'}->to_hashref) . "\n";
+
+            $emit_result = undef;
+            ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
+
+        } elsif ($vm_status eq 'suspicious') {
+            $args{'job'}->add_urls($url);
+
+            # TODO: Delete this, eventually.
+            $Data::Dumper::Terse = 0;
+            $Data::Dumper::Indent = 1;
+            print Dumper($args{'job'}->to_hashref) . "\n";
+
+            $emit_result = undef;
+            ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
+        }
+
+        # Once we've emitted the job update, be sure to clear the URL list.
+        $args{'job'}->clear_urls();
+
+        # If the VM is marked as bug, error, or suspicious, then suspend it.
+        # XXX: We call suspend AFTER we've emitted our events.  We assume
+        # that event emissions will not take significantly long; otherwise,
+        # malware could be running inside the VM needlessly longer than we'd like.
+        if ($vm_status ne $self->{'status'}) {
+
+            # Check if a fingerprint was supplied.
+            if (defined($result) && scalar(@{$result->{'fingerprint'}->{os_processes}})) {
+
+                # Corellate the fingerprint to the URL.
+                $result->{'fingerprint'}->{'url'} = {
+                    # XXX: We assume there are always unique (url,time_at) entries and
+                    # no such duplicates occur.
+                    url          => $url->url(),
+                    time_at      => $url->time_at(),
+                };
+
+                # Figure out if we have a valid PCAP.
+                my $pcap_file = undef;
+# TODO: Fix this.
+                ($pcap_file, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapFile(
+                    session          => $self->{'_pcap_session'},
+#                $pcap_file = HoneyClient::Manager::Pcap->getPcapFile(
+#                    sessions         => $self->{'_pcap_session'},
+                    quick_clone_name => $self->{'quick_clone_vm_name'});
+
+                # If we have a valid PCAP file name, then try to set the fingerprint's pcap attribute accordingly.
+                if (defined($pcap_file) && ($pcap_file ne "") && (-r $pcap_file)) {
+                    $result->{'fingerprint'}->{'pcap'} = encode_base64(compress(read_file($pcap_file, binmode => ':raw')));
+                }
+
+                # Emit fingerprint.
+                my $message = HoneyClient::Message::Fingerprint->new($result->{'fingerprint'});
+                $emit_result = undef;
+                ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Fingerprint(session => $self->{'_emitter_session'}, action => 'create.fingerprint.os_processes.process_files.process_registries', message => $message);
+            } 
+
+            $self->suspend();
+            $self->_changeStatus(status => $vm_status);
+
+        }
+
+        # Create a new clone, if a compromise was found.
+        if ($self->{'status'} eq "suspicious") {
             # Be sure to carry over any customizations into the newly created
             # clones.
             $self = HoneyClient::Manager::ESX::Clone->new(
                         _vm_session           => $self->{'_vm_session'},
+                        _firewall_session     => $self->{'_firewall_session'},
+                        _pcap_session         => $self->{'_pcap_session'},
                         master_vm_name        => $self->{'master_vm_name'},
                         quick_clone_vm_name   => $self->{'quick_clone_vm_name'},
                         driver_name           => $self->{'driver_name'},
@@ -1990,6 +2279,17 @@ sub drive {
                         ip_address            => $self->{'ip_address'},
                         _num_snapshots        => $self->{'_num_snapshots'},
                     );
+
+            # Notify the Drone that we've acquired the job.
+            my $message = HoneyClient::Message::Job->new({
+                uuid   => $args{'job'}->uuid(),
+                client => {
+                    quick_clone_name => $self->{'quick_clone_vm_name'},
+                    snapshot_name    => $self->{'name'},
+                },
+            });
+            $emit_result = undef;
+            ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => 'find_and_update.client', message => $message);
         }
     }
 

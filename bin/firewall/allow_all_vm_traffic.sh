@@ -10,6 +10,9 @@
 /sbin/iptables -t filter -P INPUT ACCEPT
 /sbin/iptables -t filter -P OUTPUT ACCEPT
 /sbin/iptables -t filter -P FORWARD ACCEPT
+/sbin/iptables -t nat -P PREROUTING ACCEPT
+/sbin/iptables -t nat -P POSTROUTING ACCEPT
+/sbin/iptables -t nat -P OUTPUT ACCEPT
 
 echo "Firewall: OFF - All VM traffic allowed."
 echo ""

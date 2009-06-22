@@ -1,0 +1,46 @@
+#!/usr/bin/perl -w -I/opt/honeyclient/lib -I/opt/honeyclient/blib/lib -I/opt/honeyclient/blib/arch/auto/HoneyClient/Message
+
+# Pcap Daemon
+
+# $Id$
+
+use strict;
+use warnings;
+# Include Global Configuration Processing Library
+use HoneyClient::Util::Config qw(getVar);
+
+# Include Data Dumper API
+use Data::Dumper;
+
+# Include Logging Library
+use Log::Log4perl qw(:easy);
+
+# The global logging object.
+our $LOG = get_logger();
+
+# Make Dumper format more terse.
+$Data::Dumper::Terse = 1;
+$Data::Dumper::Indent = 0;
+
+# Include Pcap Server Daemon Library
+use HoneyClient::Manager::Pcap::Server;
+
+# Sanity check.
+if ($> != 0) {
+    $LOG->error("Error: Daemon must run as root.");
+    Carp::croak "Error: Daemon must run as root.";
+}
+
+# Create a shutdown handler.
+sub shutdown {
+    HoneyClient::Manager::Pcap::Server->stop();
+    $LOG->info("Stopping HoneyClient Pcap Daemon [PID: " . $$ . "]");
+    exit;
+}
+$SIG{INT}  = \&shutdown;
+$SIG{QUIT} = \&shutdown;
+$SIG{ABRT} = \&shutdown;
+$SIG{TERM} = \&shutdown;
+
+$LOG->info("Starting HoneyClient Pcap Daemon [PID: " . $$ . "]");
+HoneyClient::Manager::Pcap::Server->run();

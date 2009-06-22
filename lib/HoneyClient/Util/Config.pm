@@ -248,7 +248,7 @@ sub _parseConfig {
         # path.
         $config = "/" . $config;
         if (!-f $config) {
-            $LOG->fatal("Unable to parse global configuration file ($config)!");
+            $LOG->error("Unable to parse global configuration file ($config)!");
             Carp::croak("Error: Unable to parse global configuration file ($config)!");
         }
         # The absolute path worked, update the global variable to reflect this.
@@ -262,7 +262,7 @@ sub _parseConfig {
 
     # Sanity check
     if ($@ || !$xp->exists("HoneyClient")) {
-        $LOG->fatal("Unable to parse global configuration file ($CONF_FILE)!" . $@);
+        $LOG->error("Unable to parse global configuration file ($CONF_FILE)!" . $@);
         Carp::croak("Error: Unable to parse global configuration file ($CONF_FILE)!" . $@);
     }
 }
@@ -277,7 +277,7 @@ sub _checkArgs{
 
     # Make sure we have args
     if (!%$args) {
-        $LOG->fatal("No variables specified!");
+        $LOG->error("No variables specified!");
         Carp::croak("Error: No variables specified!");
     }
 
@@ -306,7 +306,7 @@ sub _checkArgs{
 
             # Sanity checking after
             unless( $args->{$name} ) { 
-                $LOG->fatal("No variable $name specified!"); 
+                $LOG->error("No variable $name specified!"); 
                 Carp::croak("Error: No variable $name specified!"); 
             }
         } 

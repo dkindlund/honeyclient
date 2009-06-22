@@ -369,7 +369,7 @@ sub getServerHandle {
 
     # Sanity check.
     if (!defined($daemon)) {
-        $LOG->fatal("Unable to create SOAP server using namespace " .
+        $LOG->error("Unable to create SOAP server using namespace " .
                     "'" . $args{'namespace'} . "', listening on " .
                     $args{'address'} . ":" . $args{'port'} . ".");
         Carp::croak "Error: Unable to create SOAP server using namespace " .
@@ -477,7 +477,7 @@ sub getClientHandle {
     
     # Sanity check.
     if (!defined($stub)) {
-        $LOG->fatal("Unable to connect to SOAP server at: " .
+        $LOG->error("Unable to connect to SOAP server at: " .
                     "$URL");
         Carp::croak "Error: Unable to connect to SOAP server at: " .
                     "$URL\n";
