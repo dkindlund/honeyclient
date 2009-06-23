@@ -49,6 +49,7 @@ def main():
 
     # Delete Queues
     ch.queue_delete(queue='manager.firewall')
+    ch.queue_delete(queue='manager.pcap')
     ch.queue_delete(queue='1.manager.workers')
     ch.queue_delete(queue='500.manager.workers')
     ch.queue_delete(queue='drone.high')

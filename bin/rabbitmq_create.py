@@ -43,6 +43,9 @@ def main():
     ch = conn.channel()
     ch.access_request(realm='/data', active=True)
 
+    # Delete exchanges
+    ch.exchange_delete(exchange='')
+
     # Create exchanges. 
     ch.exchange_declare(exchange='events',   type='topic', durable=True, auto_delete=False)
     ch.exchange_declare(exchange='commands', type='topic', durable=True, auto_delete=False)
@@ -50,6 +53,9 @@ def main():
     # Create queues. 
     ch.queue_declare(queue='manager.firewall', durable=True, auto_delete=False)
     ch.queue_bind(queue='manager.firewall', exchange='commands', routing_key='firewall')
+
+    ch.queue_declare(queue='manager.pcap', durable=True, auto_delete=False)
+    ch.queue_bind(queue='manager.pcap', exchange='commands', routing_key='pcap')
 
     ch.queue_declare(queue='1.manager.workers', durable=True, auto_delete=False)
     ch.queue_bind(queue='1.manager.workers', exchange='events', routing_key='1.job.create.#')
