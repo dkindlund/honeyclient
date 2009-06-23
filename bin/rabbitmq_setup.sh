@@ -5,7 +5,7 @@
 RABBITMQCTL_BIN="/usr/sbin/rabbitmqctl"
 USERNAME="honeyclient"
 PASSWORD="passw0rd"
-VHOST="/mitre.org"
+VHOST="/honeyclient.org"
 RABBIT_CREATE_BIN="bin/rabbitmq_create.py"
 
 $RABBITMQCTL_BIN delete_user guest
