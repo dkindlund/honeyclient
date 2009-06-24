@@ -371,7 +371,7 @@
 +	DeleteValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
 +	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\CTF\\TIP\\.+\\LanguageProfile\\.*
 +	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
-+	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\CTF\\LangBar
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKCU\\Software\\Microsoft\\CTF\\LangBar.*
 
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\SearchScopes\\.*
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\LowRegistry\\Extensions\\CmdMapping

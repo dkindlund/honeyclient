@@ -318,6 +318,7 @@
 
 #### HONEYCLIENT AUTO EXCLUDE SCRIPT
 +	Write	C:\\WINDOWS\\system32\\lsass\.exe	C:\\Documents and Settings\\Administrator\\Application Data\\Microsoft\\Protect\\.*
++	Write	C:\\WINDOWS\\system32\\lsass\.exe	C:\\WINDOWS\\system32\\Microsoft\\Protect\\.*
 
 
 ###Stuff that got accidentally removed in r 1511
@@ -380,3 +381,6 @@
 
 # Asian Font Helper
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\ime
+
+# IE7
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\REGISTRATION
