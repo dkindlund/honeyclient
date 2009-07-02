@@ -30,6 +30,8 @@
 +	Write	C:\\WINDOWS\\system32\\wbem\\wmiadap\.exe	C:\\WINDOWS\\system32\\Perf.*
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Prefetch\\.+
 +	Write	System	C:\\WINDOWS\\Prefetch\\.+
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\Temp\\Perf.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile
 #System Log Files
 +	Write	System	C:\\Documents and Settings\\.+\\.+\.LOG
 +	Write	System	C:\\WINDOWS\\system32\\config\\.+\.LOG
