@@ -386,9 +386,7 @@ use HoneyClient::Util::EventEmitter;
 use HoneyClient::Manager::Firewall::Client;
 
 # Include Pcap Libraries
-# TODO: Fix this.
 use HoneyClient::Manager::Pcap::Client;
-#use HoneyClient::Manager::Pcap;
 
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
@@ -1149,11 +1147,8 @@ sub _denyNetwork {
     }
 
     $LOG->info("Process ID (" . $$ . "): Destroying Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
-# TODO: Fix this.
     ($result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
         session          => $self->{'_pcap_session'},
-#    $self->{'_pcap_session'} = HoneyClient::Manager::Pcap->stopCapture(
-#        sessions         => $self->{'_pcap_session'},
         quick_clone_name => $self->{'quick_clone_vm_name'},
         delete_pcap      => 1);
 }
@@ -1414,10 +1409,6 @@ sub new {
         # should never be modified externally.)
         _firewall_session => undef,
 
-        # A Net::Packet::Dump session object, used to interact with the
-        # HoneyClient::Manager::Pcap process.  (This internal variable
-        # should never be modified externally.)
-# TODO: Update this.
         # A Net::Stomp session object, used to interact with the
         # HoneyClient::Manager::Pcap::Server daemon. (This internal variable
         # should never be modified externally.)
@@ -2086,11 +2077,8 @@ sub drive {
 
         my $capture_result = undef;
         $LOG->info("Process ID (" . $$ . "): Starting Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
-# TODO: Fix this.
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->startCapture(
             session          => $self->{'_pcap_session'},
-#        $self->{'_pcap_session'} = HoneyClient::Manager::Pcap->startCapture(
-#            sessions         => $self->{'_pcap_session'},
             quick_clone_name => $self->{'quick_clone_vm_name'},
             mac_address      => $self->{'mac_address'});
 
@@ -2132,11 +2120,8 @@ sub drive {
         }
 
         $LOG->info("Process ID (" . $$ . "): Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
-# TODO: Fix this.
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
             session          => $self->{'_pcap_session'},
-#        $self->{'_pcap_session'} = HoneyClient::Manager::Pcap->stopCapture(
-#            sessions         => $self->{'_pcap_session'},
             quick_clone_name => $self->{'quick_clone_vm_name'});
 
         # Construct the basic action.
@@ -2160,11 +2145,8 @@ sub drive {
 
         # If possible, get the IP address associated with this URL.
         if (defined($dst_tcp_port)) {
-# TODO: Fix this.
             ($ip_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getFirstIP(
                 session          => $self->{'_pcap_session'},
-#            $ip_result = HoneyClient::Manager::Pcap->getFirstIP(
-#                sessions         => $self->{'_pcap_session'},
                 quick_clone_name => $self->{'quick_clone_vm_name'},
                 src_ip_address   => $self->{'ip_address'},
                 dst_tcp_port     => $dst_tcp_port);
@@ -2174,7 +2156,6 @@ sub drive {
             }
         }
 
-# TODO: Fix this.
         if (!defined($ip_result) || ($ip_result eq "")) {
             # If we can't get the IP of the initial server, then we assume the connection timed out.
             $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "timed_out"}));
@@ -2240,11 +2221,8 @@ sub drive {
 
                 # Figure out if we have a valid PCAP.
                 my $pcap_file = undef;
-# TODO: Fix this.
                 ($pcap_file, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapFile(
                     session          => $self->{'_pcap_session'},
-#                $pcap_file = HoneyClient::Manager::Pcap->getPcapFile(
-#                    sessions         => $self->{'_pcap_session'},
                     quick_clone_name => $self->{'quick_clone_vm_name'});
 
                 # If we have a valid PCAP file name, then try to set the fingerprint's pcap attribute accordingly.
