@@ -1987,7 +1987,6 @@ sub drive {
     my @completed_urls = ();
 
     # Clear all extraneous data from the job, but retain the uuid and job_alerts.
-    # TODO: Add job_alerts only to completed jobs.
     my $job_alerts = [];
     foreach my $job_alert ($args{'job'}->job_alerts()) {
         push(@{$job_alerts}, $job_alert->to_hashref);
@@ -2087,8 +2086,38 @@ sub drive {
         eval {
             $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $url->url());
             $self->{'work_units_processed'}++;
-            $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
-                                                   parameters  => encode_base64($url->url()));
+            my %agent_args = (
+                driver_name => $self->{'driver_name'},
+                parameters  => encode_base64($url->url()),
+            );
+            if ($url->has_wait_id()) {
+                # Before we assign a user configurable timeout, we want to check to make sure the user's
+                # timeout doesn't exceed our range of valid timeout values.  For example, if the user
+                # specifies a timeout of 10 mins but we wait only for 2 mins, then we will always get
+                # communications errors and flag the VM as 'error'.
+                my $agent_timeout = getVar(name      => "timeout",
+                                           namespace => "HoneyClient::Agent");
+
+                # The minimum amount of time it takes to get back valid data from the Agent service via SOAP.
+                my $agent_soap_delay = 20;
+                my $agent_max_timeout = $agent_timeout - $agent_soap_delay;
+                my $agent_min_timeout = 2;
+              
+                # Sanity checks. 
+                if ($url->wait_id() > $agent_max_timeout) {
+                    $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_max_timeout . ")");
+                    $agent_args{'timeout'} = $agent_max_timeout;
+                } elsif ($url->wait_id() < $agent_min_timeout) {
+                    $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_min_timeout . ")");
+                    $agent_args{'timeout'} = $agent_min_timeout;
+                } else {
+                    $agent_args{'timeout'} = $url->wait_id();
+                }
+            }
+            if ($url->has_screenshot_id()) {
+                $agent_args{'screenshot'} = $url->screenshot_id();
+            }
+            $som = $self->{'_agent_handle'}->drive(%agent_args);
             $result = thaw(decode_base64($som->result()));
         };
         if ($@) {
@@ -2134,6 +2163,14 @@ sub drive {
             $url->set_time_at($result->{'time_at'});
         } else {
             $url->set_time_at(HoneyClient::Util::DateTime->epoch());
+        }
+
+        # If defined, insert screenshot data.
+        if (defined($result) &&
+            exists($result->{'screenshot'}) &&
+            defined($result->{'screenshot'})) {
+            $url->set_screenshot_data($result->{'screenshot'});
+            $action .= ".screenshot_data";
         }
 
         # Figure out the destination TCP port associated with this URL.
@@ -2217,6 +2254,8 @@ sub drive {
                     # no such duplicates occur.
                     url          => $url->url(),
                     time_at      => $url->time_at(),
+                    # XXX: This field is for informational use only, as the Drone does not use it.
+                    job_id       => $args{'job'}->uuid(),
                 };
 
                 # Figure out if we have a valid PCAP.

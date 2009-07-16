@@ -157,9 +157,9 @@ my $data = {
 my $priority = @ARGV;
 foreach my $url (@ARGV) {
     my $entry = {
-        priority   => $priority,
-        url        => $url,
-        url_status => {status => "queued"},
+        priority        => $priority,
+        url             => $url,
+        url_status      => {status => "queued"},
     };
     $priority--;
     push(@{$data->{'job'}->{'urls'}}, $entry);

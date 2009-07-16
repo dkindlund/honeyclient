@@ -79,13 +79,17 @@ message Message {
 
     message Url {
 
-        required string              url        = 1;
+        required string              url             = 1;
 
-        optional uint64              priority   = 2 [default = 1];
-        optional Message.UrlStatus   url_status = 3;
-        optional double              time_at    = 4;
-        optional Message.Client      client     = 5;
-        optional string              ip         = 6;
+        optional uint64              priority        = 2 [default = 1];
+        optional Message.UrlStatus   url_status      = 3;
+        optional double              time_at         = 4;
+        optional Message.Client      client          = 5;
+        optional string              ip              = 6;
+        optional string              screenshot_data = 7;
+        optional bool                screenshot_id   = 8;
+        optional uint64              wait_id         = 9;
+        optional string              job_id          = 10;
 
     }
 
@@ -153,7 +157,7 @@ message Message {
         optional string            pcap         = 2;
         optional Message.Url       url          = 3;
 
-        repeated Message.OsProcess os_processes = 4;
+        repeated Message.OsProcess os_processes = 5;
 
     }
 
