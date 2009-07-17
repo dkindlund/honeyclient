@@ -106,6 +106,18 @@ BEGIN { use_ok('HoneyClient::Util::DateTime') or diag("Can't load HoneyClient::U
 require_ok('HoneyClient::Util::DateTime');
 use HoneyClient::Util::DateTime;
 
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
+
+# Make sure Imager::Screenshot loads.
+BEGIN { use_ok('Imager::Screenshot', qw(screenshot)) or diag("Can't load Imager::Screenshot package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Imager::Screenshot');
+can_ok('Imager::Screenshot', 'screenshot');
+use Imager::Screenshot qw(screenshot);
+
 # Make sure Data::Dumper loads.
 BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
@@ -213,6 +225,7 @@ SKIP: {
         ok(exists($changes->{'status'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'time_at'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'fingerprint'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'screenshot'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
 
         # Check that os_processes is empty.
         ok(!scalar(@{$changes->{'fingerprint'}->{os_processes}}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
@@ -843,6 +856,7 @@ SKIP: {
         ok(exists($changes->{'status'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'time_at'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'fingerprint'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'screenshot'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
 
         # Check that os_processes is not empty.
         ok(scalar(@{$changes->{'fingerprint'}->{os_processes}}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");

@@ -272,6 +272,18 @@ BEGIN { use_ok('HoneyClient::Util::DateTime') or diag("Can't load HoneyClient::U
 require_ok('HoneyClient::Util::DateTime');
 use HoneyClient::Util::DateTime;
 
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
+
+# Make sure Imager::Screenshot loads.
+BEGIN { use_ok('Imager::Screenshot', qw(screenshot)) or diag("Can't load Imager::Screenshot package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Imager::Screenshot');
+can_ok('Imager::Screenshot', 'screenshot');
+use Imager::Screenshot qw(screenshot);
+
 # Make sure Data::Dumper loads.
 BEGIN { use_ok('Data::Dumper') or diag("Can't load Data::Dumper package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('Data::Dumper');
@@ -328,11 +340,17 @@ use Storable qw(nfreeze thaw);
 $Storable::Deparse = 1;
 $Storable::Eval = 1;
 
+# Use Compress::Zlib Library
+use Compress::Zlib;
+
 # Include Base64 Libraries
 use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Include Win32 Libraries
 use Win32::Job;
+
+# Include Screenshot Libraries
+use Imager::Screenshot qw(screenshot);
 
 # Use ISO 8601 DateTime Libraries
 use HoneyClient::Util::DateTime;
@@ -559,7 +577,7 @@ sub _getTimestamp {
 
 =head1 EXTERNAL SOAP FUNCTIONS
 
-=head2 drive(driver_name => $driverName, parameters => $params, timeout => $timeout)
+=head2 drive(driver_name => $driverName, parameters => $params, timeout => $timeout, screenshot => $screenshot)
 
 =over 4
 
@@ -593,6 +611,8 @@ encoded.
  B<$timeout> is an optional argument, specifying how long the Agent
 should wait after executing the driven application before it performs
 an Integrity check.
+ B<$screenshot> is an optional argument; if true, a screenshot will be
+taken of the OS display upon driving the application.
 
 I<Output>:
  A nfreezed, base64 encoded hashtable containing the following
@@ -621,7 +641,10 @@ I<Output>:
          'os_processes' => []
      },
      # Time inside VM when job was executed.
-     'time_at' => '2008-04-02 22:17:00.889667987'
+     'time_at' => '2008-04-02 22:17:00.889667987',
+
+     # Optional screenshot data (PNG) that has been Zlib compressed, then base64 encoded.
+     'screenshot' => '...',
  };
 
 =back
@@ -666,6 +689,7 @@ SKIP: {
         ok(exists($changes->{'status'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'time_at'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'fingerprint'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'screenshot'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
 
         # Check that os_processes is empty.
         ok(!scalar(@{$changes->{'fingerprint'}->{os_processes}}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
@@ -1296,6 +1320,7 @@ SKIP: {
         ok(exists($changes->{'status'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'time_at'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
         ok(exists($changes->{'fingerprint'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
+        ok(exists($changes->{'screenshot'}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
 
         # Check that os_processes is not empty.
         ok(scalar(@{$changes->{'fingerprint'}->{os_processes}}), "drive(driver_name => 'HoneyClient::Agent::Driver::Browser::IE')") or diag("The drive() call failed.");
@@ -1366,8 +1391,15 @@ sub drive {
     if (!$argsExist ||
         !exists($args{'timeout'}) ||
         !defined($args{'timeout'})) {
-        $args{'timeout'} = getVar(name => "timeout",
+        $args{'timeout'} = getVar(name      => "timeout",
                                   namespace => $args{'driver_name'});
+    }
+
+    if (!$argsExist ||
+        !exists($args{'screenshot'}) ||
+        !defined($args{'screenshot'})) {
+        $args{'screenshot'} = getVar(name      => "screenshot",
+                                     namespace => $args{'driver_name'});
     }
 
     # Construct the output hashtable.
@@ -1380,6 +1412,9 @@ sub drive {
 
         # Status information about the Win32::Job call.
         'status'      => undef,
+
+        # Screenshot information (Base64 encoded, Zlib compressed PNG image data).
+        'screenshot'  => undef, 
     };
 
     # Create a new Job.
@@ -1409,7 +1444,16 @@ sub drive {
     $LOG->info($args{'driver_name'} . " - Driving To Resource: " . $args{'parameters'});
 
     # Run the job.
-    $job->run($args{'timeout'});
+    $job->watch(sub {
+        if ($args{'screenshot'}) {
+            # If specified, attempt to take a screenshot of the browser; ignore all errors.
+            eval {
+                my $screenshot = screenshot();
+                $screenshot->write(data => \$ret->{'screenshot'}, type => 'png');
+            };
+        }
+        return 1;
+    }, $args{'timeout'});
 
     # Check to see if run fails.
     $status = $job->status();
@@ -1452,7 +1496,12 @@ sub drive {
             $LOG->info($args{'driver_name'} . " - Integrity Check: PASSED");
         }
     }
- 
+
+    # If a screenshot was taken, then compress and encode it. 
+    if (defined($ret->{'screenshot'})) {
+        $ret->{'screenshot'} = encode_base64(compress($ret->{'screenshot'}));
+    }
+
     return encode_base64(nfreeze($ret));
 }
 

@@ -40,6 +40,9 @@ cd ~/honeyclient
 # Perform an SVN update (optional).
 svn update
 
+# Suppress "Duplicate name exists on the network." error message.
+perl bin/suppress_error.pl
+
 # Start up the realtime integrity checker.
 ~/honeyclient/thirdparty/capture-mod/CaptureBAT.exe -c -l "C:\cygwin\tmp\realtime-changes.txt"&
 

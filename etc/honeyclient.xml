@@ -82,13 +82,16 @@ Keep in mind, though, that some variables should remain module-specific
         <address description="The IP or hostname that all Agent modules should use, when accepting SOAP requests." default="0.0.0.0">
             0.0.0.0
         </address>
-        <timeout description="How long the Manager should wait for a response from the Agent, before timing out the VM (in seconds)." default="120">
-            240
+        <timeout description="How long the Manager should wait for a response from the Agent, before timing out the VM (in seconds)." default="260">
+            260
         </timeout>
         <!-- Note: This port should be unique and not already in use by other modules, services, or daemons running inside the VM. -->
         <port description="The TCP port number that the SOAP server for all Agent modules will listen on for requests." default="7627">
             7627
         </port>
+        <screenshot description="A boolean, indicating if a screenshot of the OS display should be taken upon each drive operation.  Note: Enabling this functionality may significantly slow drive operations." default="0">
+            0
+        </screenshot>
         <allowed_drivers description="List of implemented Drivers that the Agent is allowed to run directly.">
             <name>HoneyClient::Agent::Driver::Browser::IE</name>
             <name>HoneyClient::Agent::Driver::Browser::FF</name>
