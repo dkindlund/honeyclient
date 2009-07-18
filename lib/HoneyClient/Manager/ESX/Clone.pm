@@ -2219,7 +2219,7 @@ sub drive {
             # TODO: Delete this, eventually.
             $Data::Dumper::Terse = 0;
             $Data::Dumper::Indent = 1;
-            print Dumper($args{'job'}->to_hashref) . "\n";
+            #print Dumper($args{'job'}->to_hashref) . "\n";
 
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
@@ -2230,7 +2230,7 @@ sub drive {
             # TODO: Delete this, eventually.
             $Data::Dumper::Terse = 0;
             $Data::Dumper::Indent = 1;
-            print Dumper($args{'job'}->to_hashref) . "\n";
+            #print Dumper($args{'job'}->to_hashref) . "\n";
 
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});

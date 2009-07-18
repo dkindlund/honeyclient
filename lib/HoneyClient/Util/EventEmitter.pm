@@ -352,9 +352,9 @@ sub _send {
     my $event = encode_json({decamelize($event_name) => $args{'message'}->to_hashref});
 
 # TODO: Delete this, eventually.
-print "Action: " . $args{'routing_key'} . "\n";
-print "Event:\n";
-print Dumper($event) . "\n";
+#print "Action: " . $args{'routing_key'} . "\n";
+#print "Event:\n";
+#print Dumper($event) . "\n";
 
     my $send_args = {
         'exchange'      =>  $args{'exchange_name'},
@@ -428,7 +428,7 @@ sub AUTOLOAD {
     $name =~ s/.*://;
 
 # TODO: Delete this, eventually.
-print "Name: " . $name . "\n";
+#print "Name: " . $name . "\n";
 
     # Parse required arguments.
     if (!($argsExist &&
@@ -441,7 +441,7 @@ print "Name: " . $name . "\n";
     } else {
         # Perform validation on the message.
 # TODO: Delete this, eventually.
-print "Validating...\n";
+#print "Validating...\n";
         eval {
             $args{'message'}->pack();
         };
