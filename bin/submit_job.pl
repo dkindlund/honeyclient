@@ -157,9 +157,12 @@ my $data = {
 my $priority = @ARGV;
 foreach my $url (@ARGV) {
     my $entry = {
-        priority        => $priority,
-        url             => $url,
-        url_status      => {status => "queued"},
+        priority                      => $priority,
+        url                           => $url,
+        url_status                    => {status => "queued"},
+        screenshot_id                 => 1,  # Take screenshots.
+        wait_id                       => 60, # Wait (at most) 60s between visits.
+        end_early_if_load_complete_id => 1,  # Complete a visit early, if it looks like the application has loaded all content.
     };
     $priority--;
     push(@{$data->{'job'}->{'urls'}}, $entry);

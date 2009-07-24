@@ -69,3 +69,6 @@
 
 # IE - Asian Font Support
 +	imjpmig.exe	.*	C:\\WINDOWS\\ime\\imjp8_1\\imjpmig\.exe
+
+# Generic application maximization script.
++	reg.exe	.*	C:\\WINDOWS\\system32\\reg\.exe

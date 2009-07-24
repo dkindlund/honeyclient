@@ -41,16 +41,18 @@ host system.
 
 =head1 SYNOPSIS
 
- start_worker.pl [options] --service_url='https://127.0.0.1/sdk/vimService' --user_name='root' --password='password'
+ start_worker.pl [options] --service_url='https://127.0.0.1/sdk/vimService' --user_name='root' --password='password' --guest_os_user_name='Administrator' --guest_os_password='password'
 
  Options:
- --help               This help message.
- --man                Print full man page.
- --service_url=       URL to the VIM webservice on the VMware ESX Server.
- --user_name=         User name to authenticate to the VIM webservice.
- --password=          Password to authenticate to the VIM webservice.
- --driver_name=       Name of driver to use.
- --master_vm_name=    The name of the master VM to use.
+ --help                This help message.
+ --man                 Print full man page.
+ --service_url=        URL to the VIM webservice on the VMware ESX Server.
+ --user_name=          User name to authenticate to the VIM webservice.
+ --password=           Password to authenticate to the VIM webservice.
+ --driver_name=        Name of driver to use.
+ --master_vm_name=     The name of the master VM to use.
+ --guest_os_user_name= The user name to use when authenticating to the guest OS.
+ --guest_os_password=  The password to use when authenticating to the guest OS.
 
 =head1 OPTIONS
 
@@ -86,6 +88,16 @@ default will be used.
 
 Specifies the master VM name to use.  If none
 is specified, the default will be used.
+
+=item B<--guest_os_user_name=>
+
+Specifies the user name used to authenticate to the 
+guest OS in the VM.  This option is required.
+
+=item B<--guest_os_password=>
+
+Specifies the password used to authenticate to the 
+guest OS in the VM.  This option is required.
 
 =back
 
@@ -164,17 +176,21 @@ our $LOG = get_logger();
 # Namely, the initial set of URLs that they want the Agent to use.
 
 # Inputs.
-my $driver_name = undef;
-my $master_vm_name = undef;
-my $service_url;
-my $user_name;
-my $password;
+my $driver_name     = undef;
+my $master_vm_name  = undef;
+my $service_url     = undef;
+my $user_name       = undef;
+my $password        = undef;
+my $guest_user_name = undef;
+my $guest_password  = undef;
 
 GetOptions('driver_name:s'        => \$driver_name,
            'master_vm_name:s'     => \$master_vm_name,
            'service_url=s'        => \$service_url,
            'user_name=s'          => \$user_name,
            'password=s'           => \$password,
+           'guest_os_user_name=s' => \$guest_user_name,
+           'guest_os_password=s'  => \$guest_password,
            'man'                  => sub { pod2usage(-exitstatus => 0, -verbose => 2) },
            'version'              => sub {
                                         print "MITRE HoneyClient Project (http://www.honeyclient.org)\n" .
@@ -190,4 +206,6 @@ HoneyClient::Manager::Worker->run(
     service_url      => $service_url,
     user_name        => $user_name,
     password         => $password,
+    guest_user_name  => $guest_user_name,
+    guest_password   => $guest_password,
 );

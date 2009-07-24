@@ -448,3 +448,12 @@
 
 # IE - Asian Font Support
 +	SetValueKey	C:\\WINDOWS\\ime\\imjp8_1\\imjpmig\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
+
+# VMware VIX Support
++	SetValueKey	C:\\WINDOWS\\system32\\lsass\.exe	HKLM\\SAM\\SAM\\Domains\\Account\\Users.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache.*
+
+# IE - Maximize Support
++	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main.*

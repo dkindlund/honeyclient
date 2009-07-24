@@ -114,6 +114,15 @@ Keep in mind, though, that some variables should remain module-specific
                     <process_name description="The name of the Internet Explorer executable, as it appears on the VM filesystem." default="iexplore.exe">
                         iexplore.exe
                     </process_name>
+                    <load_complete_image description="A PNG image of the browser's status bar, when the browser has fully rendered all content on the screen.  The X and Y coordinates indicate the bottom-left edge of the rectangle, representing the browser's status bar region when the browser is fully maximized and brought to the foreground on a Windows VM whose screen resolution is 1024x768. To disable this functionality altogether, specify a nonexistant file." default="etc/ie6_status_bar_done_1024x768.png" x="654" y="29" width="96" height="16">
+                        etc/ie6_status_bar_done_1024x768.png
+                    </load_complete_image>
+                    <maximize_registry description="A registry file which contains settings that keep IE fully maximized between consecutive drive operations." default="etc/ie6_maximize_1024x768.reg">
+                        etc/ie6_maximize_1024x768.reg
+                    </maximize_registry>
+                    <image_sample_delay description="When VM display sampling is enabled, this variable indicates how long to wait (in seconds) between consecutive sample operations." default="4">
+                        4
+                    </image_sample_delay>
                 </IE>
                 <FF>
                     <!-- HoneyClient::Agent::Driver::Browser::FF Options -->

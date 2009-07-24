@@ -308,6 +308,12 @@ BEGIN { use_ok('File::Slurp')
 require_ok('File::Slurp');
 use File::Slurp;
 
+# Make sure File::Temp loads.
+BEGIN { use_ok('File::Temp')
+        or diag("Can't load File::Temp package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Temp');
+use File::Temp;
+
 # Make sure Compress::Zlib loads.
 BEGIN { use_ok('Compress::Zlib')
         or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
@@ -331,11 +337,31 @@ BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make 
 require_ok('IO::File');
 use IO::File;
 
+# Make sure VMware::Vix::Simple loads.
+BEGIN { use_ok('VMware::Vix::Simple') or diag("Can't load VMware::Vix::Simple package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('VMware::Vix::Simple');
+use VMware::Vix::Simple;
+
+# Make sure VMware::Vix::API::Constants loads.
+BEGIN { use_ok('VMware::Vix::API::Constants') or diag("Can't load VMware::Vix::API::Constants package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('VMware::Vix::API::Constants');
+use VMware::Vix::API::Constants;
+
 # Make sure HoneyClient::Message loads.
 use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
 BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Message');
 use HoneyClient::Message;
+
+# Make sure Prima::noX11 loads.
+BEGIN { use_ok('Prima::noX11') or diag("Can't load Prima::noX11 package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Prima::noX11');
+require Prima::noX11;
+
+# Make sure Image::Match loads.
+BEGIN { use_ok('Image::Match') or diag("Can't load Image::Match package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Image::Match');
+require Image::Match;
 
 =end testing
 
@@ -363,6 +389,9 @@ use URI::URL;
 
 # Use File::Slurp Library
 use File::Slurp;
+
+# Use File::Temp Library
+use File::Temp;
 
 # Use Compress::Zlib Library
 use Compress::Zlib;
@@ -393,6 +422,10 @@ use MIME::Base64 qw(encode_base64 decode_base64);
 
 # Include IO::File Libraries
 use IO::File;
+
+# Include VMware VIX Libraries
+use VMware::Vix::Simple;
+use VMware::Vix::API::Constants;
 
 # Include Protobuf Libraries
 use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
@@ -490,14 +523,6 @@ The snapshot name of the cloned VM.
 
 =back
 
-=head2 database_id
-
-=over 4
-
-The ID of the VM instance, if it is stored within the Drone database.
-
-=back
-
 =head2 status
 
 =over 4
@@ -521,6 +546,14 @@ The Driver assigned to this cloned VM.
 The number of work units processed by this VM.
 
 =back
+
+=head2 load_complete_image
+
+=over 4
+
+An optional variable, specifying the filename of the 'load complete'
+image to use, when performing image analysis of the screenshot when
+the application has successfully loaded all content.
 
 =cut
 
@@ -875,6 +908,10 @@ sub _init {
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.";
         }
         $LOG->info("Process ID (" . $$ . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
+
+        # Now, get the VM's configuration.
+        $LOG->debug("Process ID (" . $$ . "): Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        ($self->{'_vm_session'}, $self->{'config'}) = HoneyClient::Manager::ESX->getConfigVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
         $LOG->info("Process ID (" . $$ . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         $self->{'_vm_session'} = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
@@ -1362,6 +1399,12 @@ sub new {
         # The password used to authenticate to the VMware ESX Server.
         password => undef,
 
+        # The user name used to authenticate to the guest OS inside the master VM.
+        guest_user_name => undef,
+
+        # The password used to authenticate to the guest OS inside the master VM.
+        guest_password => undef,
+
         # The name of the master VM, whose
         # contents will be the basis for each subsequently cloned VM.
         master_vm_name => getVar(name => "master_vm_name"),
@@ -1385,9 +1428,6 @@ sub new {
         # A variable containing the snapshot name the cloned VM.
         name => undef,
 
-        # A variable containing the database identifier, if any is specified.
-        database_id => undef,
-   
         # A variable reflecting the current status of the cloned VM.
         status => "uninitialized",
 
@@ -1398,6 +1438,11 @@ sub new {
         # A variable indicating the number of work units processed by this
         # cloned VM.
         work_units_processed => 0,
+
+        # A variable indicating the filename of the 'load complete' image
+        # to use, when performing image analysis of the screenshot when
+        # the application has successfully loaded all content.
+        load_complete_image => undef,
 
         # A Vim session object, used as credentials when accessing the
         # VMware ESX server remotely.  (This internal variable
@@ -1444,6 +1489,11 @@ sub new {
         # A variable indicating the number of failed retries in attempting
         # to contact the clone VM upon initialization.
         _num_failed_inits => 0,
+
+        # A variable specifying the temporary filename in the guest OS
+        # which has the registry settings that force the application to
+        # always display in a maximized state.
+        _maximize_registry_file => undef,
     );
 
     @{$self}{keys %params} = values %params;
@@ -1454,6 +1504,31 @@ sub new {
 
     # Now, assign our object the appropriate namespace.
     bless $self, $class;
+
+    # Sanity check: Make sure guest OS username/password credentials were provided.
+    if (!defined($self->{'guest_user_name'})) {
+        $LOG->error("Process ID (" . $$ . "): Guest OS user name was not provided.  Unable to continue.");
+        Carp::croak "Guest OS user name was not provided.  Unable to continue.";
+    }
+    if (!defined($self->{'guest_password'})) {
+        $LOG->error("Process ID (" . $$ . "): Guest OS password was not provided.  Unable to continue.");
+        Carp::croak "Guest OS password was not provided.  Unable to continue.";
+    }
+
+    # Include Image Manipulation Libaries
+    require Prima::noX11;
+    require Image::Match;
+
+    # Identify the proper 'load complete' image for dynamic image analysis (if specified).
+    if (!defined($self->{'load_complete_image'}) ||
+        !(-e $self->{'load_complete_image'})) {
+        $self->{'load_complete_image'} = getVar(name => "load_complete_image", namespace => $self->{'driver_name'});
+    }
+    if (-e $self->{'load_complete_image'}) {
+        $self->{'load_complete_image'} = Prima::Image->load($self->{'load_complete_image'});
+    } else {
+        $self->{'load_complete_image'} = undef;
+    }
     
     # Set a valid handle for the VM daemon.
     if (!defined($self->{'_vm_session'})) {
@@ -1980,6 +2055,8 @@ sub drive {
         Carp::croak "Error: Invalid job supplied.";
     }
 
+    $LOG->info("Process ID (" . $$ . "): Processing Job (" . $args{'job'}->uuid() . ").");
+
     # Sort the URLs by priority - highest one first.
     my @urls = sort {$b->priority() <=> $a->priority()} $args{'job'}->urls();
 
@@ -2050,6 +2127,12 @@ sub drive {
                         mac_address           => $self->{'mac_address'},
                         ip_address            => $self->{'ip_address'},
                         _num_snapshots        => $self->{'_num_snapshots'},
+                        guest_user_name       => $self->{'guest_user_name'},
+                        guest_password        => $self->{'guest_password'},
+                        service_url           => $self->{'service_url'},
+                        _emitter_session      => $self->{'_emitter_session'},
+                        user_name             => $self->{'user_name'},
+                        password              => $self->{'password'},
                     );
 
             # Notify the Drone that we've acquired the job.
@@ -2082,14 +2165,20 @@ sub drive {
             mac_address      => $self->{'mac_address'});
 
         # Drive the Agent.
-        $result = undef;
+        $result                    = undef;
+        # VIX Temporary Variables.
+        my $vix_result             = VIX_OK;
+        my $vix_host_handle        = VIX_INVALID_HANDLE;
+        my $vix_vm_handle          = VIX_INVALID_HANDLE;
+        my @vix_process_properties = ();
+        my $vix_image_size         = undef;
+        my $vix_image_bytes        = undef;
+        my $vix_driver_timeout     = getVar(name      => "timeout",
+                                            namespace => "HoneyClient::Agent::Driver");
         eval {
             $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $url->url());
             $self->{'work_units_processed'}++;
-            my %agent_args = (
-                driver_name => $self->{'driver_name'},
-                parameters  => encode_base64($url->url()),
-            );
+
             if ($url->has_wait_id()) {
                 # Before we assign a user configurable timeout, we want to check to make sure the user's
                 # timeout doesn't exceed our range of valid timeout values.  For example, if the user
@@ -2106,24 +2195,243 @@ sub drive {
                 # Sanity checks. 
                 if ($url->wait_id() > $agent_max_timeout) {
                     $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_max_timeout . ")");
-                    $agent_args{'timeout'} = $agent_max_timeout;
+                    $vix_driver_timeout = $agent_max_timeout;
                 } elsif ($url->wait_id() < $agent_min_timeout) {
                     $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_min_timeout . ")");
-                    $agent_args{'timeout'} = $agent_min_timeout;
+                    $vix_driver_timeout = $agent_min_timeout;
                 } else {
-                    $agent_args{'timeout'} = $url->wait_id();
+                    $vix_driver_timeout = $url->wait_id();
                 }
             }
-            if ($url->has_screenshot_id()) {
-                $agent_args{'screenshot'} = $url->screenshot_id();
+
+            $LOG->info("Process ID (" . $$ . "): Obtaining VIX host handle.");
+            # Connect to the host.
+            my $vix_url = URI::URL->new_abs("/sdk", URI::URL->new($self->{'service_url'}));
+            ($vix_result, $vix_host_handle) = HostConnect(VIX_API_VERSION,
+                                                          VIX_SERVICEPROVIDER_VMWARE_VI_SERVER,
+                                                          $vix_url,
+                                                          $vix_url->port,
+                                                          $self->{'user_name'},
+                                                          $self->{'password'},
+                                                          0,
+                                                          VIX_INVALID_HANDLE);
+            if ($vix_result != VIX_OK) {
+                die "VIX::HostConnect() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
             }
-            $som = $self->{'_agent_handle'}->drive(%agent_args);
+
+            $LOG->info("Process ID (" . $$ . "): Obtaining VIX VM handle.");
+            # Open the VM.
+            ($vix_result, $vix_vm_handle) = VMOpen($vix_host_handle, $self->{'config'});
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMOpen() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+
+            $LOG->info("Process ID (" . $$ . "): Waiting for VMware Tools.");
+            # Make sure we can access VMware Tools.
+            $vix_result = VMWaitForToolsInGuest($vix_vm_handle, getVar(name => "timeout", namespace => "HoneyClient::Agent"));
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMWaitForToolsInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+            
+            $LOG->info("Process ID (" . $$ . "): Logging into guest OS.");
+            # Login to guest OS.
+            $vix_result = VMLoginInGuest($vix_vm_handle,
+                                         $self->{'guest_user_name'},
+                                         $self->{'guest_password'},
+                                          VIX_LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT); # options
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMLoginInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+
+            # If a 'load complete' image was defined and the 'end early' flag was specified and true,
+            # then we can expect an image analysis will be performed.
+            if (defined($self->{'load_complete_image'}) && 
+                $url->has_end_early_if_load_complete_id() &&
+                $url->end_early_if_load_complete_id()) {
+
+                # As such, make sure the target application is always maximized.
+                $LOG->info("Process ID (" . $$ . "): Setting application to open in maximized mode.");
+                if (!defined($self->{'_maximize_registry_file'})) {
+                    ($vix_result, $self->{'_maximize_registry_file'}) = VMCreateTempFileInGuest($vix_vm_handle, 0, VIX_INVALID_HANDLE);
+                    if ($vix_result != VIX_OK) {
+                        die "VIX::VMCreateTempFileInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                    }
+                    $vix_result = VMCopyFileFromHostToGuest($vix_vm_handle,
+                                                            getVar(name => "maximize_registry", namespace => $self->{'driver_name'}),
+                                                            $self->{'_maximize_registry_file'},
+                                                            0,
+                                                            VIX_INVALID_HANDLE);
+                    if ($vix_result != VIX_OK) {
+                        die "VIX::VMCopyFileFromHostToGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                    }
+    
+                }
+                $vix_result = VMRunProgramInGuest($vix_vm_handle,
+                                                'C:\WINDOWS\System32\cmd.exe',
+                                                '/C reg import ' . $self->{'_maximize_registry_file'},
+                                                0,
+                                                VIX_INVALID_HANDLE);
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            }
+
+            $LOG->info("Process ID (" . $$ . "): Driving the application.");
+            # Drive the browser.
+            $vix_result = VMOpenUrlInGuest($vix_vm_handle, $url->url(), 0, VIX_INVALID_HANDLE);
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMOpenUrlInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+
+            # If a 'load complete' image was defined and the 'end early' flag was specified and true,
+            # then perform image analysis of the VM's screen to determine if the application has finished loading all content.
+            if (defined($self->{'load_complete_image'}) && 
+                $url->has_end_early_if_load_complete_id() &&
+                $url->end_early_if_load_complete_id()) {
+
+                # Figure out how many samples we can perform.
+                my $image_sample_delay = getVar(name => "image_sample_delay", namespace => $self->{'driver_name'});
+                my $max_num_loops  = 0;
+                my $remaining_time = 0;
+                {
+                    use integer;
+                    # We add one to our delay, since it takes about 1 second to acquire an image.
+                    $max_num_loops  = $vix_driver_timeout / ($image_sample_delay + 1);
+                    $remaining_time = $vix_driver_timeout % ($image_sample_delay + 1);
+                };
+
+                # Start sampling the VM's display.
+                my $load_complete = 0;
+                my $loop_count    = 0;
+                while ($loop_count < $max_num_loops) {
+                    # Sleep until next cycle.
+                    sleep($image_sample_delay);
+
+                    # Acquire sample.
+                    $LOG->info("Process ID (" . $$ . "): Checking if content has fully rendered.");
+                    ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
+                                                                                            VIX_CAPTURESCREENFORMAT_PNG,
+                                                                                            VIX_INVALID_HANDLE);
+                    if ($vix_result != VIX_OK) {
+                        die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                    }
+                    open (my $IMAGE_DATA, "<:scalar", \$vix_image_bytes) or
+                        die "Unable to extract VM screenshot contents. " . $!;
+                    my $screenshot = Prima::Image->load($IMAGE_DATA);
+                    my $status_bar = $screenshot->extract( 
+                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "x"),
+                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "y"),
+                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "width"),
+                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "height"));
+
+                    my ($x,$y) = $status_bar->match($self->{'load_complete_image'});
+                    if (defined($x) && defined($y)) {
+                        $LOG->info("Process ID (" . $$ . "): Load complete.");
+                        $load_complete = 1;
+                        last;
+                    }
+                    $loop_count++;
+                }
+                # If we found no matching 'load complete' images, then wait for the remaining time of the timeout.
+                if (!$load_complete) {
+                    sleep($remaining_time);
+                }
+                
+            } else {
+                # Else, if we're not doing any type of image analysis, then
+                # sleep for the specified timeout.
+                sleep($vix_driver_timeout);
+            }
+
+            # Take a screenshot, if asked.
+            if (!defined($vix_image_bytes) && $url->has_screenshot_id() && $url->screenshot_id()) {
+                $LOG->info("Process ID (" . $$ . "): Taking screenshot.");
+                ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
+                                                                                        VIX_CAPTURESCREENFORMAT_PNG,
+                                                                                        VIX_INVALID_HANDLE);
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            }
+
+            # Perform an integrity check.
+            $som = $self->{'_agent_handle'}->check();
             $result = thaw(decode_base64($som->result()));
+
+            # If the integrity check passes, then close the browser.
+            if (scalar(@{$result->{'fingerprint'}->{os_processes}}) == 0) {
+                $LOG->info("Process ID (" . $$ . "): Listing processes in guest OS.");
+                ($vix_result, @vix_process_properties) = VMListProcessesInGuest($vix_vm_handle, 0);
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMListProcessesInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+
+                foreach my $property (@vix_process_properties) {
+                    if ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
+                        $LOG->info("Process ID (" . $$ . "): Terminating application.");
+                        $vix_result = VMKillProcessInGuest($vix_vm_handle, $property->{'PROCESS_ID'}, 0);
+                        if ($vix_result != VIX_OK) {
+                            die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                        }
+                    }
+                }
+            } else {
+                # Integrity check didn't pass, so try and perform automated malware extraction.
+                $LOG->info("Process ID (" . $$ . "): Attempting malware extraction.");
+                if (exists($result->{'fingerprint'}->{'os_processes'}) &&
+                    defined($result->{'fingerprint'}->{'os_processes'})) {
+                    foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
+                        if (exists($process->{'process_files'}) &&
+                            defined($process->{'process_files'})) {
+
+                            foreach my $process_file (@{$process->{'process_files'}}) {
+                                if (($process_file->{'event'} eq 'Write') &&
+                                    exists($process_file->{'file_content'}) &&
+                                    defined($process_file->{'file_content'}) &&
+                                    exists($process_file->{'name'}) &&
+                                    defined($process_file->{'name'}) &&
+                                    exists($process_file->{'file_content'}->{'size'}) &&
+                                    defined($process_file->{'file_content'}->{'size'}) &&
+                                    ($process_file->{'file_content'}->{'size'} > 0)) {
+
+                                    eval {
+                                        # Create a temp file on the host to store the data.
+                                        my $temp_file = File::Temp->new();
+    
+                                        $LOG->info("Process ID (" . $$ . "): Extracting file (" . $process_file->{'name'} . ").");
+                                        $vix_result = VMCopyFileFromGuestToHost($vix_vm_handle,
+                                                                                $process_file->{'name'},
+                                                                                $temp_file->filename,
+                                                                                0,
+                                                                                VIX_INVALID_HANDLE);
+                                        if ($vix_result != VIX_OK) {
+                                            die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                                        }
+
+                                        $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
+                                    };
+                                    if ($@) {
+                                        $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $LOG->info("Process ID (" . $$ . "): Logging off guest OS.");
+            # Logout from guest OS.
+            $vix_result = VMLogoutFromGuest($vix_vm_handle);
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMLogoutFromGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+
         };
         if ($@) {
             # We lost communications with the Agent; assume the worst
             # and mark the VM as suspicious.
-            $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED");
+            $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED. " . $@);
 
             $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "error"}));
 
@@ -2148,6 +2456,12 @@ sub drive {
             $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "visited"}));
         }
 
+        # Make sure all VIX handles are released.
+        $LOG->info("Process ID (" . $$ . "): Releasing VIX VM Handle.");
+        ReleaseHandle($vix_vm_handle);
+        $LOG->info("Process ID (" . $$ . "): Releasing VIX Host Handle.");
+        HostDisconnect($vix_host_handle);
+
         $LOG->info("Process ID (" . $$ . "): Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
             session          => $self->{'_pcap_session'},
@@ -2157,6 +2471,7 @@ sub drive {
         my $action = 'find_and_update.urls.url_status.ip.time_at.client';
 
         # If possible, insert work history.
+# TODO: Fix this - use local time, not integrity check time (?).
         if (defined($result) &&
             exists($result->{'time_at'}) &&
             defined($result->{'time_at'})) {
@@ -2166,10 +2481,8 @@ sub drive {
         }
 
         # If defined, insert screenshot data.
-        if (defined($result) &&
-            exists($result->{'screenshot'}) &&
-            defined($result->{'screenshot'})) {
-            $url->set_screenshot_data($result->{'screenshot'});
+        if (defined($vix_image_bytes) && $url->has_screenshot_id() && $url->screenshot_id()) {
+            $url->set_screenshot_data(encode_base64(compress($vix_image_bytes)));
             $action .= ".screenshot_data";
         }
 
@@ -2224,6 +2537,9 @@ sub drive {
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
 
+            # Once we've emitted the job update, be sure to clear the URL list.
+            $args{'job'}->clear_urls();
+
         } elsif ($vm_status eq 'suspicious') {
             $args{'job'}->add_urls($url);
 
@@ -2234,10 +2550,11 @@ sub drive {
 
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
-        }
 
-        # Once we've emitted the job update, be sure to clear the URL list.
-        $args{'job'}->clear_urls();
+            # Once we've emitted the job update, be sure to clear the URL list.
+            $args{'job'}->clear_urls();
+
+        }
 
         # If the VM is marked as bug, error, or suspicious, then suspend it.
         # XXX: We call suspend AFTER we've emitted our events.  We assume
@@ -2271,6 +2588,12 @@ sub drive {
 
                 # Emit fingerprint.
                 my $message = HoneyClient::Message::Fingerprint->new($result->{'fingerprint'});
+
+                # TODO: Delete this, eventually.
+                $Data::Dumper::Terse = 0;
+                $Data::Dumper::Indent = 1;
+                #print Dumper($message->to_hashref) . "\n";
+
                 $emit_result = undef;
                 ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Fingerprint(session => $self->{'_emitter_session'}, action => 'create.fingerprint.os_processes.process_files.process_registries', message => $message);
             } 
@@ -2295,6 +2618,12 @@ sub drive {
                         mac_address           => $self->{'mac_address'},
                         ip_address            => $self->{'ip_address'},
                         _num_snapshots        => $self->{'_num_snapshots'},
+                        guest_user_name       => $self->{'guest_user_name'},
+                        guest_password        => $self->{'guest_password'},
+                        service_url           => $self->{'service_url'},
+                        _emitter_session      => $self->{'_emitter_session'},
+                        user_name             => $self->{'user_name'},
+                        password              => $self->{'password'},
                     );
 
             # Notify the Drone that we've acquired the job.
