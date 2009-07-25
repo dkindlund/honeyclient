@@ -457,3 +457,196 @@
 
 # IE - Maximize Support
 +	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main.*
+
+# VMware VIX Support
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Cached
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap.*
+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\EUDC\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main\\Window_Placement
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main\\Fullscreen
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\TypedURLs
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Toolbar\\Locked
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\International\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Security\\P3Global\\Enabled
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Extensions\\CmdMapping\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CabinetState\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\UNCAsIntranet
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\IntranetName
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\AutoDetect
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\ProxyBypass
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\UNCAsIntranet
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\MigrateProxy
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ProxyEnable
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ProxyServer
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Connections\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\ShellNoRoam\\Bags.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.+\\iexplore\\(Count|Time|Type)
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\ParseAutoexec
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\SystemCertificates\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\EUDC\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main\\Window_Placement
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main\\Fullscreen
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\TypedURLs
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Toolbar\\Locked
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\International\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Security\\P3Global\\Enabled
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Extensions\\CmdMapping\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CabinetState\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\UNCAsIntranet
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\IntranetName
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\AutoDetect
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\ProxyBypass
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap\\UNCAsIntranet
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\MigrateProxy
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ProxyEnable
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ProxyServer
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Connections\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\5.0\\Cache\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\ShellNoRoam\\Bags.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Ext\\Stats\\.+\\iexplore\\(Count|Time|Type)
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\ParseAutoexec
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\SystemCertificates\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Scrunch\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\MediaPlayer\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows Media\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Multimedia\\ActiveMovie\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\ActiveMovie\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\MPEG2Demultiplexer\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Multimedia\\msacm.imaadpcm\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Scrunch\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\MediaPlayer\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows Media\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Multimedia\\ActiveMovie\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\ActiveMovie\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\MPEG2Demultiplexer\\.+
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Multimedia\\msacm.imaadpcm\\.+
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Toolbar
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Macromedia\\FlashPlayerUpdate
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Macromedia\\FlashPlayer
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\\.css\\OpenWithList
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\\.css\\OpenWithProgids
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing\\B3BB5BBA-E7D5-40AB-A041-A5B1C0B26C8F
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\LowRegistry
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Zoom
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\CTF\\TIP\\\{1188450c-fdab-47ae-80d8-c9633f71be64\}\\LanguageProfile\\0x00000000\\\{63800dac-e7ca-4df9-9a5c-20765055488d\}
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\PhishingFilter
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\SearchScopes\\.*
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\LowRegistry\\Extensions\\CmdMapping
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\SearchUrl
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Toolbar\\WebBrowser
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Cached
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\SearchScopes
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Security\\AntiPhishing\\.+\\Smart Screen DAT file
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\MPEG2Demultiplexer
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\PageSetup
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Multimedia\\msacm.msgsm610.*
+
++	SetValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\ShellNoRoam.*
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\SessionInformation\\.+
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\SystemCertificates\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\SystemCertificates\\Root\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\.+
++	SetValueKey	C:\\WINDOWS\\system32\\lsass\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Protected Storage System Provider\\.+
++	DeleteValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\ShellNoRoam.*
++	DeleteValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\SessionInformation\\.+
++	DeleteValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\.+
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\SysTray
++	DeleteValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\SystemCertificates\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\SystemCertificates\\Root\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\svchost\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\SystemCertificates\\Root\\.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\lsass\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Protected Storage System Provider\\.+
++	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\AppEvents\\Schemes\\Apps\\MSMSGS.*
++	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\AppEvents\\EventLabels\\MSMsgs.+
++	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\MSMSGS
++	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
++	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\AppEvents\\EventLabels\\MSMsgs.+
++	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\AppEvents\\Schemes\\Apps\\MSMSGS.*
++	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\MSMSGS
++	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	DeleteValueKey	C:\\Program Files\\Messenger\\msmsgs\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\.+
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache\\Paths.*
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\SessionInformation
++	DeleteValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap
++	SetValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings
++	DeleteValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings
++	SetValueKey	C:\\WINDOWS\\system32\\WgaTray\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Connections
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\NetCache
++	DeleteValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\NetCache
++	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*
++	SetValueKey	F:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE\\VCExpress\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\VSCommon\\8.0.+
+-	SetValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.*
+#-	DeleteValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.*
+-	SetValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Run.*
+-	DeleteValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Run.*
+-	SetValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Load.*
+-	DeleteValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Load.*
+-	SetValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run.*
+-	DeleteValueKey	.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run.*
++	SetValueKey	C:\\Program Files\\Windows Media Player\\wmplayer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*
++	SetValueKey	C:\\Program Files\\Windows Media Player\\wmplayer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\Program Files\\Windows Media Player\\wmplayer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap
++	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKU\\\.DEFAULT\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders
++	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints.+
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	DeleteValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	DeleteValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	DeleteValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Devices
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Cached
++	SetValueKey	C:\\WINDOWS\\system32\\spoolsv\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\PrinterPorts
++	SetValueKey	C:\\WINDOWS\\system32\\userinit\.exe	HKU\\\.DEFAULT\\Printers
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\Shell\\Bag.+
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\Shell\\Bags\\1\\Desktop
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\Shell\\BagMRU
++	SetValueKey	C:\\Program Files\\Internet Explorer\\IEXPLORE\.EXE	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\International
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\CTF\\Sapilayr
++	DeleteValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\CTF\\TIP\\.+\\LanguageProfile\\.*
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\CTF\\LangBar.*
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\CTF\\LangBar
++	DeleteValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\system32\\ctfmon\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Toolbar.*
++	SetValueKey	C:\\WINDOWS\\explorer\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings.*
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MountPoints2.*
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\WINDOWS\\ime\\.*	HKU\\\.DEFAULT\\Keyboard Layout\\Preload
++	DeleteValueKey	C:\\WINDOWS\\ime\\.*	HKU\\\.DEFAULT\\Keyboard Layout\\Preload
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
