@@ -465,6 +465,8 @@
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap.*
 
++	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon.*
++	DeleteValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon.*
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\EUDC\\.+
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main\\Window_Placement
 +	SetValueKey	C:\\Program Files\\Internet Explorer\\iexplore\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main\\Fullscreen
