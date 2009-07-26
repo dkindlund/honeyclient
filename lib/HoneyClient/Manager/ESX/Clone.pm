@@ -2367,11 +2367,21 @@ sub drive {
                 }
 
                 foreach my $property (@vix_process_properties) {
-                    if ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
+                    if (($property->{'PROCESS_OWNER'} ne "NT AUTHORITY\\SYSTEM") &&
+                        ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'}))) {
                         $LOG->info("Process ID (" . $$ . "): Terminating application.");
                         $vix_result = VMKillProcessInGuest($vix_vm_handle, $property->{'PROCESS_ID'}, 0);
                         if ($vix_result != VIX_OK) {
                             die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                        }
+                    } elsif ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
+                        $vix_result = VMRunProgramInGuest($vix_vm_handle,
+                                                        'C:\WINDOWS\System32\taskkill.exe',
+                                                        '/F /IM ' . getVar(name => "process_name", namespace => $self->{'driver_name'}) . ' /T',
+                                                        0,
+                                                        VIX_INVALID_HANDLE);
+                        if ($vix_result != VIX_OK) {
+                            die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
                         }
                     }
                 }
