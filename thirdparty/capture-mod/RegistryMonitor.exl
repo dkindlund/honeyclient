@@ -457,6 +457,7 @@
 
 # IE - Maximize Support
 +	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main.*
++	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main.*
 
 # VMware VIX Support
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache.*

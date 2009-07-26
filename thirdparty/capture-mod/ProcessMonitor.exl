@@ -72,3 +72,6 @@
 
 # Generic application maximization script.
 +	reg.exe	.*	C:\\WINDOWS\\system32\\reg\.exe
+
+# VMware VIX Support
++	taskkill.exe	.*	C:\\WINDOWS\\system32\\taskkill\.exe
