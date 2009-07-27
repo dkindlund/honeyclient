@@ -2057,6 +2057,9 @@ sub drive {
 
     $LOG->info("Process ID (" . $$ . "): Processing Job (" . $args{'job'}->uuid() . ").");
 
+    # Record the start time of the job (in seconds).
+    my $start_time = time;
+
     # Sort the URLs by priority - highest one first.
     my @urls = sort {$b->priority() <=> $a->priority()} $args{'job'}->urls();
 
@@ -2532,6 +2535,11 @@ sub drive {
         if ($url_counter == $#urls) {
             $args{'job'}->set_completed_at(HoneyClient::Util::DateTime->now());
             $action .= ".completed_at";
+
+            # Calculate how many URLs per hour we've averaged.
+            my $urls_per_hour = (($#urls * 3600) / (time - $start_time));
+            $args{'job'}->set_urls_per_hour($urls_per_hour);
+            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - URLs/Hour: " . $urls_per_hour);
 
             # Add all the completed URLs back into the job.  This allows other programs
             # to easily pick out "completed" jobs versus "in process" jobs.

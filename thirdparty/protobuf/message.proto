@@ -96,15 +96,16 @@ message Message {
 
     message Job {
 
-        required string            uuid         = 1;
+        required string            uuid          = 1;
 
-        optional Message.JobSource job_source   = 2;
-        optional string            created_at   = 3;
-        optional string            completed_at = 4;
-        optional Message.Client    client       = 5;
+        optional Message.JobSource job_source    = 2;
+        optional string            created_at    = 3;
+        optional string            completed_at  = 4;
+        optional Message.Client    client        = 5;
+        optional double            urls_per_hour = 6;
 
-        repeated Message.JobAlert  job_alerts   = 6;
-        repeated Message.Url       urls         = 7;
+        repeated Message.JobAlert  job_alerts    = 7;
+        repeated Message.Url       urls          = 8;
 
     }
 
