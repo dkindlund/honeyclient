@@ -386,3 +386,37 @@
 
 # IE7
 +	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\REGISTRATION
+
+# IE - Running as SYSTEM
++	Write	System	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Windows\\UsrClass\.dat
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\CryptnetUrlCache
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\CryptnetUrlCache
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
++	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Windows Genuine Advantage\\data\\data\.dat
++	Write	C:\\WINDOWS\\system32\\WgaTray\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\CryptnetUrlCache.*
++	Delete	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Mozilla\\Firefox\\Profiles.*
++	Write	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Mozilla\\Firefox\\Profiles.*
++	Delete	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Mozilla\\Firefox\\Profiles.*
++	Write	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Mozilla\\Firefox\\Profiles.*
++	Delete	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Talkback\\MozillaOrg\Firefox2\\Win32.*
++	Write	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Talkback\\MozillaOrg\Firefox2\\Win32.*
++	Delete	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Mozilla\\Firefox\\Mozilla Firefox.*
++	Write	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Mozilla\\Firefox\\Mozilla Firefox.*
++	Delete	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Talkback\\MozillaOrg\\Firefox2\\Win32.*
++	Write	C:\\Program Files\\Mozilla Firefox\\firefox\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Talkback\\MozillaOrg\\Firefox2\\Win32.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Feeds Cache
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Feeds Cache\\index\.dat
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Internet Explorer\\MSIMGSIZ\.DAT
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Feeds Cache
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Feeds Cache\\index\.dat
++	Write	C:\\WINDOWS\\system32\\lsass\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Protect\\.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data.*
++	Delete	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data.*
++	Write	C:\\WINDOWS\\system32\\svchost\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\CryptnetUrlCache.*
++	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\VMware.*
++	Write	C:\\WINDOWS\\system32\\drwtsn32\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Dr Watson\\.*
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
