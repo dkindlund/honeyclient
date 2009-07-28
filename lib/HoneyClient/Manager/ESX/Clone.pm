@@ -2224,57 +2224,57 @@ sub drive {
             $LOG->info("Process ID (" . $$ . "): Obtaining VIX host handle.");
             # Connect to the host.
             my $vix_url = URI::URL->new_abs("/sdk", URI::URL->new($self->{'service_url'}));
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-            ($vix_result, $vix_host_handle) = HostConnect(VIX_API_VERSION,
-                                                          VIX_SERVICEPROVIDER_VMWARE_VI_SERVER,
-                                                          $vix_url,
-                                                          $vix_url->port,
-                                                          $self->{'user_name'},
-                                                          $self->{'password'},
-                                                          0,
-                                                          VIX_INVALID_HANDLE);
-            if ($vix_result != VIX_OK) {
-                die "VIX::HostConnect() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-            }
-};
-alarm(0);
+            alarm($vix_call_timeout);
+            UNSAFE_SIGNALS {
+                ($vix_result, $vix_host_handle) = HostConnect(VIX_API_VERSION,
+                                                              VIX_SERVICEPROVIDER_VMWARE_VI_SERVER,
+                                                              $vix_url,
+                                                              $vix_url->port,
+                                                              $self->{'user_name'},
+                                                              $self->{'password'},
+                                                              0,
+                                                              VIX_INVALID_HANDLE);
+                if ($vix_result != VIX_OK) {
+                    die "VIX::HostConnect() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            };
+            alarm(0);
 
             $LOG->info("Process ID (" . $$ . "): Obtaining VIX VM handle.");
             # Open the VM.
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-            ($vix_result, $vix_vm_handle) = VMOpen($vix_host_handle, $self->{'config'});
-            if ($vix_result != VIX_OK) {
-                die "VIX::VMOpen() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-            }
-};
-alarm(0);
+            alarm($vix_call_timeout);
+            UNSAFE_SIGNALS {
+                ($vix_result, $vix_vm_handle) = VMOpen($vix_host_handle, $self->{'config'});
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMOpen() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            };
+            alarm(0);
 
             $LOG->info("Process ID (" . $$ . "): Waiting for VMware Tools.");
             # Make sure we can access VMware Tools.
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-            $vix_result = VMWaitForToolsInGuest($vix_vm_handle, getVar(name => "timeout", namespace => "HoneyClient::Agent"));
-            if ($vix_result != VIX_OK) {
-                die "VIX::VMWaitForToolsInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-            }
-};
-alarm(0);
+            alarm($vix_call_timeout);
+            UNSAFE_SIGNALS {
+                $vix_result = VMWaitForToolsInGuest($vix_vm_handle, getVar(name => "timeout", namespace => "HoneyClient::Agent"));
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMWaitForToolsInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            };
+            alarm(0);
             
             $LOG->info("Process ID (" . $$ . "): Logging into guest OS.");
             # Login to guest OS.
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-            $vix_result = VMLoginInGuest($vix_vm_handle,
-                                         $self->{'guest_user_name'},
-                                         $self->{'guest_password'},
-                                          VIX_LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT); # options
-            if ($vix_result != VIX_OK) {
-                die "VIX::VMLoginInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-            }
-};
-alarm(0);
+            alarm($vix_call_timeout);
+            UNSAFE_SIGNALS {
+                $vix_result = VMLoginInGuest($vix_vm_handle,
+                                             $self->{'guest_user_name'},
+                                             $self->{'guest_password'},
+                                              VIX_LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT); # options
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMLoginInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            };
+            alarm(0);
 
             # If a 'load complete' image was defined and the 'end early' flag was specified and true,
             # then we can expect an image analysis will be performed.
@@ -2289,53 +2289,53 @@ alarm(0);
                 # As such, make sure the target application is always maximized.
                 $LOG->info("Process ID (" . $$ . "): Setting application to open in maximized mode.");
                 if (!defined($self->{'_maximize_registry_file'})) {
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                    ($vix_result, $self->{'_maximize_registry_file'}) = VMCreateTempFileInGuest($vix_vm_handle, 0, VIX_INVALID_HANDLE);
-                    if ($vix_result != VIX_OK) {
-                        die "VIX::VMCreateTempFileInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                    }
-};
-alarm(0);
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                    $vix_result = VMCopyFileFromHostToGuest($vix_vm_handle,
-                                                            getVar(name => "maximize_registry", namespace => $self->{'driver_name'}),
-                                                            $self->{'_maximize_registry_file'},
-                                                            0,
-                                                            VIX_INVALID_HANDLE);
-                    if ($vix_result != VIX_OK) {
-                        die "VIX::VMCopyFileFromHostToGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                    }
-};
-alarm(0);
+                    alarm($vix_call_timeout);
+                    UNSAFE_SIGNALS {
+                        ($vix_result, $self->{'_maximize_registry_file'}) = VMCreateTempFileInGuest($vix_vm_handle, 0, VIX_INVALID_HANDLE);
+                        if ($vix_result != VIX_OK) {
+                            die "VIX::VMCreateTempFileInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                        }
+                    };
+                    alarm(0);
+                    alarm($vix_call_timeout);
+                    UNSAFE_SIGNALS {
+                        $vix_result = VMCopyFileFromHostToGuest($vix_vm_handle,
+                                                                getVar(name => "maximize_registry", namespace => $self->{'driver_name'}),
+                                                                $self->{'_maximize_registry_file'},
+                                                                0,
+                                                                VIX_INVALID_HANDLE);
+                        if ($vix_result != VIX_OK) {
+                            die "VIX::VMCopyFileFromHostToGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                        }
+                    };
+                    alarm(0);
     
                 }
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                $vix_result = VMRunProgramInGuest($vix_vm_handle,
-                                                'C:\WINDOWS\System32\cmd.exe',
-                                                '/C reg import ' . $self->{'_maximize_registry_file'},
-                                                0,
-                                                VIX_INVALID_HANDLE);
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-};
-alarm(0);
+                alarm($vix_call_timeout);
+                UNSAFE_SIGNALS {
+                    $vix_result = VMRunProgramInGuest($vix_vm_handle,
+                                                    'C:\WINDOWS\System32\cmd.exe',
+                                                    '/C reg import ' . $self->{'_maximize_registry_file'},
+                                                    0,
+                                                    VIX_INVALID_HANDLE);
+                    if ($vix_result != VIX_OK) {
+                        die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                    }
+                };
+                alarm(0);
             }
 
             $LOG->info("Process ID (" . $$ . "): Driving the application.");
             # Drive the browser.
             my $visit_start_time = time;
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-            $vix_result = VMOpenUrlInGuest($vix_vm_handle, $url->url(), 0, VIX_INVALID_HANDLE);
-            if ($vix_result != VIX_OK) {
-                die "VIX::VMOpenUrlInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-            }
-};
-alarm(0);
+            alarm($vix_call_timeout);
+            UNSAFE_SIGNALS {
+                $vix_result = VMOpenUrlInGuest($vix_vm_handle, $url->url(), 0, VIX_INVALID_HANDLE);
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMOpenUrlInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            };
+            alarm(0);
             # Adjust $vix_driver_timeout to account for load delay.
             $vix_driver_timeout = $vix_driver_timeout - (time - $visit_start_time);
             if ($vix_driver_timeout < 0) {
@@ -2368,16 +2368,16 @@ alarm(0);
 
                     # Acquire sample.
                     $LOG->info("Process ID (" . $$ . "): Checking if content has fully rendered.");
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                    ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
-                                                                                            VIX_CAPTURESCREENFORMAT_PNG,
-                                                                                            VIX_INVALID_HANDLE);
-                    if ($vix_result != VIX_OK) {
-                        die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                    }
-};
-alarm(0);
+                    alarm($vix_call_timeout);
+                    UNSAFE_SIGNALS {
+                        ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
+                                                                                                VIX_CAPTURESCREENFORMAT_PNG,
+                                                                                                VIX_INVALID_HANDLE);
+                        if ($vix_result != VIX_OK) {
+                            die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                        }
+                    };
+                    alarm(0);
                     open (my $IMAGE_DATA, "<:scalar", \$vix_image_bytes) or
                         die "Unable to extract VM screenshot contents. " . $!;
                     my $screenshot = Prima::Image->load($IMAGE_DATA);
@@ -2409,16 +2409,16 @@ alarm(0);
             # Take a screenshot, if asked.
             if (!defined($vix_image_bytes) && $url->has_screenshot_id() && $url->screenshot_id()) {
                 $LOG->info("Process ID (" . $$ . "): Taking screenshot.");
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
-                                                                                        VIX_CAPTURESCREENFORMAT_PNG,
-                                                                                        VIX_INVALID_HANDLE);
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-};
-alarm(0);
+                alarm($vix_call_timeout);
+                UNSAFE_SIGNALS {
+                    ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
+                                                                                            VIX_CAPTURESCREENFORMAT_PNG,
+                                                                                            VIX_INVALID_HANDLE);
+                    if ($vix_result != VIX_OK) {
+                        die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                    }
+                };
+                alarm(0);
             }
 
             # Perform an integrity check.
@@ -2432,41 +2432,41 @@ alarm(0);
                   !$url->has_reuse_browser_id() ||
                   !$url->reuse_browser_id())) {
                 $LOG->info("Process ID (" . $$ . "): Listing processes in guest OS.");
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                ($vix_result, @vix_process_properties) = VMListProcessesInGuest($vix_vm_handle, 0);
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMListProcessesInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-};
-alarm(0);
+                alarm($vix_call_timeout);
+                UNSAFE_SIGNALS {
+                    ($vix_result, @vix_process_properties) = VMListProcessesInGuest($vix_vm_handle, 0);
+                    if ($vix_result != VIX_OK) {
+                        die "VIX::VMListProcessesInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                    }
+                };
+                alarm(0);
 
                 foreach my $property (@vix_process_properties) {
                     if (($property->{'PROCESS_OWNER'} ne "NT AUTHORITY\\SYSTEM") &&
                         ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'}))) {
                         $LOG->info("Process ID (" . $$ . "): Terminating application.");
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                        $vix_result = VMKillProcessInGuest($vix_vm_handle, $property->{'PROCESS_ID'}, 0);
-                        if ($vix_result != VIX_OK) {
-                            die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                        }
-};
-alarm(0);
+                        alarm($vix_call_timeout);
+                        UNSAFE_SIGNALS {
+                            $vix_result = VMKillProcessInGuest($vix_vm_handle, $property->{'PROCESS_ID'}, 0);
+                            if ($vix_result != VIX_OK) {
+                                die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                            }
+                        };
+                        alarm(0);
                     } elsif ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
                         $LOG->info("Process ID (" . $$ . "): Terminating application.");
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                        $vix_result = VMRunProgramInGuest($vix_vm_handle,
-                                                        'C:\WINDOWS\System32\taskkill.exe',
-                                                        '/F /IM ' . getVar(name => "process_name", namespace => $self->{'driver_name'}) . ' /T',
-                                                        0,
-                                                        VIX_INVALID_HANDLE);
-                        if ($vix_result != VIX_OK) {
-                            die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                        }
-};
-alarm(0);
+                        alarm($vix_call_timeout);
+                        UNSAFE_SIGNALS {
+                            $vix_result = VMRunProgramInGuest($vix_vm_handle,
+                                                            'C:\WINDOWS\System32\taskkill.exe',
+                                                            '/F /IM ' . getVar(name => "process_name", namespace => $self->{'driver_name'}) . ' /T',
+                                                            0,
+                                                            VIX_INVALID_HANDLE);
+                            if ($vix_result != VIX_OK) {
+                                die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                            }
+                        };
+                        alarm(0);
                     }
                 }
             } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
@@ -2492,18 +2492,18 @@ alarm(0);
                                     my $temp_file = File::Temp->new();
   
                                     $LOG->info("Process ID (" . $$ . "): Extracting file (" . $process_file->{'name'} . ").");
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-                                    $vix_result = VMCopyFileFromGuestToHost($vix_vm_handle,
-                                                                            $process_file->{'name'},
-                                                                            $temp_file->filename,
-                                                                            0,
-                                                                            VIX_INVALID_HANDLE);
-                                    if ($vix_result != VIX_OK) {
-                                        die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                                    }
-};
-alarm(0);
+                                    alarm($vix_call_timeout);
+                                    UNSAFE_SIGNALS {
+                                        $vix_result = VMCopyFileFromGuestToHost($vix_vm_handle,
+                                                                                $process_file->{'name'},
+                                                                                $temp_file->filename,
+                                                                                0,
+                                                                                VIX_INVALID_HANDLE);
+                                        if ($vix_result != VIX_OK) {
+                                            die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                                        }
+                                    };
+                                    alarm(0);
 
                                     $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
                                 };
@@ -2518,14 +2518,14 @@ alarm(0);
 
             $LOG->info("Process ID (" . $$ . "): Logging off guest OS.");
             # Logout from guest OS.
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-            $vix_result = VMLogoutFromGuest($vix_vm_handle);
-            if ($vix_result != VIX_OK) {
-                die "VIX::VMLogoutFromGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-            }
-};
-alarm(0);
+            alarm($vix_call_timeout);
+            UNSAFE_SIGNALS {
+                $vix_result = VMLogoutFromGuest($vix_vm_handle);
+                if ($vix_result != VIX_OK) {
+                    die "VIX::VMLogoutFromGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+                }
+            };
+            alarm(0);
 
         };
         if ($@) {
@@ -2563,14 +2563,14 @@ alarm(0);
             $LOG->error("Process ID (" . $$ . "): Error: VIX Timeout.");
             Carp::croak "Error: VIX Timeout.";
         };
-alarm($vix_call_timeout);
-UNSAFE_SIGNALS {
-        $LOG->info("Process ID (" . $$ . "): Releasing VIX VM Handle.");
-        ReleaseHandle($vix_vm_handle);
-        $LOG->info("Process ID (" . $$ . "): Releasing VIX Host Handle.");
-        HostDisconnect($vix_host_handle);
-};
-alarm(0);
+        alarm($vix_call_timeout);
+        UNSAFE_SIGNALS {
+            $LOG->info("Process ID (" . $$ . "): Releasing VIX VM Handle.");
+            ReleaseHandle($vix_vm_handle);
+            $LOG->info("Process ID (" . $$ . "): Releasing VIX Host Handle.");
+            HostDisconnect($vix_host_handle);
+        };
+        alarm(0);
 
         $LOG->info("Process ID (" . $$ . "): Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
