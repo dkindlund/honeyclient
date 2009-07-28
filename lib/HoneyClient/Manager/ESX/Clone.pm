@@ -2281,9 +2281,15 @@ sub drive {
 
             $LOG->info("Process ID (" . $$ . "): Driving the application.");
             # Drive the browser.
+            my $visit_start_time = time;
             $vix_result = VMOpenUrlInGuest($vix_vm_handle, $url->url(), 0, VIX_INVALID_HANDLE);
             if ($vix_result != VIX_OK) {
                 die "VIX::VMOpenUrlInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+            # Adjust $vix_driver_timeout to account for load delay.
+            $vix_driver_timeout = $vix_driver_timeout - (time - $visit_start_time);
+            if ($vix_driver_timeout < 0) {
+                $vix_driver_timeout = 0;
             }
 
             # If a 'load complete' image was defined and the 'end early' flag was specified and true,
@@ -2361,8 +2367,12 @@ sub drive {
             $som = $self->{'_agent_handle'}->check();
             $result = thaw(decode_base64($som->result()));
 
-            # If the integrity check passes, then close the browser.
-            if (scalar(@{$result->{'fingerprint'}->{os_processes}}) == 0) {
+            # If the integrity check passes and either we've completed the job or we want a fresh browser
+            # per URL, then close the browser.
+            if ((scalar(@{$result->{'fingerprint'}->{'os_processes'}}) == 0) &&
+                (($url_counter == $#urls) ||
+                  !$url->has_reuse_browser_id() ||
+                  !$url->reuse_browser_id())) {
                 $LOG->info("Process ID (" . $$ . "): Listing processes in guest OS.");
                 ($vix_result, @vix_process_properties) = VMListProcessesInGuest($vix_vm_handle, 0);
                 if ($vix_result != VIX_OK) {
@@ -2378,6 +2388,7 @@ sub drive {
                             die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
                         }
                     } elsif ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
+                        $LOG->info("Process ID (" . $$ . "): Terminating application.");
                         $vix_result = VMRunProgramInGuest($vix_vm_handle,
                                                         'C:\WINDOWS\System32\taskkill.exe',
                                                         '/F /IM ' . getVar(name => "process_name", namespace => $self->{'driver_name'}) . ' /T',
@@ -2388,44 +2399,42 @@ sub drive {
                         }
                     }
                 }
-            } else {
+            } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
                 # Integrity check didn't pass, so try and perform automated malware extraction.
                 $LOG->info("Process ID (" . $$ . "): Attempting malware extraction.");
-                if (exists($result->{'fingerprint'}->{'os_processes'}) &&
-                    defined($result->{'fingerprint'}->{'os_processes'})) {
-                    foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
-                        if (exists($process->{'process_files'}) &&
-                            defined($process->{'process_files'})) {
 
-                            foreach my $process_file (@{$process->{'process_files'}}) {
-                                if (($process_file->{'event'} eq 'Write') &&
-                                    exists($process_file->{'file_content'}) &&
-                                    defined($process_file->{'file_content'}) &&
-                                    exists($process_file->{'name'}) &&
-                                    defined($process_file->{'name'}) &&
-                                    exists($process_file->{'file_content'}->{'size'}) &&
-                                    defined($process_file->{'file_content'}->{'size'}) &&
-                                    ($process_file->{'file_content'}->{'size'} > 0)) {
+                foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
+                    if (exists($process->{'process_files'}) &&
+                        defined($process->{'process_files'})) {
 
-                                    eval {
-                                        # Create a temp file on the host to store the data.
-                                        my $temp_file = File::Temp->new();
-    
-                                        $LOG->info("Process ID (" . $$ . "): Extracting file (" . $process_file->{'name'} . ").");
-                                        $vix_result = VMCopyFileFromGuestToHost($vix_vm_handle,
-                                                                                $process_file->{'name'},
-                                                                                $temp_file->filename,
-                                                                                0,
-                                                                                VIX_INVALID_HANDLE);
-                                        if ($vix_result != VIX_OK) {
-                                            die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                                        }
+                        foreach my $process_file (@{$process->{'process_files'}}) {
+                            if (($process_file->{'event'} eq 'Write') &&
+                                exists($process_file->{'file_content'}) &&
+                                defined($process_file->{'file_content'}) &&
+                                exists($process_file->{'name'}) &&
+                                defined($process_file->{'name'}) &&
+                                exists($process_file->{'file_content'}->{'size'}) &&
+                                defined($process_file->{'file_content'}->{'size'}) &&
+                                ($process_file->{'file_content'}->{'size'} > 0)) {
 
-                                        $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
-                                    };
-                                    if ($@) {
-                                        $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
+                                eval {
+                                    # Create a temp file on the host to store the data.
+                                    my $temp_file = File::Temp->new();
+  
+                                    $LOG->info("Process ID (" . $$ . "): Extracting file (" . $process_file->{'name'} . ").");
+                                    $vix_result = VMCopyFileFromGuestToHost($vix_vm_handle,
+                                                                            $process_file->{'name'},
+                                                                            $temp_file->filename,
+                                                                            0,
+                                                                            VIX_INVALID_HANDLE);
+                                    if ($vix_result != VIX_OK) {
+                                        die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
                                     }
+
+                                    $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
+                                };
+                                if ($@) {
+                                    $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
                                 }
                             }
                         }
@@ -2452,7 +2461,7 @@ sub drive {
             $vm_status = "error";
 
         # Figure out if there was a compromise found.
-        } elsif (scalar(@{$result->{'fingerprint'}->{os_processes}})) {
+        } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
             $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
 
             # Dump the fingerprint to a file, if need be.
@@ -2581,7 +2590,7 @@ sub drive {
         if ($vm_status ne $self->{'status'}) {
 
             # Check if a fingerprint was supplied.
-            if (defined($result) && scalar(@{$result->{'fingerprint'}->{os_processes}})) {
+            if (defined($result) && scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
 
                 # Corellate the fingerprint to the URL.
                 $result->{'fingerprint'}->{'url'} = {
