@@ -301,7 +301,7 @@ Keep in mind, though, that some variables should remain module-specific
             <session_timeout description="The amount of time (in seconds) a VIM session remains active, before automatically expiring due to inactivity.  The default time is 15 minutes, since the default VMware ESX Server expires inactive sessions older than 30 mintues." default="900">
                 900
             </session_timeout>
-            <timeout description="The amount of time (in seconds) that we will wait for a response from the VMware ESX Server, before timing out." default="7200">
+            <timeout description="The amount of time (in seconds) that we will wait for a VIM response from the VMware ESX Server, before timing out." default="7200">
                 7200
             </timeout>
             <vm_id_length description="The length of each corresponding VM identifier (VMID).  This value can be any integer between 1 and 32, inclusive.  The VMID is a hexadecimal string that represents the VM's name.  It is designed to be generated once per clone and remain for the life of the VM (regardless of where it runs).  The VMID is used externally by HoneyClient::Manager and HoneyClient::Manager::FW.  The HoneyClient::Manager::FW package uses IPTables and binds each rule to a specific VMID.  However, IPTable's firewall rule labels can only be a maximum of 30 characters in length.  Thus, 26 is specified here, to account for 'VMID-OUT' as a possible chain name." default="26">
@@ -344,6 +344,9 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                 <max_retry_count description="If the Worker is unable to contact the recently initialized clone VM due to connectivity issues, then the Worker will retry up to the specified number of times before reinitializing the clone VM." default="100">
                     100
                 </max_retry_count>
+                <vix_timeout description="The amount of time (in seconds) that we will wait for a VIX response from the VMware ESX Server, before timing out.  Note: This value must be greater than HoneyClient::Agent::timeout." default="300">
+                    300
+                </vix_timeout>
             </Clone>
             <!-- HoneyClient::Manager::ESX::Test Options -->
             <Test>
