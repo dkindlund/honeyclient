@@ -240,10 +240,10 @@ Keep in mind, though, that some variables should remain module-specific
                 events
             </exchange_name>
             <queue_name description="The name of the STOMP queue used to receive messages sent to this component." default="manager.workers">
-                1.manager.workers
+                500.manager.workers
             </queue_name>
             <routing_key description="The routing key used on all STOMP messages sent to this component." default="pending.job">
-                1.job.create.#
+                500.job.create.#
             </routing_key>
         </Worker>
         <!-- HoneyClient::Manager::Firewall Options -->
@@ -344,6 +344,9 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                 <max_retry_count description="If the Worker is unable to contact the recently initialized clone VM due to connectivity issues, then the Worker will retry up to the specified number of times before reinitializing the clone VM." default="100">
                     100
                 </max_retry_count>
+                <vix_enable description="When set to 1, this setting allows the code to use VIX in order to drive the application." default="1">
+                    1
+                </vix_enable>
                 <vix_timeout description="The amount of time (in seconds) that we will wait for a VIX response from the VMware ESX Server, before timing out.  Note: This value must be greater than HoneyClient::Agent::timeout." default="300">
                     300
                 </vix_timeout>
@@ -416,7 +419,7 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                 1
             </low_priority>
             <default_priority description="The default priority to use, when sending messages." default="1">
-                1
+                500
             </default_priority>
         </EventEmitter>
     </Util>

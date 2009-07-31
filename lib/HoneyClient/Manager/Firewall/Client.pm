@@ -309,8 +309,8 @@ sub _receive_retry {
             $frame = $args{'stomp'}->receive_frame();
         };
         if ($@) {
-            $LOG->warn("Process ID (" . $$ . "): Encountered a STOMP error while receiving. " . $@);
-            $LOG->info("Process ID (" . $$ . "): Retrying STOMP connection.");
+            $LOG->warn("Encountered a STOMP error while receiving. " . $@);
+            $LOG->info("Retrying STOMP connection.");
 
             $frame = undef;
             $args{'stomp'} = undef;
@@ -359,8 +359,8 @@ sub _send_retry {
             $retry = 0;
         };
         if ($@) {
-            $LOG->warn("Process ID (" . $$ . "): Encountered a STOMP error while sending. " . $@);
-            $LOG->info("Process ID (" . $$ . "): Retrying STOMP connection.");
+            $LOG->warn("Encountered a STOMP error while sending. " . $@);
+            $LOG->info("Retrying STOMP connection.");
 
             if (defined($args{'stomp'}) &&
                 (ref($args{'stomp'}) eq "Net::Stomp")) {

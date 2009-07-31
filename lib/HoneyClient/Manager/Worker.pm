@@ -297,7 +297,7 @@ use HoneyClient::Message;
 # shutdown process.
 sub _shutdown {
     my $LOG = get_logger();
-    $LOG->warn("Process ID (" . $$ . "): Received termination signal.  Shutting down worker (please wait).");
+    $LOG->warn("Received termination signal.  Shutting down worker (please wait).");
     exit;
 };
 $SIG{HUP}  = \&_shutdown;
@@ -325,8 +325,8 @@ sub _receive_retry {
             $frame = $args{'stomp'}->receive_frame();
         };
         if ($@) {
-            $LOG->warn("Process ID (" . $$ . "): Encountered a STOMP error. " . $@);
-            $LOG->info("Process ID (" . $$ . "): Retrying STOMP connection.");
+            $LOG->warn("Encountered a STOMP error. " . $@);
+            $LOG->info("Retrying STOMP connection.");
             $frame = undef;
             if (defined($args{'stomp'}) &&
                 (ref($args{'stomp'}) eq "Net::Stomp")) {
@@ -369,8 +369,8 @@ sub _send_retry {
             $retry = 0;
         };
         if ($@) {
-            $LOG->warn("Process ID (" . $$ . "): Encountered a STOMP error. " . $@);
-            $LOG->info("Process ID (" . $$ . "): Retrying STOMP connection.");
+            $LOG->warn("Encountered a STOMP error. " . $@);
+            $LOG->info("Retrying STOMP connection.");
             if (defined($args{'stomp'}) &&
                 (ref($args{'stomp'}) eq "Net::Stomp")) {
                 $args{'stomp'}->disconnect();
@@ -411,8 +411,8 @@ sub _ack_retry {
             $retry = 0;
         };
         if ($@) {
-            $LOG->warn("Process ID (" . $$ . "): Encountered a STOMP error. " . $@);
-            $LOG->info("Process ID (" . $$ . "): Retrying STOMP connection.");
+            $LOG->warn("Encountered a STOMP error. " . $@);
+            $LOG->info("Retrying STOMP connection.");
             if (defined($args{'stomp'}) &&
                 (ref($args{'stomp'}) eq "Net::Stomp")) {
                 $args{'stomp'}->disconnect();
@@ -443,7 +443,7 @@ sub _flush_queue {
     # for consistency.
     my ($class, %args) = @_;
 
-    $LOG->info("Process ID (" . $$ . "): Starting worker.");
+    $LOG->info("Starting worker.");
 
     my $argsExist = scalar(%args);
     my $arg_names = [ 'stomp_address',
@@ -499,11 +499,11 @@ sub _flush_queue {
                     'ack'           =>  'client',
         });
 
-        $LOG->info("Process ID (" . $$ . "): Waiting for more work.");
+        $LOG->info("Waiting for more work.");
         while (1) {
             # Get a new job.
             $frame = $stomp->receive_frame();
-            $LOG->info("Process ID (" . $$ . "): Got more work.");
+            $LOG->info("Got more work.");
 
             # Decode the job.
             $job = HoneyClient::Message::Job->new(decode_json($frame->body)->{'job'});
@@ -513,7 +513,7 @@ sub _flush_queue {
             #print Dumper($frame) . "\n";
 
             # ACK the frame, indicating that the work has been completed.
-            $LOG->info("Process ID (" . $$ . "): Signaling work complete.");
+            $LOG->info("Signaling work complete.");
             $stomp->ack({frame => $frame});
 
             # TODO: Delete this, eventually.
@@ -523,7 +523,7 @@ sub _flush_queue {
     };
     # Report when a fault occurs.
     if ($@) {
-        $LOG->error("Process ID (" . $$ . "): Encountered an error. Shutting down worker. " . $@);
+        $LOG->error("Encountered an error. Shutting down worker. " . $@);
     }
 
     # Cleanup - Close STOMP connection.
@@ -621,7 +621,7 @@ sub run {
     # for consistency.
     my ($class, %args) = @_;
 
-    $LOG->info("Process ID (" . $$ . "): Starting worker.");
+    $LOG->info("Starting worker.");
 
     # If these parameters weren't defined, delete them
     # from the specified arg hash.
@@ -694,7 +694,7 @@ sub run {
         # routing key.
         $stomp->subscribe($subscribe_args);
 
-        $LOG->info("Process ID (" . $$ . "): Waiting for more work.");
+        $LOG->info("Waiting for more work.");
         while (1) {
 
             # Get a new job - with retry logic.
@@ -702,7 +702,7 @@ sub run {
                                               new_args       => $new_args,
                                               connect_args   => $connect_args,
                                               subscribe_args => $subscribe_args);
-            $LOG->info("Process ID (" . $$ . "): Got more work.");
+            $LOG->info("Got more work.");
 
             # TODO: Delete this, eventually.
             $Data::Dumper::Terse = 0;
@@ -722,7 +722,7 @@ sub run {
             $vm = $vm->drive(job => $job);
 
             # ACK the frame, indicating that the work has been completed.
-            $LOG->info("Process ID (" . $$ . "): Signaling work complete.");
+            $LOG->info("Signaling work complete.");
             $stomp = _ack_retry(stomp          => $stomp,
                                 new_args       => $new_args,
                                 connect_args   => $connect_args,
@@ -735,7 +735,7 @@ sub run {
     };
     # Report when a fault occurs.
     if ($@) {
-        $LOG->error("Process ID (" . $$ . "): Encountered an error. Shutting down worker. " . $@);
+        $LOG->error("Encountered an error. Shutting down worker. " . $@);
     }
 
     # Cleanup - Close STOMP connection.

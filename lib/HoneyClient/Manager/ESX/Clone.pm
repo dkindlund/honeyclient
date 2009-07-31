@@ -368,6 +368,16 @@ BEGIN { use_ok('Image::Match') or diag("Can't load Image::Match package.  Check 
 require_ok('Image::Match');
 require Image::Match;
 
+# Make sure DateTime::HiRes loads.
+BEGIN { use_ok('DateTime::HiRes') or diag("Can't load DateTime::HiRes package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::HiRes');
+use DateTime::HiRes;
+
+# Make sure DateTime::Duration loads.
+BEGIN { use_ok('DateTime::Duration') or diag("Can't load DateTime::Duration package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Duration');
+use DateTime::Duration;
+
 =end testing
 
 =cut
@@ -438,6 +448,10 @@ use Perl::Unsafe::Signals;
 # Include Protobuf Libraries
 use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
 use HoneyClient::Message;
+
+# Include ISO8601 Date/Time Libraries
+use DateTime::HiRes;
+use DateTime::Duration;
 
 =pod
 
@@ -629,11 +643,21 @@ sub AUTOLOAD {
 sub DESTROY {
 
     if ($@) {
-        $LOG->error("Process ID (" . $$ . "): Encountered an error. " . $@);
+        $LOG->error("Encountered an error. " . $@);
     }
 
     # Get the object.
     my $self = shift;
+
+    # Disconnect from VM via VIX, if enabled.
+    if (getVar(name => "vix_enable")) {
+        eval {
+            $self->_vixDisconnectVM();
+        };
+        if ($@) {
+            $LOG->error("Unable to disconnect from VM. " . $@);
+        }
+    }
 
     if (defined($self->{'quick_clone_vm_name'}) &&
         (($self->{'status'} eq 'running') ||
@@ -650,7 +674,7 @@ $DB::single=1;
             $self->_denyNetwork();
         };
        
-        $LOG->info("Process ID (" . $$ . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         my $som = undef;
         my $suspended_at = undef;
         eval {
@@ -659,7 +683,7 @@ $DB::single=1;
         };
 
         if (!defined($som)) {
-            $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+            $LOG->error("Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
             $self->_changeStatus(status => "error");
         } else {
             $self->{'_vm_session'} = $som;
@@ -667,8 +691,19 @@ $DB::single=1;
         }
 
         # Upon termination, close our session.
-        $LOG->info("Process ID (" . $$ . "): Closing ESX session.");
+        $LOG->info("Closing ESX session.");
         HoneyClient::Manager::ESX->logout(session => $self->{'_vm_session'});
+
+
+        # Disconnect from host via VIX, if enabled.
+        if (getVar(name => "vix_enable")) {
+            eval {
+                $self->_vixDisconnectHost();
+            };
+            if ($@) {
+                $LOG->error("Unable to disconnect from host. " . $@);
+            }
+        }
     }
 }
 
@@ -696,7 +731,7 @@ sub _handleAgentFault {
     
     if (($errMsg !~ /Connection refused/) &&
         ($errMsg !~ /No route to host/)) {
-        $LOG->warn("Process ID (" . $$ . "): Error occurred during processing. " . $errMsg);
+        $LOG->warn("Error occurred during processing. " . $errMsg);
         Carp::carp __PACKAGE__ . "->_handleAgentFault(): Error occurred during processing.\n" . $errMsg;
     }
 }
@@ -746,10 +781,10 @@ sub _init {
         # If the quick_clone_vm_name wasn't specified, then create a new quick clone from the master_vm_name
         # and initialize it completely.
 
-        $LOG->info("Process ID (" . $$ . "): Quick cloning master VM (" . $self->{'master_vm_name'} . ").");
+        $LOG->info("Quick cloning master VM (" . $self->{'master_vm_name'} . ").");
         ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->quickCloneVM(session => $self->{'_vm_session'}, src_name => $self->{'master_vm_name'});
         if (!defined($ret)) {
-            $LOG->error("Process ID (" . $$ . "): Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").");
+            $LOG->error("Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").");
             Carp::croak "Unable to quick clone master VM (" . $self->{'master_vm_name'} . ").";
         }
         # Set the name of the cloned VM.
@@ -758,7 +793,7 @@ sub _init {
         $self->_changeStatus(status => "initialized");
 
         # Wait until the VM gets registered, before proceeding.
-        $LOG->debug("Process ID (" . $$ . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is registered.");
+        $LOG->debug("Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is registered.");
         $ret = undef;
         while (!defined($ret) or !$ret) {
             ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->isRegisteredVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
@@ -769,12 +804,12 @@ sub _init {
             }
         }
         # Now, get the VM's configuration.
-        $LOG->debug("Process ID (" . $$ . "): Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->debug("Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($self->{'_vm_session'}, $self->{'config'}) = HoneyClient::Manager::ESX->getConfigVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         $self->_changeStatus(status => "registered");
 
         # Once registered, check if the VM is ON yet.
-        $LOG->debug("Process ID (" . $$ . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
+        $LOG->debug("Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
         $ret = undef;
         while (!defined($ret) or ($ret ne 'poweredon')) {
             ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
@@ -788,7 +823,7 @@ sub _init {
     
 
         # Now, get the VM's MAC/IP address.
-        $LOG->info("Process ID (" . $$ . "): Waiting for a valid MAC/IP address of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Waiting for a valid MAC/IP address of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         $ret = undef;
         my $logMsgPrinted = 0;
         my $ip_address = undef;
@@ -802,7 +837,7 @@ sub _init {
             if (defined($ip_address) && 
                 (!defined($self->{'ip_address'}) ||
                  ($ip_address ne $self->{'ip_address'}))) {
-                $LOG->info("Process ID (" . $$ . "): Clone VM (" . $self->{'quick_clone_vm_name'} . ") has a new IP (" . $ip_address . ") - updating firewall.");
+                $LOG->info("Clone VM (" . $self->{'quick_clone_vm_name'} . ") has a new IP (" . $ip_address . ") - updating firewall.");
                 $self->_denyNetwork();
                 $self->{'ip_address'} = $ip_address;
             }
@@ -813,10 +848,10 @@ sub _init {
                 sleep ($self->{'_retry_period'});
                 next; # skip further processing
             } elsif (!$logMsgPrinted) {
-                $LOG->info("Process ID (" . $$ . "): Initialized clone VM (" . $self->{'quick_clone_vm_name'} . ") using IP (" .
+                $LOG->info("Initialized clone VM (" . $self->{'quick_clone_vm_name'} . ") using IP (" .
                            $self->{'ip_address'} . ") and MAC (" . $self->{'mac_address'} . ").");
 
-                $LOG->info("Process ID (" . $$ . "): Waiting for Agent daemon to initialize inside clone VM.");
+                $LOG->info("Waiting for Agent daemon to initialize inside clone VM.");
                 $logMsgPrinted = 1;
             }
 
@@ -845,12 +880,12 @@ sub _init {
             } else {
 
                 # Generate a new Operational snapshot.
-                $LOG->info("Process ID (" . $$ . "): Creating a new operational snapshot of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+                $LOG->info("Creating a new operational snapshot of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
                 ($self->{'_vm_session'}, $self->{'name'}) = HoneyClient::Manager::ESX->snapshotVM(session              => $self->{'_vm_session'},
                                                                                                   name                 => $self->{'quick_clone_vm_name'},
                                                                                                   snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
                 $self->{'_num_snapshots'}++;
-                $LOG->info("Process ID (" . $$ . "): Created operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+                $LOG->info("Created operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
 
                 # XXX: We need to separate this call into 2 smaller ones.
                 #      1) Register basic client information.
@@ -893,15 +928,15 @@ sub _init {
 
         # First, make sure that an operational snapshot name was already provided (as a basis).
         if (!defined($self->{'name'})) {
-            $LOG->error("Process ID (" . $$ . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.");
+            $LOG->error("Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): No operational snapshot name provided.";
         }
 
         # Revert to operational snapshot; upon revert, the VM will already be running.
-        $LOG->info("Process ID (" . $$ . "): Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to operational snapshot (" . $self->{'name'} . ").");
+        $LOG->info("Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to operational snapshot (" . $self->{'name'} . ").");
         $ret = HoneyClient::Manager::ESX->revertVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'}, snapshot_name => $self->{'name'});
         if (!$ret) {
-            $LOG->error("Process ID (" . $$ . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.");
+            $LOG->error("Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to operational snapshot.";
         }
         $self->{'_vm_session'} = $ret;
@@ -912,21 +947,21 @@ sub _init {
                                                                                                 old_snapshot_name        => $self->{'name'},
                                                                                                 new_snapshot_description => getVar(name => "operational_quick_clone_snapshot_description"));
         if (!defined($self->{'name'})) {
-            $LOG->error("Process ID (" . $$ . "): Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.");
+            $LOG->error("Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.");
             Carp::croak "Unable to start clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to rename operational snapshot.";
         }
-        $LOG->info("Process ID (" . $$ . "): Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
+        $LOG->info("Renamed operational snapshot on clone VM (" . $self->{'quick_clone_vm_name'} . ") to (" . $self->{'name'} . ").");
 
         # Now, get the VM's configuration.
-        $LOG->debug("Process ID (" . $$ . "): Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->debug("Retrieving config of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($self->{'_vm_session'}, $self->{'config'}) = HoneyClient::Manager::ESX->getConfigVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
-        $LOG->info("Process ID (" . $$ . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         $self->{'_vm_session'} = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         # Sanity check: Make sure the VM is powered ON.
         $ret = undef;
         while (!defined($ret) or ($ret ne 'poweredon')) {
-            $LOG->info("Process ID (" . $$ . "): Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
+            $LOG->info("Checking if clone VM (" . $self->{'quick_clone_vm_name'} . ") is powered on.");
             ($self->{'_vm_session'}, $ret) = HoneyClient::Manager::ESX->getStateVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
             # If the VM isn't ON yet, wait before trying again.
@@ -1061,7 +1096,7 @@ sub _changeStatus {
         !defined($args{'status'})) {
 
         # Croak if no valid argument is supplied.
-        $LOG->error("Process ID (" . $$ . "): Error: No status argument supplied.");
+        $LOG->error("Error: No status argument supplied.");
         Carp::croak "Error: No status argument supplied.";
     }
 
@@ -1117,7 +1152,7 @@ sub _dumpFingerprint {
     my $COMPROMISE_FILE = getVar(name => "fingerprint_dump");
     if (length($COMPROMISE_FILE) > 0 &&
         defined($fingerprint)) {
-        $LOG->info("Process ID (" . $$ . "): Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
+        $LOG->info("Saving fingerprint to '" . $COMPROMISE_FILE . "'.");
         my $dump_file = new IO::File($COMPROMISE_FILE, "a");
 
         $Data::Dumper::Terse = 0;
@@ -1146,7 +1181,7 @@ sub _allowNetwork {
     }
     my $result = undef; 
 
-    $LOG->info("Process ID (" . $$ . "): Allowing VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
+    $LOG->info("Allowing VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
 
     my $allowed_outbound_ports = getVar(name      => "allowed_outbound_ports",
                                         namespace => "HoneyClient::Manager::Firewall");
@@ -1183,7 +1218,7 @@ sub _denyNetwork {
     }
     my $result = undef; 
 
-    $LOG->info("Process ID (" . $$ . "): Denying VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
+    $LOG->info("Denying VM (" . $self->{'quick_clone_vm_name'} . ") network access.");
     
     ($result, $self->{'_firewall_session'}) = HoneyClient::Manager::Firewall::Client->denyVM(session => $self->{'_firewall_session'}, chain_name => $self->{'quick_clone_vm_name'});
     if ($result) {
@@ -1191,7 +1226,7 @@ sub _denyNetwork {
         $self->{'_has_network_access'} = 0;
     }
 
-    $LOG->info("Process ID (" . $$ . "): Destroying Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
+    $LOG->info("Destroying Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
     ($result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
         session          => $self->{'_pcap_session'},
         quick_clone_name => $self->{'quick_clone_vm_name'},
@@ -1217,11 +1252,11 @@ sub _checkSpaceAvailable {
 
     if ($datastore_free < $min_space_free) {
         my $datastore_free_in_gb = sprintf("%.2f", $datastore_free / (1024 * 1024 * 1024));
-        $LOG->warn("Process ID (" . $$ . "): Primary datstore has low disk space (" . $datastore_free_in_gb . " GB).");
+        $LOG->warn("Primary datstore has low disk space (" . $datastore_free_in_gb . " GB).");
     } else {
         return;
     }
-    $LOG->info("Process ID (" . $$ . "): Low disk space detected. Shutting down.");
+    $LOG->info("Low disk space detected. Shutting down.");
     exit;
 }
 
@@ -1240,18 +1275,18 @@ sub _checkForBSOD {
         # Deny the VM's network, since when we revert, we'll probably be getting a new IP address.
         $self->_denyNetwork();
 
-        $LOG->warn("Process ID (" . $$ . "): Detected possible BSOD in initializing clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->warn("Detected possible BSOD in initializing clone VM (" . $self->{'quick_clone_vm_name'} . ").");
 
         # Revert to default snapshot; upon revert, the VM will already be stopped.
-        $LOG->info("Process ID (" . $$ . "): Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to snapshot (" . $args{'snapshot_name'} . ").");
+        $LOG->info("Reverting clone VM (" . $self->{'quick_clone_vm_name'} . ") to snapshot (" . $args{'snapshot_name'} . ").");
         my $ret = HoneyClient::Manager::ESX->revertVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'}, snapshot_name => $args{'snapshot_name'});
         if (!$ret) {
-            $LOG->error("Process ID (" . $$ . "): Unable to revert clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to snapshot (" . $args{'snapshot_name'} . ").");
+            $LOG->error("Unable to revert clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to snapshot (" . $args{'snapshot_name'} . ").");
             Carp::croak "Unable to revert clone VM (" . $self->{'quick_clone_vm_name'} . "): Failed to revert to snapshot (" . $args{'snapshot_name'} . ").";
         }
         $self->{'_vm_session'} = $ret;
 
-        $LOG->info("Process ID (" . $$ . "): Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Starting clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         $self->{'_vm_session'} = HoneyClient::Manager::ESX->startVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
 
         $self->{'_num_failed_inits'} = 0;
@@ -1259,7 +1294,553 @@ sub _checkForBSOD {
         $self->{'_num_failed_inits'}++;
 
 # TODO: Delete this, eventually.
-        $LOG->warn("Process ID (" . $$ . "): Clone VM (" . $self->{'quick_clone_vm_name'} . ") - _num_failed_inits: " . $self->{'_num_failed_inits'} . ".");
+        $LOG->warn("Clone VM (" . $self->{'quick_clone_vm_name'} . ") - _num_failed_inits: " . $self->{'_num_failed_inits'} . ".");
+    }
+}
+
+#######################################################################
+# VIX Helper Methods                                                  #
+#######################################################################
+
+# Helper function to connect to the VMware ESX server, via VIX.
+# Silently returns if already connected to a host.
+# Dies upon any failure.
+sub _vixConnectHost {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    if ($self->{'_vix_host_handle'} == VIX_INVALID_HANDLE) {
+        $LOG->info("Obtaining VIX host handle.");
+        # Connect to the host.
+        my $vix_url = URI::URL->new_abs("/sdk", URI::URL->new($self->{'service_url'}));
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            die "VIX Timeout\n";
+        };
+
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            ($vix_result, $self->{'_vix_host_handle'}) = HostConnect(VIX_API_VERSION,
+                                                                    VIX_SERVICEPROVIDER_VMWARE_VI_SERVER,
+                                                                    $vix_url,
+                                                                    $vix_url->port,
+                                                                    $self->{'user_name'},
+                                                                    $self->{'password'},
+                                                                    0,
+                                                                    VIX_INVALID_HANDLE);
+        };
+        alarm(0);
+        if ($vix_result != VIX_OK) {
+            die "VIX::HostConnect() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+        }
+        $self->{'_vix_host_updated_at'} = DateTime::HiRes->now();
+    }
+}
+
+# Helper function to connect to a VM the VMware ESX server, via VIX.
+# Silently returns if already connected to a VM.
+# Dies upon any failure.
+sub _vixConnectVM {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    if ($self->{'_vix_vm_handle'} == VIX_INVALID_HANDLE) {
+        $LOG->info("Obtaining VIX VM handle.");
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            die "VIX Timeout\n";
+        };
+
+        # Open the VM.
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            ($vix_result, $self->{'_vix_vm_handle'}) = VMOpen($self->{'_vix_host_handle'}, $self->{'config'});
+        };
+        alarm(0);
+        if ($vix_result != VIX_OK) {
+            die "VIX::VMOpen() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+        }
+        $self->{'_vix_vm_updated_at'} = DateTime::HiRes->now();
+    }
+}
+
+# Helper function to disconnect from a VM on the VMware ESX server, via VIX.
+# Logs any failure.
+sub _vixDisconnectVM {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    if (($self->{'_vix_vm_handle'} != VIX_INVALID_HANDLE) &&
+        (GetHandleType($self->{'_vix_vm_handle'}) == VIX_HANDLETYPE_VM)) {
+        $LOG->info("Releasing VIX VM Handle.");
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            # Issue an error on timeout, but continue.
+            $LOG->error("Error: VIX Timeout.");
+        };
+
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            ReleaseHandle($self->{'_vix_vm_handle'});
+        };
+        alarm(0);
+    }
+    $self->{'_vix_vm_handle'} = VIX_INVALID_HANDLE;
+}
+
+# Helper function to disconnect from the VMware ESX server, via VIX.
+# Logs any failure.
+sub _vixDisconnectHost {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    if (($self->{'_vix_host_handle'} != VIX_INVALID_HANDLE) &&
+        (GetHandleType($self->{'_vix_host_handle'}) == VIX_HANDLETYPE_HOST)) {
+        $LOG->info("Releasing VIX Host Handle.");
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            # Issue an error on timeout, but continue.
+            $LOG->error("Error: VIX Timeout.");
+        };
+
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            HostDisconnect($self->{'_vix_host_handle'});
+        };
+        alarm(0);
+    }
+    $self->{'_vix_host_handle'} = VIX_INVALID_HANDLE;
+}
+
+# Helper function to indicate if the current host handle on the VMware ESX server is valid.
+#
+# Output: true if valid; false otherwise.
+sub _vixIsHostValid {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Find all registered VMs; if this call fails, then this handle is no longer valid.
+    eval {
+        my @vm_list = ();
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            die "VIX Timeout\n";
+        };
+
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            @vm_list = FindItems($self->{'_vix_host_handle'}, VIX_FIND_REGISTERED_VMS, getVar(name => "timeout", namespace => "HoneyClient::Agent"));
+        };
+        alarm(0);
+        $vix_result = shift(@vm_list);
+        if ($vix_result != VIX_OK) {
+            die "VIX::FindItems() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+        }
+    };
+    if ($@) {
+        return (0);
+    }
+    return (1);
+}
+
+# Helper function to indicate if the current VM handle on the VMware ESX server is valid.
+#
+# Output: true if valid; false otherwise.
+sub _vixIsVMValid {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Find all registered VMs; if this call fails, then this handle is no longer valid.
+    eval {
+        my $vm_power_state = undef;
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            die "VIX Timeout\n";
+        };
+
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            ($vix_result, $vm_power_state) = GetProperties($self->{'_vix_vm_handle'},
+                                                           VIX_PROPERTY_VM_POWER_STATE);
+        };
+        alarm(0);
+        if ($vix_result != VIX_OK) {
+            die "VIX::GetProperties() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+        }
+    };
+    if ($@) {
+        return (0);
+    }
+    return (1);
+}
+
+# Helper function to validate both the host and VM handles.
+# Dies upon any failures.
+sub _vixValidateHandles {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Validate current host, if older than the given threshold.
+    if ((DateTime::HiRes->now() - DateTime::Duration->new(seconds => getVar(name => "session_timeout"))) > $self->{'_vix_host_updated_at'}) {
+        if (!$self->_vixIsHostValid()) {
+            # Reconnect host and VM, if host is not valid.
+            $self->_vixDisconnectVM();
+            $self->_vixDisconnectHost();
+            $self->_vixConnectHost();
+            $self->_vixConnectVM();
+        } else {
+            # Host remains valid; update timestamp.
+            $self->{'_vix_host_updated_at'} = DateTime::HiRes->now();
+        }
+    }
+
+    # Validate current VM, if older than the given threshold.
+    if ((DateTime::HiRes->now() - DateTime::Duration->new(seconds => getVar(name => "session_timeout"))) > $self->{'_vix_vm_updated_at'}) {
+        if (!$self->_vixIsVMValid()) {
+            # Reconnect VM, if VM is not valid.
+            $self->_vixDisconnectVM();
+            $self->_vixConnectVM();
+        } else {
+            # Session remains valid; update timestamp.
+            $self->{'_vix_vm_updated_at'} = DateTime::HiRes->now();
+        }
+    }
+}
+
+# Helper function to wait for VMware Tools and
+# log into the Guest OS on the VM.
+# Dies upon any failures.
+sub _vixLoginInGuest {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    $LOG->info("Waiting for VMware Tools.");
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+
+    # Make sure we can access VMware Tools.
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        $vix_result = VMWaitForToolsInGuest($self->{'_vix_vm_handle'}, getVar(name => "timeout", namespace => "HoneyClient::Agent"));
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMWaitForToolsInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+
+    $LOG->info("Logging into guest OS.");
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+
+    # Login to guest OS.
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        $vix_result = VMLoginInGuest($self->{'_vix_vm_handle'},
+                                     $self->{'guest_user_name'},
+                                     $self->{'guest_password'},
+                                     VIX_LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT);
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMLoginInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+}
+
+# Helper function to maximize the application in the VM.
+# Dies upon any failures.
+sub _vixMaximizeApplication {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    $LOG->info("Setting application to open in maximized mode.");
+    if (!defined($self->{'_maximize_registry_file'})) {
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            die "VIX Timeout\n";
+        };
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            ($vix_result, $self->{'_maximize_registry_file'}) = VMCreateTempFileInGuest($self->{'_vix_vm_handle'}, 0, VIX_INVALID_HANDLE);
+        };
+        alarm(0);
+        if ($vix_result != VIX_OK) {
+            die "VIX::VMCreateTempFileInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+        }
+
+        # What do we do, when a VIX call times out.
+        local $SIG{ALRM} = sub {
+            die "VIX Timeout\n";
+        };
+        alarm($self->{'_vix_call_timeout'});
+        UNSAFE_SIGNALS {
+            $vix_result = VMCopyFileFromHostToGuest($self->{'_vix_vm_handle'},
+                                                    getVar(name => "maximize_registry", namespace => $self->{'driver_name'}),
+                                                    $self->{'_maximize_registry_file'},
+                                                    0,
+                                                    VIX_INVALID_HANDLE);
+        };
+        alarm(0);
+        if ($vix_result != VIX_OK) {
+            die "VIX::VMCopyFileFromHostToGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+        }
+    }
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        $vix_result = VMRunProgramInGuest($self->{'_vix_vm_handle'},
+                                          # TODO: Should probably not hard-code this path.
+                                          'C:\WINDOWS\System32\cmd.exe',
+                                          '/C reg import ' . $self->{'_maximize_registry_file'},
+                                          0,
+                                          VIX_INVALID_HANDLE);
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+}
+
+# Helper function to drive the application in the VM.
+# 
+# Input: url
+#
+# Dies upon any failures.
+sub _vixDriveApplication {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    $LOG->info("Driving the application.");
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        $vix_result = VMOpenUrlInGuest($self->{'_vix_vm_handle'}, $args{'url'}, 0, VIX_INVALID_HANDLE);
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMOpenUrlInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+}
+
+# Helper function to capture the screen of the VM.
+# Dies upon any failures.
+sub _vixCaptureScreenImage {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+    my $vix_image_size = undef;
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        ($vix_result, $vix_image_size, $self->{'_vix_image_bytes'}) = VMCaptureScreenImage($self->{'_vix_vm_handle'},
+                                                                                           VIX_CAPTURESCREENFORMAT_PNG,
+                                                                                           VIX_INVALID_HANDLE);
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+}
+
+# Helper function to close the application in the VM.
+# Dies upon any failures.
+sub _vixCloseApplication {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    $LOG->info("Listing processes in guest OS.");
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+    my @vix_process_properties = ();
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        ($vix_result, @vix_process_properties) = VMListProcessesInGuest($self->{'_vix_vm_handle'}, 0);
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMListProcessesInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+
+    foreach my $property (@vix_process_properties) {
+        if (($property->{'PROCESS_OWNER'} ne "NT AUTHORITY\\SYSTEM") &&
+            ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'}))) {
+            $LOG->info("Terminating application.");
+            # What do we do, when a VIX call times out.
+            local $SIG{ALRM} = sub {
+                die "VIX Timeout\n";
+            };
+            alarm($self->{'_vix_call_timeout'});
+            UNSAFE_SIGNALS {
+                $vix_result = VMKillProcessInGuest($self->{'_vix_vm_handle'}, $property->{'PROCESS_ID'}, 0);
+            };
+            alarm(0);
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+        } elsif ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
+
+            # XXX: This method is hideously slow, but we have no choice, because if we try to kill an application
+            # (using VIX), which is running as "NT AUTHORITY\SYSTEM", we will get permission denied issues.
+            # Thankfully, this code will only run for ESX 3.5U4 and earlier deployments -- as VMware fixed this
+            # issue in ESX 4.0.
+
+            $LOG->info("Terminating application.");
+            # What do we do, when a VIX call times out.
+            local $SIG{ALRM} = sub {
+                die "VIX Timeout\n";
+            };
+            alarm($self->{'_vix_call_timeout'});
+            UNSAFE_SIGNALS {
+                $vix_result = VMRunProgramInGuest($self->{'_vix_vm_handle'},
+                                                  # TODO: Probably should not hard code this path.
+                                                  'C:\WINDOWS\System32\taskkill.exe',
+                                                  '/F /IM ' . getVar(name => "process_name", namespace => $self->{'driver_name'}) . ' /T',
+                                                  0,
+                                                  VIX_INVALID_HANDLE);
+            };
+            alarm(0);
+            if ($vix_result != VIX_OK) {
+                die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+            }
+        }
+    }
+}
+
+# Helper function to copy a file out of a VM.
+#
+# Inputs: guest_filename, host_filename
+#
+# Dies upon any failures.
+sub _vixCopyFileFromGuestToHost {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        $vix_result = VMCopyFileFromGuestToHost($self->{'_vix_vm_handle'},
+                                                $args{'guest_filename'},
+                                                $args{'host_filename'},
+                                                0,
+                                                VIX_INVALID_HANDLE);
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
+    }
+}
+
+# Helper function to log out of a Guest OS on the VM.
+# Dies upon any failures.
+sub _vixLogoutFromGuest {
+    # Extract arguments.
+    my ($self, %args) = @_;
+
+    # VIX Temporary Variables.
+    my $vix_result = VIX_OK;
+
+    # Sanity check.
+    $self->_vixValidateHandles();
+
+    $LOG->info("Logging off guest OS.");
+
+    # What do we do, when a VIX call times out.
+    local $SIG{ALRM} = sub {
+        die "VIX Timeout\n";
+    };
+
+    # Logout from guest OS.
+    alarm($self->{'_vix_call_timeout'});
+    UNSAFE_SIGNALS {
+        $vix_result = VMLogoutFromGuest($self->{'_vix_vm_handle'});
+    };
+    alarm(0);
+    if ($vix_result != VIX_OK) {
+        die "VIX::VMLogoutFromGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
     }
 }
 
@@ -1439,7 +2020,7 @@ sub new {
         # A variable reflecting the current status of the cloned VM.
         status => "uninitialized",
 
-        # A variable reflected the driver assigned to this cloned VM.
+        # A variable reflecting the driver assigned to this cloned VM.
         driver_name => getVar(name      => "default_driver",
                               namespace => "HoneyClient::Agent"),
 
@@ -1502,6 +2083,30 @@ sub new {
         # which has the registry settings that force the application to
         # always display in a maximized state.
         _maximize_registry_file => undef,
+
+        # A VIX host handle, used when accessing the VMware ESX server remotely.
+        # (This internal variable should never be modified externally.)
+        _vix_host_handle => VIX_INVALID_HANDLE,
+
+        # A VIX VM handle, used when accessing the VM on the VMware ESX server
+        # remotely.  (This internal variable should never be modified externally.)
+        _vix_vm_handle => VIX_INVALID_HANDLE,
+
+        # A buffer, used to store the latest screenshot acquired via VIX.
+        # (This internal variable should never be modified externally.)
+        _vix_image_bytes => undef,
+
+        # A variable indicating how long to wait for each VIX call to finish.
+        # (This internal variable should never be modified externally.)
+        _vix_call_timeout => getVar(name => "vix_timeout"),
+
+        # A variable, indicating when the last time the VIX host handle was updated.
+        # (This internal variable should never be modified externally.)
+        _vix_host_updated_at => undef,
+
+        # A variable, indicating when the last time the VIX VM handle was updated.
+        # (This internal variable should never be modified externally.)
+        _vix_vm_updated_at => undef,
     );
 
     @{$self}{keys %params} = values %params;
@@ -1515,11 +2120,11 @@ sub new {
 
     # Sanity check: Make sure guest OS username/password credentials were provided.
     if (!defined($self->{'guest_user_name'})) {
-        $LOG->error("Process ID (" . $$ . "): Guest OS user name was not provided.  Unable to continue.");
+        $LOG->error("Guest OS user name was not provided.  Unable to continue.");
         Carp::croak "Guest OS user name was not provided.  Unable to continue.";
     }
     if (!defined($self->{'guest_password'})) {
-        $LOG->error("Process ID (" . $$ . "): Guest OS password was not provided.  Unable to continue.");
+        $LOG->error("Guest OS password was not provided.  Unable to continue.");
         Carp::croak "Guest OS password was not provided.  Unable to continue.";
     }
 
@@ -1540,7 +2145,7 @@ sub new {
     
     # Set a valid handle for the VM daemon.
     if (!defined($self->{'_vm_session'})) {
-        $LOG->info("Process ID (" . $$ . "): Creating a new ESX session to (" . $self->{'service_url'} . ").");
+        $LOG->info("Creating a new ESX session to (" . $self->{'service_url'} . ").");
         $self->{'_vm_session'} = HoneyClient::Manager::ESX->login(
                                      service_url => $self->{'service_url'},
                                      user_name   => $self->{'user_name'},
@@ -1562,6 +2167,19 @@ sub new {
 
     # Sanity check: Make sure there is enough disk space available. 
     $self->_checkSpaceAvailable();
+
+    # Connect (or reconnect) to host via VIX, if enabled.
+    if (getVar(name => "vix_enable")) {
+        eval {
+            $self->_vixDisconnectVM();
+            $self->_vixDisconnectHost();
+            $self->_vixConnectHost();
+        };
+        if ($@) {
+            $LOG->error("Unable to connect to host. " . $@);
+            Carp::croak "Unable to connect to host. " . $@;
+        }
+    }
     
     # Determine if the firewall needs to be bypassed.
     if ($self->{'_bypass_firewall'}) {
@@ -1574,13 +2192,13 @@ sub new {
     if ($self->{'_num_snapshots'} >= getVar(name => "max_num_snapshots")) {
 
         # If so, then suspend the existing quick clone.
-        $LOG->info("Process ID (" . $$ . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ") - reached maximum number of snapshots (" . $self->{'_num_snapshots'} . ").");
+        $LOG->info("Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ") - reached maximum number of snapshots (" . $self->{'_num_snapshots'} . ").");
         my $som = undef;
         eval {
             $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         }; 
         if ($@ || !defined($som)) {
-            $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
+            $LOG->error("Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
         } else {
             $self->{'_vm_session'} = $som;
         }
@@ -1603,12 +2221,12 @@ sub new {
             $self->_init();
         };
         if ($@) {
-            $LOG->error("Process ID (" . $$ . "): Unable to initialize VM (" . $self->{'quick_clone_vm_name'} . ") - Retrying operation. " . $@);
+            $LOG->error("Unable to initialize VM (" . $self->{'quick_clone_vm_name'} . ") - Retrying operation. " . $@);
 # TODO: Make sure this works!
 #$DB::single = 1;
 
             # Make sure the old VM is at least suspended, before attempting to clone another one.
-            $LOG->info("Process ID (" . $$ . "): Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+            $LOG->info("Suspending clone VM (" . $self->{'quick_clone_vm_name'} . ").");
             my $som = undef;
             my $suspended_at = undef;
             eval {
@@ -1617,7 +2235,7 @@ sub new {
             };
 
             if (!defined($som)) {
-                $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+                $LOG->error("Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
             } else {
                 $self->{'_vm_session'} = $som;
                 $self->_changeStatus(status => "suspended", suspended_at => $suspended_at);
@@ -1628,6 +2246,17 @@ sub new {
             # We mark the old clone VM as an "error" and move on.
             $self->_changeStatus(status => "error");
             $self = $new_self;
+        }
+        # Connect to VM and login via VIX, if enabled.
+        if (getVar(name => "vix_enable")) {
+            eval {
+                $self->_vixConnectVM();
+                $self->_vixLoginInGuest();
+            };
+            if ($@) {
+                $LOG->error("Unable to connect and login to VM. " . $@);
+                Carp::croak "Unable to connect and login to VM. " . $@;
+            }
         }
         return $self;
     }
@@ -1770,7 +2399,7 @@ sub suspend {
 
     # Snapshot the VM.
     if ($args{'perform_snapshot'}) {
-        $LOG->info("Process ID (" . $$ . "): Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Saving operational snapshot (" . $self->{'name'} . ") of clone VM (" . $self->{'quick_clone_vm_name'} . ").");
         my $som = undef;
         my $suspended_at = undef;
         eval {
@@ -1782,13 +2411,13 @@ sub suspend {
                                                                                    ignore_collisions    => 1);
         };
         if ($@ || !defined($som)) {
-            $LOG->error("Process ID (" . $$ . "): Unable to save operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
+            $LOG->error("Unable to save operational snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
             # Try at least to suspend the VM, when an error occurs.
             eval {
                 $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
             };
             if (!defined($som)) {
-                $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+                $LOG->error("Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
             } else {
                 $self->{'_vm_session'} = $som;
             }
@@ -1919,7 +2548,7 @@ sub destroy {
     # We don't actually delete the snapshot, instead we just obliterate the operational snapshot's
     # original name; that way, it's equivalent to deletion.  We assume the operational snapshot
     # will then be reverted and renamed to the next valid operational snapshot name.
-    $LOG->info("Process ID (" . $$ . "): Destroying snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
+    $LOG->info("Destroying snapshot (" . $self->{'name'} . ") on clone VM (" . $self->{'quick_clone_vm_name'} . ").");
     my $som = undef;
     eval {
         ($self->{'_vm_session'}, $som) = HoneyClient::Manager::ESX->renameSnapshotVM(session                  => $self->{'_vm_session'},
@@ -1930,13 +2559,13 @@ sub destroy {
                                                                                      ignore_collisions        => 1);
     };
     if ($@ || !defined($som)) {
-        $LOG->error("Process ID (" . $$ . "): Unable to remove snapshot (" . $self->{'name'} .  ") on clone VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
+        $LOG->error("Unable to remove snapshot (" . $self->{'name'} .  ") on clone VM (" . $self->{'quick_clone_vm_name'} . "). " . $@);
         # Try at least to suspend the VM, when an error occurs.
         eval {
             $som = HoneyClient::Manager::ESX->suspendVM(session => $self->{'_vm_session'}, name => $self->{'quick_clone_vm_name'});
         };
         if (!defined($som)) {
-            $LOG->error("Process ID (" . $$ . "): Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
+            $LOG->error("Unable to suspend VM (" . $self->{'quick_clone_vm_name'} . ").");
         } else {
             $self->{'_vm_session'} = $som;
         }
@@ -2059,11 +2688,11 @@ sub drive {
         ref($args{'job'}) ne "HoneyClient::Message::Job") {
 
         # Croak if no valid argument is supplied.
-        $LOG->error("Process ID (" . $$ . "): Error: Invalid job supplied.");
+        $LOG->error("Error: Invalid job supplied.");
         Carp::croak "Error: Invalid job supplied.";
     }
 
-    $LOG->info("Process ID (" . $$ . "): Processing Job (" . $args{'job'}->uuid() . ").");
+    $LOG->info("Processing Job (" . $args{'job'}->uuid() . ").");
 
     # Record the start time of the job (in seconds).
     my $start_time = time;
@@ -2119,7 +2748,7 @@ sub drive {
         if ((getVar(name => "work_unit_limit") > 0) &&
             ($self->{'work_units_processed'} >= getVar(name => "work_unit_limit"))) {
 
-            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
+            $LOG->info("(" . $self->{'quick_clone_vm_name'} . ") - Work Unit Limit Reached (" . getVar(name => "work_unit_limit") . ").  Recycling clone VM.");
             $self->destroy();
         }
 
@@ -2144,6 +2773,9 @@ sub drive {
                         _emitter_session      => $self->{'_emitter_session'},
                         user_name             => $self->{'user_name'},
                         password              => $self->{'password'},
+                        _vix_host_handle      => $self->{'_vix_host_handle'},
+                        _vix_call_timeout     => $self->{'_vix_call_timeout'},
+                        _vix_host_updated_at  => $self->{'_vix_host_updated_at'},
                     );
 
             # Notify the Drone that we've acquired the job.
@@ -2169,7 +2801,7 @@ sub drive {
         }));
 
         my $capture_result = undef;
-        $LOG->info("Process ID (" . $$ . "): Starting Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Starting Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->startCapture(
             session          => $self->{'_pcap_session'},
             quick_clone_name => $self->{'quick_clone_vm_name'},
@@ -2178,22 +2810,10 @@ sub drive {
         # Drive the Agent.
         $result                    = undef;
         # VIX Temporary Variables.
-        my $vix_result             = VIX_OK;
-        my $vix_host_handle        = VIX_INVALID_HANDLE;
-        my $vix_vm_handle          = VIX_INVALID_HANDLE;
-        my @vix_process_properties = ();
-        my $vix_image_size         = undef;
-        my $vix_image_bytes        = undef;
         my $vix_driver_timeout     = getVar(name      => "timeout",
                                             namespace => "HoneyClient::Agent::Driver");
-        my $vix_call_timeout       = getVar(name      => "vix_timeout");
         eval {
-            # What do we do, when a VIX call times out.
-            local $SIG{ALRM} = sub {
-                die "VIX Timeout\n";
-            };
-
-            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $url->url());
+            $LOG->info("(" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Driving To Resource: " . $url->url());
             $self->{'work_units_processed'}++;
 
             if ($url->has_wait_id()) {
@@ -2211,70 +2831,20 @@ sub drive {
               
                 # Sanity checks. 
                 if ($url->wait_id() > $agent_max_timeout) {
-                    $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_max_timeout . ")");
+                    $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_max_timeout . ")");
                     $vix_driver_timeout = $agent_max_timeout;
                 } elsif ($url->wait_id() < $agent_min_timeout) {
-                    $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_min_timeout . ")");
+                    $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Ignoring Invalid Timeout (" . $url->wait_id() . ") - Using Timeout Value (" . $agent_min_timeout . ")");
                     $vix_driver_timeout = $agent_min_timeout;
                 } else {
                     $vix_driver_timeout = $url->wait_id();
                 }
             }
 
-            $LOG->info("Process ID (" . $$ . "): Obtaining VIX host handle.");
-            # Connect to the host.
-            my $vix_url = URI::URL->new_abs("/sdk", URI::URL->new($self->{'service_url'}));
-            alarm($vix_call_timeout);
-            UNSAFE_SIGNALS {
-                ($vix_result, $vix_host_handle) = HostConnect(VIX_API_VERSION,
-                                                              VIX_SERVICEPROVIDER_VMWARE_VI_SERVER,
-                                                              $vix_url,
-                                                              $vix_url->port,
-                                                              $self->{'user_name'},
-                                                              $self->{'password'},
-                                                              0,
-                                                              VIX_INVALID_HANDLE);
-                if ($vix_result != VIX_OK) {
-                    die "VIX::HostConnect() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-            };
-            alarm(0);
-
-            $LOG->info("Process ID (" . $$ . "): Obtaining VIX VM handle.");
-            # Open the VM.
-            alarm($vix_call_timeout);
-            UNSAFE_SIGNALS {
-                ($vix_result, $vix_vm_handle) = VMOpen($vix_host_handle, $self->{'config'});
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMOpen() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-            };
-            alarm(0);
-
-            $LOG->info("Process ID (" . $$ . "): Waiting for VMware Tools.");
-            # Make sure we can access VMware Tools.
-            alarm($vix_call_timeout);
-            UNSAFE_SIGNALS {
-                $vix_result = VMWaitForToolsInGuest($vix_vm_handle, getVar(name => "timeout", namespace => "HoneyClient::Agent"));
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMWaitForToolsInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-            };
-            alarm(0);
-            
-            $LOG->info("Process ID (" . $$ . "): Logging into guest OS.");
-            # Login to guest OS.
-            alarm($vix_call_timeout);
-            UNSAFE_SIGNALS {
-                $vix_result = VMLoginInGuest($vix_vm_handle,
-                                             $self->{'guest_user_name'},
-                                             $self->{'guest_password'},
-                                              VIX_LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT); # options
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMLoginInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-            };
-            alarm(0);
+# XXX: Cleanup.
+#            $self->_vixConnectHost();
+#            $self->_vixConnectVM();
+#            $self->_vixLoginInGuest();
 
             # If a 'load complete' image was defined and the 'end early' flag was specified and true,
             # then we can expect an image analysis will be performed.
@@ -2287,55 +2857,13 @@ sub drive {
                    !$url->reuse_browser_id())))) {
 
                 # As such, make sure the target application is always maximized.
-                $LOG->info("Process ID (" . $$ . "): Setting application to open in maximized mode.");
-                if (!defined($self->{'_maximize_registry_file'})) {
-                    alarm($vix_call_timeout);
-                    UNSAFE_SIGNALS {
-                        ($vix_result, $self->{'_maximize_registry_file'}) = VMCreateTempFileInGuest($vix_vm_handle, 0, VIX_INVALID_HANDLE);
-                        if ($vix_result != VIX_OK) {
-                            die "VIX::VMCreateTempFileInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                        }
-                    };
-                    alarm(0);
-                    alarm($vix_call_timeout);
-                    UNSAFE_SIGNALS {
-                        $vix_result = VMCopyFileFromHostToGuest($vix_vm_handle,
-                                                                getVar(name => "maximize_registry", namespace => $self->{'driver_name'}),
-                                                                $self->{'_maximize_registry_file'},
-                                                                0,
-                                                                VIX_INVALID_HANDLE);
-                        if ($vix_result != VIX_OK) {
-                            die "VIX::VMCopyFileFromHostToGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                        }
-                    };
-                    alarm(0);
-    
-                }
-                alarm($vix_call_timeout);
-                UNSAFE_SIGNALS {
-                    $vix_result = VMRunProgramInGuest($vix_vm_handle,
-                                                    'C:\WINDOWS\System32\cmd.exe',
-                                                    '/C reg import ' . $self->{'_maximize_registry_file'},
-                                                    0,
-                                                    VIX_INVALID_HANDLE);
-                    if ($vix_result != VIX_OK) {
-                        die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                    }
-                };
-                alarm(0);
+                $self->_vixMaximizeApplication();
             }
 
-            $LOG->info("Process ID (" . $$ . "): Driving the application.");
             # Drive the browser.
             my $visit_start_time = time;
-            alarm($vix_call_timeout);
-            UNSAFE_SIGNALS {
-                $vix_result = VMOpenUrlInGuest($vix_vm_handle, $url->url(), 0, VIX_INVALID_HANDLE);
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMOpenUrlInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-            };
-            alarm(0);
+            $self->_vixDriveApplication(url => $url->url());
+
             # Adjust $vix_driver_timeout to account for load delay.
             $vix_driver_timeout = $vix_driver_timeout - (time - $visit_start_time);
             if ($vix_driver_timeout < 0) {
@@ -2367,18 +2895,9 @@ sub drive {
                     sleep($image_sample_delay);
 
                     # Acquire sample.
-                    $LOG->info("Process ID (" . $$ . "): Checking if content has fully rendered.");
-                    alarm($vix_call_timeout);
-                    UNSAFE_SIGNALS {
-                        ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
-                                                                                                VIX_CAPTURESCREENFORMAT_PNG,
-                                                                                                VIX_INVALID_HANDLE);
-                        if ($vix_result != VIX_OK) {
-                            die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                        }
-                    };
-                    alarm(0);
-                    open (my $IMAGE_DATA, "<:scalar", \$vix_image_bytes) or
+                    $LOG->info("Checking if content has fully rendered.");
+                    $self->_vixCaptureScreenImage();
+                    open (my $IMAGE_DATA, "<:scalar", \$self->{'_vix_image_bytes'}) or
                         die "Unable to extract VM screenshot contents. " . $!;
                     my $screenshot = Prima::Image->load($IMAGE_DATA);
                     my $status_bar = $screenshot->extract( 
@@ -2389,7 +2908,7 @@ sub drive {
 
                     my ($x,$y) = $status_bar->match($self->{'load_complete_image'});
                     if (defined($x) && defined($y)) {
-                        $LOG->info("Process ID (" . $$ . "): Load complete.");
+                        $LOG->info("Load complete.");
                         $load_complete = 1;
                         last;
                     }
@@ -2407,18 +2926,9 @@ sub drive {
             }
 
             # Take a screenshot, if asked.
-            if (!defined($vix_image_bytes) && $url->has_screenshot_id() && $url->screenshot_id()) {
-                $LOG->info("Process ID (" . $$ . "): Taking screenshot.");
-                alarm($vix_call_timeout);
-                UNSAFE_SIGNALS {
-                    ($vix_result, $vix_image_size, $vix_image_bytes) = VMCaptureScreenImage($vix_vm_handle,
-                                                                                            VIX_CAPTURESCREENFORMAT_PNG,
-                                                                                            VIX_INVALID_HANDLE);
-                    if ($vix_result != VIX_OK) {
-                        die "VIX::VMCaptureScreenImage() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                    }
-                };
-                alarm(0);
+            if (!defined($self->{'_vix_image_bytes'}) && $url->has_screenshot_id() && $url->screenshot_id()) {
+                $LOG->info("Taking screenshot.");
+                $self->_vixCaptureScreenImage();
             }
 
             # Perform an integrity check.
@@ -2431,47 +2941,10 @@ sub drive {
                 (($url_counter == $#urls) ||
                   !$url->has_reuse_browser_id() ||
                   !$url->reuse_browser_id())) {
-                $LOG->info("Process ID (" . $$ . "): Listing processes in guest OS.");
-                alarm($vix_call_timeout);
-                UNSAFE_SIGNALS {
-                    ($vix_result, @vix_process_properties) = VMListProcessesInGuest($vix_vm_handle, 0);
-                    if ($vix_result != VIX_OK) {
-                        die "VIX::VMListProcessesInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                    }
-                };
-                alarm(0);
-
-                foreach my $property (@vix_process_properties) {
-                    if (($property->{'PROCESS_OWNER'} ne "NT AUTHORITY\\SYSTEM") &&
-                        ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'}))) {
-                        $LOG->info("Process ID (" . $$ . "): Terminating application.");
-                        alarm($vix_call_timeout);
-                        UNSAFE_SIGNALS {
-                            $vix_result = VMKillProcessInGuest($vix_vm_handle, $property->{'PROCESS_ID'}, 0);
-                            if ($vix_result != VIX_OK) {
-                                die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                            }
-                        };
-                        alarm(0);
-                    } elsif ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
-                        $LOG->info("Process ID (" . $$ . "): Terminating application.");
-                        alarm($vix_call_timeout);
-                        UNSAFE_SIGNALS {
-                            $vix_result = VMRunProgramInGuest($vix_vm_handle,
-                                                            'C:\WINDOWS\System32\taskkill.exe',
-                                                            '/F /IM ' . getVar(name => "process_name", namespace => $self->{'driver_name'}) . ' /T',
-                                                            0,
-                                                            VIX_INVALID_HANDLE);
-                            if ($vix_result != VIX_OK) {
-                                die "VIX::VMRunProgramInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                            }
-                        };
-                        alarm(0);
-                    }
-                }
+                $self->_vixCloseApplication();
             } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
                 # Integrity check didn't pass, so try and perform automated malware extraction.
-                $LOG->info("Process ID (" . $$ . "): Attempting malware extraction.");
+                $LOG->info("Attempting malware extraction.");
 
                 foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
                     if (exists($process->{'process_files'}) &&
@@ -2491,47 +2964,26 @@ sub drive {
                                     # Create a temp file on the host to store the data.
                                     my $temp_file = File::Temp->new();
   
-                                    $LOG->info("Process ID (" . $$ . "): Extracting file (" . $process_file->{'name'} . ").");
-                                    alarm($vix_call_timeout);
-                                    UNSAFE_SIGNALS {
-                                        $vix_result = VMCopyFileFromGuestToHost($vix_vm_handle,
-                                                                                $process_file->{'name'},
-                                                                                $temp_file->filename,
-                                                                                0,
-                                                                                VIX_INVALID_HANDLE);
-                                        if ($vix_result != VIX_OK) {
-                                            die "VIX::VMCopyFileFromGuestToHost() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                                        }
-                                    };
-                                    alarm(0);
-
+                                    $LOG->info("Extracting file (" . $process_file->{'name'} . ").");
+                                    $self->_vixCopyFileFromGuestToHost(guest_filename => $process_file->{'name'},
+                                                                       host_filename  => $temp_file->filename);
                                     $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
                                 };
                                 if ($@) {
-                                    $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
+                                    $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
                                 }
                             }
                         }
                     }
                 }
             }
-
-            $LOG->info("Process ID (" . $$ . "): Logging off guest OS.");
-            # Logout from guest OS.
-            alarm($vix_call_timeout);
-            UNSAFE_SIGNALS {
-                $vix_result = VMLogoutFromGuest($vix_vm_handle);
-                if ($vix_result != VIX_OK) {
-                    die "VIX::VMLogoutFromGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
-                }
-            };
-            alarm(0);
-
+# XXX: Cleanup.
+#            $self->_vixLogoutFromGuest();
         };
         if ($@) {
             # We lost communications with the Agent; assume the worst
             # and mark the VM as suspicious.
-            $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED. " . $@);
+            $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - Encountered Error or Lost Communication with Agent! Assuming Integrity Check: FAILED. " . $@);
 
             $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "error"}));
 
@@ -2540,7 +2992,7 @@ sub drive {
 
         # Figure out if there was a compromise found.
         } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
-            $LOG->warn("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
+            $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: FAILED");
 
             # Dump the fingerprint to a file, if need be.
             $self->_dumpFingerprint($result->{'fingerprint'});
@@ -2551,28 +3003,17 @@ sub drive {
             $vm_status = "suspicious";
 
         } else {
-            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
+            $LOG->info("(" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - Integrity Check: PASSED");
 
             $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "visited"}));
         }
 
+# XXX: Cleanup.
         # Make sure all VIX handles are released.
-        # What do we do, when a VIX call times out.
-        local $SIG{ALRM} = sub {
-            # Croak on timeout.
-            $LOG->error("Process ID (" . $$ . "): Error: VIX Timeout.");
-            Carp::croak "Error: VIX Timeout.";
-        };
-        alarm($vix_call_timeout);
-        UNSAFE_SIGNALS {
-            $LOG->info("Process ID (" . $$ . "): Releasing VIX VM Handle.");
-            ReleaseHandle($vix_vm_handle);
-            $LOG->info("Process ID (" . $$ . "): Releasing VIX Host Handle.");
-            HostDisconnect($vix_host_handle);
-        };
-        alarm(0);
+#        $self->_vixDisconnectVM();
+#        $self->_vixDisconnectHost();
 
-        $LOG->info("Process ID (" . $$ . "): Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
+        $LOG->info("Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
             session          => $self->{'_pcap_session'},
             quick_clone_name => $self->{'quick_clone_vm_name'});
@@ -2591,9 +3032,11 @@ sub drive {
         }
 
         # If defined, insert screenshot data.
-        if (defined($vix_image_bytes) && $url->has_screenshot_id() && $url->screenshot_id()) {
-            $url->set_screenshot_data(encode_base64(compress($vix_image_bytes)));
+        if (defined($self->{'_vix_image_bytes'}) && $url->has_screenshot_id() && $url->screenshot_id()) {
+            $url->set_screenshot_data(encode_base64(compress($self->{'_vix_image_bytes'})));
             $action .= ".screenshot_data";
+            # Clear the screenshot buffer.
+            $self->{'_vix_image_bytes'} = undef;
         }
 
         # Figure out the destination TCP port associated with this URL.
@@ -2636,7 +3079,7 @@ sub drive {
             # Calculate how many URLs per hour we've averaged.
             my $urls_per_hour = (($#urls * 3600) / (time - $start_time));
             $args{'job'}->set_urls_per_hour($urls_per_hour);
-            $LOG->info("Process ID (" . $$ . "): (" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - URLs/Hour: " . $urls_per_hour);
+            $LOG->info("(" . $self->{'quick_clone_vm_name'} . ") - " . $self->{'driver_name'} . " - URLs/Hour: " . $urls_per_hour);
 
             # Add all the completed URLs back into the job.  This allows other programs
             # to easily pick out "completed" jobs versus "in process" jobs.
@@ -2647,7 +3090,7 @@ sub drive {
             # TODO: Delete this, eventually.
             $Data::Dumper::Terse = 0;
             $Data::Dumper::Indent = 1;
-            #print Dumper($args{'job'}->to_hashref) . "\n";
+            print Dumper($args{'job'}->to_hashref) . "\n";
 
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
@@ -2739,6 +3182,9 @@ sub drive {
                         _emitter_session      => $self->{'_emitter_session'},
                         user_name             => $self->{'user_name'},
                         password              => $self->{'password'},
+                        _vix_host_handle      => $self->{'_vix_host_handle'},
+                        _vix_call_timeout     => $self->{'_vix_call_timeout'},
+                        _vix_host_updated_at  => $self->{'_vix_host_updated_at'},
                     );
 
             # Notify the Drone that we've acquired the job.

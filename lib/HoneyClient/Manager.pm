@@ -381,7 +381,7 @@ sub _get_urls {
 # shutdown process.
 sub _shutdown {
     my $LOG = get_logger();
-    $LOG->warn("Process ID (" . $$ . "): Received termination signal.  Shutting down manager (please wait).");
+    $LOG->warn("Received termination signal.  Shutting down manager (please wait).");
     exit;
 };
 $SIG{HUP}  = \&_shutdown;
@@ -436,12 +436,12 @@ sub run {
     # for consistency.
     my ($class, %args) = @_;
 
-    $LOG->info("Process ID (" . $$ . "): Starting manager.");
+    $LOG->info("Starting manager.");
 
     # Sanity check.
     if (!getVar(name      => "enable",
                 namespace => "HoneyClient::Manager::Database")) {
-        $LOG->info("Process ID (" . $$ . "): Unable to run without database support. Shutting down manager.");
+        $LOG->info("Unable to run without database support. Shutting down manager.");
     }
 
     my $argsExist = scalar(%args);
@@ -502,7 +502,7 @@ sub run {
         # Get URLs from the database.
         while (1) {
 
-            $LOG->info("Process ID (" . $$ . "): Waiting for new URLs from database.");
+            $LOG->info("Waiting for new URLs from database.");
 
             while (!scalar(%{$queue_url_list})) {
                 # XXX: Trap/ignore all errors and simply retry.
@@ -516,7 +516,7 @@ sub run {
                     sleep(getVar(name => "database_retry_delay"));
                 }
             }
-            $LOG->info("Process ID (" . $$ . "): Received new work and updating the workers.");
+            $LOG->info("Received new work and updating the workers.");
 
             # Collect the list of URLs.
             foreach my $url (keys(%{$queue_url_list})) {
@@ -535,7 +535,7 @@ sub run {
                     url => $job_urls,
                 });
 
-                $LOG->info("Process ID (" . $$ . "): Constructing job.");
+                $LOG->info("Constructing job.");
                 # TODO: Delete this, eventually.
                 $Data::Dumper::Terse = 0;
                 $Data::Dumper::Indent = 1;
@@ -563,7 +563,7 @@ sleep(1);
     };
     # Report when a fault occurs.
     if ($@) {
-        $LOG->error("Process ID (" . $$ . "): Encountered an error. Shutting down manager. " . $@);
+        $LOG->error("Encountered an error. Shutting down manager. " . $@);
     }
 
     # Cleanup - Close STOMP connection.

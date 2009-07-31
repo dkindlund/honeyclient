@@ -34,7 +34,7 @@ if ($> != 0) {
 # Create a shutdown handler.
 sub shutdown {
     HoneyClient::Manager::Pcap::Server->stop();
-    $LOG->info("Stopping HoneyClient Pcap Daemon [PID: " . $$ . "]");
+    $LOG->info("Stopping HoneyClient Pcap Daemon");
     exit;
 }
 $SIG{INT}  = \&shutdown;
@@ -42,5 +42,5 @@ $SIG{QUIT} = \&shutdown;
 $SIG{ABRT} = \&shutdown;
 $SIG{TERM} = \&shutdown;
 
-$LOG->info("Starting HoneyClient Pcap Daemon [PID: " . $$ . "]");
+$LOG->info("Starting HoneyClient Pcap Daemon");
 HoneyClient::Manager::Pcap::Server->run();
