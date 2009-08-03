@@ -600,7 +600,20 @@ sub check {
         my $index = undef;
         my $proc_obj = undef;
         my $proc_push;
+
+        # Sanity check.
+        if (!defined($toks[$ENTRY_TYPE])) {
+            # Skip altogether if entry type is undefined.
+            next;
+        }
+
         if($toks[$ENTRY_TYPE] eq "process"){
+            # Sanity check.
+            if (!defined($toks[$P_PID])) {
+                # Skip altogether if PID is undefined.
+                next;
+            }
+
             $proc_push = 1;
             if($toks[$P_EVENT_TYPE] eq "terminated"){
                 ($ret, $index) = checkForExistingProcObj($toks[$P_PID], $toks[$P_NAME], @proc_objs);
