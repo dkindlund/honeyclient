@@ -121,7 +121,7 @@ Keep in mind, though, that some variables should remain module-specific
                         etc/ie6_maximize_1024x768.reg
                     </maximize_registry>
                     <image_sample_delay description="When VM display sampling is enabled, this variable indicates how long to wait (in seconds) between consecutive sample operations." default="4">
-                        4
+                        5
                     </image_sample_delay>
                 </IE>
                 <FF>
