@@ -163,7 +163,8 @@ foreach my $url (@ARGV) {
         screenshot_id                 => 1,  # Take screenshots.
         wait_id                       => 60, # Wait (at most) 60s between visits.
         end_early_if_load_complete_id => 1,  # Complete a visit early, if it looks like the application has loaded all content.
-        reuse_browser_id              => 1,  # Reuse browser (don't start/stop the browser between URLs).
+        reuse_browser_id              => 0,  # Reuse browser (don't start/stop the browser between URLs).
+        always_fingerprint_id         => 0,  # Always record PCAP information for every URL (suspicious AND visited).
     };
     $priority--;
     push(@{$data->{'job'}->{'urls'}}, $entry);
