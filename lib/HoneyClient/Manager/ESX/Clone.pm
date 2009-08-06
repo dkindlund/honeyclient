@@ -1157,7 +1157,8 @@ sub _dumpFingerprint {
 
         $Data::Dumper::Terse = 0;
         $Data::Dumper::Indent = 2;
-        print $dump_file "\$vm_name = \"" . $self->{'name'} . "\";\n";
+        print $dump_file "\$quick_clone_vm_name = \"" . $self->{'quick_clone_vm_name'} . "\";\n";
+        print $dump_file "\$snapshot_name = \"" . $self->{'name'} . "\";\n";
         print $dump_file Dumper($fingerprint);
         $dump_file->close();
     }
@@ -2788,7 +2789,6 @@ sub drive {
             });
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => 'find_and_update.client', message => $message);
-
         }
 
         # Set the VM status.
@@ -2809,6 +2809,7 @@ sub drive {
 
         # Drive the Agent.
         $result                    = undef;
+
         # VIX Temporary Variables.
         my $vix_driver_timeout     = getVar(name      => "timeout",
                                             namespace => "HoneyClient::Agent::Driver");
@@ -2841,144 +2842,202 @@ sub drive {
                 }
             }
 
-# XXX: Cleanup.
-#            $self->_vixConnectHost();
-#            $self->_vixConnectVM();
-#            $self->_vixLoginInGuest();
+            if (!getVar(name => "vix_enable")) {
 
-            # If a 'load complete' image was defined and the 'end early' flag was specified and true,
-            # then we can expect an image analysis will be performed.
-            if (defined($self->{'load_complete_image'}) && 
-                $url->has_end_early_if_load_complete_id() &&
-                $url->end_early_if_load_complete_id() &&
-                (($url_counter == 0) ||
-                 (($url_counter > 0) &&
-                  (!$url->has_reuse_browser_id() ||
-                   !$url->reuse_browser_id())))) {
+                # If we don't use VIX, then pass the available options down to the Agent.
+                # Take a screenshot, if asked.
+                my $screenshot = undef;
+                if ($url->has_screenshot_id()) {
+                    $screenshot = $url->screenshot_id(); 
+                }
 
-                # As such, make sure the target application is always maximized.
-                $self->_vixMaximizeApplication();
-            }
+                $som = $self->{'_agent_handle'}->drive(driver_name => $self->{'driver_name'},
+                                                       parameters  => encode_base64($url->url()),
+                                                       screenshot  => $screenshot,
+                                                       timeout     => $vix_driver_timeout);
+                $result = thaw(decode_base64($som->result()));
 
-            # Drive the browser.
-            my $visit_start_time = time;
-            $self->_vixDriveApplication(url => $url->url());
+                # If integrity check didn't pass, then try and perform automated malware extraction using VIX.
+                if (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
+                    eval {
+                        $self->_vixConnectHost();
+                        $self->_vixConnectVM();
+                        $self->_vixLoginInGuest();
+                        $LOG->info("Attempting malware extraction.");
 
-            # Adjust $vix_driver_timeout to account for load delay.
-            $vix_driver_timeout = $vix_driver_timeout - (time - $visit_start_time);
-            if ($vix_driver_timeout < 0) {
-                $vix_driver_timeout = 0;
-            }
+                        foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
+                            if (exists($process->{'process_files'}) &&
+                                defined($process->{'process_files'})) {
+        
+                                foreach my $process_file (@{$process->{'process_files'}}) {
+                                    if (($process_file->{'event'} eq 'Write') &&
+                                        exists($process_file->{'file_content'}) &&
+                                        defined($process_file->{'file_content'}) &&
+                                        exists($process_file->{'name'}) &&
+                                        defined($process_file->{'name'}) &&
+                                        exists($process_file->{'file_content'}->{'size'}) &&
+                                        defined($process_file->{'file_content'}->{'size'}) &&
+                                        ($process_file->{'file_content'}->{'size'} > 0)) {
 
-            # If a 'load complete' image was defined and the 'end early' flag was specified and true,
-            # then perform image analysis of the VM's screen to determine if the application has finished loading all content.
-            if (defined($self->{'load_complete_image'}) && 
-                $url->has_end_early_if_load_complete_id() &&
-                $url->end_early_if_load_complete_id()) {
-
-                # Figure out how many samples we can perform.
-                my $image_sample_delay = getVar(name => "image_sample_delay", namespace => $self->{'driver_name'});
-                my $max_num_loops  = 0;
-                my $remaining_time = 0;
-                {
-                    use integer;
-                    # We add one to our delay, since it takes about 1 second to acquire an image.
-                    $max_num_loops  = $vix_driver_timeout / ($image_sample_delay + 1);
-                    $remaining_time = $vix_driver_timeout % ($image_sample_delay + 1);
-                };
-
-                # Start sampling the VM's display.
-                my $load_complete = 0;
-                my $loop_count    = 0;
-                while ($loop_count < $max_num_loops) {
-                    # Sleep until next cycle.
-                    sleep($image_sample_delay);
-
-                    # Acquire sample.
-                    $LOG->info("Checking if content has fully rendered.");
-                    $self->_vixCaptureScreenImage();
-                    open (my $IMAGE_DATA, "<:scalar", \$self->{'_vix_image_bytes'}) or
-                        die "Unable to extract VM screenshot contents. " . $!;
-                    my $screenshot = Prima::Image->load($IMAGE_DATA);
-                    my $status_bar = $screenshot->extract( 
-                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "x"),
-                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "y"),
-                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "width"),
-                                        getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "height"));
-
-                    my ($x,$y) = $status_bar->match($self->{'load_complete_image'});
-                    if (defined($x) && defined($y)) {
-                        $LOG->info("Load complete.");
-                        $load_complete = 1;
-                        last;
+                                        eval {
+                                            # Create a temp file on the host to store the data.
+                                            my $temp_file = File::Temp->new();
+        
+                                            $LOG->info("Extracting file (" . $process_file->{'name'} . ").");
+                                            $self->_vixCopyFileFromGuestToHost(guest_filename => $process_file->{'name'},
+                                                                               host_filename  => $temp_file->filename);
+                                            $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
+                                        };
+                                        if ($@) {
+                                            $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        $self->_vixDisconnectVM();
+                        $self->_vixDisconnectHost();
+                    };
+                    if ($@) {
+                        $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
                     }
-                    $loop_count++;
                 }
-                # If we found no matching 'load complete' images, then wait for the remaining time of the timeout.
-                if (!$load_complete) {
-                    sleep($remaining_time);
-                }
-                
+
             } else {
-                # Else, if we're not doing any type of image analysis, then
-                # sleep for the specified timeout.
-                sleep($vix_driver_timeout);
-            }
+                # We use VIX, instead of relying on the Agent code.
 
-            # Take a screenshot, if asked.
-            if (!defined($self->{'_vix_image_bytes'}) && $url->has_screenshot_id() && $url->screenshot_id()) {
-                $LOG->info("Taking screenshot.");
-                $self->_vixCaptureScreenImage();
-            }
+                # If a 'load complete' image was defined and the 'end early' flag was specified and true,
+                # then we can expect an image analysis will be performed.
+                if (defined($self->{'load_complete_image'}) && 
+                    $url->has_end_early_if_load_complete_id() &&
+                    $url->end_early_if_load_complete_id() &&
+                    (($url_counter == 0) ||
+                    (($url_counter > 0) &&
+                    (!$url->has_reuse_browser_id() ||
+                    !$url->reuse_browser_id())))) {
 
-            # Perform an integrity check.
-            $som = $self->{'_agent_handle'}->check();
-            $result = thaw(decode_base64($som->result()));
+                    # As such, make sure the target application is always maximized.
+                    $self->_vixMaximizeApplication();
+                }
 
-            # If the integrity check passes and either we've completed the job or we want a fresh browser
-            # per URL, then close the browser.
-            if ((scalar(@{$result->{'fingerprint'}->{'os_processes'}}) == 0) &&
-                (($url_counter == $#urls) ||
-                  !$url->has_reuse_browser_id() ||
-                  !$url->reuse_browser_id())) {
-                $self->_vixCloseApplication();
-            } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
-                # Integrity check didn't pass, so try and perform automated malware extraction.
-                $LOG->info("Attempting malware extraction.");
+                # Drive the browser.
+                my $visit_start_time = time;
+                $self->_vixDriveApplication(url => $url->url());
 
-                foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
-                    if (exists($process->{'process_files'}) &&
-                        defined($process->{'process_files'})) {
+                # Adjust $vix_driver_timeout to account for load delay.
+                $vix_driver_timeout = $vix_driver_timeout - (time - $visit_start_time);
+                if ($vix_driver_timeout < 0) {
+                    $vix_driver_timeout = 0;
+                }
 
-                        foreach my $process_file (@{$process->{'process_files'}}) {
-                            if (($process_file->{'event'} eq 'Write') &&
-                                exists($process_file->{'file_content'}) &&
-                                defined($process_file->{'file_content'}) &&
-                                exists($process_file->{'name'}) &&
-                                defined($process_file->{'name'}) &&
-                                exists($process_file->{'file_content'}->{'size'}) &&
-                                defined($process_file->{'file_content'}->{'size'}) &&
-                                ($process_file->{'file_content'}->{'size'} > 0)) {
+                # If a 'load complete' image was defined and the 'end early' flag was specified and true,
+                # then perform image analysis of the VM's screen to determine if the application has finished loading all content.
+                if (defined($self->{'load_complete_image'}) && 
+                    $url->has_end_early_if_load_complete_id() &&
+                    $url->end_early_if_load_complete_id()) {
 
-                                eval {
-                                    # Create a temp file on the host to store the data.
-                                    my $temp_file = File::Temp->new();
-  
-                                    $LOG->info("Extracting file (" . $process_file->{'name'} . ").");
-                                    $self->_vixCopyFileFromGuestToHost(guest_filename => $process_file->{'name'},
-                                                                       host_filename  => $temp_file->filename);
-                                    $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
-                                };
-                                if ($@) {
-                                    $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
+                    # Figure out how many samples we can perform.
+                    my $image_sample_delay = getVar(name => "image_sample_delay", namespace => $self->{'driver_name'});
+                    my $max_num_loops  = 0;
+                    my $remaining_time = 0;
+                    {
+                        use integer;
+                        # We add one to our delay, since it takes about 1 second to acquire an image.
+                        $max_num_loops  = $vix_driver_timeout / ($image_sample_delay + 1);
+                        $remaining_time = $vix_driver_timeout % ($image_sample_delay + 1);
+                    };
+
+                    # Start sampling the VM's display.
+                    my $load_complete = 0;
+                    my $loop_count    = 0;
+                    while ($loop_count < $max_num_loops) {
+                        # Sleep until next cycle.
+                        sleep($image_sample_delay);
+
+                        # Acquire sample.
+                        $LOG->info("Checking if content has fully rendered.");
+                        $self->_vixCaptureScreenImage();
+                        open (my $IMAGE_DATA, "<:scalar", \$self->{'_vix_image_bytes'}) or
+                            die "Unable to extract VM screenshot contents. " . $!;
+                        my $screenshot = Prima::Image->load($IMAGE_DATA);
+                        my $status_bar = $screenshot->extract( 
+                                            getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "x"),
+                                            getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "y"),
+                                            getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "width"),
+                                            getVar(name => "load_complete_image", namespace => $self->{'driver_name'}, attribute => "height"));
+
+                        my ($x,$y) = $status_bar->match($self->{'load_complete_image'});
+                        if (defined($x) && defined($y)) {
+                            $LOG->info("Load complete.");
+                            $load_complete = 1;
+                            last;
+                        }
+                        $loop_count++;
+                    }
+                    # If we found no matching 'load complete' images, then wait for the remaining time of the timeout.
+                    if (!$load_complete) {
+                        sleep($remaining_time);
+                    }
+                
+                } else {
+                    # Else, if we're not doing any type of image analysis, then
+                    # sleep for the specified timeout.
+                    sleep($vix_driver_timeout);
+                }
+
+                # Take a screenshot, if asked.
+                if (!defined($self->{'_vix_image_bytes'}) && $url->has_screenshot_id() && $url->screenshot_id()) {
+                    $LOG->info("Taking screenshot.");
+                    $self->_vixCaptureScreenImage();
+                }
+
+                # Perform an integrity check.
+                $som = $self->{'_agent_handle'}->check();
+                $result = thaw(decode_base64($som->result()));
+    
+                # If the integrity check passes and either we've completed the job or we want a fresh browser
+                # per URL, then close the browser.
+                if ((scalar(@{$result->{'fingerprint'}->{'os_processes'}}) == 0) &&
+                    (($url_counter == $#urls) ||
+                    !$url->has_reuse_browser_id() ||
+                    !$url->reuse_browser_id())) {
+                    $self->_vixCloseApplication();
+                } elsif (scalar(@{$result->{'fingerprint'}->{'os_processes'}})) {
+                    # Integrity check didn't pass, so try and perform automated malware extraction.
+                    $LOG->info("Attempting malware extraction.");
+    
+                    foreach my $process (@{$result->{'fingerprint'}->{'os_processes'}}) {
+                        if (exists($process->{'process_files'}) &&
+                            defined($process->{'process_files'})) {
+    
+                            foreach my $process_file (@{$process->{'process_files'}}) {
+                                if (($process_file->{'event'} eq 'Write') &&
+                                    exists($process_file->{'file_content'}) &&
+                                    defined($process_file->{'file_content'}) &&
+                                    exists($process_file->{'name'}) &&
+                                    defined($process_file->{'name'}) &&
+                                    exists($process_file->{'file_content'}->{'size'}) &&
+                                    defined($process_file->{'file_content'}->{'size'}) &&
+                                    ($process_file->{'file_content'}->{'size'} > 0)) {
+    
+                                    eval {
+                                        # Create a temp file on the host to store the data.
+                                        my $temp_file = File::Temp->new();
+    
+                                        $LOG->info("Extracting file (" . $process_file->{'name'} . ").");
+                                        $self->_vixCopyFileFromGuestToHost(guest_filename => $process_file->{'name'},
+                                                                           host_filename  => $temp_file->filename);
+                                        $process_file->{'file_content'}->{'data'} = encode_base64(compress(read_file($temp_file->filename, binmode => ':raw')));
+                                    };
+                                    if ($@) {
+                                        $LOG->warn("(" . $self->{'quick_clone_vm_name'} . ") - Encountered error during file extraction. " . $@);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-# XXX: Cleanup.
-#            $self->_vixLogoutFromGuest();
         };
         if ($@) {
             # We lost communications with the Agent; assume the worst
@@ -3008,11 +3067,6 @@ sub drive {
             $url->set_url_status(HoneyClient::Message::UrlStatus->new({status => "visited"}));
         }
 
-# XXX: Cleanup.
-        # Make sure all VIX handles are released.
-#        $self->_vixDisconnectVM();
-#        $self->_vixDisconnectHost();
-
         $LOG->info("Stopping Packet Capture Session on VM (" . $self->{'quick_clone_vm_name'} . ").");
         ($capture_result, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->stopCapture(
             session          => $self->{'_pcap_session'},
@@ -3032,11 +3086,18 @@ sub drive {
         }
 
         # If defined, insert screenshot data.
-        if (defined($self->{'_vix_image_bytes'}) && $url->has_screenshot_id() && $url->screenshot_id()) {
-            $url->set_screenshot_data(encode_base64(compress($self->{'_vix_image_bytes'})));
-            $action .= ".screenshot_data";
-            # Clear the screenshot buffer.
-            $self->{'_vix_image_bytes'} = undef;
+        if ($url->has_screenshot_id() && $url->screenshot_id()) {
+            if (defined($self->{'_vix_image_bytes'})) {
+                $url->set_screenshot_data(encode_base64(compress($self->{'_vix_image_bytes'})));
+                $action .= ".screenshot_data";
+                # Clear the screenshot buffer.
+                $self->{'_vix_image_bytes'} = undef;
+            } elsif (defined($result) && 
+                     exists($result->{'screenshot'}) && 
+                     defined($result->{'screenshot'})) { 
+                $url->set_screenshot_data($result->{'screenshot'});
+                $action .= ".screenshot_data";
+            }
         }
 
         # Figure out the destination TCP port associated with this URL.
@@ -3071,6 +3132,8 @@ sub drive {
         # To conserve bandwidth, we only emit events in any of the following conditions:
         # - The job is complete.
         # - The current URL was found to be suspicious.
+        # - For all other URLs, emit if URL's fingerprint will always be generated.
+
         # Check if this is the last URL.
         if ($url_counter == $#urls) {
             $args{'job'}->set_completed_at(HoneyClient::Util::DateTime->now());
@@ -3090,7 +3153,7 @@ sub drive {
             # TODO: Delete this, eventually.
             $Data::Dumper::Terse = 0;
             $Data::Dumper::Indent = 1;
-            print Dumper($args{'job'}->to_hashref) . "\n";
+            #print Dumper($args{'job'}->to_hashref) . "\n";
 
             $emit_result = undef;
             ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
@@ -3112,6 +3175,21 @@ sub drive {
             # Once we've emitted the job update, be sure to clear the URL list.
             $args{'job'}->clear_urls();
 
+        } elsif ($url->has_always_fingerprint_id() &&
+                 $url->always_fingerprint_id()) {
+
+            $args{'job'}->add_urls($url);
+
+            # TODO: Delete this, eventually.
+            $Data::Dumper::Terse = 0;
+            $Data::Dumper::Indent = 1;
+            #print Dumper($args{'job'}->to_hashref) . "\n";
+
+            $emit_result = undef;
+            ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Job(session => $self->{'_emitter_session'}, action => $action, message => $args{'job'});
+
+            # Once we've emitted the job update, be sure to clear the URL list.
+            $args{'job'}->clear_urls();
         }
 
         # If the VM is marked as bug, error, or suspicious, then suspend it.
@@ -3159,6 +3237,45 @@ sub drive {
             $self->suspend();
             $self->_changeStatus(status => $vm_status);
 
+        } elsif (defined($result) &&
+                 (scalar(@{$result->{'fingerprint'}->{'os_processes'}}) <= 0) &&
+                 $url->has_always_fingerprint_id() &&
+                 $url->always_fingerprint_id()) {
+            # If we were forced to always generate a fingerprint and we didn't encounter an error or suspicious activity,
+            # then generate an empty fingerprint with the corresponding PCAP data.
+
+            # Corellate the fingerprint to the URL.
+            $result->{'fingerprint'}->{'url'} = {
+                # XXX: We assume there are always unique (url,time_at) entries and
+                # no such duplicates occur.
+                url          => $url->url(),
+                time_at      => $url->time_at(),
+                # XXX: This field is for informational use only, as the Drone does not use it.
+                job_id       => $args{'job'}->uuid(),
+            };
+
+            # Figure out if we have a valid PCAP.
+            my $pcap_file = undef;
+            ($pcap_file, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapFile(
+                session          => $self->{'_pcap_session'},
+                quick_clone_name => $self->{'quick_clone_vm_name'});
+
+            # If we have a valid PCAP file name, then try to set the fingerprint's pcap attribute accordingly.
+            if (defined($pcap_file) && ($pcap_file ne "") && (-r $pcap_file)) {
+                $result->{'fingerprint'}->{'pcap'} = encode_base64(compress(read_file($pcap_file, binmode => ':raw')));
+
+                # Only emit the fingerprint, if we're successful at PCAP extraction (since we know there's no other data).
+                # Emit fingerprint.
+                my $message = HoneyClient::Message::Fingerprint->new($result->{'fingerprint'});
+
+                # TODO: Delete this, eventually.
+                $Data::Dumper::Terse = 0;
+                $Data::Dumper::Indent = 1;
+                #print Dumper($message->to_hashref) . "\n";
+
+                $emit_result = undef;
+                ($emit_result, $self->{'_emitter_session'}) = HoneyClient::Util::EventEmitter->Fingerprint(session => $self->{'_emitter_session'}, action => 'create.fingerprint.os_processes.process_files.process_registries', message => $message);
+            }
         }
 
         # Create a new clone, if a compromise was found.

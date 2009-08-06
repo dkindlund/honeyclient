@@ -92,6 +92,7 @@ message Message {
         optional string              job_id                        = 10;
         optional bool                end_early_if_load_complete_id = 11;
         optional bool                reuse_browser_id              = 12;
+        optional bool                always_fingerprint_id         = 13;
 
     }
 
