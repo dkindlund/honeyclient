@@ -345,7 +345,7 @@ State: Compromised - This snapshot marks a compromised state of this clone VM.  
                     100
                 </max_retry_count>
                 <vix_enable description="When set to 1, this setting allows the code to use VIX in order to drive the application." default="1">
-                    1
+                    0
                 </vix_enable>
                 <vix_timeout description="The amount of time (in seconds) that we will wait for a VIX response from the VMware ESX Server, before timing out.  Note: This value must be greater than HoneyClient::Agent::timeout." default="300">
                     300
