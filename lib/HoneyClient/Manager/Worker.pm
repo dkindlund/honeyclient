@@ -484,6 +484,7 @@ sub _flush_queue {
                     'login'         =>  $args{'stomp_user_name'},
                     'passcode'      =>  $args{'stomp_password'},
                     'virtual-host'  =>  $args{'stomp_virtual_host'},
+                    'prefetch'      =>  1,
         });
 
         # Subscribe to the specified exchange, declaring the queue and
@@ -659,6 +660,7 @@ sub run {
         'login'         =>  $args{'stomp_user_name'},
         'passcode'      =>  $args{'stomp_password'},
         'virtual-host'  =>  $args{'stomp_virtual_host'},
+        'prefetch'      =>  1,
     };
     my $subscribe_args = {
         'durable'       =>  'true',
