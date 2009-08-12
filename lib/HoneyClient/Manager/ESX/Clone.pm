@@ -1737,9 +1737,10 @@ sub _vixCloseApplication {
         die "VIX::VMListProcessesInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
     }
 
+    my $process_name = getVar(name => "process_name", namespace => $self->{'driver_name'});
     foreach my $property (@vix_process_properties) {
         if (($property->{'PROCESS_OWNER'} ne "NT AUTHORITY\\SYSTEM") &&
-            ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'}))) {
+            ($property->{'PROCESS_NAME'} =~ /$process_name/i)) {
             $LOG->info("Terminating application.");
             # What do we do, when a VIX call times out.
             local $SIG{ALRM} = sub {
@@ -1753,7 +1754,7 @@ sub _vixCloseApplication {
             if ($vix_result != VIX_OK) {
                 die "VIX::VMKillProcessInGuest() Failed (" . $vix_result . "): " . GetErrorText($vix_result) . ".\n";
             }
-        } elsif ($property->{'PROCESS_NAME'} eq getVar(name => "process_name", namespace => $self->{'driver_name'})) {
+        } elsif ($property->{'PROCESS_NAME'} =~ /$process_name/i) {
 
             # XXX: This method is hideously slow, but we have no choice, because if we try to kill an application
             # (using VIX), which is running as "NT AUTHORITY\SYSTEM", we will get permission denied issues.
