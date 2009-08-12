@@ -457,6 +457,7 @@
 
 # IE - Maximize Support
 +	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer.*
++	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKU\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer.*
 +	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKCU\\Software\\Microsoft\\Internet Explorer\\Main.*
 +	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main.*
 
