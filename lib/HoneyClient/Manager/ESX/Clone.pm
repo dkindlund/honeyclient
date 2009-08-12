@@ -1505,6 +1505,9 @@ sub _vixValidateHandles {
     # Extract arguments.
     my ($self, %args) = @_;
 
+    # Sanity checks; check if any args were specified.
+    my $argsExist = scalar(%args);
+
     # VIX Temporary Variables.
     my $vix_result = VIX_OK;
 
@@ -1516,6 +1519,12 @@ sub _vixValidateHandles {
             $self->_vixDisconnectHost();
             $self->_vixConnectHost();
             $self->_vixConnectVM();
+            unless ($argsExist &&
+                    exists($args{'bypass_login'}) && 
+                    defined($args{'bypass_login'}) &&
+                    $args{'bypass_login'}) {
+                $self->_vixLoginInGuest(bypass_validation => 1);
+            }
         } else {
             # Host remains valid; update timestamp.
             $self->{'_vix_host_updated_at'} = DateTime::HiRes->now();
@@ -1528,6 +1537,12 @@ sub _vixValidateHandles {
             # Reconnect VM, if VM is not valid.
             $self->_vixDisconnectVM();
             $self->_vixConnectVM();
+            unless ($argsExist &&
+                    exists($args{'bypass_login'}) && 
+                    defined($args{'bypass_login'}) &&
+                    $args{'bypass_login'}) {
+                $self->_vixLoginInGuest(bypass_validation => 1);
+            }
         } else {
             # Session remains valid; update timestamp.
             $self->{'_vix_vm_updated_at'} = DateTime::HiRes->now();
@@ -1545,8 +1560,15 @@ sub _vixLoginInGuest {
     # VIX Temporary Variables.
     my $vix_result = VIX_OK;
 
-    # Sanity check.
-    $self->_vixValidateHandles();
+    # Sanity checks; check if any args were specified.
+    my $argsExist = scalar(%args);
+    unless ($argsExist &&
+            exists($args{'bypass_validation'}) && 
+            defined($args{'bypass_validation'}) &&
+            $args{'bypass_validation'}) {
+        # Sanity check.
+        $self->_vixValidateHandles(bypass_login => 1);
+    }
 
     $LOG->info("Waiting for VMware Tools.");
 
