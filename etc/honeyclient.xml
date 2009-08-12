@@ -98,7 +98,7 @@ Keep in mind, though, that some variables should remain module-specific
             <name>HoneyClient::Agent::Driver::Browser::FF</name>
         </allowed_drivers>
         <default_driver description="If no driver is manually specified, then this Driver will be used as the default by the Agent." default="HoneyClient::Agent::Driver::Browser::IE6">
-            HoneyClient::Agent::Driver::Browser::IE7
+            HoneyClient::Agent::Driver::Browser::IE6
         </default_driver>
         <!-- HoneyClient::Agent::Driver Options -->
         <Driver>
