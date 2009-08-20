@@ -422,3 +422,7 @@
 +	Write	C:\\WINDOWS\\system32\\drwtsn32\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\Microsoft\\Dr Watson\\.*
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\system32\\config\\systemprofile\\Application Data\\.*
+
+# Generic IE
++	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
++	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
