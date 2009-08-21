@@ -75,3 +75,4 @@
 
 # VMware VIX Support
 +	taskkill.exe	.*	C:\\WINDOWS\\system32\\taskkill\.exe
++	services.exe	.*	C:\\WINDOWS\\system32\\services\.exe
