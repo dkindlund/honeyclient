@@ -44,6 +44,9 @@ This documentation refers to HoneyClient::Manager::Pcap::Client version 1.02.
 =head1 SYNOPSIS
 
   use HoneyClient::Manager::Pcap::Client;
+  use Data::Dumper;
+  use Compress::Zlib;
+  use MIME::Base64 qw(encode_base64 decode_base64);
 
   my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
   my $mac_address = "00:0c:29:c5:11:c7";
@@ -79,6 +82,10 @@ This documentation refers to HoneyClient::Manager::Pcap::Client version 1.02.
   # To get a relative path to the pcap file.
   ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapFile(session => $session, quick_clone_name => $quick_clone_name);
   print "PCAP Filename: " . Dumper($result) . "\n";
+
+  # To get the data in the pcap file.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapData(session => $session, quick_clone_name => $quick_clone_name);
+  print "PCAP Data: " . Dumper(uncompress(decode_base64($result))) . "\n";
 
   # To stop all packet captures.
   ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
@@ -774,6 +781,99 @@ sub getPcapFile {
         $session = delete $args{'session'}; 
     }
     $args{'action'} = HoneyClient::Message::Pcap::Command::ActionType::GET_FILE;
+    return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => \%args);
+}
+
+=pod
+
+=head2 getPcapData(session => $session, quick_clone_name => $quick_clone_name)
+
+=over 4
+
+Given a quick clone name, this function will return the contents of any corresponding
+generated .pcap file in Zlib compressed, base64 encoded form.
+
+I<Inputs>:
+ B<$session> an optional argument, specifying the Net::Stomp session to reuse 
+ B<$quick_clone_name> is the name of the quick clone VM.
+
+I<Output>: Returns the contents of the .pcap file in compressed, base64 encoded form, if successful;
+empty string otherwise.
+
+=back
+
+=begin testing
+
+eval {
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
+
+    my $pid = undef;
+    if ($pid = fork()) {
+        # Wait at least a second, in order to initialize the daemon.
+        sleep (1);
+
+        my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+        my $mac_address = "00:0c:29:c5:11:c7";
+        my $src_ip_address = "10.0.0.1";
+        my $dst_tcp_port = 80;
+        my $result = undef;
+        my $session = undef;
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
+            session => $session,
+            quick_clone_name => $quick_clone_name,
+            mac_address => $mac_address,
+        );
+
+        # Sleep for 2s, in order to create PCAP file.
+        sleep(2);
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->stopCapture(session => $session, quick_clone_name => $quick_clone_name);
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapData(session => $session, quick_clone_name => $quick_clone_name);
+
+        # Validate the result.
+        ok($result, "getPcapData(quick_clone_name => '$quick_clone_name')") or diag("The getPcapData() call failed.");
+
+        # Shutdown all packet captures.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
+
+        # Cleanup.
+        kill("QUIT", $pid);
+    } else {
+        if (!defined($pid)) {
+            die "Unable to fork child process. $!";
+        }
+        HoneyClient::Manager::Pcap::Server->run();
+    }
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub getPcapData {
+    # Extract arguments.
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    $LOG->debug(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    my $session = undef;
+    if (defined($args{'session'})) {
+        $session = delete $args{'session'}; 
+    }
+    $args{'action'} = HoneyClient::Message::Pcap::Command::ActionType::GET_DATA;
     return HoneyClient::Manager::Pcap::Client->_send(session => $session, message => \%args);
 }
 

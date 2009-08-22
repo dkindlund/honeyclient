@@ -3235,14 +3235,14 @@ sub drive {
                 };
 
                 # Figure out if we have a valid PCAP.
-                my $pcap_file = undef;
-                ($pcap_file, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapFile(
+                my $pcap_data = undef;
+                ($pcap_data, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapData(
                     session          => $self->{'_pcap_session'},
                     quick_clone_name => $self->{'quick_clone_vm_name'});
 
-                # If we have a valid PCAP file name, then try to set the fingerprint's pcap attribute accordingly.
-                if (defined($pcap_file) && ($pcap_file ne "") && (-r $pcap_file)) {
-                    $result->{'fingerprint'}->{'pcap'} = encode_base64(compress(read_file($pcap_file, binmode => ':raw')));
+                # If we have valid PCAP data, then try to set the fingerprint's pcap attribute accordingly.
+                if (defined($pcap_data) && ($pcap_data ne "")) {
+                    $result->{'fingerprint'}->{'pcap'} = $pcap_data;
                 }
 
                 # Emit fingerprint.
@@ -3278,14 +3278,14 @@ sub drive {
             };
 
             # Figure out if we have a valid PCAP.
-            my $pcap_file = undef;
-            ($pcap_file, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapFile(
+            my $pcap_data = undef;
+            ($pcap_data, $self->{'_pcap_session'}) = HoneyClient::Manager::Pcap::Client->getPcapData(
                 session          => $self->{'_pcap_session'},
                 quick_clone_name => $self->{'quick_clone_vm_name'});
 
-            # If we have a valid PCAP file name, then try to set the fingerprint's pcap attribute accordingly.
-            if (defined($pcap_file) && ($pcap_file ne "") && (-r $pcap_file)) {
-                $result->{'fingerprint'}->{'pcap'} = encode_base64(compress(read_file($pcap_file, binmode => ':raw')));
+            # If we have valid PCAP data, then try to set the fingerprint's pcap attribute accordingly.
+            if (defined($pcap_data) && ($pcap_data ne "")) {
+                $result->{'fingerprint'}->{'pcap'} = $pcap_data;
 
                 # Only emit the fingerprint, if we're successful at PCAP extraction (since we know there's no other data).
                 # Emit fingerprint.

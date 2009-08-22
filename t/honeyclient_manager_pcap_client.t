@@ -252,6 +252,60 @@ eval {
 
         my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
         my $mac_address = "00:0c:29:c5:11:c7";
+        my $src_ip_address = "10.0.0.1";
+        my $dst_tcp_port = 80;
+        my $result = undef;
+        my $session = undef;
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->startCapture(
+            session => $session,
+            quick_clone_name => $quick_clone_name,
+            mac_address => $mac_address,
+        );
+
+        # Sleep for 2s, in order to create PCAP file.
+        sleep(2);
+
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->stopCapture(session => $session, quick_clone_name => $quick_clone_name);
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapData(session => $session, quick_clone_name => $quick_clone_name);
+
+        # Validate the result.
+        ok($result, "getPcapData(quick_clone_name => '$quick_clone_name')") or diag("The getPcapData() call failed.");
+
+        # Shutdown all packet captures.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
+
+        # Cleanup.
+        kill("QUIT", $pid);
+    } else {
+        if (!defined($pid)) {
+            die "Unable to fork child process. $!";
+        }
+        HoneyClient::Manager::Pcap::Server->run();
+    }
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+eval {
+    # Create a new HoneyClient::Manager::Pcap::Server daemon.
+    use HoneyClient::Manager::Pcap::Server;
+
+    my $pid = undef;
+    if ($pid = fork()) {
+        # Wait at least a second, in order to initialize the daemon.
+        sleep (1);
+
+        my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+        my $mac_address = "00:0c:29:c5:11:c7";
         my $result = undef;
         my $session = undef;
 

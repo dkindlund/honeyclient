@@ -76,6 +76,26 @@ BEGIN { use_ok('Net::Frame::Simple') or diag("Can't load Net::Frame::Simple pack
 require_ok('Net::Frame::Simple');
 use Net::Frame::Simple;
 
+# Make sure MIME::Base64 loads.
+BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the
+path."); }
+require_ok('MIME::Base64');
+can_ok('MIME::Base64', 'encode_base64');
+can_ok('MIME::Base64', 'decode_base64');
+use MIME::Base64 qw(encode_base64 decode_base64);
+
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
+
+# Make sure File::Slurp loads.
+BEGIN { use_ok('File::Slurp')
+        or diag("Can't load File::Slurp package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Slurp');
+use File::Slurp;
+
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Manager::Pcap') or diag("Can't load HoneyClient::Manager::Pcap package.  Check to make sure the package library is correctly listed within the path."); }
@@ -159,6 +179,41 @@ eval {
     # Validate the result.
     ok($result, "getPcapFile(quick_clone_name => '$quick_clone_name')") or diag("The getPcapFile() call failed.");
 
+    
+    # Shutdown all captures.
+    HoneyClient::Manager::Pcap->shutdown(sessions => $sessions);
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+}
+
+
+
+# =begin testing
+{
+eval {
+    my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+    my $mac_address      = "00:0c:29:c5:11:c7";
+    my $src_ip_address   = "10.0.0.1";
+    my $dst_tcp_port     = 80;
+
+    my $sessions = HoneyClient::Manager::Pcap->startCapture(
+        quick_clone_name => $quick_clone_name,
+        mac_address => $mac_address,
+    );
+
+    # Make sure PCAP file gets created.
+    sleep(2);
+
+    $sessions = HoneyClient::Manager::Pcap->stopCapture(sessions => $sessions, quick_clone_name => $quick_clone_name);
+
+    my $result = HoneyClient::Manager::Pcap->getPcapData(sessions => $sessions, quick_clone_name => $quick_clone_name);
+
+    # Validate the result.
+    ok($result, "getPcapData(quick_clone_name => '$quick_clone_name')") or diag("The getPcapData() call failed.");
     
     # Shutdown all captures.
     HoneyClient::Manager::Pcap->shutdown(sessions => $sessions);

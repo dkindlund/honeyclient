@@ -44,6 +44,8 @@ This documentation refers to HoneyClient::Manager::Pcap version 1.02.
 
   use HoneyClient::Manager::Pcap;
   use Data::Dumper;
+  use Compress::Zlib;
+  use MIME::Base64 qw(encode_base64 decode_base64);
 
   my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
   my $quick_clone_name = "foo";
@@ -68,6 +70,10 @@ This documentation refers to HoneyClient::Manager::Pcap version 1.02.
   # Get the file name of the corresponding capture session.
   my $pcapFile = HoneyClient::Manager::Pcap->getPcapFile(sessions => $sessions, quick_clone_name => $quick_clone_name);
   print "Pcap File: " . Dumper($pcapFile) . "\n";
+
+  # Get the file data of the corresponding capture session.
+  my $pcapData = HoneyClient::Manager::Pcap->getPcapData(sessions => $sessions, quick_clone_name => $quick_clone_name);
+  print "Pcap Data: " . Dumper(uncompress(decode_base64($pcapData))) . "\n";
 
   # Shutdown all other capture sessions.
   HoneyClient::Manager::Pcap->shutdown(sessions => $sessions);
@@ -194,6 +200,26 @@ BEGIN { use_ok('Net::Frame::Simple') or diag("Can't load Net::Frame::Simple pack
 require_ok('Net::Frame::Simple');
 use Net::Frame::Simple;
 
+# Make sure MIME::Base64 loads.
+BEGIN { use_ok('MIME::Base64', qw(encode_base64 decode_base64)) or diag("Can't load MIME::Base64 package.  Check to make sure the package library is correctly listed within the
+path."); }
+require_ok('MIME::Base64');
+can_ok('MIME::Base64', 'encode_base64');
+can_ok('MIME::Base64', 'decode_base64');
+use MIME::Base64 qw(encode_base64 decode_base64);
+
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
+
+# Make sure File::Slurp loads.
+BEGIN { use_ok('File::Slurp')
+        or diag("Can't load File::Slurp package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Slurp');
+use File::Slurp;
+
 # Make sure the module loads properly, with the exportable
 # functions shared.
 BEGIN { use_ok('HoneyClient::Manager::Pcap') or diag("Can't load HoneyClient::Manager::Pcap package.  Check to make sure the package library is correctly listed within the path."); }
@@ -232,6 +258,15 @@ use Net::Frame::Simple;
 
 # Include POSIX Libraries
 use POSIX ":sys_wait_h";
+
+# Include Base64 Libraries
+use MIME::Base64 qw(encode_base64 decode_base64);
+
+# Use Compress::Zlib Library
+use Compress::Zlib;
+
+# Use File::Slurp Library
+use File::Slurp;
 
 #######################################################################
 # Private Functions                                                   #
@@ -568,6 +603,99 @@ sub getPcapFile {
     }
 
     return $filename;
+}
+
+=pod
+
+=head2 getPcapData(sessions => $sessions, quick_clone_name => $quick_clone_name)
+
+=over 4
+
+Given a hashref of existing sessions and a quick clone name, this function
+will return the contents of any corresponding generated .pcap file in Zlib compressed,
+base64 encoded form.
+
+I<Inputs>:
+ B<$sessions> is a hashref of all running packet captures.
+ B<$quick_clone_name> is the name of the quick clone VM.
+
+I<Output>: Returns the contents of the .pcap file in compressed, base64 encoded form, if successful; undef otherwise.
+
+=back
+
+=begin testing
+
+eval {
+    my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
+    my $mac_address      = "00:0c:29:c5:11:c7";
+    my $src_ip_address   = "10.0.0.1";
+    my $dst_tcp_port     = 80;
+
+    my $sessions = HoneyClient::Manager::Pcap->startCapture(
+        quick_clone_name => $quick_clone_name,
+        mac_address => $mac_address,
+    );
+
+    # Make sure PCAP file gets created.
+    sleep(2);
+
+    $sessions = HoneyClient::Manager::Pcap->stopCapture(sessions => $sessions, quick_clone_name => $quick_clone_name);
+
+    my $result = HoneyClient::Manager::Pcap->getPcapData(sessions => $sessions, quick_clone_name => $quick_clone_name);
+
+    # Validate the result.
+    ok($result, "getPcapData(quick_clone_name => '$quick_clone_name')") or diag("The getPcapData() call failed.");
+    
+    # Shutdown all captures.
+    HoneyClient::Manager::Pcap->shutdown(sessions => $sessions);
+};
+
+# Report any failure found.
+if ($@) {
+    fail($@);
+}
+
+=end testing
+
+=cut
+
+sub getPcapData {
+    # Extract arguments.
+    my ($class, %args) = @_;
+
+    # Log resolved arguments.
+    # TODO: Change this to debug, eventually.
+    $LOG->info(sub {
+        # Make Dumper format more terse.
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        Dumper(\%args);
+    });
+
+    # Sanity check the arguments.
+    if (!scalar(%args) ||
+        !exists($args{'quick_clone_name'}) ||
+        !defined($args{'quick_clone_name'})) {
+        $LOG->error("Error getting PCAP data - no quick clone name specified.");
+        Carp::croak "Error getting PCAP data - no quick clone name specified.";
+    }
+
+    if (!exists($args{'sessions'}) ||
+        !defined($args{'sessions'})) {
+        $LOG->error("Error getting PCAP data - no sessions specified.");
+        Carp::croak "Error getting PCAP data - no sessions specified.";
+    }
+
+    # Make sure the PCAP session exists already.
+    my $filename = getVar(name => "directory") . '/' . $args{'quick_clone_name'} . '.pcap';
+    my $data = undef;
+    if (exists($args{'sessions'}->{$args{'quick_clone_name'}}) &&
+        defined($args{'sessions'}->{$args{'quick_clone_name'}}) &&
+        (-r $filename)) {
+        $data = encode_base64(compress(read_file($filename, binmode => ':raw')));
+    }
+
+    return $data;
 }
 
 =pod

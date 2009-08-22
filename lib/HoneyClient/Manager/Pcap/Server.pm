@@ -51,6 +51,9 @@ This documentation refers to HoneyClient::Manager::Pcap::Server version 1.02.
 =head2 INTERACTING WITH THE SERVER 
 
   use HoneyClient::Manager::Pcap::Client;
+  use Data::Dumper;
+  use Compress::Zlib;
+  use MIME::Base64 qw(encode_base64 decode_base64);
 
   my $quick_clone_name = "1ea37e398a4d1d0314da7bdee8";
   my $mac_address = "00:0c:29:c5:11:c7";
@@ -86,6 +89,10 @@ This documentation refers to HoneyClient::Manager::Pcap::Server version 1.02.
   # To get a relative path to the pcap file.
   ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapFile(session => $session, quick_clone_name => $quick_clone_name);
   print "PCAP Filename: " . Dumper($result) . "\n";
+
+  # To get the data in the pcap file.
+  ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapData(session => $session, quick_clone_name => $quick_clone_name);
+  print "PCAP Data: " . Dumper(uncompress(decode_base64($result))) . "\n";
 
   # To stop all packet captures.
   ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
@@ -220,6 +227,12 @@ require_ok('MIME::Base64');
 can_ok('MIME::Base64', 'encode_base64');
 can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
+
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
 
 # Make sure HoneyClient::Message loads.
 use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
@@ -490,6 +503,12 @@ eval {
         # Validate the result.
         ok($result, "getPcapFile(quick_clone_name => '$quick_clone_name')") or diag("The getPcapFile() call failed.");
 
+        # Get the data in the pcap file.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapData(session => $session, quick_clone_name => $quick_clone_name);
+
+        # Validate the result.
+        ok($result, "getPcapData(quick_clone_name => '$quick_clone_name')") or diag("The getPcapData() call failed.");
+
         # Stop all packet captures.
         ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);
 
@@ -647,6 +666,8 @@ sub run {
                 $cmd_response = HoneyClient::Manager::Pcap->getFirstIP(%{$cmd_args});
             } elsif ($message->action() == HoneyClient::Message::Pcap::Command::ActionType::GET_FILE) {
                 $cmd_response = HoneyClient::Manager::Pcap->getPcapFile(%{$cmd_args});
+            } elsif ($message->action() == HoneyClient::Message::Pcap::Command::ActionType::GET_DATA) {
+                $cmd_response = HoneyClient::Manager::Pcap->getPcapData(%{$cmd_args});
             } else {
                 $LOG->warn("Encountered unknown action type (" . $message->action() . ") in message.");
                 die "Unknown action type (" . $message->action() . ") in message.\n";

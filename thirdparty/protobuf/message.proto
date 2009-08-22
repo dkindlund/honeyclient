@@ -204,6 +204,7 @@ message Message {
                 START_VM  = 4;
                 GET_IP    = 5;
                 GET_FILE  = 6;
+                GET_DATA  = 7;
             }
 
             enum ResponseType {

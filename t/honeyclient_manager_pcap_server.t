@@ -80,6 +80,12 @@ can_ok('MIME::Base64', 'encode_base64');
 can_ok('MIME::Base64', 'decode_base64');
 use MIME::Base64 qw(encode_base64 decode_base64);
 
+# Make sure Compress::Zlib loads.
+BEGIN { use_ok('Compress::Zlib')
+        or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('Compress::Zlib');
+use Compress::Zlib;
+
 # Make sure HoneyClient::Message loads.
 use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
 BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
@@ -145,6 +151,12 @@ eval {
 
         # Validate the result.
         ok($result, "getPcapFile(quick_clone_name => '$quick_clone_name')") or diag("The getPcapFile() call failed.");
+
+        # Get the data in the pcap file.
+        ($result, $session) = HoneyClient::Manager::Pcap::Client->getPcapData(session => $session, quick_clone_name => $quick_clone_name);
+
+        # Validate the result.
+        ok($result, "getPcapData(quick_clone_name => '$quick_clone_name')") or diag("The getPcapData() call failed.");
 
         # Stop all packet captures.
         ($result, $session) = HoneyClient::Manager::Pcap::Client->shutdown(session => $session);

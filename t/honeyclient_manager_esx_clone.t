@@ -121,6 +121,12 @@ BEGIN { use_ok('File::Slurp')
 require_ok('File::Slurp');
 use File::Slurp;
 
+# Make sure File::Temp loads.
+BEGIN { use_ok('File::Temp')
+        or diag("Can't load File::Temp package. Check to make sure the package library is correctly listed within the path."); }
+require_ok('File::Temp');
+use File::Temp;
+
 # Make sure Compress::Zlib loads.
 BEGIN { use_ok('Compress::Zlib')
         or diag("Can't load Compress::Zlib package. Check to make sure the package library is correctly listed within the path."); }
@@ -144,11 +150,46 @@ BEGIN { use_ok('IO::File') or diag("Can't load IO::File package.  Check to make 
 require_ok('IO::File');
 use IO::File;
 
+# Make sure VMware::Vix::Simple loads.
+BEGIN { use_ok('VMware::Vix::Simple') or diag("Can't load VMware::Vix::Simple package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('VMware::Vix::Simple');
+use VMware::Vix::Simple;
+
+# Make sure VMware::Vix::API::Constants loads.
+BEGIN { use_ok('VMware::Vix::API::Constants') or diag("Can't load VMware::Vix::API::Constants package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('VMware::Vix::API::Constants');
+use VMware::Vix::API::Constants;
+
+# Make sure Perl::Unsafe::Signals loads.
+BEGIN { use_ok('Perl::Unsafe::Signals') or diag("Can't load Perl::Unsafe::Signals package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Perl::Unsafe::Signals');
+use Perl::Unsafe::Signals;
+
 # Make sure HoneyClient::Message loads.
 use lib qw(blib/lib blib/arch/auto/HoneyClient/Message);
 BEGIN { use_ok('HoneyClient::Message') or diag("Can't load HoneyClient::Message package.  Check to make sure the package library is correctly listed within the path."); }
 require_ok('HoneyClient::Message');
 use HoneyClient::Message;
+
+# Make sure Prima::noX11 loads.
+BEGIN { use_ok('Prima::noX11') or diag("Can't load Prima::noX11 package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Prima::noX11');
+require Prima::noX11;
+
+# Make sure Image::Match loads.
+BEGIN { use_ok('Image::Match') or diag("Can't load Image::Match package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('Image::Match');
+require Image::Match;
+
+# Make sure DateTime::HiRes loads.
+BEGIN { use_ok('DateTime::HiRes') or diag("Can't load DateTime::HiRes package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::HiRes');
+use DateTime::HiRes;
+
+# Make sure DateTime::Duration loads.
+BEGIN { use_ok('DateTime::Duration') or diag("Can't load DateTime::Duration package.  Check to make sure the package library is correctly listed within the path."); }
+require_ok('DateTime::Duration');
+use DateTime::Duration;
 }
 
 
