@@ -445,6 +445,7 @@
 
 # VMware Time Zone Change
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Control\\TimeZoneInformation
++	SetValueKey	System	HKLM\\SYSTEM\\ControlSet001\\Control\\TimeZoneInformation.*
 
 # IE - Asian Font Support
 +	SetValueKey	C:\\WINDOWS\\ime\\imjp8_1\\imjpmig\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
