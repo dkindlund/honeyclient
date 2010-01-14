@@ -37,8 +37,8 @@ echo "FIREWALL STATUS = $FIREWALL_STATUS"
 # Change to the honeyclient directory.
 cd ~/honeyclient 
 
-# Perform an SVN update (optional).
-svn update
+# Perform a GIT update (optional).
+git pull origin master
 
 # Suppress "Duplicate name exists on the network." error message.
 perl bin/suppress_error.pl

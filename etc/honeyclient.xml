@@ -272,8 +272,8 @@ Keep in mind, though, that some variables should remain module-specific
             <allowed_outbound_ports description="By default, when a clone VM is started, the firewall will allow the VM to connect to any remote server on that server's following ports. Note: Only TCP communication is supported.">
                 <tcp>80</tcp>
                 <tcp>443</tcp>
-                <!-- Optional: Supports dynamic SVN updates of the Agent code. -->
-                <tcp>3690</tcp>
+                <!-- Optional: Supports dynamic GIT updates of the Agent code. -->
+                <tcp>9418</tcp>
             </allowed_outbound_ports>
             <exchange_name description="The name of the STOMP exchange used to send messages to this component." default="commands">
                 commands
