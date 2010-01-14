@@ -378,6 +378,7 @@
 
 # IE7 Crashing
 +	Write	C:\\Program Files\\Internet Explorer\\iedw\.exe	C:\\WINDOWS\\.+tmp
++	Write	C:\\Program Files\\Internet Explorer\\iedw\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temp.*
 
 # Explorer - Temp File
 +	Write	C:\\WINDOWS\\explorer\.exe	C:\\Documents and Settings\\.+\\Local Settings\\Temp.*
