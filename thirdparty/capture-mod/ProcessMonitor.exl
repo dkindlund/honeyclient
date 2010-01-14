@@ -63,6 +63,7 @@
 +	VMip.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMip\.exe
 +	VMwareTray.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMwareTray\.exe
 +	VMwareUser.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe
++	VMwareService.exe	.*	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe
 
 # IE - Dr. Watson Crash Reporter
 +	iedw.exe	.*	C:\\Program Files\\Internet Explorer\\iedw\.exe
