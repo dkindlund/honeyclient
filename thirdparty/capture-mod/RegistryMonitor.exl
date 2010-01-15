@@ -452,6 +452,7 @@
 
 # VMware VIX Support
 +	SetValueKey	C:\\WINDOWS\\system32\\lsass\.exe	HKLM\\SAM\\SAM\\Domains\\Account\\Users.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings.*
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap.*
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\Cache.*
