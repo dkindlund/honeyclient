@@ -656,6 +656,7 @@
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 +	SetValueKey	C:\\WINDOWS\\system32\\reg\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Internet Explorer\\Main.*
 +	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKU\\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders.*
 
 # Yet more VIX support.
 +	SetValueKey	C:\\Program Files\\Windows Media Player\\setup_wm\.exe	HKCU\\Software\\Microsoft\\Multimedia\\ActiveMovie\\.+
