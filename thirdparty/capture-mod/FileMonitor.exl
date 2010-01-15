@@ -428,4 +428,3 @@
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
 +	Delete	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\setupapi.log
-+	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\Downloaded Program Files\\FP_AX_CAB_INSTALLER\.exe
