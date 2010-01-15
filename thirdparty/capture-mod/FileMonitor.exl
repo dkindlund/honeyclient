@@ -351,6 +351,8 @@
 +	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
 +	Delete	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\Temp.*
 +	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\All Users\\Application Data\\VMware.*
++	Write	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History.*
++	Delete	C:\\Program Files\\VMware\\VMware Tools\\VMwareUser\.exe	C:\\Documents and Settings\\Administrator\\Local Settings\\History.*
 
 # IE - Active Scripting Printing
 +	Write	C:\\Program Files\\Internet Explorer\\iexplore\.exe	C:\\WINDOWS\\.+htm
