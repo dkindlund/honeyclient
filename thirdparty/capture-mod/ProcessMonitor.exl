@@ -80,3 +80,6 @@
 
 # IE - Opening notepad automatically, when viewing a CSS file.
 +	notepad.exe	.*	C:\\WINDOWS\\system32\\notepad\.exe
+
+# IE - Benign loading of Outlook Express
++	msimn.exe	.*	C:\\Program Files\\Outlook Express\\msimn\.exe
