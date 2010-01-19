@@ -671,7 +671,5 @@
 
 # ESX 4 Upgrade
 +	SetValueKey	System	HKLM\\SYSTEM\\ControlSet001\\Enum\\Root\\LEGACY_FASTFAT\\0000\\Control
-+	DeleteValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\PerfProc\\Performance.*
-+	DeleteValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\PerfOS\\Performance.*
-+	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\Eventlog\\Application\\ESENT.*
-+	DeleteValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\PerfDisk\\Performance.*
++	DeleteValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.*
++	SetValueKey	C:\\Program Files\\VMware\\VMware Tools\\VMwareService\.exe	HKLM\\SYSTEM\\ControlSet001\\Services\\.*
